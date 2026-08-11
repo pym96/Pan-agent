@@ -19,7 +19,7 @@ The project is built around one claim: an autonomous research system is useful o
 - One bounded eight-hour Unattended Research Run with no human edits, restarts, or answers.
 - Improvement Rate is reported honestly but has no required minimum.
 
-The detailed v1 specification is tracked in GitHub Issues. Domain terms live in [CONTEXT.md](CONTEXT.md), and accepted architectural decisions live in [docs/adr](docs/adr).
+The detailed v1 specification is [GitHub Issue #1](https://github.com/pym96/autonomous-research-harness/issues/1). Domain terms live in [CONTEXT.md](CONTEXT.md), and accepted architectural decisions live in [docs/adr](docs/adr).
 
 ## Status
 
