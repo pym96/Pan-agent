@@ -1,0 +1,29 @@
+# Credentials and local configuration
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+dist/
+build/
+*.egg-info/
+
+# Local run state and generated artifacts
+.scratch/
+.runs/
+artifacts/
+worktrees/
+
+# Editors and operating systems
+.DS_Store
+.idea/
+.vscode/
