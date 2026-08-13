@@ -1,6 +1,6 @@
 # ADR-0001: Treat the Autonomous Research Harness as the only primary product
 
-- Status: Accepted
+- Status: Superseded by ADR-0008
 - Date: 2026-08-11
 
 ## Context
@@ -9,7 +9,7 @@ The available implementation window is eight weeks at roughly 30 hours per week.
 
 ## Decision
 
-The Autonomous Research Harness is the only primary product. Coding Benchmark is its early proving ground, AutoGeoResearch is its first intended Research Application, a paper is only a possible Research Outcome, and Content Releases are derived from verified milestones.
+The Autonomous Research Harness is the only primary product. Coding Benchmark is its early proving ground, a paper is only a possible Research Outcome, and Content Releases are derived from verified milestones. The original choice of AutoGeoResearch as the first Research Application is superseded by ADR-0007.
 
 ## Consequences
 

@@ -9,7 +9,7 @@ An eight-hour unattended agent with arbitrary host-shell access could leak crede
 
 ## Decision
 
-The agent produces Patch Proposals only for allowlisted research files. The Isolated Executor applies accepted proposals in temporary Git worktrees and invokes only predefined setup, test, train, and evaluation commands. The Protected Control Plane is outside the patch boundary. Out-of-policy actions terminate the attempt as Policy Blocked rather than waiting for approval during unattended runs.
+The agent produces Patch Proposals only for allowlisted workspace files. The Isolated Executor applies accepted proposals in temporary Git worktrees and invokes only predefined setup, test, and evaluation commands. The Protected Control Plane is outside the patch boundary. Out-of-policy actions terminate the Task Run as Policy Blocked.
 
 ## Consequences
 

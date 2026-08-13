@@ -1,6 +1,6 @@
 # ADR-0003: Measure v1 by experiment auditability and validity, not publication
 
-- Status: Accepted
+- Status: Superseded by ADR-0008
 - Date: 2026-08-11
 
 ## Context

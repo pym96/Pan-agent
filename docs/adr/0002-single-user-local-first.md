@@ -5,11 +5,11 @@
 
 ## Context
 
-The primary operator has a local workstation, four 24 GB RTX 4090 GPUs, and online model access. Multi-user platform work would consume time without improving the core research-loop evidence.
+The primary user has a local workstation and online model access. Multi-user platform work would consume time without improving the Local Workspace Agent evidence.
 
 ## Decision
 
-v1 serves one Research Operator on a Local Research Workspace. The code is intended for public source release and self-deployment, but v1 does not implement accounts, teams, tenant isolation, a public task market, or hosted SaaS.
+v1 serves one user on isolated local fixture workspaces. The code is intended for public source release and self-deployment, but v1 does not implement accounts, teams, tenant isolation, a public task market, or hosted SaaS.
 
 ## Consequences
 

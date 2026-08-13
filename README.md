@@ -1,26 +1,37 @@
-# Autonomous Research Harness
+# Workspace Agent Harness
 
-Autonomous Research Harness is a single-user, local-first system for running long-lived research agents safely and evaluating their work reproducibly.
+Workspace Agent Harness is a single-user, local-first project for building and evaluating a Local Workspace Agent. A user gives the agent a goal and an isolated local workspace; the agent may read, search, and modify Markdown, CSV, and code through allowlisted tools, while the Harness records a structured Trace and evaluates the resulting workspace with deterministic graders.
 
-The project is built around one claim: an autonomous research system is useful only when every attempt is bounded, recoverable, auditable, and evaluated by controls the agent cannot rewrite.
+## v1 product contract
 
-## Product shape
+- **Task surface:** Markdown knowledge maintenance, CSV retrieval/cleaning/aggregation, and code modification/test repair.
+- **Agent surface:** an online model adapter, CLI, allowlisted file/command tools, composable Skills and Workflow, explicit budgets, structured Trace, checkpoint/resume, and policy results.
+- **Acceptance suite:** 30 version-frozen local tasks, exactly 10 per task family. Every task uses an isolated fixture workspace and a deterministic grader; tasks and graders freeze before the formal run, and failed cases are retained.
+- **Baseline:** the same model, tools, prompt budget, and task suite run through a minimal ReAct loop. The full system adds only Skills/Workflow, Trace, recovery, and reliability controls.
+- **Metrics:** task success rate is primary; Token use, cost, and latency are secondary; fault-injection recovery rate, unauthorized-operation block rate, and Trace completeness are reliability metrics.
 
-- **Harness Core** — model-independent loop, budgets, event log, checkpoints, recovery, and metrics.
-- **Coding Benchmark** — the first, cheaply verifiable environment used to harden the Harness.
-- **Research Adapter** — the boundary through which a real research workspace exposes allowed files and fixed commands.
-- **AutoGeoResearch** — the first intended real research application; its exact baseline, dataset, and evaluator remain provisional.
-- **TUI/CLI** — an operator view over the same headless runtime, not a second runtime.
+Coze is a **Product Reference** for how task entry, Skills, Workflow, tool execution, observation, debugging, evaluation, and release can be organized. It is not a benchmark and this project does not claim superiority to Coze. The 30-task **Evaluation Suite** is the v1 acceptance mechanism. Only after v1 passes may a v1.1 experiment attempt a clearly named Terminal-Bench subset; BFCL is an on-demand component diagnosis for tool-selection or argument errors. GAIA is outside the current roadmap.
 
-## v1 reliability targets
+## Explicit exclusions
 
-- 100% Auditable Attempt Rate, including crashes, OOMs, timeouts, and policy violations.
-- At least 80% Valid Experiment Rate across the acceptance campaign.
-- One bounded eight-hour Unattended Research Run with no human edits, restarts, or answers.
-- Improvement Rate is reported honestly but has no required minimum.
+v1 does not include open-web browsing, GUI/Computer Use, multimodal input/output, autonomous research, cloud multi-tenancy, a complete Coze clone, model training, or a precommitted paper. Research may be reconsidered only after the product exposes a repeated, falsifiable failure mode and additional work cannot delay the job-search deliverable.
 
-The detailed v1 specification is [GitHub Issue #1](https://github.com/pym96/autonomous-research-harness/issues/1). Domain terms live in [CONTEXT.md](CONTEXT.md), and accepted architectural decisions live in [docs/adr](docs/adr).
+## Current verified state
 
-## Status
+The first local tracer bullet is implemented; v1 is **not** complete.
 
-Planning and repository initialization. Implementation has not started.
+- `AgentLoop.run(Task, RunLimits) -> RunResult` with replaceable model and tool interfaces.
+- Seven explicit terminal statuses: success, model error, parse error, tool error, step limit, timeout, and model-call budget exceeded.
+- JSONL Trace output that appends within one run and refuses to overwrite an existing Trace path; this is not a cross-process tamper-proof log.
+- A loader that rejects unknown event types, missing sequence entries, and unknown terminal statuses.
+- Fourteen deterministic standard-library behavior tests plus one package-identity migration test.
+
+Run the current tests with:
+
+```bash
+python3 -m unittest discover -s tests -v
+```
+
+Not implemented yet: a real model-provider adapter, CLI, allowlisted workspace tools, Skills/Workflow, OS/process/network isolation, checkpoint/resume, the 30-task Evaluation Suite, baseline experiment, CI, or a public v1 release.
+
+The detailed v1 specification is [GitHub Issue #1](https://github.com/pym96/workspace-agent-harness/issues/1). Domain language lives in [CONTEXT.md](CONTEXT.md), and the product migration decision is [ADR-0008](docs/adr/0008-local-workspace-agent-v1.md).
