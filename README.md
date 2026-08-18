@@ -2,6 +2,10 @@
 
 Workspace Agent Harness is a single-user, local-first project for building and evaluating a Local Workspace Agent. A user gives the agent a goal and an isolated local workspace; the agent may read, search, and modify Markdown, CSV, and code through allowlisted tools, while the Harness records a structured Trace and evaluates the resulting workspace with deterministic graders.
 
+## Learning Wiki
+
+The project maintains a source-grounded [Learning Wiki](wiki/index.md) recording what building this system teaches: harness engineering, agent tool design, evaluation methodology, and verification practice. Every substantive page is either a **Verified Learning Fact** (with an explicit verification level — `source-located`, `triangulated`, or `experiment-reproduced` — and stated boundaries) or an **Open Learning Question** (with a verification path). The [log](wiki/log.md) is append-only. The Wiki claims no product, benchmark, or resume authority; it is the project's public learning trail.
+
 ## v1 product contract
 
 - **Task surface:** Markdown knowledge maintenance, CSV retrieval/cleaning/aggregation, and code modification/test repair.

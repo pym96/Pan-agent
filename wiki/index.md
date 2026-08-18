@@ -19,6 +19,8 @@ This Wiki contains only Verified Learning Facts and Open Learning Questions. It 
 - [Agent DX CLI scale](sources/2026-08-17-agent-dx-cli-scale.md)
 - [DPO and preference-optimization terminology](sources/2026-08-18-dpo-preference-optimization.md)
 - [Skill packaging: SKILL.md, layered loading, install scopes](sources/2026-08-18-skill-packaging-mechanics.md)
+- [PinchBench v2.0.0 task and runner mechanics](sources/2026-08-18-pinchbench-v2.md)
+- [Composio 30-task agent comparison methodology](sources/2026-08-18-composio-agent-benchmark-thread.md)
 
 ### Triangulated
 
