@@ -1,65 +1,71 @@
-# Workspace Agent Harness
+# General + Vertical Agent System
 
-This context describes a local, general-purpose workspace agent and the evidence used to judge whether it completes bounded tasks reliably.
+This context defines the project-specific language for separating a reusable execution core from domain-owned behavior. Process governance, learning records, and verified implementation state live in the documents linked from `AGENTS.md`, not in this domain glossary.
 
-## Language
+## Active product language
 
 **Workspace Agent Harness**:
-The only primary product: the runtime, controls, and evaluation system around a Local Workspace Agent.
-_Avoid_: Autonomous Research Harness, research platform, coding-agent clone
+The complete project and product boundary: the General Agent Runtime, Vertical Domain Packs, tool and policy surfaces, evaluation, and CLI/release surfaces.
+_Avoid_: implemented full system, Runtime synonym, Learning Wiki, development-agent workflow
+
+**AgentLoop**:
+The smallest execution Module behind `AgentLoop.run(Task, RunLimits) -> RunResult`; implementation status belongs in the verified-project-fact register.
+_Avoid_: General Agent Runtime, ReAct framework, complete Harness
+
+**General Agent Runtime**:
+The domain-neutral execution Module that owns Run lifecycle, model/tool execution, state, budgets, policy enforcement, Trace, recovery, and exactly one terminal RunResult.
+_Avoid_: general prompt, guidance file, universal chatbot, DeerFlow clone
+
+**Vertical Domain Pack**:
+A versioned package that supplies domain task contracts, guidance/skills, requested tools and policy defaults, fixtures, and a Domain Evaluator through a stable Runtime seam.
+_Avoid_: separate Agent Runtime, copied application, prompt-only persona
+
+**Domain Pack Interface**:
+Everything Runtime and pack authors must know to install, validate, select, execute, identify, and evaluate a pack, including invariants, error modes, version/hash, authority rules, and ordering.
+_Avoid_: folder convention without behavioral contract
+
+**Domain Evaluator**:
+An agent-immutable evaluator owned by a Vertical Domain Pack that judges domain success from final artifacts and evidence without changing Runtime lifecycle semantics.
+_Avoid_: model self-rating, generic success message, Acceptance Gate
+
+**Generality Proof**:
+Evidence that two materially different Vertical Domain Packs execute through the same Runtime Interface without Runtime source edits, while preserving Runtime invariants and producing domain-specific verdicts.
+_Avoid_: a general-purpose system prompt, one demo, many tools
+
+## Historical Local Workspace language
 
 **Local Workspace Agent**:
-An agent that pursues a user goal by reading, searching, and modifying an isolated local workspace through allowlisted tools.
-_Avoid_: Coding Agent, Data Analysis Agent, Research Agent
+The superseded v1 product and a candidate source of tasks for the workspace-coding proof domain.
+_Avoid_: the only target product, proof of generality
 
 **Workspace Task**:
-A versioned goal, fixture workspace, policy, budgets, and Deterministic Grader that together define one evaluable unit of work.
-_Avoid_: Research Task, free-form prompt, benchmark question
+A versioned goal, fixture workspace, policy, budgets, and Deterministic Grader that together defined one evaluable unit of Local Workspace work.
+_Avoid_: Research Task, free-form prompt, current cross-domain task contract
 
 **Task Run**:
-One bounded execution of a Workspace Task that produces one structured Trace and exactly one terminal RunResult.
+One bounded execution of a Workspace Task that produced one structured Trace and exactly one terminal RunResult.
 _Avoid_: Research Run, Experiment Attempt, chat session
 
 **Evaluation Suite**:
-The frozen set of 30 local Workspace Tasks used for v1 acceptance, with ten Markdown, ten CSV, and ten code tasks.
-_Avoid_: Coding Benchmark, public leaderboard, cherry-picked demo set
+The superseded proposal for 30 local Workspace Tasks, retained only as a historical baseline until the General Runtime and per-domain evaluation design is accepted.
+_Avoid_: current implementation plan, public leaderboard, proof of generality
 
 **Deterministic Grader**:
-The agent-immutable rule that converts the final workspace state into a reproducible task verdict and supporting measurements.
-_Avoid_: model preference, subjective review, mutable evaluator
+The historical Local Workspace name for an agent-immutable rule that converted final workspace state into a reproducible verdict; new domain designs use Domain Evaluator.
+_Avoid_: second active evaluator term, model preference, subjective review
 
 **Minimal ReAct Baseline**:
-The comparison condition using the same model, tools, task, and budget without the full system's Skills/Workflow, recovery, and reliability mechanisms.
+The historical comparison condition using the same model, tools, task, and budget without the proposed system's Skills/Workflow, recovery, and reliability mechanisms.
 _Avoid_: weaker model baseline, strawman baseline
 
 **Full Harness System**:
-The comparison condition that adds Skills/Workflow, Trace, recovery, and reliability controls to the Minimal ReAct Baseline without changing model, tools, tasks, or budget.
-_Avoid_: production system, best configuration
-
-**Skill**:
-A versioned instruction package that teaches the Local Workspace Agent how to perform a reusable class of workspace work.
-_Avoid_: prompt snippet, hidden behavior
-
-**Workflow**:
-An explicit composition of Skills, tool permissions, state transitions, and stopping rules for a class of Workspace Tasks.
-_Avoid_: vibe-coding session, implicit plan
-
-**Product Reference**:
-An external product studied to organize user-facing capabilities without serving as a scored comparison target.
-_Avoid_: benchmark, competitor score
-
-**External Benchmark**:
-A separately versioned public task and evaluation framework used only after v1 to establish external comparability.
-_Avoid_: product blueprint, official exam
+The historical comparison condition that added Skills/Workflow, Trace, recovery, and reliability controls to the Minimal ReAct Baseline without changing model, tools, tasks, or budget.
+_Avoid_: current Workspace Agent Harness definition, production system
 
 **Protected Control Plane**:
-The Harness, graders, task fixtures, budgets, credentials, policies, and launch rules that the Local Workspace Agent cannot modify.
-_Avoid_: working files, agent context
+The historical name for Harness-owned graders, fixtures, budgets, credentials, policies, and launch rules that the Local Workspace Agent could not modify.
+_Avoid_: working files, agent context, current accepted policy design
 
 **Policy Blocked**:
-The terminal status for an action that exceeds the Workspace Task's declared file, command, or resource authority.
-_Avoid_: crash, approval queue
-
-**Learning Wiki**:
-A versioned Markdown record of sources, concepts, experiments, failures, decisions, and unresolved questions produced while building the project.
-_Avoid_: product feature, benchmark, desktop knowledge app
+The proposed historical terminal status for an action outside a Workspace Task's declared file, command, or resource authority.
+_Avoid_: implemented terminal status, crash, approval queue
