@@ -21,6 +21,7 @@ This Wiki contains only Verified Learning Facts and Open Learning Questions. It 
 - [Skill packaging: SKILL.md, layered loading, install scopes](sources/2026-08-18-skill-packaging-mechanics.md)
 - [PinchBench v2.0.0 task and runner mechanics](sources/2026-08-18-pinchbench-v2.md)
 - [Composio 30-task agent comparison methodology](sources/2026-08-18-composio-agent-benchmark-thread.md)
+- [3Blue1Brown: cross-entropy, compression, and LLM training](sources/2026-08-19-cross-entropy-compression.md)
 - [chengyongru: multi-agent collaboration survey](sources/2026-08-19-multiagent-collaboration-survey.md)
 
 ### Triangulated
