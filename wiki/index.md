@@ -21,6 +21,7 @@ This Wiki contains only Verified Learning Facts and Open Learning Questions. It 
 - [Skill packaging: SKILL.md, layered loading, install scopes](sources/2026-08-18-skill-packaging-mechanics.md)
 - [PinchBench v2.0.0 task and runner mechanics](sources/2026-08-18-pinchbench-v2.md)
 - [Composio 30-task agent comparison methodology](sources/2026-08-18-composio-agent-benchmark-thread.md)
+- [chengyongru: multi-agent collaboration survey](sources/2026-08-19-multiagent-collaboration-survey.md)
 
 ### Triangulated
 
@@ -32,6 +33,7 @@ This Wiki contains only Verified Learning Facts and Open Learning Questions. It 
 - [Cross-domain failure-mode question](questions.md)
 - [First cross-domain experiment question](experiments/README.md)
 - [Failure-retention question](failures/README.md)
+- [Multi-agent coordination protocol question](questions/multiagent-runtime-coordination.md)
 
 ## External decisions and facts
 

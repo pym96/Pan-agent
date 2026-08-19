@@ -50,3 +50,15 @@ Do not edit or delete existing entries. Corrections are new entries that link to
 - Ingested the Composio 30-task model-comparison thread as a source-located methodology reference for pass rate, duration, Token use, tool calls, cost per task, and cost per success.
 - Added proposed ADR-0010 and `docs/design/benchmark-strategy.md`: PinchBench becomes a content-pinned external compatibility lane; original deterministic cases form a separate 15+15 vertical evidence lane.
 - Boundary: no benchmark was executed, no score was produced, and neither source establishes a project or resume fact.
+
+## 2026-08-19｜Learning ingest: multi-agent collaboration survey (chengyongru)
+
+- Ingested: X article `multiagent 协作问题的初步整理` by @chengyongru (posted 2026-08-17); full text captured via the fxtwitter API, tier table and dialogue example transcribed verbatim by the user. Admitted as `source-located`.
+- Recorded: the four-tier problem taxonomy; the single-agent justification rule (a multi-agent workflow must exploit a condition a single agent lacks); six reported coordination failure results (Communication-Reasoning Gap, dialogue-vs-silent embodied success inversion, expert-dilution tradeoff, trust-without-correctness, 20-agent sorting failure with CAMOC, DPBench deadlock rates); and the claim that real multi-agent runtimes need explicit, verifiable distributed-systems protocols rather than prompt advice.
+- Boundary: all eight cited references were only link-checked (HTTP 200), not read first-hand; every paper claim is recorded as the article's claim. The survey does not expand the single-agent product boundary.
+- Added open question: which coordination mechanisms must be Runtime-encoded vs prompt-level if multi-agent execution is ever justified (verification path gated on a concrete requirement plus first-hand paper reading).
+
+## 2026-08-19｜Note: acceptance anchor update by direct human authorization
+
+- The acceptance validator still pins the workspace repo HEAD to `7d267bc` (the HF-019 acceptance state), while the repo has since advanced through commits `31401db` and `116da36` and carries a large uncommitted working tree from 2026-08-18/19 sessions.
+- The human directly authorized updating the validator's `EXPECTED_HEADS` anchor to the post-ingest commit. This entry records that the update is a direct human authorization, not an independent Regulator acceptance; the uncommitted backlog still awaits a proper independent Regulator pass.
