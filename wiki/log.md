@@ -115,3 +115,10 @@ Do not edit or delete existing entries. Corrections are new entries that link to
 - One probe initially asserted the wrong expectation (silent freeze) and exposed that rebinding data globals is instead caught by per-run drift revalidation; the probe was corrected to assert fail-closed behavior. No defect in the candidate was found.
 - The backlog was organized into four semantic commits (governance, design packet, implementation candidate with probes, wiki). Acceptance scope remains ordinary operator-trusted implementation behavior; security/authority-boundary claims, public benchmark numbers, fact registration, and resume disclosure stay closed and await explicit Human or different-model review.
 - The acceptance validator's workspace HEAD anchor is updated under this review; the previous move to `611a2e9` was direct human authorization, not a Regulator acceptance.
+
+## 2026-08-20｜Learning ingest: ReAct and SWE-agent papers
+
+- Ingested two first-hand papers from `reference_paper/`: ReAct (arXiv:2210.03629v3, ICLR 2023) and SWE-agent (arXiv:2405.15793v3, NeurIPS 2024), both admitted as `source-located` from direct reading of the main bodies.
+- Rationale (user framing, recorded as session context, not as a wiki fact): the user positions these papers as supplements to the Hung-yi Lee three-lever taxonomy — ReAct as the loop grammar beneath the levers, SWE-agent as ablation-measured concretization of the tool/feedback levers. This cross-source mapping remains an interpretation and is deliberately not asserted on any fact page.
+- Recorded on the ReAct page: the `A ∪ L` action-space formulation, dense-vs-sparse thought placement, HotpotQA/FEVER numbers, the hallucination-vs-reasoning-error tradeoff from the 200-trajectory human analysis, finetuning results, and ALFWorld/WebShop outcomes including the ReAct-IM ablation.
+- Recorded on the SWE-agent page: the ACI concept, the four design principles, the interface components, headline SWE-bench numbers, the per-component ablation table, and the behavioral findings (failed-edit recovery drop, succeed-fast/fail-slow, failure taxonomy).

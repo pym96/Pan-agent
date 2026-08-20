@@ -23,6 +23,8 @@ This Wiki contains only Verified Learning Facts and Open Learning Questions. It 
 - [Composio 30-task agent comparison methodology](sources/2026-08-18-composio-agent-benchmark-thread.md)
 - [3Blue1Brown: cross-entropy, compression, and LLM training](sources/2026-08-19-cross-entropy-compression.md)
 - [chengyongru: multi-agent collaboration survey](sources/2026-08-19-multiagent-collaboration-survey.md)
+- [ReAct: Synergizing Reasoning and Acting in Language Models](sources/2026-08-20-react-paper.md)
+- [SWE-agent: Agent-Computer Interfaces Enable Automated Software Engineering](sources/2026-08-20-swe-agent-paper.md)
 
 ### Triangulated
 
