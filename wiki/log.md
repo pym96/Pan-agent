@@ -122,3 +122,65 @@ Do not edit or delete existing entries. Corrections are new entries that link to
 - Rationale (user framing, recorded as session context, not as a wiki fact): the user positions these papers as supplements to the Hung-yi Lee three-lever taxonomy — ReAct as the loop grammar beneath the levers, SWE-agent as ablation-measured concretization of the tool/feedback levers. This cross-source mapping remains an interpretation and is deliberately not asserted on any fact page.
 - Recorded on the ReAct page: the `A ∪ L` action-space formulation, dense-vs-sparse thought placement, HotpotQA/FEVER numbers, the hallucination-vs-reasoning-error tradeoff from the 200-trajectory human analysis, finetuning results, and ALFWorld/WebShop outcomes including the ReAct-IM ablation.
 - Recorded on the SWE-agent page: the ACI concept, the four design principles, the interface components, headline SWE-bench numbers, the per-component ablation table, and the behavioral findings (failed-edit recovery drop, succeed-fast/fail-slow, failure taxonomy).
+
+## 2026-08-20 | PinchBench P0 configuration audit
+
+- Re-audited the pinned PinchBench `v2.0.0` checkout through the new content-lock candidate: exact commit, `tasks/` tree, manifest SHA-256, clean worktree, manifest/task-file set, frontmatter IDs, grading types, timeouts, and per-task content hashes.
+- The core/full catalogs resolve to 21/147 tasks. No task or embedded grader was executed; every task remains pre-run ineligible until an explicit local translation and protected evaluator exist.
+- New source observation: `task_polymarket_briefing` is categorized as `research` in the canonical manifest and `Research` in its frontmatter. The candidate retains this capitalization discrepancy in source provenance.
+- Added an original 15+15 vertical configuration. Only the two already-implemented seeds are eligible; 28 configured cases remain visibly ineligible. A two-attempt development smoke is not recorded as a benchmark score or project fact.
+
+## 2026-08-20 | Benchmark configuration Regulator rejection and remediation
+
+- The first independent configuration review rejected the candidate because the two eligible catalog entries named evaluators that did not match the real seed Pack `ControlProjection`, while the loader accepted forged fixture/evaluator declarations by recomputing a new valid Suite identity.
+- The same review found that PinchBench task frontmatter could omit `timeout_seconds` or provide zero/negative values despite the documented timeout audit boundary.
+- The Working remediation corrects the evaluator IDs, derives and validates each eligible seed's real fixture/evaluator control identities, retains those exact identities in source provenance, and requires a present positive-integer timeout. New negative contracts cover forged fixture/evaluator values and missing, zero, negative, or non-integer timeouts.
+- Boundary: these are remediation claims awaiting a fresh independent review. No benchmark task/result, public number, VPF, factual-ledger entry, or resume claim was added.
+
+## 2026-08-20 | Benchmark configuration second Regulator review accepted
+
+- The same independent Regulator re-read the remediated snapshot and reran its forged-control and timeout probes. Forged fixture/evaluator values plus missing, zero, negative, and non-integer timeouts all failed closed.
+- It matched each resolved eligible control to Pack compilation and actual RunReport fixture/evaluator provenance, confirmed vertical configuration identity `sha256:834a3141470bb69acb69b7a37241bd1753f92a64613b9b94623f360b47d85005`, retained Pinch 21/147 as entirely ineligible, and rebuilt/installed the wheel with all locks.
+- Ordinary configuration-only boundary: accepted. Pinch translation/execution, official compatibility, public results, the remaining 28 case implementations, high-risk security Claims, VPF, factual-ledger, and resume changes remain outside the Gate.
+
+## 2026-08-20 | ReAct MVP and SWE-bench environment learning checkpoint
+
+- Added an experiment-reproduced fact for the pinned official SWE-bench runner, current enriched Lite dataset source, and ARM Docker behavior. The first implicit x86_64 image acquisition failed as infrastructure; an explicit `linux/amd64` pull followed by the same official gold evaluation completed and resolved the probe.
+- Added the bounded Act-only versus visible-ReAct question: five frozen Lite development cases, three repetitions, DeepSeek V4 Flash with provider thinking disabled, bash-only Docker execution, full trajectories, lossless raw command streams, and official `resolved` as the primary outcome.
+- The first authorized DeepSeek chat request failed with insufficient balance before a usable completion, so the 30-attempt question remains open. No model outcome, benchmark score, Verified Project Fact, factual-ledger entry, or resume claim was created.
+- Corrected the executable dataset source from the older `princeton-nlp/SWE-bench_Lite` copy to the current official `SWE-bench/SWE-bench_Lite` revision containing runner execution metadata. The selected IDs did not change.
+
+## 2026-08-20 | Five-case SWE-bench gold gate completed
+
+- Downloaded the exact Lite development parquet from revision `b0dde1093fe417d83b7184254edf8199c1f0dff5`, locked its SHA-256, and paired each of the five mutable image tags with its observed registry digest.
+- All five frozen cases completed and resolved their official gold patches under the pinned runner with zero unresolved, infrastructure, ambiguous, evaluator-error, or unstopped-container counts.
+- Added reproducibility scripts for one exact gold gate and one pre-gated Agent attempt. The latter retains full Trace, lossless raw command streams, patch, provider usage, and official evaluation while refusing overwrite and configuration/gate drift.
+- Boundary: gold success establishes evaluator eligibility only. DeepSeek balance still blocks Agent execution, so no Act-only/ReAct outcome or SWE-bench score exists.
+
+## 2026-08-23 | ReAct MVP 30-slot experiment reproduced
+
+- Superseded the earlier open Act-only/ReAct question after executing every frozen matrix slot. Twenty-nine slots retained task outcomes and one retained an infrastructure/artifact failure; the raw run-root manifest is `sha256:7a3a153f888f602187e500ac2a693f786d0a5852391f736920354b41d998596a`.
+- Act-only and visible ReAct each produced one resolved patch among 15 planned slots, on different cases. One Act-only infrastructure failure leaves task-outcome denominators of 1/14 and 1/15; the result is not a balanced performance estimate.
+- Recorded the dominant failure boundary: 26 model-error terminals (16 invalid JSON, 10 missing ReAct thought), four step limits, 26 empty patches, three non-empty patches, and no successful final AgentLoop terminal. Both resolved patches survived a later model/protocol error, demonstrating that Runtime terminal state and evaluator task outcome must stay separate.
+- Recorded measurement gaps rather than filling them with zeros: provider usage covers 196/252 calls and v1 persisted no durations. Post-run fixes retain invalid-response usage, preserve the container on ordinary command timeout, record timing, and persist patch-extraction failures; they did not alter or rerun the matrix.
+- Boundary: this is an experiment-reproduced five-case learning fact and candidate project Evidence, not a SWE-bench Lite score, Verified Project Fact, factual-ledger entry, or resume fact. A newly frozen protocol-reliability gate is required before selecting a SWE-agent-style ACI treatment.
+
+## 2026-08-23｜Learning ingest: Anthropic harness definitions and first-principles core
+
+- Ingested two Anthropic primary sources (trustworthy-agents research page, managed-agents engineering page) as one source-located page: the normative definition ("instructions, and the guardrails, that the model operates under"), the operational definition ("the loop that calls Claude and routes Claude's tool calls to the relevant infrastructure"), the session/harness/sandbox runtime split, and context management assigned to the harness.
+- User authorized adding the first-principles core to the Harness Engineering concept page: a raw model call is a stateless text-to-text function, so identity, instruction framing, action execution, continuation, memory, and enforcement must be supplied by non-model components. The concept page now rests on four sources.
+- Session synthesis (recorded here, not on fact pages): the internalized one-line definition — "the model thinks; the harness decides what it sees each turn, what its output becomes, and when the loop stops."
+- Boundary: the consciousness/cognitive-system analogy from the previous session remains outside the Wiki per the user's decision; only the checkable statelessness premise and the definitional synthesis were admitted.
+
+## 2026-08-23｜Learning ingest: Earendil "What is a harness"
+
+- Ingested the Earendil product blog post (2026-08-20) as source-located, after fetching the URL and confirming it matches the text the user pasted in session.
+- Recorded: the four-component framing (system prompt / tools / agentic loop / translation layer), the "harness describes tools but the model decides when to use them" point, and the section-IV agency argument (portable harnesses shift power from AI labs to end users) marked as the author's normative position.
+- Boundary noted: vendor blog; its decomposition differs from Anthropic's narrow usage, where tools and environment are adjacent layers the harness routes to.
+- The Anthropic-definitions ingest and this page are both uncommitted per the user's decision; they sit alongside another session's uncommitted work and must be isolated at commit time.
+
+## 2026-08-23 | Sixth Regulator review: ReAct MVP backlog verified
+
+- A new independent Regulator session (same model family, separate process) re-read ADR-0011, the design, and all three Evidence records; reran the 68-test suite; and independently recomputed from raw artifacts: the pinned parquet SHA-256, the deterministic five-case selection order, the config content hash, per-variant outcome/failure/Token aggregates, the gold-gate report hashes, the incident-slot anatomy, and the patch-before-failure ordering in the resolved trajectories. All claims reproduced.
+- New Regulator probes (now `tests/test_regulator_react_mvp_probes.py`): slot instance/config-hash tampering fails the summary closed; protocol rejects unexpected fields, non-bash tools, and config drift. Credential scan of `.runs/` found no key material.
+- Scope: ordinary candidate Evidence verification. The 30-slot result remains a five-case development smoke — not a score, VPF, or resume fact. The frozen `protocol-reliability-v1` experiment (human-grilled design: 24 frozen contexts, J0/J1/S0/S1, one bounded repair, layered L0-L3 metrics, five repetitions, Wilson intervals, time-window identity) is the next Working Agent gate.

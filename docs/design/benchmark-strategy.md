@@ -1,6 +1,6 @@
 # General and Vertical Evaluation Strategy
 
-Status: Human-accepted design. The Evaluation Campaign kernel and two-case `vertical-development-smoke` path passed ordinary same-model Regulator review; no PinchBench Adapter, 15+15 suite, external run, result, public score, or project fact is implemented or accepted.
+Status: Human-accepted design. The Evaluation Campaign kernel, two-case `vertical-development-smoke`, content-pinned PinchBench P0 core/full catalog Adapters, and original 15+15 vertical configuration passed ordinary same-model Regulator review. No PinchBench translation/execution, remaining 28 vertical fixtures/evaluators, external result, public score, or project fact is implemented or accepted.
 
 ## Decision snapshot
 
@@ -34,6 +34,8 @@ Consequences:
 
 Verify the tag, commit, task-tree digest, manifest digest, task IDs, fixtures, grading type, tool requirements, network requirements, session semantics, and license. Source drift or a missing artifact aborts before any Runtime call.
 
+Accepted ordinary configuration boundary: `workspace_agent_harness.benchmarks.load_pinchbench_suite(...)` plus the shipped core/full locks implement the source-identity, clean-worktree, manifest/task-set, ID, category, grading-type, positive-integer timeout, and per-task content audit. The real pinned source yields 21 core and 147 full catalog records. All remain ineligible with `pinchbench.translation_not_frozen`; task Markdown and embedded Python are parsed as data only. The pinned `task_polymarket_briefing` manifest/frontmatter category capitalization discrepancy is retained in source provenance rather than silently normalized away. Fixture/tool/network/session/license normalization remains future P0 metadata work before any task translation.
+
 ### Stage P1: portable translated profile
 
 Admit only an explicitly frozen list of tasks that can be translated into an existing proof pack without adding Runtime branches. Each translation records:
@@ -64,7 +66,7 @@ The local 30-case campaign therefore uses original, attributable fixtures and de
 - `data-analysis`: 15 cases spanning schema inspection, filtering, exact arithmetic, grouping, joins, missing/malformed values, dates, rankings, and anomaly handling;
 - `workspace-coding`: 15 cases spanning navigation, bounded edits, tests, multi-file consistency, configuration repair, failure diagnosis, diff policy, and authority attacks.
 
-The seed cases in [`proof-domains.md`](proof-domains.md) become case 1 of each 15-case pack suite. Additional cases are frozen only after the Runtime contract and seed evaluators pass independent review. Difficulty is produced by real input and failure-mode variation, not by granting unrestricted shell or filesystem authority.
+The seed cases in [`proof-domains.md`](proof-domains.md) become case 1 of each 15-case pack suite. The Working configuration now fixes 30 ordered original case IDs, scopes, planned fixture IDs, evaluator IDs, and implementation states in `workspace_agent_harness/benchmark_configs/vertical-evidence-v1.json`. For each eligible seed the loader compiles the real Pack task, rejects fixture/evaluator ID mismatch, and retains the exact protected fixture/evaluator identities in source provenance. Only the two seeds are runnable; 28 configured cases remain explicitly ineligible until their protected fixtures and deterministic evaluators are implemented and independently reviewed. Difficulty is produced by real input and failure-mode variation, not by granting unrestricted shell or filesystem authority.
 
 The campaign publishes per-pack results and a 30-case aggregate. A combined aggregate never hides a failing pack, and the two packs use the same Runtime instance, Model Adapter configuration, hard limits, Trace schema, campaign repetitions, and metric rules.
 
@@ -177,4 +179,4 @@ Typed pre-run errors cover unknown/mismatched suite, source drift, duplicate cas
 7. execution terminal failures plus evaluation `FAILED`, `ERROR`, `NOT_RUN`, and Runtime exceptions remain distinctly attributed in the attempted denominator.
 8. explicit Runtime/model/evaluator baseline provenance remains present when every Runtime call raises before producing a `RunReport`.
 
-These contracts are green and passed ordinary same-model Regulator review. They prove only the generic campaign seam and aggregation behaviors under test. The two-case `SeedVerticalSmokeSuite` development Adapter exists; a PinchBench Adapter, complete 15+15 suite Adapters/catalog, external run, and benchmark result remain absent.
+These generic campaign contracts are green and passed ordinary same-model Regulator review. They prove only the campaign seam and aggregation behaviors under test. The new configuration candidate additionally provides PinchBench P0 core/full catalogs and one 15+15 vertical catalog Adapter: a configuration smoke retains 30 records, attempts only the 2 implemented seeds, and leaves 28 pre-run ineligible. This does not establish PinchBench task compatibility, a complete runnable 30-case suite, an external run, or any benchmark result.

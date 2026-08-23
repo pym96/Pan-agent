@@ -25,11 +25,18 @@ This Wiki contains only Verified Learning Facts and Open Learning Questions. It 
 - [chengyongru: multi-agent collaboration survey](sources/2026-08-19-multiagent-collaboration-survey.md)
 - [ReAct: Synergizing Reasoning and Acting in Language Models](sources/2026-08-20-react-paper.md)
 - [SWE-agent: Agent-Computer Interfaces Enable Automated Software Engineering](sources/2026-08-20-swe-agent-paper.md)
+- [SWE-bench Harness, dataset metadata, and ARM Docker execution](sources/2026-08-20-swe-bench-harness.md)
+- [Anthropic: official harness definitions](sources/2026-08-23-anthropic-harness-definitions.md)
+- [Earendil: What is a harness (four-component framing)](sources/2026-08-23-earendil-what-is-a-harness.md)
 
 ### Triangulated
 
 - [Harness Engineering](concepts/harness-engineering.md)
 - [Distrust-driven verification](concepts/distrust-driven-verification.md)
+
+### Experiment-reproduced
+
+- [Visible ReAct versus Act-only in the frozen five-case development smoke](experiments/2026-08-23-react-vs-act-swebench.md)
 
 ## Open Learning Questions
 

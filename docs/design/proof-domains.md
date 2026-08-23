@@ -1,6 +1,6 @@
 # Proof Domains
 
-Status: Human-accepted design; both concrete seed fixtures, capability Adapters, deterministic evaluators, and the scripted same-Runtime integration passed ordinary same-model Regulator review. They remain a two-case development proof, not a Generality Fact; the remaining 14+14 cases and any publishable results are not implemented or authorized.
+Status: Human-accepted design; both concrete seed fixtures, capability Adapters, deterministic evaluators, and the scripted same-Runtime integration passed ordinary same-model Regulator review. They remain a two-case development proof, not a Generality Fact. HF-20260820-022 authorizes the remaining 14+14 cases as a configuration catalog only; their fixtures/evaluators and any publishable results are not implemented or accepted.
 
 ## Purpose
 

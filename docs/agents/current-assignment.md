@@ -1,10 +1,14 @@
-# Current Assignment | Concrete Proof Packs on the Accepted Runtime/Campaign Kernel
+# Current Assignment | Bash-only ReAct MVP before SWE-style ACI work
 
 This document owns the current Working Agent assignment. It defines a target and acceptance contract; it does not establish implementation facts. Read the fact register linked from the root Agent map before making any current-state statement.
 
 ## Mission
 
-Human accepted ADR-0009 and ADR-0010 on 2026-08-19. Turn the green generic Runtime/Campaign kernel into a material Generality Proof without editing Runtime source for either domain.
+Human accepted ADR-0009 and ADR-0010 on 2026-08-19. The HF-20260820-022 benchmark-configuration assignment completed its ordinary independent Gate on 2026-08-20. After reading ReAct and SWE-agent, the human then accepted ADR-0011's next bounded learning phase: reproduce a bash-only visible ReAct mechanism first, then use its Bad Cases to choose later SWE-agent-style Agent-Computer Interface changes.
+
+Implement Phase 0 inside the existing `workspace-coding` lane without replacing the General Runtime architecture or presenting a five-case development smoke as a benchmark score. Freeze the treatment before provider calls: five official SWE-bench Lite development cases, Act-only versus visible ReAct, three repetitions, DeepSeek V4 Flash with provider thinking disabled, one bash tool, disposable Docker execution, no model-visible history compaction, lossless raw command artifacts, and official `resolved` as the primary outcome.
+
+Every case was ineligible for Agent execution until its pinned official gold patch completed and resolved. Infrastructure/evaluator errors remain separate from unresolved Agent patches. The authorized DeepSeek credential was funded after the initial insufficient-balance response; the locked preflight then returned a usable completion, and all 30 frozen slots executed from 2026-08-21 through 2026-08-23. The result remains a Working Agent candidate pending independent review: 29 task outcomes, one infrastructure/artifact failure, and one resolved planned slot per treatment. Do not present it as a SWE-bench Lite score or repair/rerun the failed formal slot after observing its trajectory.
 
 Phase-transition note: the original **design before implementation** gate for the **General Agent Runtime + Vertical Domain Packs** required **failing contract tests**. Human acceptance closed that historical red-test gate; the current implementation and regression suite must remain green.
 
@@ -15,7 +19,7 @@ Generality requires at least two materially different packs through the same Run
 
 Do not add a third domain before these two are rigorous.
 
-## Current phase and next bounded gate
+## Accepted foundation and prior configuration gate
 
 The Working Agent implementation candidate currently covers Runtime-recomputed Pack/Suite/source/case/transform digests, fail-closed task admission, capability/resource authority intersection, bounded AgentLoop reuse, schema-2 Runtime provenance, process-terminated evaluator timeouts, separate evaluator status, campaign eligibility/denominators, usage/cost coverage, failure attribution, and append-only attempt artifacts. These are Candidate Claims, not Verified Project Facts.
 
@@ -27,7 +31,30 @@ The implementation candidate now also completes the concrete seed gate:
 4. both selectors run through one Runtime instance and one scripted Model Adapter;
 5. a two-case suite labelled `vertical-development-smoke` runs only through `EvaluationCampaign -> runtime.run` and retains raw artifacts.
 
-The ordinary independent implementation gate has passed. The next bounded gate is explicit Human or different-model review of security/authority limitations plus authorized correction of the stale top-level HEAD pin. Do not expand to the remaining 14+14 cases or a PinchBench Adapter until those gates explicitly authorize it.
+The ordinary independent Runtime/seed implementation gate has passed. HF-20260820-022 explicitly authorizes the configuration-only expansion that was previously deferred:
+
+1. content-lock and audit PinchBench `v2.0.0` core/full catalogs without translating or invoking a task;
+2. fix an original ordered 15+15 vertical catalog while keeping every unimplemented case visibly ineligible;
+3. prove the configured vertical suite calls only the two existing seed cases through `EvaluationCampaign -> runtime.run`.
+
+The configuration artifacts and tests passed an independent ordinary Regulator review after one rejection/remediation round. The HF-20260820-022 assignment is complete at the configuration boundary. Security/authority publicity, stale top-level HEAD correction, implementation of the remaining 28 vertical cases, PinchBench translation/execution, public numbers, and fact promotion remain separate open work and are not authorized by this completion.
+
+## Current Phase 0 gate
+
+Required Working Agent candidate outputs:
+
+1. one secret-free DeepSeek JSON Adapter that locks `deepseek-v4-flash`, provider thinking disabled, JSON-object output, temperature zero, and explicit usage/fingerprint capture;
+2. Act-only/ReAct response contracts that differ only by the visible bounded `thought` requirement and canonicalize into the existing `AgentLoop` action contract;
+3. one Docker bash tool that returns bounded head-tail observations while preserving complete stdout/stderr and SHA-256 artifacts;
+4. one content-hashed `react-mvp-5` lock for the official Lite development source, exact ordered IDs/images, two variants, and three repetitions;
+5. passing contract tests for treatment isolation, observation feedback, lossless raw streams, credential exclusion, and configuration drift;
+6. a pinned official-runner gold receipt for every selected case before any model execution;
+7. complete model trajectories, patches, official evaluator artifacts, failure attribution, and paired summaries for all 30 planned slots, retaining any infrastructure/artifact failure separately;
+8. a Learning Wiki fact for the reproduced SWE-bench/Docker mechanics and an experiment-reproduced learning fact after the comparison runs.
+
+The comparison has now run. The former Open Learning Question is superseded by the experiment-reproduced Wiki fact and candidate Evidence record. The next bounded gate is independent review of the raw matrix and prospective reliability fixes; only after that should a new protocol-reliability experiment be frozen before any SWE-agent-style ACI treatment.
+
+The one-case Verified-set Docker probe demonstrates the initial ARM-to-amd64 evaluator path. All five selected Lite cases subsequently completed and resolved their pinned gold patches with zero infrastructure/evaluator errors. Contract tests and environment receipts remain Candidate Evidence until a separate Regulator session reviews them; the Working Agent cannot self-accept or register a Verified Project Fact.
 
 ## External success contract: maximize Shanghai job-search odds
 
@@ -140,10 +167,12 @@ This section records the completed design gate. Its contracts were red before Hu
 ## Explicit non-goals
 
 - no DeerFlow fork, vendoring, import, subtree, or copied implementation;
-- no real provider, CLI, UI, memory, or subagents in the proof-pack gate;
+- no provider expansion beyond the frozen DeepSeek Phase 0 Adapter; no CLI, UI, memory, or subagents in this gate;
 - no frontend, Gateway, Kubernetes, Redis, browser/computer use, third domain, or marketplace;
-- no PinchBench execution, leaderboard submission, official-score Claim, in-process execution of upstream grader code, or 30-case result before the design and implementation gates pass;
+- no PinchBench task execution or translation, leaderboard submission, official-score Claim, in-process execution of upstream grader code, or 30-case result;
+- no attempt to run the 28 vertical cases whose fixtures/evaluators are only configured; they must remain visible and pre-run ineligible;
 - no general-agent claim before both packs pass the same Runtime contract;
+- no SWE-bench Lite score, leaderboard submission, task substitution after outcomes, or SWE-agent capability claim from the five-case development smoke;
 - no modification of the reality resume or factual ledger;
 - no resumption of the superseded Local Workspace v1 product plan.
 
@@ -155,7 +184,7 @@ Run:
 python3 -m unittest discover -s tests -p 'test_*.py' -v
 ```
 
-Provide changed files, concrete seed Evidence, DeerFlow and PinchBench commits/paths inspected, the Composio source boundary, full test results, unresolved limitations, and explicit statements that no external benchmark was run, no DeerFlow code was copied, and no project or resume fact was upgraded by the Working Agent.
+Provide changed files, Phase 0 environment/contract Evidence, pinned SWE-bench source/runner identities, full test results, unresolved provider/environment limits, and explicit statements distinguishing gold evaluator gates from Agent results. Confirm that no leaderboard score, Verified Project Fact, factual-ledger entry, or resume fact was upgraded by the Working Agent.
 
 The Regulator independently reviews Interface depth and seam placement, inspects referenced DeerFlow code, and reruns positive and negative tests under `docs/governance/verification.md`.
 
@@ -200,7 +229,7 @@ Selected evaluation seam: `EvaluationCampaign.create(...)` receives the Runtime 
 
 Implementation-level choices behind the selected seam include the canonical local pack/suite fingerprint schemas and private workspace/Trace Adapter method signatures. Runtime recomputes Pack code/material digests at registration; Campaign recomputes source, case, transform, and suite digests during preflight.
 
-No DeerFlow or PinchBench code was copied and no external benchmark was run. The concrete Packs, evaluators, and two-case campaign are local candidates only. No real provider, CLI, general OS sandbox, checkpoint, memory, subagent, 15+15 catalog, benchmark score, project fact, or resume fact was added.
+At this 2026-08-18 design handoff, no DeerFlow or PinchBench code was copied and no external benchmark was run. The concrete Packs, evaluators, and two-case campaign were local candidates only. No real provider, CLI, general OS sandbox, checkpoint, memory, subagent, 15+15 catalog, benchmark score, project fact, or resume fact was added.
 
 ## Working Agent implementation checkpoint | 2026-08-19
 
@@ -222,4 +251,28 @@ Implemented in `workspace_agent_harness/__init__.py` through the accepted public
 
 Local candidate Evidence: 39/39 tests pass, including the original 15-test baseline, live data/coding helper-rebinding stability, private model-configuration collision prevention, missing Adapter identity rejection, pre-run Pack drift rejection, Pack/Suite behavior drift probes, post-timeout side-effect prevention, all-exception baseline provenance retention, full execution/evaluation failure-denominator attribution, two concrete Pack paths, the hidden-import negative probe, and the two-case development-smoke campaign. Static Python compilation, MyPy, and repository whitespace checks pass. The top-level acceptance gate passes Human Feedback and blocks only on its stale project-HEAD pin (`7d267...` expected versus current/origin `116da...`, with the former an ancestor); Working Agent scope does not authorize editing `80-监管与验收/`.
 
-Ordinary implementation acceptance is complete for the bounded candidate. Still open before any expansion or fact promotion: explicit Human or different-model review of high-risk security/permission boundaries and correction of the separate stale top-level HEAD pin by an authorized regulator. The globals snapshot is shallow and does not resist malicious interpreter/stdlib mutation; the coding evaluator's AST allowlist plus fixed isolated-interpreter subprocess is not a general OS sandbox. Only two scripted seed cases exist. No real provider, PinchBench Adapter, 15+15 task catalog, external benchmark run, score, project fact, or resume fact exists.
+At the 2026-08-19 checkpoint, ordinary implementation acceptance was complete for the bounded seed candidate. Still open before any fact promotion: explicit Human or different-model review of high-risk security/permission boundaries and correction of the separate stale top-level HEAD pin by an authorized regulator. The globals snapshot is shallow and does not resist malicious interpreter/stdlib mutation; the coding evaluator's AST allowlist plus fixed isolated-interpreter subprocess is not a general OS sandbox. Only two scripted seed cases existed, with no real provider, PinchBench Adapter, 15+15 task catalog, external benchmark run, score, project fact, or resume fact.
+
+## Working Agent benchmark-configuration checkpoint | 2026-08-20
+
+Status: ordinary configuration boundary independently accepted after one rejection/remediation round; not a Verified Project Fact and not a benchmark result.
+
+Candidate outputs:
+
+1. `workspace_agent_harness/benchmarks.py` adds one small suite-loading Interface. It hides Git pin verification, clean-task-worktree checks, manifest/task-set parsing, strict positive timeout/frontmatter audit, upstream-grader non-execution, frozen Suite identity construction, and vertical seed/control/ineligibility composition.
+2. `workspace_agent_harness/benchmark_configs/pinchbench-{core,full}-v2.0.0.json` pin the requested upstream source. Real-source P0 audit resolves 21 core and 147 full cases. Every case is pre-run ineligible with `pinchbench.translation_not_frozen`; no upstream grader is imported or executed.
+3. The audit retains the pinned upstream discrepancy `task_polymarket_briefing`: manifest category `research`, frontmatter category `Research`. The manifest remains canonical and the discrepancy remains in source provenance.
+4. `workspace_agent_harness/benchmark_configs/vertical-evidence-v1.json` fixes 30 original case IDs/scopes, exactly 15 per proof Pack. Only `paid-revenue-by-region-v1` and `repair-slugify-v1` map to implemented `RunRequest` values; their configured fixture/evaluator IDs are checked against the real Pack `ControlProjection` and exact identities are retained. The other 28 remain pre-run ineligible with `vertical.case_not_implemented`.
+5. A one-repetition development configuration smoke retains all 30 case records, attempts 2, passes the 2 existing deterministic seeds, and reports 28 ineligible. This is configuration evidence, not a 2/2 benchmark score.
+
+Candidate suite identities at the reviewed working snapshot:
+
+- PinchBench core: `sha256:7f79aeeb5bd4078cf3fb16844ac032163b9a7ec18efcb6464ca4ec72e3fcedda`;
+- PinchBench full: `sha256:540198e6121660a92e217cab0c18dfebdde73a60a09b1b6b9b2d760831c19e06`;
+- vertical evidence config: `sha256:834a3141470bb69acb69b7a37241bd1753f92a64613b9b94623f360b47d85005`.
+
+First independent benchmark-configuration review: REJECT. It found that the initial catalog named the two seed evaluators incorrectly and that the loader would rehash forged eligible fixture/evaluator claims instead of comparing them with the execution control plane; it also found that missing and non-positive PinchBench timeouts were accepted. The Working remediation corrected both evaluator IDs, derived and validated the real seed `ControlProjection`, retained resolved identities in source provenance, and required every task timeout to be a positive integer.
+
+Second independent review: ACCEPT for the ordinary configuration-only boundary. Independent probes rejected forged eligible fixture/evaluator values and missing/zero/negative/non-integer timeouts; linked resolved controls to both Pack compilation and actual RunReport provenance; retained 21/147 Pinch cases as ineligible; retained a 30-case vertical denominator with 2 attempted seeds and 28 ineligible cases; and rebuilt/installed the wheel with all locks present. The review explicitly excludes benchmark translation/execution, official compatibility, public numbers, remaining case implementation, high-risk security Claims, VPF, factual-ledger, and resume changes.
+
+No external benchmark attempt, provider call, public number, official compatibility Claim, Verified Project Fact, factual-ledger change, or resume change is part of this checkpoint.

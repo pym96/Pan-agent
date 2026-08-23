@@ -22,6 +22,7 @@ build/
 .runs/
 artifacts/
 worktrees/
+logs/
 
 # Editors and operating systems
 .DS_Store

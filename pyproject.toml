@@ -8,3 +8,9 @@ version = "0.0.1"
 description = "A bounded, traceable harness for local workspace agents"
 requires-python = ">=3.11"
 dependencies = []
+
+[tool.setuptools]
+packages = ["workspace_agent_harness"]
+
+[tool.setuptools.package-data]
+workspace_agent_harness = ["benchmark_configs/*.json", "benchmark_configs/*.md"]
