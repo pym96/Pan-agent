@@ -1,0 +1,83 @@
+{
+  "schema": "workspace-agent-harness/react-mvp/v1",
+  "suite_id": "react-mvp-5",
+  "version": "1.0.0",
+  "source": {
+    "dataset": "SWE-bench/SWE-bench_Lite",
+    "dataset_revision": "b0dde1093fe417d83b7184254edf8199c1f0dff5",
+    "dataset_artifact": {
+      "path": "data/dev-00000-of-00001.parquet",
+      "sha256": "b90bcbfaca1b5f65155500124a977876c264a4003ab384aca4dfc39a54bef89f"
+    },
+    "split": "dev",
+    "selection_pool_count": 23,
+    "official_runner_repository": "https://github.com/SWE-bench/SWE-bench.git",
+    "official_runner_commit": "7a21e05772954cc81471ae19d56f436cecf43c54",
+    "official_runner_version": "5.0.2"
+  },
+  "selection": {
+    "algorithm": "ascending-sha256(seed + NUL + instance_id), first 5",
+    "seed": "workspace-agent-harness/react-mvp-5/v1",
+    "count": 5,
+    "ordered_instance_ids": [
+      "sqlfluff__sqlfluff-2419",
+      "marshmallow-code__marshmallow-1343",
+      "pydicom__pydicom-1694",
+      "pylint-dev__astroid-1196",
+      "pydicom__pydicom-901"
+    ],
+    "images_by_instance_id": {
+      "sqlfluff__sqlfluff-2419": "swebench/sweb.eval.x86_64.sqlfluff_1776_sqlfluff-2419:latest",
+      "marshmallow-code__marshmallow-1343": "swebench/sweb.eval.x86_64.marshmallow-code_1776_marshmallow-1343:latest",
+      "pydicom__pydicom-1694": "swebench/sweb.eval.x86_64.pydicom_1776_pydicom-1694:latest",
+      "pylint-dev__astroid-1196": "swebench/sweb.eval.x86_64.pylint-dev_1776_astroid-1196:latest",
+      "pydicom__pydicom-901": "swebench/sweb.eval.x86_64.pydicom_1776_pydicom-901:latest"
+    },
+    "image_digests_by_instance_id": {
+      "sqlfluff__sqlfluff-2419": "sha256:881e3b830d8a68b52041b8ec79af813d12adf75d0c1838b17950e5a5b6238353",
+      "marshmallow-code__marshmallow-1343": "sha256:a61197e0b29461e34010cd83570424eb91a7f265574a81c82ff79e55c6c10f29",
+      "pydicom__pydicom-1694": "sha256:80521627a8f3f69682f16743158b1bc8555c9253c42164a4b59050293d84ba12",
+      "pylint-dev__astroid-1196": "sha256:ddf6350d124714cb8cc0f100e536479fa6376130ea4ec3afbd112debac4ac9b9",
+      "pydicom__pydicom-901": "sha256:9eefbfc3074839815a9f3a319a78980aa2d568b828087457df54e11caf849865"
+    }
+  },
+  "experiment": {
+    "variants": [
+      "act-only",
+      "react"
+    ],
+    "repetitions": 3,
+    "run_limits": {
+      "max_steps": 30,
+      "max_model_calls": 31,
+      "timeout_seconds": 1800
+    },
+    "model": {
+      "provider": "DeepSeek",
+      "model_id": "deepseek-v4-flash",
+      "thinking": "disabled",
+      "temperature": 0,
+      "response_format": "json_object",
+      "max_completion_tokens": 2048
+    },
+    "action_interface": {
+      "tools": [
+        "bash"
+      ],
+      "container_network": "none",
+      "host_mounts": "none",
+      "command_timeout_seconds": 120
+    },
+    "observation": {
+      "model_visible_max_bytes": 32768,
+      "truncation": "head-tail",
+      "raw_stdout_stderr": "lossless-artifacts-with-sha256",
+      "automatic_summary": false,
+      "history_compaction": false
+    },
+    "primary_outcome": "official-swebench-resolved",
+    "eligibility": "gold patch must pass the pinned official runner before model execution"
+  },
+  "claim_boundary": "Five-case development smoke only; not a SWE-bench Lite score, leaderboard result, Verified Project Fact, or resume fact.",
+  "content_hash": "sha256:1803342999f4eb934aea5b1943e1def6797a649c72eef45b869c6f89f4250c29"
+}

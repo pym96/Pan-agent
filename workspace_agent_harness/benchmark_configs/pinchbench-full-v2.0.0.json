@@ -1,0 +1,23 @@
+{
+  "schema": "workspace-agent-harness/pinchbench-lock/v1",
+  "suite_id": "pinchbench-compatible-full",
+  "version": "2.0.0-local.1",
+  "profile": "full",
+  "source": {
+    "repository": "https://github.com/pinchbench/skill.git",
+    "tag": "v2.0.0",
+    "commit": "47efe9bf5e14ae52dd9764c5e831317442b054a5",
+    "tasks_tree": "1368925645e3bffa49fb2d238958e2530236a3e0",
+    "manifest_sha256": "sha256:38d7cd1bddfa5e9fefc7b6945c91955f36dc5c88c32c994bf8676344b1069a7b"
+  },
+  "catalog": {
+    "full_task_count": 147,
+    "core_task_count": 21,
+    "category_count": 11
+  },
+  "admission": {
+    "default_eligibility": "ineligible",
+    "reason": "pinchbench.translation_not_frozen",
+    "execute_upstream_graders": false
+  }
+}

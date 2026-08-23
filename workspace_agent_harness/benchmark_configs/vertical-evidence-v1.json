@@ -1,0 +1,287 @@
+{
+  "schema": "workspace-agent-harness/vertical-catalog/v1",
+  "suite_id": "vertical-evidence",
+  "version": "1.0.0-config.1",
+  "lane": "vertical-evidence",
+  "source_revision": "local:vertical-evidence-catalog-v1",
+  "metric_schema_version": 1,
+  "methodology_source": "https://x.com/composio/status/2087889898208367036",
+  "campaign": {
+    "development_repetitions": 1,
+    "publishable_minimum_repetitions": 3,
+    "retain_bad_cases": true,
+    "report_per_pack_before_aggregate": true
+  },
+  "tasks": [
+    {
+      "task_id": "paid-revenue-by-region-v1",
+      "pack_id": "data-analysis",
+      "title": "Paid revenue by region",
+      "focus": "filtering, exact decimal arithmetic, grouping, stable CSV output",
+      "fixture_id": "data-analysis-orders-v1",
+      "evaluator_id": "data-analysis-seed-evaluator",
+      "implementation_state": "implemented-seed"
+    },
+    {
+      "task_id": "schema-profile-and-type-drift-v1",
+      "pack_id": "data-analysis",
+      "title": "Schema profile with type drift",
+      "focus": "schema inspection and mixed-type detection",
+      "fixture_id": "data-schema-drift-v1",
+      "evaluator_id": "schema-profile-evaluator-v1",
+      "implementation_state": "configured-not-implemented"
+    },
+    {
+      "task_id": "missing-value-policy-summary-v1",
+      "pack_id": "data-analysis",
+      "title": "Missing-value policy summary",
+      "focus": "explicit null policy and denominator preservation",
+      "fixture_id": "data-missing-values-v1",
+      "evaluator_id": "missing-value-summary-evaluator-v1",
+      "implementation_state": "configured-not-implemented"
+    },
+    {
+      "task_id": "malformed-row-quarantine-v1",
+      "pack_id": "data-analysis",
+      "title": "Malformed-row quarantine",
+      "focus": "malformed values, rejection ledger, valid-row aggregation",
+      "fixture_id": "data-malformed-rows-v1",
+      "evaluator_id": "malformed-row-evaluator-v1",
+      "implementation_state": "configured-not-implemented"
+    },
+    {
+      "task_id": "exact-tax-calculation-v1",
+      "pack_id": "data-analysis",
+      "title": "Exact tax calculation",
+      "focus": "decimal rounding rules and exact totals",
+      "fixture_id": "data-tax-rules-v1",
+      "evaluator_id": "exact-tax-evaluator-v1",
+      "implementation_state": "configured-not-implemented"
+    },
+    {
+      "task_id": "customer-orders-left-join-v1",
+      "pack_id": "data-analysis",
+      "title": "Customer and orders left join",
+      "focus": "two-table join, unmatched keys, row cardinality",
+      "fixture_id": "data-customer-orders-v1",
+      "evaluator_id": "left-join-evaluator-v1",
+      "implementation_state": "configured-not-implemented"
+    },
+    {
+      "task_id": "date-window-retention-v1",
+      "pack_id": "data-analysis",
+      "title": "Date-window retention",
+      "focus": "date parsing, timezone-free cutoffs, cohort retention",
+      "fixture_id": "data-retention-dates-v1",
+      "evaluator_id": "date-retention-evaluator-v1",
+      "implementation_state": "configured-not-implemented"
+    },
+    {
+      "task_id": "month-over-month-growth-v1",
+      "pack_id": "data-analysis",
+      "title": "Month-over-month growth",
+      "focus": "period grouping, missing months, exact growth convention",
+      "fixture_id": "data-monthly-growth-v1",
+      "evaluator_id": "monthly-growth-evaluator-v1",
+      "implementation_state": "configured-not-implemented"
+    },
+    {
+      "task_id": "top-k-with-ties-v1",
+      "pack_id": "data-analysis",
+      "title": "Top-k ranking with ties",
+      "focus": "ranking semantics, deterministic tie handling",
+      "fixture_id": "data-ranking-ties-v1",
+      "evaluator_id": "ranking-ties-evaluator-v1",
+      "implementation_state": "configured-not-implemented"
+    },
+    {
+      "task_id": "duplicate-key-reconciliation-v1",
+      "pack_id": "data-analysis",
+      "title": "Duplicate-key reconciliation",
+      "focus": "duplicate policy, conflict detection, audit output",
+      "fixture_id": "data-duplicate-keys-v1",
+      "evaluator_id": "duplicate-reconciliation-evaluator-v1",
+      "implementation_state": "configured-not-implemented"
+    },
+    {
+      "task_id": "unit-normalization-aggregation-v1",
+      "pack_id": "data-analysis",
+      "title": "Unit normalization and aggregation",
+      "focus": "unit conversion, exact totals, unsupported-unit rejection",
+      "fixture_id": "data-mixed-units-v1",
+      "evaluator_id": "unit-normalization-evaluator-v1",
+      "implementation_state": "configured-not-implemented"
+    },
+    {
+      "task_id": "iqr-outlier-detection-v1",
+      "pack_id": "data-analysis",
+      "title": "IQR outlier detection",
+      "focus": "deterministic quartiles and anomaly flags",
+      "fixture_id": "data-iqr-outliers-v1",
+      "evaluator_id": "iqr-outlier-evaluator-v1",
+      "implementation_state": "configured-not-implemented"
+    },
+    {
+      "task_id": "category-region-pivot-v1",
+      "pack_id": "data-analysis",
+      "title": "Category-region pivot",
+      "focus": "pivot schema, absent combinations, stable ordering",
+      "fixture_id": "data-category-region-v1",
+      "evaluator_id": "pivot-evaluator-v1",
+      "implementation_state": "configured-not-implemented"
+    },
+    {
+      "task_id": "conversion-funnel-v1",
+      "pack_id": "data-analysis",
+      "title": "Conversion funnel",
+      "focus": "ordered event stages, deduplication, denominator rules",
+      "fixture_id": "data-conversion-events-v1",
+      "evaluator_id": "conversion-funnel-evaluator-v1",
+      "implementation_state": "configured-not-implemented"
+    },
+    {
+      "task_id": "anomaly-explanation-ledger-v1",
+      "pack_id": "data-analysis",
+      "title": "Anomaly explanation ledger",
+      "focus": "multiple anomaly rules and attributable reason codes",
+      "fixture_id": "data-anomaly-ledger-v1",
+      "evaluator_id": "anomaly-ledger-evaluator-v1",
+      "implementation_state": "configured-not-implemented"
+    },
+    {
+      "task_id": "repair-slugify-v1",
+      "pack_id": "workspace-coding",
+      "title": "Repair slugify",
+      "focus": "bounded source edit, Unicode edge cases, hidden tests",
+      "fixture_id": "workspace-coding-slugify-v1",
+      "evaluator_id": "workspace-coding-seed-evaluator",
+      "implementation_state": "implemented-seed"
+    },
+    {
+      "task_id": "navigate-symbol-definition-v1",
+      "pack_id": "workspace-coding",
+      "title": "Navigate to a symbol definition",
+      "focus": "repository navigation and evidence-only answer artifact",
+      "fixture_id": "coding-symbol-navigation-v1",
+      "evaluator_id": "symbol-navigation-evaluator-v1",
+      "implementation_state": "configured-not-implemented"
+    },
+    {
+      "task_id": "bounded-config-key-repair-v1",
+      "pack_id": "workspace-coding",
+      "title": "Bounded configuration key repair",
+      "focus": "single-file configuration repair and schema validation",
+      "fixture_id": "coding-config-key-v1",
+      "evaluator_id": "config-key-evaluator-v1",
+      "implementation_state": "configured-not-implemented"
+    },
+    {
+      "task_id": "add-regression-test-v1",
+      "pack_id": "workspace-coding",
+      "title": "Add a regression test",
+      "focus": "test-first reproduction and minimal production fix",
+      "fixture_id": "coding-regression-test-v1",
+      "evaluator_id": "regression-test-evaluator-v1",
+      "implementation_state": "configured-not-implemented"
+    },
+    {
+      "task_id": "multi-file-api-rename-v1",
+      "pack_id": "workspace-coding",
+      "title": "Multi-file API rename",
+      "focus": "definition, imports, call sites, docs, consistency",
+      "fixture_id": "coding-api-rename-v1",
+      "evaluator_id": "api-rename-evaluator-v1",
+      "implementation_state": "configured-not-implemented"
+    },
+    {
+      "task_id": "dependency-free-parser-fix-v1",
+      "pack_id": "workspace-coding",
+      "title": "Dependency-free parser repair",
+      "focus": "parser edge cases without adding dependencies",
+      "fixture_id": "coding-parser-fix-v1",
+      "evaluator_id": "parser-fix-evaluator-v1",
+      "implementation_state": "configured-not-implemented"
+    },
+    {
+      "task_id": "diagnose-failing-test-v1",
+      "pack_id": "workspace-coding",
+      "title": "Diagnose a failing test",
+      "focus": "failure attribution and bounded corrective patch",
+      "fixture_id": "coding-failing-test-v1",
+      "evaluator_id": "failing-test-diagnosis-evaluator-v1",
+      "implementation_state": "configured-not-implemented"
+    },
+    {
+      "task_id": "preserve-public-interface-v1",
+      "pack_id": "workspace-coding",
+      "title": "Preserve a public interface",
+      "focus": "internal refactor with compatibility contract",
+      "fixture_id": "coding-public-interface-v1",
+      "evaluator_id": "public-interface-evaluator-v1",
+      "implementation_state": "configured-not-implemented"
+    },
+    {
+      "task_id": "remove-dead-feature-flag-v1",
+      "pack_id": "workspace-coding",
+      "title": "Remove a dead feature flag",
+      "focus": "cross-file cleanup without unrelated formatting drift",
+      "fixture_id": "coding-feature-flag-v1",
+      "evaluator_id": "feature-flag-evaluator-v1",
+      "implementation_state": "configured-not-implemented"
+    },
+    {
+      "task_id": "repair-json-schema-v1",
+      "pack_id": "workspace-coding",
+      "title": "Repair a JSON schema",
+      "focus": "schema semantics, fixture validation, minimal diff",
+      "fixture_id": "coding-json-schema-v1",
+      "evaluator_id": "json-schema-evaluator-v1",
+      "implementation_state": "configured-not-implemented"
+    },
+    {
+      "task_id": "idempotent-migration-script-v1",
+      "pack_id": "workspace-coding",
+      "title": "Make a migration script idempotent",
+      "focus": "repeat execution, deterministic output, no shell expansion",
+      "fixture_id": "coding-migration-idempotence-v1",
+      "evaluator_id": "migration-idempotence-evaluator-v1",
+      "implementation_state": "configured-not-implemented"
+    },
+    {
+      "task_id": "minimal-diff-formatting-v1",
+      "pack_id": "workspace-coding",
+      "title": "Minimal-diff formatting repair",
+      "focus": "targeted formatting with strict diff policy",
+      "fixture_id": "coding-minimal-diff-v1",
+      "evaluator_id": "minimal-diff-evaluator-v1",
+      "implementation_state": "configured-not-implemented"
+    },
+    {
+      "task_id": "reject-out-of-scope-file-write-v1",
+      "pack_id": "workspace-coding",
+      "title": "Reject an out-of-scope file write",
+      "focus": "authority attack and protected-path integrity",
+      "fixture_id": "coding-write-attack-v1",
+      "evaluator_id": "write-authority-evaluator-v1",
+      "implementation_state": "configured-not-implemented"
+    },
+    {
+      "task_id": "reject-undeclared-command-v1",
+      "pack_id": "workspace-coding",
+      "title": "Reject an undeclared command",
+      "focus": "command authority and no side effects on denial",
+      "fixture_id": "coding-command-attack-v1",
+      "evaluator_id": "command-authority-evaluator-v1",
+      "implementation_state": "configured-not-implemented"
+    },
+    {
+      "task_id": "hidden-edge-case-repair-v1",
+      "pack_id": "workspace-coding",
+      "title": "Repair hidden edge cases",
+      "focus": "public-test preservation and protected hidden cases",
+      "fixture_id": "coding-hidden-edge-case-v1",
+      "evaluator_id": "hidden-edge-case-evaluator-v1",
+      "implementation_state": "configured-not-implemented"
+    }
+  ]
+}
