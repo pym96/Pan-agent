@@ -420,6 +420,6 @@ The generic contracts now exercise the accepted external seam and are green; by 
 
 ## DeerFlow attribution and omissions
 
-[`deerflow-mechanism-map.md`](deerflow-mechanism-map.md) records the fixed commit, inspected paths, borrowed problems, smaller local Interfaces, and intentional omissions. The reproducible checkout path from the repository root is `../../30-已有资产与参考/工具与方法参考/deer-flow/` at commit `88252e9b318d34e7e1867155ad2c77993320788e`.
+[`deerflow-mechanism-map.md`](deerflow-mechanism-map.md) records the fixed commit, inspected paths, borrowed problems, smaller local Interfaces, and intentional omissions. The reproducible checkout path from the repository root is `../../30-已有资产与参考/candidate-projects/deer-flow/` at commit `88252e9b318d34e7e1867155ad2c77993320788e`.
 
 No DeerFlow code was copied. LangGraph, middleware extension, dynamic skill discovery, memory, subagents, Gateway, vendor tracing, remote sandboxing, multi-worker leases, and marketplace installation are deliberately absent from this design.

@@ -4,7 +4,7 @@ Status: Working Agent design evidence; not accepted architecture and not an impl
 
 ## Inspection boundary
 
-- Read-only checkout: `../../30-已有资产与参考/工具与方法参考/deer-flow/`
+- Read-only checkout: `../../30-已有资产与参考/candidate-projects/deer-flow/`
 - Pinned commit: `88252e9b318d34e7e1867155ad2c77993320788e`
 - Inspected orientation: `AGENTS.md`, `backend/AGENTS.md`, and `backend/README.md`
 - Inspected implementation entry points:
@@ -46,4 +46,4 @@ The map records mechanism evidence only. No DeerFlow code, type, prompt, middlew
 
 ## Source-path correction
 
-Earlier drafts used `../../../../30-已有资产与参考/工具与方法参考/deer-flow/` from the repository root. That path is invalid. The reproducible repository-relative locator is `../../30-已有资产与参考/工具与方法参考/deer-flow/`.
+Earlier drafts used `../../../../30-已有资产与参考/工具与方法参考/deer-flow/` from the repository root. That path is invalid. The reproducible repository-relative locator is `../../30-已有资产与参考/candidate-projects/deer-flow/`.

@@ -190,3 +190,9 @@ Do not edit or delete existing entries. Corrections are new entries that link to
 - Ingested the Trace-versus-thought-trajectory distinction as a source-located concept page, verified against this repository's `load_trace` integrity rules and trace behavioral tests plus the already-ingested Anthropic session definition. No external source was needed: the repo code is the primary locator.
 - Admitted the session's information-entropy discussion as an open question (why self-generated thought improves action quality), with the entropy framing explicitly marked as interpretation; the user intends to find citable theoretical sources later.
 - The user's refined Runtime formulation (Context/Observation/Tool-schema/Tool-executor/Agent-Loop distinctions, model-portable wording) was reviewed against `CONTEXT.md` and existing concept pages; its checkable content is already covered by the Harness Engineering page and project terminology, so no new fact page was created for it.
+
+## 2026-08-24｜Correction: local source locators after reference-library reorganization
+
+- The human confirmed the `30-已有资产与参考/` reorganization was intentional: reference repos moved from `工具与方法参考/` to `candidate-projects/`, and `reference_paper/` was renamed `reference-paper/`.
+- Locators updated (content unchanged): the ReAct and SWE-agent source pages now point at `reference-paper/`; project design docs and the acceptance validator now point at `candidate-projects/`. Pinned commits (`88252e9`, `54cc51a`) and remotes are unchanged.
+- Earlier log entries that mention the old paths are historical records and intentionally left untouched per the append-only rule.

@@ -2,7 +2,7 @@
 
 - Type: verified-learning-fact
 - Verification: source-located
-- Source: <https://arxiv.org/abs/2210.03629> (v3, ICLR 2023; Yao, Zhao, Yu, Du, Shafran, Narasimhan, Cao — Princeton / Google Brain; local copy at `30-已有资产与参考/reference_paper/REACT.pdf`, main body read 2026-08-20)
+- Source: <https://arxiv.org/abs/2210.03629> (v3, ICLR 2023; Yao, Zhao, Yu, Du, Shafran, Narasimhan, Cao — Princeton / Google Brain; local copy at `30-已有资产与参考/reference-paper/REACT.pdf`, main body read 2026-08-20)
 - Updated: 2026-08-20
 
 ## Verified facts

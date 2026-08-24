@@ -75,7 +75,7 @@ Select the hardest **bounded, evidence-producing** next gate. Challenge does not
 
 ### DeerFlow | primary architecture reference
 
-Read-only checkout: `../../30-已有资产与参考/工具与方法参考/deer-flow/`
+Read-only checkout: `../../30-已有资产与参考/candidate-projects/deer-flow/`
 
 Pinned review commit: `88252e9b318d34e7e1867155ad2c77993320788e`.
 
@@ -208,7 +208,7 @@ Produced:
 8. two source-located Wiki entries for PinchBench and the Composio comparison thread;
 9. `tests/test_benchmark_campaign_contract.py` with three expected-red campaign-seam tests.
 
-DeerFlow was inspected read-only at commit `88252e9b318d34e7e1867155ad2c77993320788e` through every source entry listed above. The earlier relative locator was corrected from an invalid four-level traversal to the repository-root-relative `../../30-已有资产与参考/工具与方法参考/deer-flow/`.
+DeerFlow was inspected read-only at commit `88252e9b318d34e7e1867155ad2c77993320788e` through every source entry listed above. The earlier relative locator was corrected from an invalid four-level traversal to the repository-root-relative `../../30-已有资产与参考/candidate-projects/deer-flow/`.
 
 PinchBench was inspected read-only from tag `v2.0.0` at commit `47efe9bf5e14ae52dd9764c5e831317442b054a5`. Its pinned manifest contains 147 unique tasks in 11 categories and a 21-task core; the README/SKILL prose counts disagree with that manifest, so exact commit/tree/manifest digests are mandatory. The OpenClaw-specific runner and task-embedded Python grader execution were treated as compatibility and trust-boundary constraints, not copied as local Runtime behavior.
 

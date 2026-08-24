@@ -2,7 +2,7 @@
 
 - Type: verified-learning-fact
 - Verification: source-located
-- Source: <https://arxiv.org/abs/2405.15793> (v3, NeurIPS 2024; Yang, Jimenez, Wettig, Lieret, Yao, Narasimhan, Press — Princeton; local copy at `30-已有资产与参考/reference_paper/SWE.pdf`, main body read 2026-08-20)
+- Source: <https://arxiv.org/abs/2405.15793> (v3, NeurIPS 2024; Yang, Jimenez, Wettig, Lieret, Yao, Narasimhan, Press — Princeton; local copy at `30-已有资产与参考/reference-paper/SWE.pdf`, main body read 2026-08-20)
 - Updated: 2026-08-20
 
 ## Verified facts
