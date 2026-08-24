@@ -1,0 +1,149 @@
+{
+  "schema": "workspace-agent-harness/protocol-reliability/v1",
+  "experiment_id": "protocol-reliability-v1",
+  "version": "1.0.0",
+  "frozen_at": "2026-08-23",
+  "source_experiment": {
+    "suite_id": "react-mvp-5",
+    "config_hash": "sha256:1803342999f4eb934aea5b1943e1def6797a649c72eef45b869c6f89f4250c29",
+    "artifact_manifest_sha256": "sha256:7a3a153f888f602187e500ac2a693f786d0a5852391f736920354b41d998596a"
+  },
+  "context_corpus": "protocol-reliability-v1-contexts.json",
+  "context_corpus_hash": "sha256:299b76046f34496af3ed47d5d059c0e656fb8334c4914d34cb5e630a511a3919",
+  "experiment": {
+    "context_count": 24,
+    "cohorts": {
+      "challenge": 16,
+      "control": 8
+    },
+    "blocking_factors": [
+      "act-only",
+      "react"
+    ],
+    "transports": [
+      "json_object",
+      "strict_function"
+    ],
+    "schemes": {
+      "J0": {
+        "transport": "json_object",
+        "repair": false
+      },
+      "J1": {
+        "transport": "json_object",
+        "repair": true
+      },
+      "S0": {
+        "transport": "strict_function",
+        "repair": false
+      },
+      "S1": {
+        "transport": "strict_function",
+        "repair": true
+      }
+    },
+    "repetitions": 5,
+    "raw_original_call_count": 240,
+    "maximum_repair_call_count": 240,
+    "execution_order": {
+      "algorithm": "ascending-sha256(seed + NUL + context_id + NUL + transport + NUL + repetition)",
+      "seed": "workspace-agent-harness/protocol-reliability-v1/execution-order",
+      "concurrency": 1
+    },
+    "model": {
+      "provider": "DeepSeek",
+      "model_id": "deepseek-v4-flash",
+      "thinking": "disabled",
+      "temperature": 0,
+      "max_completion_tokens": 2048,
+      "stream": false,
+      "timeout_seconds": 120,
+      "endpoints": {
+        "json_object": "https://api.deepseek.com/chat/completions",
+        "strict_function": "https://api.deepseek.com/beta/chat/completions"
+      }
+    },
+    "prompts": {
+      "json_object:act-only": "You operate an isolated software repository through one bash tool. Return exactly one JSON object and no prose. Do not include a thought, analysis, rationale, or planning field. Return {\"type\":\"tool\",\"tool\":\"bash\",\"arguments\":{\"command\":\"...\"}} to act, or {\"type\":\"final\",\"output\":\"...\"} to finish.",
+      "json_object:react": "You operate an isolated software repository through one bash tool using Thought, Action, Observation. Return exactly one JSON object and no prose. Include one non-empty `thought` string of at most 1000 characters that states the action-relevant working note. Return {\"type\":\"tool\",\"tool\":\"bash\",\"arguments\":{\"command\":\"...\"}} to act, or {\"type\":\"final\",\"output\":\"...\"} to finish.",
+      "strict_function:act-only": "You operate an isolated software repository through one bash tool. Select exactly one provided function and return no prose. Do not include a thought, analysis, rationale, or planning field. Use `bash` to act or `finish` when the repository patch is ready.",
+      "strict_function:react": "You operate an isolated software repository through one bash tool using Thought, Action, Observation. Select exactly one provided function and return no prose. Include one non-empty `thought` string of at most 1000 characters that states the action-relevant working note. Use `bash` to act or `finish` when the repository patch is ready.",
+      "repair": "Protocol repair only. The immediately preceding response failed harness validation with code {failure_code}. Re-emit the same intended next action using the required response transport. Do not advance the task or assume any new observation. Previous provider message: {previous_response}"
+    },
+    "repair": {
+      "share_original_call_between_derived_policies": true,
+      "max_additional_calls": 1,
+      "eligible_failure_levels": [
+        "L1",
+        "L2",
+        "L3"
+      ],
+      "ineligible_failures": [
+        "transport",
+        "HTTP",
+        "authentication",
+        "balance",
+        "rate-limit",
+        "response-decode"
+      ],
+      "cost_accounting": "repair-enabled policy includes original plus repair call usage"
+    },
+    "metrics": {
+      "ladder": [
+        "L0 response available",
+        "L1 carrier syntax valid",
+        "L2 action schema valid",
+        "L3 canonical executable bash/finish"
+      ],
+      "reporting": [
+        "unconditional rate at every level",
+        "conditional pass rate between adjacent levels",
+        "mutually exclusive earliest-failure counts",
+        "exact numerator and denominator",
+        "Wilson 95% confidence interval",
+        "challenge and control cohorts separately",
+        "Act-only and ReAct blocking factors separately",
+        "original and repair token usage separately",
+        "provider system_fingerprint groups"
+      ]
+    },
+    "stop_rules": {
+      "no_automatic_retry": true,
+      "fatal_http_statuses": [
+        401,
+        402,
+        403
+      ],
+      "stop_after_consecutive_l0_failures": 3,
+      "system_fingerprint_drift": {
+        "scope": "within each transport",
+        "missing_value": "record as unknown and continue",
+        "different_nonempty_value": "retain the completed attempt and stop before the next slot"
+      },
+      "no_slot_substitution": true,
+      "no_existing_artifact_overwrite": true
+    },
+    "artifact_policy": {
+      "append_only_attempt_directories": true,
+      "retain_secret_free_request": true,
+      "retain_lossless_response_body": true,
+      "retain_sha256": true,
+      "missing_usage_is_unknown_not_zero": true
+    }
+  },
+  "measurement_identity": {
+    "required": [
+      "UTC request timestamp",
+      "provider",
+      "requested model",
+      "provider-returned model",
+      "endpoint",
+      "system_fingerprint",
+      "configuration hash",
+      "context corpus hash"
+    ],
+    "interpretation": "Provider-by-protocol reliability during the recorded measurement window; provider behavior may drift."
+  },
+  "claim_boundary": "Offline fixed-context protocol measurement only; not task-solving quality, a persistent benchmark, a SWE-bench score, a Verified Project Fact, or a resume fact.",
+  "content_hash": "sha256:7d2caf39b332179a160817f7201a4b09654998fab1e3ec5e3d3c1b42a1b6acf7"
+}
