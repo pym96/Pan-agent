@@ -1,0 +1,95 @@
+{
+  "schema": "workspace-agent-harness/protocol-max-token-sensitivity/v1",
+  "experiment_id": "protocol-reliability-v1.2-max-token-16k-extension",
+  "version": "1.0.0",
+  "frozen_at": "2026-08-24",
+  "source_experiment": {
+    "experiment_id": "protocol-reliability-v1",
+    "config_hash": "sha256:7d2caf39b332179a160817f7201a4b09654998fab1e3ec5e3d3c1b42a1b6acf7",
+    "artifact_manifest_sha256": "sha256:4a268ecea3e8f852d5d571bb7d9a7f6a1d03ea92681d9bb20b10311ab1c21814",
+    "corrected_summary_sha256": "sha256:c36894362f4f0b92c6f9df9b6e9e96ae439d6fda561c1f0a3b998b1a3d519d31",
+    "length_hits_by_context": {
+      "prv1-c07-5f1aed80eac0": 5,
+      "prv1-c09-8ae46e0e47d0": 3,
+      "prv1-c12-c9ad3391aba0": 4,
+      "prv1-c22-36ec748a675d": 4,
+      "prv1-c23-ddce1f540e19": 5
+    }
+  },
+  "source_sensitivity": {
+    "experiment_id": "protocol-reliability-v1.1-max-token-sensitivity",
+    "config_hash": "sha256:1ee9454c34765b4c274eaee897d3884e71bad8dccaf2093fd8db41ef2de21850",
+    "artifact_manifest_sha256": "sha256:042ea1f38c17f75140e76b6b3fa0c5e7fec2b21702313ba2eed11d0fce1558aa",
+    "summary_sha256": "sha256:d1f1e0dee9f3b3c1320ff88a2226ec52165de85f517f7ffd5a1ffdc3b557aaef"
+  },
+  "context_corpus": "protocol-reliability-v1-contexts.json",
+  "context_corpus_hash": "sha256:299b76046f34496af3ed47d5d059c0e656fb8334c4914d34cb5e630a511a3919",
+  "experiment": {
+    "ordered_context_ids": [
+      "prv1-c07-5f1aed80eac0",
+      "prv1-c09-8ae46e0e47d0",
+      "prv1-c12-c9ad3391aba0",
+      "prv1-c22-36ec748a675d",
+      "prv1-c23-ddce1f540e19"
+    ],
+    "transport": "strict_function",
+    "variant": "react",
+    "max_completion_token_arms": [
+      16384
+    ],
+    "repetitions": 5,
+    "raw_call_count": 25,
+    "repair": false,
+    "model": {
+      "provider": "DeepSeek",
+      "model_id": "deepseek-v4-flash",
+      "thinking": "disabled",
+      "temperature": 0,
+      "stream": false,
+      "timeout_seconds": 120,
+      "endpoint": "https://api.deepseek.com/beta/chat/completions"
+    },
+    "execution_order": {
+      "algorithm": "ascending-sha256(seed + NUL + context_id + NUL + max_tokens + NUL + repetition)",
+      "seed": "workspace-agent-harness/protocol-reliability-v1.2/max-token-16k-extension",
+      "concurrency": 1
+    },
+    "metrics": [
+      "L0-L3 unconditional validity at the 16384-token arm",
+      "finish_reason and earliest-failure counts",
+      "completion-token usage and cap-hit count",
+      "DSML, end-of-thinking, and invoke marker counts",
+      "argument character length",
+      "Wilson 95% interval",
+      "context-level split",
+      "provider model and system_fingerprint",
+      "comparison against the locked v1.1 summary"
+    ],
+    "stop_rules": {
+      "no_automatic_retry": true,
+      "fatal_http_statuses": [
+        401,
+        402,
+        403
+      ],
+      "stop_after_consecutive_l0_failures": 3,
+      "different_nonempty_system_fingerprint": "retain completed attempt and stop before next slot",
+      "no_slot_substitution": true,
+      "no_existing_artifact_overwrite": true
+    },
+    "artifact_policy": {
+      "append_only_attempt_directories": true,
+      "retain_secret_free_request": true,
+      "retain_lossless_response_body": true,
+      "retain_sha256": true,
+      "missing_usage_is_unknown_not_zero": true
+    }
+  },
+  "decision_rule": {
+    "late_natural_close_supported": "the 16384 arm materially reduces cap hits and raises bounded L3 relative to the locked 8192 arm",
+    "runaway_persists_supported": "the 16384 arm preserves cap hits and repeated DSML/invoke behavior without a material L3 gain",
+    "mixed": "effects differ by Context or fewer cap hits trade off against other L1-L3 failures"
+  },
+  "claim_boundary": "Post-v1.1 Human-authorized 16384-token extension on the same five selected prior length-hit ReAct Contexts; not a preregistered v1.1 arm, provider-wide rate, task quality, SWE-bench score, Verified Project Fact, or resume fact.",
+  "content_hash": "sha256:ec482621415d795e5ff26badbde7b0dbead1e524dd0f96543730784dc9f3074f"
+}

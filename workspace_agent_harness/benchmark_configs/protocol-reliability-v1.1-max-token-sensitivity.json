@@ -1,0 +1,90 @@
+{
+  "schema": "workspace-agent-harness/protocol-max-token-sensitivity/v1",
+  "experiment_id": "protocol-reliability-v1.1-max-token-sensitivity",
+  "version": "1.0.0",
+  "frozen_at": "2026-08-24",
+  "source_experiment": {
+    "experiment_id": "protocol-reliability-v1",
+    "config_hash": "sha256:7d2caf39b332179a160817f7201a4b09654998fab1e3ec5e3d3c1b42a1b6acf7",
+    "artifact_manifest_sha256": "sha256:4a268ecea3e8f852d5d571bb7d9a7f6a1d03ea92681d9bb20b10311ab1c21814",
+    "corrected_summary_sha256": "sha256:c36894362f4f0b92c6f9df9b6e9e96ae439d6fda561c1f0a3b998b1a3d519d31",
+    "length_hits_by_context": {
+      "prv1-c07-5f1aed80eac0": 5,
+      "prv1-c09-8ae46e0e47d0": 3,
+      "prv1-c12-c9ad3391aba0": 4,
+      "prv1-c22-36ec748a675d": 4,
+      "prv1-c23-ddce1f540e19": 5
+    }
+  },
+  "context_corpus": "protocol-reliability-v1-contexts.json",
+  "context_corpus_hash": "sha256:299b76046f34496af3ed47d5d059c0e656fb8334c4914d34cb5e630a511a3919",
+  "experiment": {
+    "ordered_context_ids": [
+      "prv1-c07-5f1aed80eac0",
+      "prv1-c09-8ae46e0e47d0",
+      "prv1-c12-c9ad3391aba0",
+      "prv1-c22-36ec748a675d",
+      "prv1-c23-ddce1f540e19"
+    ],
+    "transport": "strict_function",
+    "variant": "react",
+    "max_completion_token_arms": [
+      2048,
+      4096,
+      8192
+    ],
+    "repetitions": 5,
+    "raw_call_count": 75,
+    "repair": false,
+    "model": {
+      "provider": "DeepSeek",
+      "model_id": "deepseek-v4-flash",
+      "thinking": "disabled",
+      "temperature": 0,
+      "stream": false,
+      "timeout_seconds": 120,
+      "endpoint": "https://api.deepseek.com/beta/chat/completions"
+    },
+    "execution_order": {
+      "algorithm": "ascending-sha256(seed + NUL + context_id + NUL + max_tokens + NUL + repetition)",
+      "seed": "workspace-agent-harness/protocol-reliability-v1.1/max-token-sensitivity",
+      "concurrency": 1
+    },
+    "metrics": [
+      "L0-L3 unconditional validity by max-token arm",
+      "finish_reason and earliest-failure counts",
+      "completion-token usage and cap-hit count",
+      "DSML, end-of-thinking, and invoke marker counts",
+      "argument character length",
+      "Wilson 95% interval",
+      "context-level arm split",
+      "provider model and system_fingerprint"
+    ],
+    "stop_rules": {
+      "no_automatic_retry": true,
+      "fatal_http_statuses": [
+        401,
+        402,
+        403
+      ],
+      "stop_after_consecutive_l0_failures": 3,
+      "different_nonempty_system_fingerprint": "retain completed attempt and stop before next slot",
+      "no_slot_substitution": true,
+      "no_existing_artifact_overwrite": true
+    },
+    "artifact_policy": {
+      "append_only_attempt_directories": true,
+      "retain_secret_free_request": true,
+      "retain_lossless_response_body": true,
+      "retain_sha256": true,
+      "missing_usage_is_unknown_not_zero": true
+    }
+  },
+  "decision_rule": {
+    "cap_confound_supported": "higher arms materially reduce length and raise L3 without persistent DSML/runaway diagnostics",
+    "runaway_limiter_supported": "higher arms preserve or extend length/DSML/runaway behavior instead of producing bounded L3 actions",
+    "mixed": "effects differ by Context or higher arms trade fewer length stops for other L1-L3 failures"
+  },
+  "claim_boundary": "Dated sensitivity measurement on five selected prior length-hit ReAct Contexts; not a provider-wide rate, task quality, SWE-bench score, Verified Project Fact, or resume fact.",
+  "content_hash": "sha256:1ee9454c34765b4c274eaee897d3884e71bad8dccaf2093fd8db41ef2de21850"
+}
