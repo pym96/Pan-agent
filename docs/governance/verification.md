@@ -4,11 +4,24 @@ This document is the canonical process contract for producing, checking, accepti
 
 ## Roles
 
-**Working Agent** produces candidate code, documents, experiments, and handoffs. It cannot accept its own work or promote a project claim into the career factual ledger.
+**Master Agent** triages Issue Candidates, publishes WorkOrders, and routes Handoffs and Verdicts. It cannot implement the WorkOrder, perform its independent Acceptance Gate, or promote a Claim without the applicable Verdict and human authority.
+
+**Working Agent** produces candidate code, documents, experiments, and handoffs. It cannot accept its own work or promote a project claim into any external factual or resume ledger.
 
 **Regulator Agent** accepts or rejects a handoff against predeclared Criteria. It must use a separate session/process, read primary Evidence independently, design or rerun negative tests, and avoid relying on the Working Agent's summary.
 
+**Learning Wiki Agent** answers an assigned learning question and maintains Wiki knowledge objects under `wiki/SCHEMA.md`. It cannot change implementation, governance decisions, project facts, or resume facts.
+
 Runtime generator/evaluator components are product roles and must not be called Working or Regulator Agents.
+
+The human assigns one immutable `SessionRole` at session creation. A missing role, role change, or mismatch with the WorkOrder is read-only `RoleMismatch`; changing roles requires a new session/process.
+
+## Exchange Interface
+
+- **WorkOrder** is the Master-promoted GitHub issue defined in [`../agents/issue-tracker.md`](../agents/issue-tracker.md). It fixes the target role, scope, deliverables, predeclared Criteria, budget, write authority, non-goals, dependencies, risks, and human authorization before execution.
+- **ScopeChallenge** reports why the assigned contract should change and links Evidence. It does not authorize the specialist to switch tasks.
+- **Handoff** links produced artifacts, primary Evidence, executed checks, limitations, unresolved items, and candidate next steps. Its narrative is not Evidence by itself.
+- **Verdict** records `accepted | rejected`, the applied Criteria, independently inspected Evidence and probes, limits, and any new Issue Candidates. Master uses it to update Outcome state; it does not independently authorize project-fact or resume-fact promotion.
 
 ## Verification vocabulary
 
@@ -40,7 +53,7 @@ Candidate Claim
 
 A **Verified Project Fact** must be registered in [`../evidence/verified-project-facts.md`](../evidence/verified-project-facts.md). That register is the only project-level source of truth; `AGENTS.md`, README, specs, Wiki pages, and review prose cannot substitute for it.
 
-An **Approved Resume Fact** must also be registered at A/B level in the career-side [`事实账本.md`](../../../../20-现状与事实/事实账本.md). Only the human user can grant the final disclosure approval.
+An **Approved Resume Fact** is outside this repository's authority. It additionally requires human approval of the atomic meaning and disclosure boundary plus registration in the external ledger governing that disclosure. No repository role may infer or perform that promotion.
 
 Human approval attaches to an atomic fact's meaning and disclosure boundary, not to one exact sentence. Agents may reorder, shorten, or make meaning-preserving edits. A new metric, causal claim, ownership claim, role, publication state, or broader disclosure scope requires new Evidence, acceptance, and human approval.
 
@@ -83,3 +96,7 @@ Human acceptance makes a decision authoritative. It does not prove that the repo
 - Architecture decisions: [`../adr/`](../adr/)
 - Governance decisions: [`decisions/`](decisions/)
 - Agent navigation and triggers: [`../../AGENTS.md`](../../AGENTS.md)
+
+## Optional host integrations
+
+An external career, portfolio, or private-workspace process may consume an accepted project Claim only when a Human-authorized WorkOrder explicitly names that integration. External files and checks are optional task inputs, not repository startup or Acceptance-Gate dependencies; when absent, repository-local work and verification remain fully defined by the sources above.

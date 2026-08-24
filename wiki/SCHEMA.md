@@ -4,6 +4,13 @@ The Wiki preserves a source-grounded learning path. It is not the product glossa
 
 `index.md`, `log.md`, and this Schema are control pages. Every other substantive Wiki page must be exactly one of the two knowledge-object types below.
 
+## Learning Wiki Agent role
+
+- The human assigns this immutable SessionRole; a WorkOrder supplies one learning question and its initial sources but cannot change the role.
+- Default context is the assigned question, listed sources, this Schema, and `index.md`; follow linked Evidence only as needed for provenance.
+- Write only under `wiki/`, including the required index and append-only log maintenance. Implementation, governance, project-fact, resume-fact, or task-priority changes become Issue Candidates for Master.
+- The Agent may choose research and summarization methods inside the WorkOrder, but may not switch the learning question without a revised WorkOrder.
+
 ## Knowledge objects
 
 ### Verified Learning Fact

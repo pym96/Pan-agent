@@ -1,6 +1,6 @@
 # Current Assignment | Bash-only ReAct MVP before SWE-style ACI work
 
-This document owns the current Working Agent assignment. It defines a target and acceptance contract; it does not establish implementation facts. Read the fact register linked from the root Agent map before making any current-state statement.
+This document owns the current project lane, constraints, and non-goals. It does not grant a session-specific task or establish implementation facts. A Working session starts only from a Master-published WorkOrder, and that WorkOrder cannot widen this lane or override Human decisions. Read the fact register linked from the root Agent map before making any current-state statement.
 
 ## Mission
 

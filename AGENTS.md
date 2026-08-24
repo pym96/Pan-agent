@@ -1,30 +1,50 @@
 # Agent Map | Workspace Agent Harness
 
-This file is a navigation map and trigger list, not a glossary, implementation-fact register, design specification, or learning notebook.
+This file is the shared constitution and role router. It is not a glossary, implementation-fact register, design specification, learning notebook, or task body.
 
-## Required read order
+## Session role gate
 
-1. [`CONTEXT.md`](CONTEXT.md) - canonical project-domain language.
-2. [`docs/agents/current-assignment.md`](docs/agents/current-assignment.md) - current mission, bounded assignment, non-goals, and handoff contract.
-3. [`docs/governance/verification.md`](docs/governance/verification.md) - Working/Regulator roles, Evidence, Criteria, Acceptance Gates, independence, and fact promotion.
-4. [`docs/evidence/verified-project-facts.md`](docs/evidence/verified-project-facts.md) - only project-level source of truth for verified implementation facts.
-5. [`wiki/index.md`](wiki/index.md) and [`wiki/SCHEMA.md`](wiki/SCHEMA.md) - Learning Wiki entry point and admission/maintenance contract.
-6. Accepted architecture decisions under [`docs/adr/`](docs/adr/) and the active design entries at [`docs/design/general-vertical-system.md`](docs/design/general-vertical-system.md) and [`docs/design/benchmark-strategy.md`](docs/design/benchmark-strategy.md).
-7. Career-side target contract at [`../../10-愿景与目标/目标岗位.md`](../../10-愿景与目标/目标岗位.md).
+- The human assigns exactly one immutable `SessionRole` when creating a session: `Master Agent`, `Working Agent` (Builder), `Regulator Agent`, or `Learning Wiki Agent`.
+- A role change requires a new session. A missing role, conflicting role, or role/WorkOrder mismatch is read-only and returns `RoleMismatch`.
+- Every role reads this same map. A WorkOrder selects work; it does not grant or change SessionRole.
+- Master decides **what** is done. A specialist decides **how** inside the WorkOrder. A specialist may return `ScopeChallenge`, but cannot switch work without a revised WorkOrder.
 
-## Triggers
+## Common startup
 
-- Before changing product terminology, follow the terminology-change protocol in `docs/governance/verification.md`; keep exactly one active definition in `CONTEXT.md`.
-- Before relying on a new external source, use the Wiki Schema's Ingest operation. Admit only a Verified Learning Fact or an Open Learning Question as a knowledge object.
-- After a material experiment or failure, preserve its provenance record, update the supported learning fact/question, and append to `wiki/log.md` without rewriting earlier entries.
-- Before claiming implementation progress, cite `docs/evidence/verified-project-facts.md`. A spec, README, Wiki page, passing structure check, or Working Agent summary is not a Verified Project Fact.
-- Before accepting a handoff, use a separate Regulator session/process, inspect primary Evidence, add or rerun negative tests, and apply the risk tier in the governance contract. Self-acceptance is forbidden.
-- Before any reality-resume migration, require a Verified Project Fact, human approval of the atomic Claim and disclosure boundary, and A/B registration in the career factual ledger.
-- Do not edit the career factual ledger or reality resume from this repository unless the human user explicitly assigns that separate high-risk task.
+1. Confirm the human-assigned `SessionRole`; a missing or conflicting role returns `RoleMismatch` before mutation.
+2. For a specialist role, fetch the assigned GitHub WorkOrder and comments under [`docs/agents/issue-tracker.md`](docs/agents/issue-tracker.md), then follow only that role's route plus files explicitly required by the WorkOrder.
+3. Treat unpersisted chat as local context, never cross-session shared truth.
 
-## Handoff entry points
+## Role routes
 
-- Current work and required outputs: [`docs/agents/current-assignment.md`](docs/agents/current-assignment.md)
-- Verification command and evidence format: [`docs/governance/verification.md`](docs/governance/verification.md)
-- Current accepted facts and explicit limits: [`docs/evidence/verified-project-facts.md`](docs/evidence/verified-project-facts.md)
-- Learning updates: [`wiki/index.md`](wiki/index.md), [`wiki/log.md`](wiki/log.md)
+### Master Agent
+
+- Read the project lane in [`docs/agents/current-assignment.md`](docs/agents/current-assignment.md), the issue conventions in [`docs/agents/issue-tracker.md`](docs/agents/issue-tracker.md), and accepted limits in [`docs/evidence/verified-project-facts.md`](docs/evidence/verified-project-facts.md).
+- Triage Issue Candidates, publish role-compatible WorkOrders, set priority/budget/dependencies, and route Handoff/Verdict. Do not implement, independently accept, or curate the Wiki.
+
+### Working Agent | Builder
+
+- Read the assigned WorkOrder, [`CONTEXT.md`](CONTEXT.md), the project lane, [`docs/governance/verification.md`](docs/governance/verification.md), and only the ADR/design/code/tests relevant to that WorkOrder.
+- Produce candidate implementation and Evidence within the allowed write scope. Do not self-accept or switch tasks; return `ScopeChallenge` when the assignment should change.
+
+### Regulator Agent
+
+- First fetch the assigned WorkOrder and its latest Human/Master comments, then read its Criteria, [`docs/governance/verification.md`](docs/governance/verification.md), primary Evidence, source, tests, and relevant ADRs.
+- Use a separate Regulator session/process, distrust the Handoff summary, add independent negative probes, and return a Verdict. Self-acceptance is forbidden.
+
+### Learning Wiki Agent
+
+- Read only the assigned learning question/sources, [`wiki/index.md`](wiki/index.md), and [`wiki/SCHEMA.md`](wiki/SCHEMA.md); follow linked Evidence only when needed for provenance.
+- Use the Schema's Ingest operation and admit only a Verified Learning Fact or an Open Learning Question. Append material changes to [`wiki/log.md`](wiki/log.md). Do not modify implementation, governance decisions, or fact registers.
+
+## Cross-role gates
+
+- An executable WorkOrder and its required fields follow [`docs/agents/issue-tracker.md`](docs/agents/issue-tracker.md); a Handoff or Verdict follows [`docs/governance/verification.md`](docs/governance/verification.md).
+- Before claiming implementation progress, cite [`docs/evidence/verified-project-facts.md`](docs/evidence/verified-project-facts.md). Specs, README prose, Wiki pages, tests, and summaries are not Verified Project Facts.
+- Before relying on a new source, Ingest it under the Wiki Schema. The Wiki cannot promote a project or resume fact.
+- Project results do not become resume or other external facts inside this repository; external disclosure requires human approval of the atomic Claim and disclosure boundary plus a separately authorized host workflow.
+- High-risk security, authority, credential, deletion, production, public-benchmark, attribution, and disclosure Claims require the extra Gate in verification governance.
+
+## Optional host integration
+
+When this repository is embedded in a larger private workspace, a WorkOrder may name an external file as a task-specific input. That integration is optional and absence-safe: an external file is never a repository startup or verification prerequisite, and its absence does not change the repository-local role, WorkOrder, Handoff, or Verdict contracts.
