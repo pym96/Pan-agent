@@ -28,6 +28,7 @@ This Wiki contains only Verified Learning Facts and Open Learning Questions. It 
 - [SWE-bench Harness, dataset metadata, and ARM Docker execution](sources/2026-08-20-swe-bench-harness.md)
 - [Anthropic: official harness definitions](sources/2026-08-23-anthropic-harness-definitions.md)
 - [Earendil: What is a harness (four-component framing)](sources/2026-08-23-earendil-what-is-a-harness.md)
+- [Trace versus thought trajectory](concepts/trace-vs-thought-trajectory.md)
 
 ### Triangulated
 
@@ -44,6 +45,7 @@ This Wiki contains only Verified Learning Facts and Open Learning Questions. It 
 - [First cross-domain experiment question](experiments/README.md)
 - [Failure-retention question](failures/README.md)
 - [Multi-agent coordination protocol question](questions/multiagent-runtime-coordination.md)
+- [Why does self-generated thought improve action quality?](questions/why-self-generated-thought-helps.md)
 
 ## External decisions and facts
 
