@@ -90,7 +90,7 @@ The smallest useful result table reports per variant: attempted, resolved, unres
 
 Phase 0 produced inspectable Bad Cases, but most were response-protocol failures rather than coding-interface failures. The candidate result is recorded in [`../evidence/react-mvp-30-slot-candidate-2026-08-23.md`](../evidence/react-mvp-30-slot-candidate-2026-08-23.md): each treatment resolved one planned slot, while 26 slots ended in model/protocol error and one slot exposed a command-timeout artifact failure.
 
-Before Phase 1 selects a coding ACI addition, a separately frozen protocol-reliability gate must make the action interface consumable without silently changing task-solving content. Only clean bash-interface Bad Cases should choose additions such as compact repository navigation, bounded file viewing, structured editing, or targeted search feedback. Each ACI addition keeps the same frozen tasks or declares a new experiment version and measures recovery behavior, command efficiency, observation quality, and resolution.
+Before Phase 1 selects a coding ACI addition, the separately frozen [`protocol-reliability-v1`](protocol-reliability-v1.md) gate measures whether the action interface is consumable without silently changing task-solving content. Only clean bash-interface Bad Cases should choose additions such as compact repository navigation, bounded file viewing, structured editing, or targeted search feedback. Each ACI addition keeps the same frozen tasks or declares a new experiment version and measures recovery behavior, command efficiency, observation quality, and resolution.
 
 This ordering preserves the learning distinction:
 

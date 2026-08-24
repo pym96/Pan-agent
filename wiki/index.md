@@ -28,6 +28,7 @@ This Wiki contains only Verified Learning Facts and Open Learning Questions. It 
 - [SWE-bench Harness, dataset metadata, and ARM Docker execution](sources/2026-08-20-swe-bench-harness.md)
 - [Anthropic: official harness definitions](sources/2026-08-23-anthropic-harness-definitions.md)
 - [Earendil: What is a harness (four-component framing)](sources/2026-08-23-earendil-what-is-a-harness.md)
+- [DeepSeek JSON Output and Strict Function Calling](sources/2026-08-23-deepseek-structured-output.md)
 - [Trace versus thought trajectory](concepts/trace-vs-thought-trajectory.md)
 
 ### Triangulated
@@ -38,6 +39,8 @@ This Wiki contains only Verified Learning Facts and Open Learning Questions. It 
 ### Experiment-reproduced
 
 - [Visible ReAct versus Act-only in the frozen five-case development smoke](experiments/2026-08-23-react-vs-act-swebench.md)
+- [Fixed-context DeepSeek action-protocol reliability](experiments/2026-08-23-protocol-reliability-v1.md)
+- [Maximum-token sensitivity in Strict ReAct action generation](experiments/2026-08-24-protocol-max-token-sensitivity.md)
 
 ## Open Learning Questions
 

@@ -8,7 +8,7 @@ Human accepted ADR-0009 and ADR-0010 on 2026-08-19. The HF-20260820-022 benchmar
 
 Implement Phase 0 inside the existing `workspace-coding` lane without replacing the General Runtime architecture or presenting a five-case development smoke as a benchmark score. Freeze the treatment before provider calls: five official SWE-bench Lite development cases, Act-only versus visible ReAct, three repetitions, DeepSeek V4 Flash with provider thinking disabled, one bash tool, disposable Docker execution, no model-visible history compaction, lossless raw command artifacts, and official `resolved` as the primary outcome.
 
-Every case was ineligible for Agent execution until its pinned official gold patch completed and resolved. Infrastructure/evaluator errors remain separate from unresolved Agent patches. The authorized DeepSeek credential was funded after the initial insufficient-balance response; the locked preflight then returned a usable completion, and all 30 frozen slots executed from 2026-08-21 through 2026-08-23. The result remains a Working Agent candidate pending independent review: 29 task outcomes, one infrastructure/artifact failure, and one resolved planned slot per treatment. Do not present it as a SWE-bench Lite score or repair/rerun the failed formal slot after observing its trajectory.
+Every case was ineligible for Agent execution until its pinned official gold patch completed and resolved. Infrastructure/evaluator errors remain separate from unresolved Agent patches. The authorized DeepSeek credential was funded after the initial insufficient-balance response; the locked preflight then returned a usable completion, and all 30 frozen slots executed from 2026-08-21 through 2026-08-23. A sixth independent Regulator review reproduced the ordinary candidate-Evidence claims: 29 task outcomes, one infrastructure/artifact failure, and one resolved planned slot per treatment. This review did not create a Verified Project Fact. Do not present the result as a SWE-bench Lite score or repair/rerun the failed formal slot after observing its trajectory.
 
 Phase-transition note: the original **design before implementation** gate for the **General Agent Runtime + Vertical Domain Packs** required **failing contract tests**. Human acceptance closed that historical red-test gate; the current implementation and regression suite must remain green.
 
@@ -39,7 +39,7 @@ The ordinary independent Runtime/seed implementation gate has passed. HF-2026082
 
 The configuration artifacts and tests passed an independent ordinary Regulator review after one rejection/remediation round. The HF-20260820-022 assignment is complete at the configuration boundary. Security/authority publicity, stale top-level HEAD correction, implementation of the remaining 28 vertical cases, PinchBench translation/execution, public numbers, and fact promotion remain separate open work and are not authorized by this completion.
 
-## Current Phase 0 gate
+## Completed Phase 0 gate
 
 Required Working Agent candidate outputs:
 
@@ -52,9 +52,34 @@ Required Working Agent candidate outputs:
 7. complete model trajectories, patches, official evaluator artifacts, failure attribution, and paired summaries for all 30 planned slots, retaining any infrastructure/artifact failure separately;
 8. a Learning Wiki fact for the reproduced SWE-bench/Docker mechanics and an experiment-reproduced learning fact after the comparison runs.
 
-The comparison has now run. The former Open Learning Question is superseded by the experiment-reproduced Wiki fact and candidate Evidence record. The next bounded gate is independent review of the raw matrix and prospective reliability fixes; only after that should a new protocol-reliability experiment be frozen before any SWE-agent-style ACI treatment.
+The comparison and sixth independent ordinary review have now completed. The former Open Learning Question is superseded by the experiment-reproduced Wiki fact and candidate Evidence record. The accepted next gate is the separately frozen `protocol-reliability-v1` experiment before any SWE-agent-style ACI treatment.
 
-The one-case Verified-set Docker probe demonstrates the initial ARM-to-amd64 evaluator path. All five selected Lite cases subsequently completed and resolved their pinned gold patches with zero infrastructure/evaluator errors. Contract tests and environment receipts remain Candidate Evidence until a separate Regulator session reviews them; the Working Agent cannot self-accept or register a Verified Project Fact.
+The one-case Verified-set Docker probe demonstrates the initial ARM-to-amd64 evaluator path. All five selected Lite cases subsequently completed and resolved their pinned gold patches with zero infrastructure/evaluator errors. The sixth review accepted this ordinary candidate-Evidence boundary; the Working Agent still cannot register a Verified Project Fact.
+
+## Current protocol-reliability-v1 gate
+
+Human accepted ADR-0012 and authorized execution after the sixth review. Before the first formal provider slot, the Working Agent must retain:
+
+1. a 24-context content-hashed corpus reconstructed from all 30 source Traces: 16 unique terminal failure contexts plus eight deterministic variant/depth controls;
+2. one content-hashed lock for DeepSeek V4 Flash, thinking disabled, JSON-object versus Strict Function Calling Beta, five repetitions, deterministic serial order, and the J0/J1/S0/S1 derived policies;
+3. exactly one repair after L1-L3 only, with shared original calls and complete incremental Token accounting;
+4. deterministic L0-L3 and earliest-failure classification, exact counts, Wilson 95% intervals, cohort/variant splits, and missing-usage coverage;
+5. append-only secret-free requests, lossless responses, hashes, UTC timing, endpoints, returned model, and `system_fingerprint` identity;
+6. stop-after-retention behavior for fatal authentication/balance HTTP statuses, three consecutive L0 failures, or non-empty fingerprint drift within one transport;
+7. offline contract/negative tests and a dry-run that enumerate exactly 240 original slots before API execution;
+8. a candidate Evidence record and experiment-reproduced Learning Wiki fact only after the matrix is complete and deterministically summarized.
+
+The experiment does not execute bash, judge task correctness, prove general Harness reuse, or create a persistent benchmark. Its result requires a new independent Regulator session before any candidate claim can be accepted.
+
+Working checkpoint: all 240 original slots completed in the frozen order, with 90 repair calls and no missing attempt artifact. The deterministic summary and candidate Evidence are at `docs/evidence/protocol-reliability-v1-candidate-2026-08-23.md`. Post-run regression and the root acceptance gate passed; the remaining Gate is independent Regulator inspection. The Working Agent must not select a coding ACI treatment from this result until that Gate closes.
+
+## Current maximum-token sensitivity checkpoint
+
+After the Human identified the 2,048-token confound, the Working Agent froze and completed `protocol-reliability-v1.1-max-token-sensitivity`: the exact five parent ReAct Contexts covering all 21 Strict `length@2048` failures, three ceilings (2K/4K/8K), five repetitions, Strict transport only, no repair, and 75/75 retained calls. After v1.1 completed, the Human requested a 16K check; it was frozen as the separately identified `protocol-reliability-v1.2-max-token-16k-extension`, locked to the completed v1.1 summary/raw manifest, and completed 25/25 calls.
+
+Candidate result: L3 was 2/25, 4/25, 4/25, and 5/25 at 2K/4K/8K/16K; exact cap hits were 19, 16, 20, and 15. Fifteen 16K calls still generated exactly to the ceiling, while one 16K call ended at L0 with unknown underlying transport cause. The Working Agent classifies this as persistent runaway with Context-dependent branching, not evidence that 16K should become the default. The v1 S0 result must be described as Strict under a bundled 2,048 ceiling rather than an unconfounded transport-only estimate.
+
+The deterministic summaries and candidate record are indexed at `docs/evidence/protocol-max-token-sensitivity-candidate-2026-08-24.md`. The remaining Gate is a new independent Regulator session that reproduces both summaries from raw artifacts and adds negative tests. No coding ACI treatment, VPF, factual-ledger entry, or resume claim is authorized by this Working checkpoint.
 
 ## External success contract: maximize Shanghai job-search odds
 

@@ -22,6 +22,12 @@ The accepted implementation baseline is split across:
 
 `test_react_mvp_summary.py` exercises the deterministic Phase 0 matrix summary: expected slots come from the frozen configuration, incomplete attempt artifacts remain infrastructure/artifact failures rather than unresolved task outcomes, and missing provider-usage records remain visible in call coverage.
 
+`test_protocol_reliability.py` exercises the frozen post-ReAct protocol gate: exact 16+8 real-context corpus reconstruction, JSON/Strict historical-context equality, Strict schema constraints and thought placement, L0-L3 separation, one bounded repair message, credential-free lossless request/response retention, and Wilson intervals.
+
+`test_protocol_reliability_summary.py` proves original legality and post-repair legality/cost remain separate, tampered raw response artifacts fail closed, and a different non-empty fingerprint stops within one transport while separate JSON/Strict fingerprints remain allowed.
+
+`test_protocol_max_token_sensitivity.py` proves the exact 75-slot v1.1 and 25-slot 16K extension matrices, verifies that payload arms differ only in `max_tokens`, locks the extension to the completed v1.1 summary/manifest, checks returned marker diagnostics, excludes credentials, and rejects tampered response artifacts.
+
 Run the full handoff command with:
 
 ```bash
@@ -29,3 +35,5 @@ python3 -m unittest discover -s tests -p 'test_*.py' -v
 ```
 
 The complete suite must be green for the implementation candidate. That result does not establish an external benchmark result, official PinchBench compatibility, or independent acceptance.
+
+`test_regulator_protocol_probes.py` was authored by the independent Regulator session reviewing the 2026-08-23/24 protocol-reliability and max-token-sensitivity backlog (seventh/eighth review): config byte drift, corpus drift, and forged corpus-pointer binding must fail closed at the loader.

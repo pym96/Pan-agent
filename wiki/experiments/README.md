@@ -1,5 +1,12 @@
 # First cross-domain experiment question
 
+> This page retains the first open cross-domain experiment question. Completed, date-scoped experiment facts are indexed below and in [`../index.md`](../index.md).
+
+## Completed experiment facts
+
+- [`2026-08-23-protocol-reliability-v1.md`](2026-08-23-protocol-reliability-v1.md): frozen 240-slot DeepSeek provider×protocol reliability measurement, including raw/effective L0–L3 validity, repair cost, cohort splits, and identity scope.
+- [`2026-08-24-protocol-max-token-sensitivity.md`](2026-08-24-protocol-max-token-sensitivity.md): 2K/4K/8K fixed-context sensitivity plus a separately identified 16K extension, showing that higher ceilings extend many malformed responses without a monotonic L3 gain.
+
 - Type: open-learning-question
 - Verification: open
 - Source: the unimplemented proof-domain contract in `docs/agents/current-assignment.md`

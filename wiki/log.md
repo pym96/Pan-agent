@@ -185,6 +185,21 @@ Do not edit or delete existing entries. Corrections are new entries that link to
 - New Regulator probes (now `tests/test_regulator_react_mvp_probes.py`): slot instance/config-hash tampering fails the summary closed; protocol rejects unexpected fields, non-bash tools, and config drift. Credential scan of `.runs/` found no key material.
 - Scope: ordinary candidate Evidence verification. The 30-slot result remains a five-case development smoke — not a score, VPF, or resume fact. The frozen `protocol-reliability-v1` experiment (human-grilled design: 24 frozen contexts, J0/J1/S0/S1, one bounded repair, layered L0-L3 metrics, five repetitions, Wilson intervals, time-window identity) is the next Working Agent gate.
 
+## 2026-08-23 | Protocol Reliability v1 frozen before provider calls
+
+- Ingested DeepSeek's official JSON Output, Tool Calls, and Chat Completions documentation. JSON mode requires an explicit JSON instruction; Strict Function Calling is a Beta endpoint feature whose functions set `strict: true`, require all object properties, and reject additional properties.
+- Added the open fixed-context reliability question and Human-accepted ADR-0012. The committed corpus deterministically reconstructs 24 real provider-visible histories from the retained 30-slot Traces: all 16 unique terminal protocol-failure contexts plus eight Act/ReAct × depth-band valid controls.
+- Frozen config `sha256:7d2caf39b332179a160817f7201a4b09654998fab1e3ec5e3d3c1b42a1b6acf7` binds J0/J1/S0/S1, five repetitions, one L1-L3 repair maximum, L0-L3 metrics, Wilson 95% reporting, full repair cost, append-only raw artifacts, and per-transport fingerprint drift stopping.
+- Boundary: this is a prospective experiment lock and Open Learning Question, not an empirical result, persistent benchmark, Verified Project Fact, factual-ledger entry, or resume fact.
+
+## 2026-08-23 | Protocol Reliability v1 experiment reproduced
+
+- Superseded the open protocol question after all 240 fixed original slots completed in one ten-minute provider window. The matrix retained 240 original calls, 90 repair calls, all 240 attempt records, raw request/response hashes, and one unretried repair transport error.
+- Original L3 validity was 57/120 for JSON and 93/120 for Strict. One repair raised effective L3 to 104/120 and 120/120 respectively; Wilson intervals, cohort/variant splits, earliest failures, fingerprints, and full usage coverage are retained in the experiment fact and candidate Evidence.
+- Strict did not eliminate the Translation Layer boundary: 26 originals had invalid arguments JSON and one violated the local action schema. Twenty-one invalid strings were length-terminated; five were malformed despite `finish_reason=tool_calls`. All 27 Strict repair calls reached L3 in this fixed replay.
+- A first summary omitted the known original Tokens from the one attempt whose repair usage was unavailable. It remains retained; the corrected summary derives usage from every raw charged call and reports J1 as at least 773,317 known Tokens with 182/183 call coverage. No formal attempt or reliability outcome changed.
+- Learning: provider-native structure and one repair materially changed consumability, yet validation, failure retention, and cost accounting remain Harness responsibilities. The 120/120 S1 observation is bounded to this corpus and time window, not a guarantee or persistent benchmark.
+
 ## 2026-08-24｜Learning ingest: Trace vs thought, thought-entropy question
 
 - Ingested the Trace-versus-thought-trajectory distinction as a source-located concept page, verified against this repository's `load_trace` integrity rules and trace behavioral tests plus the already-ingested Anthropic session definition. No external source was needed: the repo code is the primary locator.
@@ -196,3 +211,17 @@ Do not edit or delete existing entries. Corrections are new entries that link to
 - The human confirmed the `30-已有资产与参考/` reorganization was intentional: reference repos moved from `工具与方法参考/` to `candidate-projects/`, and `reference_paper/` was renamed `reference-paper/`.
 - Locators updated (content unchanged): the ReAct and SWE-agent source pages now point at `reference-paper/`; project design docs and the acceptance validator now point at `candidate-projects/`. Pinned commits (`88252e9`, `54cc51a`) and remotes are unchanged.
 - Earlier log entries that mention the old paths are historical records and intentionally left untouched per the append-only rule.
+
+## 2026-08-24 | Protocol maximum-token sensitivity reproduced
+
+- Froze and completed 75 no-repair Strict calls across the exact five parent ReAct Contexts that covered all 21 `length@2048` failures: 2K/4K/8K × five repetitions. L3 was 2/25, 4/25, and 4/25; exact cap hits were 19, 16, and 20.
+- After v1.1 completed, the Human requested 16K. Retained it as a separate 25-call extension and locked its config to the completed v1.1 summary/raw manifest instead of rewriting the original experiment identity. The 16K arm reached L3 in 5/25, hit exactly 16,384 Tokens in 15/25, and retained one L0 transport error with unknown underlying cause.
+- Known completion use rose from 39,651 at 2K to 66,651 at 4K, 164,455 at 8K, and 246,815 across 24 usage-bearing 16K calls. Returned argument strings and repeated DSML/invoke markers grew with the ceiling; the Harness retained response bodies losslessly and did not post-truncate them.
+- Learning: 2,048 was a real request-side ceiling and therefore qualifies the original Strict comparison, but larger ceilings did not monotonically restore protocol validity. The bounded candidate engineering choice remains validation plus bounded repair rather than a default 16K action budget.
+- Boundary: five deliberately failure-enriched Contexts, one dated DeepSeek deployment identity, and a post-v1.1 16K extension. This is neither provider-wide reliability, task quality, SWE-bench performance, VPF, factual-ledger evidence, nor a resume fact; independent Regulator review remains open.
+## 2026-08-24 | Seventh and eighth Regulator reviews: protocol reliability backlog verified
+
+- A new independent Regulator session re-read ADR-0012, the designs, and both candidate Evidence records, then re-derived every number from raw artifacts with freshly written assessment logic: all four schemes' L0-L3 tables, all 16 cohort/blocking cells, repair counts (63/47 JSON, 27/27 Strict), usage totals, the 10-minute window timestamps, Wilson intervals, corpus provenance (26 trace-hash references into the 30-slot matrix), and both sensitivity manifests.
+- The sensitivity recount independently reproduced every arm (2K/4K/8K/16K) including cap hits, completion-Token sums, maximum argument lengths, DSML-marker-bearing attempt counts, and all 20 context×ceiling cells; the five sensitivity contexts exactly cover the 21 parent `length@2048` failures, and 8K/16K request payloads differ only in `max_tokens`.
+- Tamper probes: config, corpus, and forged corpus-pointer drift fail closed; a flipped response byte fails the deterministic summarizer. Durable loader-level probes are kept in `tests/test_regulator_protocol_probes.py`.
+- Scope: ordinary candidate-Evidence verification. The measurements remain dated provider×protocol windows, not scores, VPFs, or resume facts.
