@@ -1,0 +1,26 @@
+{
+  "id": "fixture-clean-thought",
+  "object": "chat.completion",
+  "model": "deepseek-v4-flash",
+  "system_fingerprint": "fixture-fingerprint",
+  "choices": [
+    {
+      "index": 0,
+      "finish_reason": "tool_calls",
+      "message": {
+        "role": "assistant",
+        "content": "",
+        "tool_calls": [
+          {
+            "id": "call_fixture_2",
+            "type": "function",
+            "function": {
+              "name": "bash",
+              "arguments": "{\"command\":\"git status --short\",\"thought\":\"Inspect the current changes.\"}"
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

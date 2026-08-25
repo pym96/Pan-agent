@@ -107,3 +107,13 @@ PYTHONPATH=. python3 scripts/summarize_protocol_max_token_sensitivity.py \
 ```
 
 Both runners retain append-only secret-free requests, lossless response bodies, hashes, L0–L3 assessments, finish reasons, usage, returned markers, and provider identity. The 16K condition is an extension observed after v1.1, not a retroactively preregistered arm.
+
+## Typed Translation Adapter four-cell dry-run
+
+Enumerate the later history-carrier × reasoning-carrier diagnostic without a provider call:
+
+```bash
+PYTHONPATH=. python3 scripts/dry_run_translation_matrix.py
+```
+
+The deterministic output contains exactly four cells: legacy JSON-text versus native assistant-call/tool-result history, crossed with diagnostic thought-in-arguments versus command-only schemas. Model, DeepSeek Beta endpoint, canonical Context, tool set, temperature, thinking setting, five-repetition plan, and one explicit provider-controlled `ModelProfile` identity remain fixed. `live_calls=0` and `causal_result=null`; this command neither executes a task nor recommends a production output ceiling.

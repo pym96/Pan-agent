@@ -1,0 +1,26 @@
+[
+  {
+    "role": "user",
+    "content": "Inspect the isolated repository and repair the issue."
+  },
+  {
+    "role": "assistant",
+    "content": "",
+    "tool_calls": [
+      {
+        "id": "call_fixture_1",
+        "type": "function",
+        "function": {
+          "name": "bash",
+          "arguments": "{\"command\":\"pwd\"}"
+        }
+      }
+    ]
+  },
+  {
+    "role": "tool",
+    "tool_call_id": "call_fixture_1",
+    "name": "bash",
+    "content": "/testbed\n"
+  }
+]

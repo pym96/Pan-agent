@@ -28,6 +28,8 @@ The accepted implementation baseline is split across:
 
 `test_protocol_max_token_sensitivity.py` proves the exact 75-slot v1.1 and 25-slot 16K extension matrices, verifies that payload arms differ only in `max_tokens`, locks the extension to the completed v1.1 summary/manifest, checks returned marker diagnostics, excludes credentials, and rejects tampered response artifacts.
 
+`test_translation_adapter.py` exercises WorkOrder #4's offline typed seam: native assistant tool-call and paired tool-result history round-trips correlation IDs; legacy/native history and thought/command reasoning remain independent; reasoning never enters canonical executable arguments; only `ModelProfile.max_output_tokens` controls the translated request; and length, malformed JSON, schema drift, missing/duplicate/reused IDs, orphan results, and multi-call output fail before action execution. Secret-free fixture provenance lives under [`fixtures/translation/manifest.json`](fixtures/translation/manifest.json), including the minimized retained DSML-runaway locator. The four-cell dry-run is deterministic, makes zero calls, and reports no causal result.
+
 Run the full handoff command with:
 
 ```bash

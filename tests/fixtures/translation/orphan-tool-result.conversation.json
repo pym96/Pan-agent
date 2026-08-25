@@ -1,0 +1,15 @@
+{
+  "messages": [
+    {
+      "type": "user",
+      "content": "Inspect the isolated repository."
+    },
+    {
+      "type": "tool_result",
+      "call_id": "call_without_source",
+      "tool_name": "bash",
+      "content": "/testbed\n",
+      "is_error": false
+    }
+  ]
+}

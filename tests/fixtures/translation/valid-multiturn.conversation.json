@@ -1,0 +1,24 @@
+{
+  "messages": [
+    {
+      "type": "user",
+      "content": "Inspect the isolated repository and repair the issue."
+    },
+    {
+      "type": "assistant_tool_call",
+      "call_id": "call_fixture_1",
+      "tool_name": "bash",
+      "arguments": {
+        "command": "pwd"
+      },
+      "reasoning": "Inspect the working directory first."
+    },
+    {
+      "type": "tool_result",
+      "call_id": "call_fixture_1",
+      "tool_name": "bash",
+      "content": "/testbed\n",
+      "is_error": false
+    }
+  ]
+}

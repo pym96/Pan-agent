@@ -1,0 +1,67 @@
+{
+  "schema": "workspace-agent-harness/translation-fixtures/v1",
+  "claim_boundary": "Secret-free offline contract fixtures only; no provider reliability, model quality, task outcome, or causal result.",
+  "fixtures": {
+    "valid-multiturn.conversation.json": {
+      "kind": "synthetic-positive",
+      "purpose": "Typed user, assistant tool call, paired tool result, and next-turn native replay.",
+      "fixture_sha256": "sha256:7da5f50eaa4635bc4b8e5d215f00136c6b76bb3c1b1ee4531351e1992194746c"
+    },
+    "orphan-tool-result.conversation.json": {
+      "kind": "synthetic-negative",
+      "purpose": "Orphan correlation must fail before transport or tool execution.",
+      "fixture_sha256": "sha256:eb0fa6d51a9da5b28a4a50d8ec366fa0b15ee092dbc6f3a50f7b760cb2b9edd0"
+    },
+    "valid-native-history.request-messages.json": {
+      "kind": "synthetic-oracle",
+      "purpose": "Exact provider-native assistant tool-call and paired tool-result wire shape.",
+      "fixture_sha256": "sha256:9c5fc9f96d0f55e81753e77aea3b50fea83fd15576bb166c10d3543c9623c10d"
+    },
+    "clean-command-only.response.json": {
+      "kind": "synthetic-positive",
+      "purpose": "Command-only native tool call with no visible reasoning field.",
+      "fixture_sha256": "sha256:c761da5c2d6bccd960769df0cb56b7aba9a4e054fe4979b5bdfcc8f6c297f40b"
+    },
+    "clean-thought.response.json": {
+      "kind": "synthetic-positive",
+      "purpose": "Diagnostic thought-in-arguments decoding into separate canonical reasoning.",
+      "fixture_sha256": "sha256:64935ac76e5d303e842fbd45d85a730375341d2912f3dbf62811358a8df248fa"
+    },
+    "malformed-arguments.response.json": {
+      "kind": "synthetic-negative",
+      "purpose": "Malformed function arguments JSON.",
+      "fixture_sha256": "sha256:d9360f641d676932e4e479e51712e07f3b1e7cfcd00635619ecf79c3d84c0e9f"
+    },
+    "missing-id.response.json": {
+      "kind": "synthetic-negative",
+      "purpose": "Missing tool-call correlation identity.",
+      "fixture_sha256": "sha256:6db8d707fa69939b307d7c06f2cf3ec29d128635d2b76712fee3661e7c00b27a"
+    },
+    "duplicate-ids.response.json": {
+      "kind": "synthetic-negative",
+      "purpose": "Duplicate tool-call correlation identities.",
+      "fixture_sha256": "sha256:ee894813e8453a2ea7888923f7fcc6651c24c19ba5871e6c9106c1bfdccaf3bf"
+    },
+    "multi-call.response.json": {
+      "kind": "synthetic-negative",
+      "purpose": "Two distinct calls when the action contract permits exactly one.",
+      "fixture_sha256": "sha256:dfe3516a6d1d22322f509f854006ae64c4a4b9272b9cd32d5ada956182963a13"
+    },
+    "schema-invalid.response.json": {
+      "kind": "synthetic-negative",
+      "purpose": "Unexpected executable argument field.",
+      "fixture_sha256": "sha256:8a4da40fb24415389474076cd8290ddf512e68b1d087f07e540a155b9b4705cd"
+    },
+    "dsml-runaway.response.json": {
+      "kind": "minimized-retained-negative",
+      "purpose": "Length-terminated DSML-in-arguments runaway fails before argument execution.",
+      "source_attempt_id": "prv1-c23-ddce1f540e19-strict-max16384-r1",
+      "source_artifact": ".runs/protocol-reliability-v1.2-max-token-16k-extension/prv1-c23-ddce1f540e19-strict-max16384-r1/original.response.body",
+      "source_response_sha256": "sha256:c99c37f5537a652a915c891efecfffd29c6a9679a1ab8efd581a027a638a97ad",
+      "source_config_sha256": "sha256:ec482621415d795e5ff26badbde7b0dbead1e524dd0f96543730784dc9f3074f",
+      "source_window": "2026-08-24T02:43:10.369435+00:00..2026-08-24T02:44:16.294237+00:00",
+      "minimization": "Provider envelope, finish_reason=length, 16384 usage, one malformed arguments string, and representative DSML markers retained; task text and repeated payload were reduced.",
+      "fixture_sha256": "sha256:074b6feb62b777586b42218703f9328d7de5e9fd42b47bcb03774c2fb999ae11"
+    }
+  }
+}

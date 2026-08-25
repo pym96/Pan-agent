@@ -1,0 +1,31 @@
+{
+  "id": "fixture-dsml-runaway",
+  "object": "chat.completion",
+  "model": "deepseek-v4-flash",
+  "system_fingerprint": "a26a7955944dc5c60445bff77fac9c8e",
+  "choices": [
+    {
+      "index": 0,
+      "finish_reason": "length",
+      "message": {
+        "role": "assistant",
+        "content": "",
+        "tool_calls": [
+          {
+            "id": "call_fixture_dsml",
+            "type": "function",
+            "function": {
+              "name": "bash",
+              "arguments": "{\"command\":\"pwd\",\"thought\":\"inspect<｜end▁of▁thinking｜>\\n<｜｜DSML｜｜tool_calls>\\n<｜｜DSML｜｜invoke name=\\\"bash\\\">\\n<｜｜DSML｜｜parameter name=\\\"command\\\" string=\\\"true\\\">pwd"
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 5816,
+    "completion_tokens": 16384,
+    "total_tokens": 22200
+  }
+}
