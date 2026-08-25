@@ -36,6 +36,7 @@ This Wiki contains only Verified Learning Facts and Open Learning Questions. It 
 
 - [Harness Engineering](concepts/harness-engineering.md)
 - [Distrust-driven verification](concepts/distrust-driven-verification.md)
+- [Canonical conversation](concepts/canonical-conversation.md)
 
 ### Experiment-reproduced
 
