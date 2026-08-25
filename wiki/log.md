@@ -225,3 +225,9 @@ Do not edit or delete existing entries. Corrections are new entries that link to
 - The sensitivity recount independently reproduced every arm (2K/4K/8K/16K) including cap hits, completion-Token sums, maximum argument lengths, DSML-marker-bearing attempt counts, and all 20 context×ceiling cells; the five sensitivity contexts exactly cover the 21 parent `length@2048` failures, and 8K/16K request payloads differ only in `max_tokens`.
 - Tamper probes: config, corpus, and forged corpus-pointer drift fail closed; a flipped response byte fails the deterministic summarizer. Durable loader-level probes are kept in `tests/test_regulator_protocol_probes.py`.
 - Scope: ordinary candidate-Evidence verification. The measurements remain dated provider×protocol windows, not scores, VPFs, or resume facts.
+
+## 2026-08-25 | Learning ingest: Andrew Ng Skills Map follow-up article
+
+- The user shared <https://x.com/AndrewYNg/status/2090840747738374568>. The tweet text was captured verbatim through the Twitter syndication endpoint: "The most important skills in Building and Deploying AI Applications." (2026-08-21), linking long-form X Article 2090836273036763142, which is auth-walled to unauthenticated fetch.
+- A secondary summary (explainx.ai) identifies the original AI Engineering Skills Map post as status/2088302050706686198 (2026-08-14) and frames the shared article as a Part-1 deep dive on cluster 1. This resolves the "original URL unverified" boundary recorded in the career-side adaptation `30-已有资产与参考/简历参考/2026-08-17-AI-Engineering-Skills-Map.md` — identified via the secondary source only, not yet captured verbatim from X.
+- Admitted one source-located page: `sources/2026-08-25-andrew-ng-skills-map.md`. Article-body claims stay bounded to the secondary summary until the primary text is inspected; the "10,000+ job postings" figure remains author self-report; no resume, project-fact, or Shanghai-JD authority is created.

@@ -30,6 +30,7 @@ This Wiki contains only Verified Learning Facts and Open Learning Questions. It 
 - [Earendil: What is a harness (four-component framing)](sources/2026-08-23-earendil-what-is-a-harness.md)
 - [DeepSeek JSON Output and Strict Function Calling](sources/2026-08-23-deepseek-structured-output.md)
 - [Trace versus thought trajectory](concepts/trace-vs-thought-trajectory.md)
+- [Andrew Ng: AI Engineering Skills Map and follow-up article](sources/2026-08-25-andrew-ng-skills-map.md)
 
 ### Triangulated
 
