@@ -30,6 +30,10 @@ The accepted implementation baseline is split across:
 
 `test_translation_adapter.py` exercises WorkOrder #4's offline typed seam: native assistant tool-call and paired tool-result history round-trips correlation IDs; legacy/native history and thought/command reasoning remain independent; reasoning never enters canonical executable arguments; only `ModelProfile.max_output_tokens` controls the translated request; and length, malformed JSON, schema drift, missing/duplicate/reused IDs, orphan results, and multi-call output fail before action execution. Secret-free fixture provenance lives under [`fixtures/translation/manifest.json`](fixtures/translation/manifest.json), including the minimized retained DSML-runaway locator. The four-cell dry-run is deterministic, makes zero calls, and reports no causal result.
 
+`test_evented_agent.py` exercises WorkOrder #6's pending-review evented Runtime slice: one admitted deterministic tool round trip through the public AgentLoop/ModelGateway seam, multi-action rejection before History or effects, `run-event/v1` sequence/hash/causal/terminal invariants, read-only replay, cancellation settlement, and terminal-consumer deletion equivalence.
+
+`test_evented_tui.py` drives the documented Python entry through a real pseudo-terminal. It covers non-blank Unicode input, blank-input refusal without a Run, one-tool completion, Ctrl-C during exchange, process exits, and equality between rendered terminal state and retained events.
+
 Run the full handoff command with:
 
 ```bash

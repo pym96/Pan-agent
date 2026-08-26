@@ -6,6 +6,8 @@
 - `react_mvp.py`: Phase 0 DeepSeek JSON Adapter, visible Act/ReAct treatment checks, bash-only Docker execution, bounded model observations, and lossless raw command artifacts. It reuses the existing `AgentLoop`; no SWE-bench result exists yet.
 - `protocol_reliability.py`: protocol-reliability-v1 configuration/corpus loading, JSON and Strict request construction, raw HTTP transport, L0–L3 assessment, deterministic trace extraction, and Wilson intervals. It measures provider×protocol compliance; it does not execute benchmark tasks.
 - `protocol_max_token_sensitivity.py`: content-hashed 2K/4K/8K sensitivity and separately versioned 16K extension loading, parent-artifact verification, deterministic slots, request equivalence, and returned-response marker diagnostics.
+- `evented.py`: WorkOrder #6's pending-review evented `AgentLoop`, one-operation `ModelGateway`, Runtime admission, Canonical History, deterministic demo Adapters, append-only `run-event/v1` log, pure terminal projection, and zero-call replay.
+- `tui.py`: consumer-only Python terminal entry for non-blank Unicode task input, Ctrl-C cancellation, retained-event rendering, and replay; it contains no Provider lifecycle or alternate transcript.
 - `benchmark_configs/`: shipped PinchBench source locks, the original 30-case vertical catalog, the frozen five-case ReAct development smoke, protocol-reliability-v1's frozen config/context corpus, and its maximum-token sensitivity locks. These are configuration artifacts, not results.
 
 The Runtime Module does not import `proof_packs.py`, `benchmarks.py`, `react_mvp.py`, `protocol_reliability.py`, or `protocol_max_token_sensitivity.py`. Composition code and integration tests may depend on them; adding a third Pack remains outside the current Gate.
