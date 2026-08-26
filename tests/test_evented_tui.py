@@ -18,6 +18,32 @@ PROJECT_ROOT = Path(__file__).parents[1]
 
 
 class EventedTuiPtyTest(unittest.TestCase):
+    def test_long_demo_compacts_and_expands_the_same_retained_event(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            log_path = Path(temporary_directory) / "long.jsonl"
+            process, master = _spawn_tui(
+                "--log",
+                str(log_path),
+                "--semantic-compaction-demo",
+                "--explain-compaction",
+            )
+            try:
+                output = _read_until(master, b"Task> ")
+                os.write(master, b"record three stages\n")
+                output += _read_to_exit(process, master)
+            finally:
+                _stop_if_running(process)
+                os.close(master)
+
+            text = output.decode(errors="replace")
+            self.assertEqual(0, process.returncode, text)
+            events = load_run_event_log(log_path)
+            self.assertEqual("completed", events[-1].payload["status"])
+            self.assertIn("context.compaction_completed", text)
+            self.assertIn("WHY_COMPACT", text)
+            self.assertIn("PRESERVED", text)
+            self.assertTrue(Path(f"{log_path}.artifacts").is_dir())
+
     def test_unicode_task_runs_one_tool_round_trip_in_a_real_pty(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_directory:
             log_path = Path(temporary_directory) / "unicode.jsonl"

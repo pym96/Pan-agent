@@ -12,6 +12,15 @@ from types import MappingProxyType
 from typing import Callable, Mapping, Protocol, Sequence, TypeAlias
 
 from workspace_agent_harness import RunLimits, Task
+from workspace_agent_harness.context_projection import (
+    ContextProjectionRequest,
+    ExactContextProjector,
+    ModelContext,
+    ModelContextProjector,
+    ProjectionHistoryGroup,
+    SemanticToolObservation,
+    SourcedSummaryEntry,
+)
 from workspace_agent_harness.translation import (
     ActionTool,
     AssistantFinalMessage,
@@ -24,6 +33,18 @@ from workspace_agent_harness.translation import (
 
 
 RUN_EVENT_SCHEMA_VERSION = "run-event/v1"
+_COMPACTION_EVENT_TYPES = {
+    "artifact.externalized",
+    "context.compaction_started",
+    "context.compaction_completed",
+    "context.compaction_failed",
+}
+_COMPACTION_EVENT_PHASES = {
+    "artifact.externalized": "accepted",
+    "context.compaction_started": "candidate",
+    "context.compaction_completed": "accepted",
+    "context.compaction_failed": "failed",
+}
 
 
 class EventedRunStatus(StrEnum):
@@ -36,6 +57,7 @@ class EventedRunStatus(StrEnum):
     STEP_LIMIT = "step_limit"
     MODEL_CALL_LIMIT = "model_call_limit"
     TIME_LIMIT = "time_limit"
+    CONTEXT_COMPACTION_ERROR = "context_compaction_error"
 
 
 class FinalDisposition(StrEnum):
@@ -78,8 +100,14 @@ CandidateAction: TypeAlias = CandidateToolCall | CandidateFinal
 class PreparedModelTurn:
     run_id: str
     turn_id: str
-    conversation: CanonicalConversation
+    model_context: ModelContext
     tools: tuple[ActionTool, ...]
+
+    @property
+    def conversation(self) -> CanonicalConversation:
+        """Compatibility view: exactly the bounded conversation sent this turn."""
+
+        return self.model_context.conversation
 
     @property
     def identity(self) -> str:
@@ -87,7 +115,7 @@ class PreparedModelTurn:
             {
                 "run_id": self.run_id,
                 "turn_id": self.turn_id,
-                "conversation_identity": self.conversation.identity,
+                "model_context_identity": self.model_context.identity,
                 "tools": [tool.identity_material() for tool in self.tools],
             }
         )
@@ -111,7 +139,11 @@ class ModelGateway(Protocol):
 class EventTool(Protocol):
     definition: ActionTool
 
-    def execute(self, arguments: Mapping[str, object], cancel_signal: Event) -> str: ...
+    def execute(
+        self,
+        arguments: Mapping[str, object],
+        cancel_signal: Event,
+    ) -> str | SemanticToolObservation: ...
 
 
 @dataclass(frozen=True)
@@ -215,6 +247,24 @@ class JsonlRunEventLog:
             raise ValueError(f"invalid event phase: {phase!r}")
         if visibility not in {"public", "expanded", "restricted", "secret-ref"}:
             raise ValueError(f"invalid event visibility: {visibility!r}")
+        if event_type in _COMPACTION_EVENT_TYPES and not compaction_id:
+            raise ValueError(f"{event_type} requires a compaction ID")
+        expected_compaction_phase = _COMPACTION_EVENT_PHASES.get(event_type)
+        if expected_compaction_phase is not None and phase != expected_compaction_phase:
+            raise ValueError(
+                f"{event_type} must use {expected_compaction_phase} phase"
+            )
+        if event_type in {"context.compaction_completed", "context.compaction_failed"}:
+            matching_start = self._events[-1] if self._events else None
+            if (
+                matching_start is None
+                or matching_start.event_type != "context.compaction_started"
+                or matching_start.compaction_id != compaction_id
+                or caused_by_event_id != matching_start.event_id
+            ):
+                raise ValueError(
+                    f"{event_type} must be caused by its matching start event"
+                )
         if event_type == "run.terminal":
             if phase != "terminal":
                 raise ValueError("run.terminal must use terminal phase")
@@ -293,6 +343,43 @@ class DemoEchoTool:
         return str(arguments["text"])
 
 
+class DemoJournalTool:
+    """Deterministic long-run tool with one losslessly externalizable result."""
+
+    definition = ActionTool(
+        name="journal",
+        description="Record one named stage and return its deterministic receipt.",
+        argument_name="stage",
+        argument_description="The exact stage name to record.",
+    )
+
+    def __init__(self, *, large_stage: int = 1) -> None:
+        _require_demo_stage(large_stage)
+        self._large_stage = large_stage
+        self._calls: list[dict[str, object]] = []
+
+    @property
+    def calls(self) -> tuple[dict[str, object], ...]:
+        return tuple(dict(call) for call in self._calls)
+
+    def execute(
+        self,
+        arguments: Mapping[str, object],
+        cancel_signal: Event,
+    ) -> SemanticToolObservation:
+        self._calls.append(dict(arguments))
+        stage = str(arguments["stage"])
+        try:
+            stage_number = int(stage.removeprefix("stage-"))
+        except ValueError as error:
+            raise ValueError("journal stage must use stage-N") from error
+        receipt = f"{stage} recorded"
+        content = receipt + "\n" + ("y" * 512)
+        if stage_number == self._large_stage:
+            content = receipt + "\n" + ("x" * 33_000)
+        return SemanticToolObservation(content=content, facts=(receipt,))
+
+
 class DeterministicDemoGateway:
     """Credential-free Adapter that follows canonical history, not wire syntax."""
 
@@ -326,6 +413,57 @@ class DeterministicDemoGateway:
         )
 
 
+class DeterministicLongDemoGateway:
+    """Offline gateway that can continue from summary plus a complete recent tail."""
+
+    def __init__(self, *, stage_count: int = 3) -> None:
+        _require_demo_stage(stage_count)
+        self._stage_count = stage_count
+        self._prepared_turns: list[PreparedModelTurn] = []
+
+    @property
+    def prepared_turns(self) -> tuple[PreparedModelTurn, ...]:
+        return tuple(self._prepared_turns)
+
+    def exchange(
+        self,
+        prepared_turn: PreparedModelTurn,
+        cancel_signal: Event,
+    ) -> ExchangeSettled:
+        self._prepared_turns.append(prepared_turn)
+        completed_call_ids = {
+            message.call_id
+            for message in prepared_turn.conversation.messages
+            if isinstance(message, ToolResultMessage)
+        }
+        summary = prepared_turn.model_context.summary
+        if summary is not None:
+            completed_call_ids.update(
+                entry.key.split(":fact:", 1)[0]
+                for entry in summary.facts
+                if ":fact:" in entry.key
+            )
+        completed = len(completed_call_ids)
+        if completed < self._stage_count:
+            stage_number = completed + 1
+            candidate: CandidateAction = CandidateToolCall(
+                call_id=f"long-call-{stage_number}",
+                tool_name="journal",
+                arguments={"stage": f"stage-{stage_number}"},
+            )
+        else:
+            candidate = CandidateFinal(
+                content=(
+                    f"Completed {self._stage_count} journal stages with preserved "
+                    "semantic context."
+                )
+            )
+        return ExchangeSettled(
+            exchange_id=f"{prepared_turn.turn_id}:long-demo",
+            candidate=candidate,
+        )
+
+
 class WaitingDemoGateway:
     """Deterministic manual Adapter used to exercise Ctrl-C cancellation."""
 
@@ -348,8 +486,10 @@ class AgentLoop:
         gateway: ModelGateway,
         tools: Sequence[EventTool],
         event_log: RunEventLog,
+        context_projector: ModelContextProjector | None = None,
         run_id: str | None = None,
         agent_id: str = "evented-agent/v1",
+        system_policy_identity: str = "evented-demo-policy/v1",
         monotonic=time.monotonic,
     ) -> None:
         self._gateway = gateway
@@ -357,10 +497,14 @@ class AgentLoop:
         if len(self._tools) != len(tools):
             raise ValueError("tool names must be unique")
         self._event_log = event_log
+        self._context_projector = context_projector or ExactContextProjector()
         self._run_id = run_id
         if not agent_id:
             raise ValueError("agent identity must be non-empty")
         self._agent_id = agent_id
+        if not system_policy_identity:
+            raise ValueError("system policy identity must be non-empty")
+        self._system_policy_identity = system_policy_identity
         self._monotonic = monotonic
 
     def run(
@@ -378,6 +522,8 @@ class AgentLoop:
         model_calls = 0
         conversation = CanonicalConversation((UserMessage(task.prompt),))
         used_call_ids: set[str] = set()
+        history_groups: list[ProjectionHistoryGroup] = []
+        prior_summary_identity: str | None = None
 
         last_event = self._append(
             run_id=run_id,
@@ -386,6 +532,7 @@ class AgentLoop:
             cause=None,
             payload={
                 "agent_id": self._agent_id,
+                "system_policy_identity": self._system_policy_identity,
                 "task_id": task.task_id,
                 "task_identity": _sha256_json(
                     {"task_id": task.task_id, "prompt": task.prompt}
@@ -397,6 +544,14 @@ class AgentLoop:
                     "timeout_seconds": limits.timeout_seconds,
                 },
             },
+        )
+        run_started_event = last_event
+        unresolved_commitments = (
+            SourcedSummaryEntry(
+                key="complete-active-request",
+                content="Complete the active request before settling the Run.",
+                source_event_ids=(run_started_event.event_id,),
+            ),
         )
 
         def terminal(
@@ -466,23 +621,117 @@ class AgentLoop:
                 turn_id=turn_id,
                 payload={
                     "history_identity": conversation.identity,
+                    "history_schema": "canonical-conversation/v1",
                     "remaining_model_calls": limits.max_model_calls - model_calls,
                     "remaining_tool_steps": limits.max_steps - steps,
                 },
             )
+            projection_cause = projection_started
+            try:
+                projection = self._context_projector.project(
+                    ContextProjectionRequest(
+                        run_id=run_id,
+                        turn_id=turn_id,
+                        active_request_event_id=run_started_event.event_id,
+                        canonical_history=conversation,
+                        history_groups=tuple(history_groups),
+                        unresolved_commitments=unresolved_commitments,
+                        tools=tuple(
+                            tool.definition for tool in self._tools.values()
+                        ),
+                        system_policy_identity=self._system_policy_identity,
+                        prior_summary_identity=prior_summary_identity,
+                    )
+                )
+            except Exception as error:
+                failed_compaction_id = _sha256_json(
+                    {
+                        "attempt": "proactive",
+                        "run_id": run_id,
+                        "turn_id": turn_id,
+                        "source_history_identity": conversation.identity,
+                        "failure": "context_projector_failed",
+                    }
+                )
+                started = self._append(
+                    run_id=run_id,
+                    event_type="context.compaction_started",
+                    phase="candidate",
+                    cause=projection_started,
+                    turn_id=turn_id,
+                    compaction_id=failed_compaction_id,
+                    payload={
+                        "attempt": "proactive",
+                        "trigger": "projector-unavailable-or-invalid",
+                        "source_history_identity": conversation.identity,
+                    },
+                )
+                failed = self._append(
+                    run_id=run_id,
+                    event_type="context.compaction_failed",
+                    phase="failed",
+                    cause=started,
+                    turn_id=turn_id,
+                    compaction_id=failed_compaction_id,
+                    payload={
+                        "attempt": "proactive",
+                        "error_code": "context_projector_failed",
+                        "error": str(error),
+                        "source_history_identity": conversation.identity,
+                    },
+                )
+                return terminal(
+                    EventedRunStatus.CONTEXT_COMPACTION_ERROR,
+                    error=f"context_projector_failed: {error}",
+                    cause=failed,
+                )
+            for planned_event in projection.events:
+                projection_cause = self._append(
+                    run_id=run_id,
+                    event_type=planned_event.event_type,
+                    phase=planned_event.phase,
+                    cause=projection_cause,
+                    turn_id=turn_id,
+                    compaction_id=planned_event.compaction_id,
+                    visibility=planned_event.visibility,
+                    payload=planned_event.payload,
+                )
+            if projection.error is not None:
+                return terminal(
+                    EventedRunStatus.CONTEXT_COMPACTION_ERROR,
+                    error=projection.error,
+                    cause=projection_cause,
+                )
+            assert projection.model_context is not None
+            model_context = projection.model_context
+            if model_context.summary is not None:
+                prior_summary_identity = model_context.summary.identity
             prepared = PreparedModelTurn(
                 run_id=run_id,
                 turn_id=turn_id,
-                conversation=conversation,
+                model_context=model_context,
                 tools=tuple(tool.definition for tool in self._tools.values()),
             )
             projected = self._append(
                 run_id=run_id,
                 event_type="context.projected",
                 phase="accepted",
-                cause=projection_started,
+                cause=projection_cause,
                 turn_id=turn_id,
-                payload={"prepared_turn_identity": prepared.identity},
+                payload={
+                    "prepared_turn_identity": prepared.identity,
+                    "source_history_identity": conversation.identity,
+                    "model_context_identity": model_context.identity,
+                    "semantic_context_identity": model_context.semantic_identity,
+                    "model_context_schema": model_context.schema_version,
+                    "summary_schema": (
+                        None
+                        if model_context.summary is None
+                        else model_context.summary.schema_version
+                    ),
+                    "context_policy_identity": model_context.context_policy_identity,
+                    "input_estimate_tokens": model_context.input_estimate_tokens,
+                },
             )
             exchange_started = self._append(
                 run_id=run_id,
@@ -613,15 +862,14 @@ class AgentLoop:
                     cause=accepted,
                 )
             used_call_ids.add(call.call_id)
-            conversation = conversation.append(
-                AssistantToolCall(
-                    CanonicalToolCall(
-                        call_id=call.call_id,
-                        tool_name=call.tool_name,
-                        arguments=call.arguments,
-                    )
+            call_message = AssistantToolCall(
+                CanonicalToolCall(
+                    call_id=call.call_id,
+                    tool_name=call.tool_name,
+                    arguments=call.arguments,
                 )
             )
+            conversation = conversation.append(call_message)
             history_event = self._append(
                 run_id=run_id,
                 event_type="history.advanced",
@@ -650,7 +898,7 @@ class AgentLoop:
             )
             tool = self._tools[call.tool_name]
             try:
-                observation = tool.execute(call.arguments, signal)
+                tool_observation = tool.execute(call.arguments, signal)
             except KeyboardInterrupt:
                 return cancelled(execution_started)
             except Exception as error:
@@ -672,7 +920,15 @@ class AgentLoop:
                 )
             if signal.is_set():
                 return cancelled(execution_started)
-            if not isinstance(observation, str):
+            if isinstance(tool_observation, SemanticToolObservation):
+                observation = tool_observation.content
+                semantic_facts = tool_observation.facts
+                semantic_failures = tool_observation.failures
+            elif isinstance(tool_observation, str):
+                observation = tool_observation
+                semantic_facts = ()
+                semantic_failures = ()
+            else:
                 failed = self._append(
                     run_id=run_id,
                     event_type="tool.execution_failed",
@@ -702,15 +958,19 @@ class AgentLoop:
                 exchange_id=settled.exchange_id,
                 candidate_id=candidate_id,
                 tool_call_id=call.call_id,
-                payload={"tool_name": call.tool_name, "observation": observation},
+                payload={
+                    "tool_name": call.tool_name,
+                    "observation": observation,
+                    "semantic_facts": list(semantic_facts),
+                    "semantic_failures": list(semantic_failures),
+                },
             )
-            conversation = conversation.append(
-                ToolResultMessage(
-                    call_id=call.call_id,
-                    tool_name=call.tool_name,
-                    content=observation,
-                )
+            result_message = ToolResultMessage(
+                call_id=call.call_id,
+                tool_name=call.tool_name,
+                content=observation,
             )
+            conversation = conversation.append(result_message)
             last_event = self._append(
                 run_id=run_id,
                 event_type="history.advanced",
@@ -725,8 +985,20 @@ class AgentLoop:
                     "call_id": call.call_id,
                     "tool_name": call.tool_name,
                     "content": observation,
+                    "semantic_facts": list(semantic_facts),
+                    "semantic_failures": list(semantic_failures),
                     "history_identity": conversation.identity,
                 },
+            )
+            history_groups.append(
+                ProjectionHistoryGroup(
+                    call=call_message,
+                    result=result_message,
+                    call_event_id=history_event.event_id,
+                    result_event_id=last_event.event_id,
+                    facts=semantic_facts,
+                    failures=semantic_failures,
+                )
             )
 
     def _admission_error(
@@ -772,6 +1044,8 @@ class AgentLoop:
         exchange_id: str | None = None,
         candidate_id: str | None = None,
         tool_call_id: str | None = None,
+        compaction_id: str | None = None,
+        visibility: str = "public",
     ) -> RunEvent:
         return self._event_log.append(
             run_id=run_id,
@@ -783,6 +1057,8 @@ class AgentLoop:
             exchange_id=exchange_id,
             candidate_id=candidate_id,
             tool_call_id=tool_call_id,
+            compaction_id=compaction_id,
+            visibility=visibility,
         )
 
 
@@ -816,6 +1092,28 @@ def load_run_event_log(path: Path) -> tuple[RunEvent, ...]:
             "secret-ref",
         }:
             raise ValueError(f"invalid event visibility at line {line_number}")
+        if event.event_type in _COMPACTION_EVENT_TYPES and not event.compaction_id:
+            raise ValueError(f"missing compaction ID at line {line_number}")
+        expected_compaction_phase = _COMPACTION_EVENT_PHASES.get(event.event_type)
+        if (
+            expected_compaction_phase is not None
+            and event.phase != expected_compaction_phase
+        ):
+            raise ValueError(f"invalid compaction phase at line {line_number}")
+        if event.event_type in {
+            "context.compaction_completed",
+            "context.compaction_failed",
+        }:
+            matching_start = events[-1] if events else None
+            if (
+                matching_start is None
+                or matching_start.event_type != "context.compaction_started"
+                or matching_start.compaction_id != event.compaction_id
+                or event.caused_by_event_id != matching_start.event_id
+            ):
+                raise ValueError(
+                    f"invalid compaction start linkage at line {line_number}"
+                )
         if (
             isinstance(event.monotonic_offset_ns, bool)
             or not isinstance(event.monotonic_offset_ns, int)
@@ -861,7 +1159,11 @@ def load_run_event_log(path: Path) -> tuple[RunEvent, ...]:
     return tuple(events)
 
 
-def render_run_events(events: Sequence[RunEvent]) -> str:
+def render_run_events(
+    events: Sequence[RunEvent],
+    *,
+    explain_compaction: bool = False,
+) -> str:
     """Render one basic terminal trace as a pure projection of retained events."""
 
     if not events:
@@ -874,10 +1176,20 @@ def render_run_events(events: Sequence[RunEvent]) -> str:
         elif event.event_type == "candidate.accepted":
             detail = f" candidate={_display_value(dict(event.payload))}"
         elif event.event_type == "tool.execution_completed":
-            detail = f" observation={_display_value(event.payload.get('observation'))}"
+            detail = f" observation={_display_tool_observation(event.payload.get('observation'))}"
+        elif event.event_type == "context.compaction_completed":
+            artifact_refs = event.payload.get("artifact_refs")
+            artifact_count = len(artifact_refs) if isinstance(artifact_refs, list) else 0
+            detail = (
+                f" context={_short_identity(event.payload.get('result_context_identity'))}"
+                f" summary={_short_identity(event.payload.get('summary_identity'))}"
+                f" artifacts={artifact_count}"
+            )
         lines.append(
             f"{event.sequence:03d} [{event.phase}] {event.event_type}{detail}"
         )
+        if explain_compaction and event.event_type == "context.compaction_completed":
+            lines.extend(_render_compaction_explanation(event))
     terminal = events[-1]
     if terminal.event_type != "run.terminal":
         raise ValueError("cannot render a run without a terminal event")
@@ -893,14 +1205,22 @@ def render_run_events(events: Sequence[RunEvent]) -> str:
     return "\n".join(lines) + "\n"
 
 
-def replay_run_event_log(path: Path) -> str:
+def replay_run_event_log(path: Path, *, explain_compaction: bool = False) -> str:
     """Replay a retained Run without constructing a ModelGateway or tool Adapter."""
 
-    return render_run_events(load_run_event_log(path))
+    return render_run_events(
+        load_run_event_log(path),
+        explain_compaction=explain_compaction,
+    )
 
 
 def _candidate_kind(candidate: CandidateAction) -> str:
     return "tool_call" if isinstance(candidate, CandidateToolCall) else "final"
+
+
+def _require_demo_stage(value: object) -> None:
+    if isinstance(value, bool) or not isinstance(value, int) or value <= 0:
+        raise ValueError("demo stage count must be a positive integer")
 
 
 def _candidate_schema_error(candidate: object) -> str | None:
@@ -956,6 +1276,51 @@ def _display_value(value: object) -> str:
     return _canonical_json(value)
 
 
+def _display_tool_observation(value: object) -> str:
+    if not isinstance(value, str):
+        return _display_value(value)
+    body = value.encode("utf-8")
+    if len(body) <= 512:
+        return value
+    digest = hashlib.sha256(body).hexdigest()
+    return f"<exact body retained: {len(body)} bytes, sha256:{digest}>"
+
+
+def _short_identity(value: object) -> str:
+    if not isinstance(value, str):
+        return "unknown"
+    return value[:19]
+
+
+def _render_compaction_explanation(event: RunEvent) -> list[str]:
+    trigger = event.payload.get("trigger")
+    if not isinstance(trigger, Mapping):
+        trigger = {}
+    preserved = event.payload.get("preserved_event_ids")
+    summarized = event.payload.get("summarized_event_ids")
+    atomic_pairs = event.payload.get("atomic_tool_pairs")
+    commitments = event.payload.get("unresolved_commitment_keys")
+    artifact_refs = event.payload.get("artifact_refs")
+    return [
+        "    WHY_COMPACT "
+        f"input={trigger.get('estimated_input_tokens', 'unknown')} + "
+        f"output={trigger.get('requested_output_room', 'unknown')} + "
+        f"overhead={trigger.get('provider_protocol_and_tool_overhead', 'unknown')} + "
+        f"safety={trigger.get('safety_margin', 'unknown')} > "
+        f"window={trigger.get('verified_context_window', 'unknown')}",
+        "    PRESERVED "
+        f"events={len(preserved) if isinstance(preserved, list) else 0} "
+        f"summarized={len(summarized) if isinstance(summarized, list) else 0} "
+        f"atomic_pairs={len(atomic_pairs) if isinstance(atomic_pairs, list) else 0} "
+        f"commitments={len(commitments) if isinstance(commitments, list) else 0} "
+        f"artifacts={len(artifact_refs) if isinstance(artifact_refs, list) else 0}",
+        "    IDENTITIES "
+        f"history={event.payload.get('source_history_identity')} "
+        f"summary={event.payload.get('summary_identity')} "
+        f"context={event.payload.get('result_context_identity')}",
+    ]
+
+
 def _sha256_json(value: object) -> str:
     return hashlib.sha256(_canonical_json(value).encode("utf-8")).hexdigest()
 
@@ -964,7 +1329,9 @@ __all__ = [
     "CandidateFinal",
     "CandidateToolCall",
     "DemoEchoTool",
+    "DemoJournalTool",
     "DeterministicDemoGateway",
+    "DeterministicLongDemoGateway",
     "AgentLoop",
     "EventTool",
     "EventedAgentLoop",

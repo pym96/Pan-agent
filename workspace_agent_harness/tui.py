@@ -7,10 +7,19 @@ from pathlib import Path
 from typing import Sequence
 
 from workspace_agent_harness import RunLimits, Task
+from workspace_agent_harness.context_projection import (
+    action_tool_set_identity,
+    CanonicalJsonTokenEstimator,
+    ContextPolicy,
+    FileArtifactStore,
+    SemanticContextProjector,
+)
 from workspace_agent_harness.evented import (
     AgentLoop,
     DemoEchoTool,
+    DemoJournalTool,
     DeterministicDemoGateway,
+    DeterministicLongDemoGateway,
     EventedRunStatus,
     JsonlRunEventLog,
     WaitingDemoGateway,
@@ -39,17 +48,44 @@ def main(arguments: Sequence[str] | None = None) -> int:
         action="store_true",
         help="use a deterministic exchange that waits for Ctrl-C",
     )
+    parser.add_argument(
+        "--semantic-compaction-demo",
+        action="store_true",
+        help="run the deterministic three-stage proactive-compaction path",
+    )
+    parser.add_argument(
+        "--explain-compaction",
+        action="store_true",
+        help="expand retained compaction decisions in live or replay output",
+    )
     options = parser.parse_args(arguments)
 
     if options.replay is not None:
-        if options.log is not None or options.wait_for_cancel:
-            parser.error("--replay cannot be combined with --log or --wait-for-cancel")
+        if (
+            options.log is not None
+            or options.wait_for_cancel
+            or options.semantic_compaction_demo
+        ):
+            parser.error(
+                "--replay cannot be combined with --log, --wait-for-cancel, "
+                "or --semantic-compaction-demo"
+            )
         try:
-            sys.stdout.write(replay_run_event_log(options.replay))
+            sys.stdout.write(
+                replay_run_event_log(
+                    options.replay,
+                    explain_compaction=options.explain_compaction,
+                )
+            )
         except (OSError, ValueError) as error:
             print(f"Replay failed: {error}", file=sys.stderr)
             return 2
         return 0
+
+    if options.wait_for_cancel and options.semantic_compaction_demo:
+        parser.error(
+            "--wait-for-cancel cannot be combined with --semantic-compaction-demo"
+        )
 
     try:
         prompt = input("Task> ")
@@ -70,19 +106,62 @@ def main(arguments: Sequence[str] | None = None) -> int:
     except OSError as error:
         print(f"Cannot create event log: {error}", file=sys.stderr)
         return 2
-    gateway = WaitingDemoGateway() if options.wait_for_cancel else DeterministicDemoGateway()
+    context_projector = None
+    artifact_path: Path | None = None
+    if options.semantic_compaction_demo:
+        artifact_path = Path(f"{log_path}.artifacts")
+        try:
+            artifact_store = FileArtifactStore(artifact_path)
+        except OSError as error:
+            print(f"Cannot create artifact store: {error}", file=sys.stderr)
+            return 2
+        gateway = DeterministicLongDemoGateway(stage_count=3)
+        tools = (DemoJournalTool(large_stage=1),)
+        context_projector = SemanticContextProjector(
+            policy=ContextPolicy(
+                verified_context_window=10_000,
+                requested_output_room=6_900,
+                protocol_tool_overhead_tokens=256,
+                overhead_estimator_id="demo-translation-overhead/v1",
+                overhead_source="deterministic-demo-lock",
+                overhead_confidence="high",
+                overhead_tool_set_identity=action_tool_set_identity(
+                    tuple(tool.definition for tool in tools)
+                ),
+                system_policy_identity="evented-demo-policy/v1",
+            ),
+            estimator=CanonicalJsonTokenEstimator(),
+            artifact_store=artifact_store,
+        )
+        limits = RunLimits(max_steps=3, max_model_calls=4, timeout_seconds=30)
+    else:
+        gateway = (
+            WaitingDemoGateway()
+            if options.wait_for_cancel
+            else DeterministicDemoGateway()
+        )
+        tools = (DemoEchoTool(),)
+        limits = RunLimits(max_steps=1, max_model_calls=2, timeout_seconds=30)
     result = AgentLoop(
         gateway=gateway,
-        tools=(DemoEchoTool(),),
+        tools=tools,
         event_log=event_log,
+        context_projector=context_projector,
         run_id=run_id,
     ).run(
         Task(task_id="manual-tui", prompt=prompt),
-        RunLimits(max_steps=1, max_model_calls=2, timeout_seconds=30),
+        limits,
     )
     retained_events = load_run_event_log(log_path)
-    sys.stdout.write(render_run_events(retained_events))
+    sys.stdout.write(
+        render_run_events(
+            retained_events,
+            explain_compaction=options.explain_compaction,
+        )
+    )
     print(f"EVENT_LOG {log_path}")
+    if artifact_path is not None:
+        print(f"ARTIFACTS {artifact_path}")
 
     if result.status is EventedRunStatus.COMPLETED:
         return 0
