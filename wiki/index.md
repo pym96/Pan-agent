@@ -31,6 +31,7 @@ This Wiki contains only Verified Learning Facts and Open Learning Questions. It 
 - [DeepSeek JSON Output and Strict Function Calling](sources/2026-08-23-deepseek-structured-output.md)
 - [Trace versus thought trajectory](concepts/trace-vs-thought-trajectory.md)
 - [Model Context Protocol: official documentation and the "why MCP matters" claims](sources/2026-08-26-mcp-official-docs.md)
+- [Anthropic: Harness design for long-running applications](sources/2026-08-26-anthropic-long-running-harness.md)
 - [Andrew Ng: AI Engineering Skills Map and follow-up article](sources/2026-08-25-andrew-ng-skills-map.md)
 
 ### Triangulated
