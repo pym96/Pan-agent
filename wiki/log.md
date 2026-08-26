@@ -254,3 +254,9 @@ Do not edit or delete existing entries. Corrections are new entries that link to
 - New finding recorded: DeerFlow's fail-closed guardrail ships disabled by default; Claude Code's hook layer fails open on error; Codex's Guardian is the strongest inspected runtime-M2 reference.
 - Admitted `concepts/signal-decision-separation.md` as triangulated. The M1 entropy formalization stays interpretation-layer pending a second-corpus replication; the open thought-entropy question keeps that thread.
 - Process note: worktree isolation + fast-forward merge, as before. The Anthropic long-running-harness article is referenced but does not yet have its own source page — pending the open Q2-Q5 grill round.
+
+## 2026-08-26 | Learning ingest: MCP official documentation + claim check
+
+- Fetched modelcontextprotocol.io introduction and tools concept pages (spec 2026-07-28) after the user pasted a "why MCP matters" article. Admitted `sources/2026-08-26-mcp-official-docs.md` as source-located.
+- Key verified facts: tools are model-controlled (self-description is load-bearing); tool set may vary by authorization but not per-connection; two error channels with execution errors SHOULD be fed back to the model; no protocol-level session (explicit opaque handles); annotations untrusted by default; human-in-the-loop SHOULD deny capability; deterministic tool ordering for prompt-cache hits.
+- Claim check recorded on the page: the article's "changing parameters won't break any clients" is overstated — true only when the call-time consumer is a model reading the new schema; programmatic clients still fail input validation. Session synthesis: adaptation shifts from deterministic (compiler/human) to probabilistic (model-interpreted); versioning pain is relocated, not eliminated. This refines the earlier session framing of MCP as "plumbing": plumbing designed around a semantic consumer.
