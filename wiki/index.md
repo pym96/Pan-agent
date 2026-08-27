@@ -41,6 +41,7 @@ This Wiki contains only Verified Learning Facts and Open Learning Questions. It 
 - [Canonical conversation](concepts/canonical-conversation.md)
 - [Honest capability degradation and the three-gate model](concepts/honest-degradation-three-gates.md)
 - [Signal–decision separation](concepts/signal-decision-separation.md)
+- [Handoff](concepts/handoff.md)
 
 ### Experiment-reproduced
 
