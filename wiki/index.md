@@ -42,6 +42,7 @@ This Wiki contains only Verified Learning Facts and Open Learning Questions. It 
 - [Honest capability degradation and the three-gate model](concepts/honest-degradation-three-gates.md)
 - [Signal–decision separation](concepts/signal-decision-separation.md)
 - [Handoff](concepts/handoff.md)
+- [Harness, MCP, and skills: three capability layers](concepts/harness-mcp-skills.md)
 
 ### Experiment-reproduced
 

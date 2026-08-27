@@ -272,3 +272,9 @@ Do not edit or delete existing entries. Corrections are new entries that link to
 - The user asked how to understand "handoff" and converged the definition in session: "the transfer of state and responsibility between nodes in a system", completed with the missing element — through an explicit artifact (without it, shared mutable state would qualify, which is not a handoff).
 - Grounded in the repository's own governance definition (verification.md: "a Handoff links artifacts, Evidence, checks, limitations... its narrative is not Evidence by itself"), the Anthropic long-running-harness source page (reset artifact; file-only inter-agent communication), and DeerFlow's file-based delegation. Admitted `concepts/handoff.md` as triangulated.
 - The page closes the compact-vs-reset arc with one line: compaction is a handoff without an artifact.
+
+## 2026-08-27 | Concept admission: harness × MCP × skills three-layer model
+
+- Converged two session threads: "installing MCP" means installing MCP servers (self-describing tool-set providers); the protocol itself is not installable. And harnesses natively embed their own tools plus skill ecosystems, while MCP is the shared external protocol — the opposite of a private layer.
+- Admitted `concepts/harness-mcp-skills.md` as triangulated (MCP official docs + skill-packaging mechanics + canonical conversation). Key framing: the three layers converge at the wire (all become tool schema in the canonical request) and diverge at the trust layer (in-process vs external RPC; MCP tools and third-party skills demand stronger M2 by default). Tools are the hands; skills are the technique.
+- Boundary recorded: vendor internal architectures are not fully public, so "built-ins don't ride MCP internally" rests on public surfaces.
