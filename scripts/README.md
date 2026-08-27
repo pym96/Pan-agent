@@ -117,3 +117,14 @@ PYTHONPATH=. python3 scripts/dry_run_translation_matrix.py
 ```
 
 The deterministic output contains exactly four cells: legacy JSON-text versus native assistant-call/tool-result history, crossed with diagnostic thought-in-arguments versus command-only schemas. Model, DeepSeek Beta endpoint, canonical Context, tool set, temperature, thinking setting, five-repetition plan, and one explicit provider-controlled `ModelProfile` identity remain fixed. `live_calls=0` and `causal_result=null`; this command neither executes a task nor recommends a production output ceiling.
+
+## Deterministic Agent Loop Behavioral Eval v0
+
+Run the frozen 12-case local campaign through the same evented `AgentLoop` used by the TUI:
+
+```bash
+PYTHONPATH=. python3 scripts/run_agent_loop_behavioral_eval.py \
+  --output .runs/agent-loop-behavioral-eval-v0-manual
+```
+
+The output directory is exclusive and retains one `run-event/v1` log per case, `report.json`, and the documented `stable-summary.json`. The script uses a credential-free deterministic Gateway and local tools: it makes no Provider, network, or external benchmark call. A 12/12 reference result checks implementation consistency only and is not a model or benchmark score.

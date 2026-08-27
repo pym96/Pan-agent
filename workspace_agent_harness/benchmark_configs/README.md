@@ -30,6 +30,12 @@ suite = load_pinchbench_suite(
 
 The configuration declares one development repetition and a minimum of three repetitions for any later publishable comparison. Public numbers remain a separate high-risk Gate.
 
+## Agent Loop Behavioral Eval v0
+
+`agent-loop-behavioral-eval-v0.json` freezes exactly 12 local deterministic cases: three information-acquisition, three dependency-ordering, three observation-recovery, and three stop-or-abstain tasks. It binds visible inputs, protected fixtures/oracles, closed local tool schemas, deterministic transitions, exact terminal rules, common limits, and per-tool-set Semantic Context policy identities. The loader rejects semantic drift before execution and binds the complete manifest to `sha256:026543baf0a1d48d640b695ee21c7aaab5713e75cef437024a48fb0e66f180f8`.
+
+This lock is a local AgentLoop learning/evaluation instrument. It is not a Provider result, external benchmark, or public score.
+
 ## ReAct learning smoke
 
 `react-mvp-5-v1.json` freezes a separate Phase 0 mechanism experiment in the `workspace-coding` lane. It pins the current official `SWE-bench/SWE-bench_Lite` development source/revision, five deterministic case IDs and their x86_64 evaluation images, Act-only/ReAct variants, three repetitions, DeepSeek V4 Flash with thinking disabled, bash-only Docker isolation, dual-channel observations, and official `resolved` as the primary outcome.

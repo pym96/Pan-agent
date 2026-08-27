@@ -38,6 +38,8 @@ The accepted implementation baseline is split across:
 
 `test_context_overflow_recovery.py` exercises WorkOrder #8 through the public AgentLoop/ModelGateway/Context-projector seams: only typed Context overflow enters recovery; the original failed exchange and per-attempt accounting remain separate; fallback/unknown windows do not block the first call; the #7 semantic summary preserves exact source semantics without truncation; one retry succeeds through normal admission or exhausts explicitly; unrelated failures remain distinct; malformed retry candidates execute no tool; and the exact-history projector cannot fake semantic recovery.
 
+`test_agent_loop_behavioral_eval.py` exercises WorkOrder #9's exact 12-case/four-family manifest through the public evented `AgentLoop.run(...)` seam, verifies reference actions and model-visible recovery observations against protected exact oracles, keeps Runtime terminal status separate from evaluator verdict, distinguishes Provider/protocol/Context/tool/policy/task failures, rejects count/category/hash/oracle/limit/environment/tool/prose drift before execution, proves nested fixture immutability, compares repeated byte-stable reports, and reconstructs the same report from Event Logs with zero Gateway or Tool Adapter calls.
+
 Run the full handoff command with:
 
 ```bash
