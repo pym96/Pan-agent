@@ -11,13 +11,79 @@ import time
 import unittest
 from pathlib import Path
 
-from workspace_agent_harness.evented import load_run_event_log, render_run_events
+from workspace_agent_harness.evented import (
+    load_run_event_log,
+    render_run_events,
+    replay_run_event_log,
+)
 
 
 PROJECT_ROOT = Path(__file__).parents[1]
 
 
 class EventedTuiPtyTest(unittest.TestCase):
+    def test_overflow_demo_recovers_through_the_tui_and_replays_offline(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            log_path = Path(temporary_directory) / "overflow-recovery.jsonl"
+            process, master = _spawn_tui(
+                "--log",
+                str(log_path),
+                "--overflow-recovery-demo",
+                "--explain-compaction",
+            )
+            try:
+                output = _read_until(master, b"Task> ")
+                os.write(master, b"recover, use the tool, and finish\n")
+                output += _read_to_exit(process, master)
+            finally:
+                _stop_if_running(process)
+                os.close(master)
+
+            text = output.decode(errors="replace")
+            self.assertEqual(0, process.returncode, text)
+            self.assertIn("model.exchange_failed attempt=1 kind=context_overflow", text)
+            self.assertIn(
+                "context.compaction_completed attempt=overflow-recovery",
+                text,
+            )
+            self.assertIn("context.overflow_retry_succeeded retry=success", text)
+            self.assertIn("tool.execution_completed", text)
+            self.assertIn("WHY_COMPACT overflow-recovery", text)
+            self.assertIn("TERMINAL completed", text)
+
+            before = log_path.read_bytes()
+            replayed = replay_run_event_log(log_path, explain_compaction=True)
+            self.assertIn("context.overflow_retry_succeeded retry=success", replayed)
+            self.assertEqual(before, log_path.read_bytes())
+
+    def test_overflow_exhaustion_demo_has_an_explicit_terminal_projection(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            log_path = Path(temporary_directory) / "overflow-exhausted.jsonl"
+            process, master = _spawn_tui(
+                "--log",
+                str(log_path),
+                "--overflow-exhaustion-demo",
+            )
+            try:
+                output = _read_until(master, b"Task> ")
+                os.write(master, b"show bounded exhaustion\n")
+                output += _read_to_exit(process, master)
+            finally:
+                _stop_if_running(process)
+                os.close(master)
+
+            text = output.decode(errors="replace")
+            self.assertEqual(1, process.returncode, text)
+            self.assertEqual(2, text.count("model.exchange_failed attempt="))
+            self.assertIn("context.overflow_retry_exhausted retry=exhausted", text)
+            self.assertIn("TERMINAL context_overflow", text)
+            events = load_run_event_log(log_path)
+            self.assertEqual("context_overflow", events[-1].payload["status"])
+            self.assertNotIn(
+                "tool.execution_started",
+                [event.event_type for event in events],
+            )
+
     def test_long_demo_compacts_and_expands_the_same_retained_event(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_directory:
             log_path = Path(temporary_directory) / "long.jsonl"

@@ -4,6 +4,7 @@ import hashlib
 import json
 import math
 from dataclasses import dataclass
+from enum import StrEnum
 from pathlib import Path
 from types import MappingProxyType
 from typing import Mapping, Protocol, Sequence
@@ -51,12 +52,27 @@ class ContextPolicy:
     system_policy_identity: str
     large_tool_output_bytes: int = DEFAULT_LARGE_TOOL_OUTPUT_BYTES
     preview_edge_bytes: int = DEFAULT_PREVIEW_EDGE_BYTES
+    fallback_context_window: int | None = None
+    context_window_source: str | None = None
+    context_window_confidence: str | None = None
 
     def __post_init__(self) -> None:
         if self.verified_context_window is not None:
             _require_positive_integer(
                 self.verified_context_window,
                 "verified Context window",
+            )
+        if self.fallback_context_window is not None:
+            _require_positive_integer(
+                self.fallback_context_window,
+                "fallback Context window",
+            )
+        if (
+            self.verified_context_window is not None
+            and self.fallback_context_window is not None
+        ):
+            raise ValueError(
+                "Context policy cannot contain both verified and fallback windows"
             )
         _require_positive_integer(self.requested_output_room, "requested output room")
         if (
@@ -82,6 +98,22 @@ class ContextPolicy:
             raise ValueError("v1 large tool output threshold must be 32768 bytes")
         if self.preview_edge_bytes != DEFAULT_PREVIEW_EDGE_BYTES:
             raise ValueError("v1 UTF-8 preview edge must be 2048 bytes")
+        if (self.context_window_source is None) != (
+            self.context_window_confidence is None
+        ):
+            raise ValueError(
+                "Context window source and confidence must be supplied together"
+            )
+        if self.context_window_source is not None:
+            _require_non_empty_text(
+                self.context_window_source,
+                "Context window source",
+            )
+            assert self.context_window_confidence is not None
+            _require_non_empty_text(
+                self.context_window_confidence,
+                "Context window confidence",
+            )
 
     @property
     def safety_margin(self) -> int:
@@ -93,6 +125,8 @@ class ContextPolicy:
         return {
             "schema_version": CONTEXT_POLICY_SCHEMA_VERSION,
             "verified_context_window": self.verified_context_window,
+            "fallback_context_window": self.fallback_context_window,
+            "context_window": self.context_window_metadata,
             "requested_output_room": self.requested_output_room,
             "protocol_tool_overhead_tokens": self.protocol_tool_overhead_tokens,
             "overhead_estimator_id": self.overhead_estimator_id,
@@ -109,6 +143,31 @@ class ContextPolicy:
     @property
     def identity(self) -> str:
         return identity_sha256(self.identity_material())
+
+    @property
+    def context_window_metadata(self) -> dict[str, object]:
+        if self.verified_context_window is not None:
+            tokens = self.verified_context_window
+            provenance = "verified"
+            default_source = "context-policy verified_context_window"
+            default_confidence = "high"
+        elif self.fallback_context_window is not None:
+            tokens = self.fallback_context_window
+            provenance = "fallback"
+            default_source = "context-policy fallback_context_window"
+            default_confidence = "low"
+        else:
+            tokens = None
+            provenance = "unknown"
+            default_source = "not supplied"
+            default_confidence = "unknown"
+        return {
+            "tokens": tokens,
+            "provenance": provenance,
+            "source": self.context_window_source or default_source,
+            "confidence": self.context_window_confidence or default_confidence,
+            "used_for_proactive_fit": self.verified_context_window is not None,
+        }
 
 
 class TokenEstimator(Protocol):
@@ -426,6 +485,11 @@ class ProjectionHistoryGroup:
         return (self.call_event_id, self.result_event_id)
 
 
+class ContextProjectionAttempt(StrEnum):
+    PROACTIVE = "proactive"
+    OVERFLOW_RECOVERY = "overflow-recovery"
+
+
 @dataclass(frozen=True)
 class ContextProjectionRequest:
     run_id: str
@@ -437,6 +501,8 @@ class ContextProjectionRequest:
     tools: tuple[ActionTool, ...]
     system_policy_identity: str
     prior_summary_identity: str | None = None
+    attempt: ContextProjectionAttempt = ContextProjectionAttempt.PROACTIVE
+    overflow_failure_event_id: str | None = None
 
     def __post_init__(self) -> None:
         for label, value in (
@@ -458,6 +524,17 @@ class ContextProjectionRequest:
             raise ValueError(
                 "Canonical History must equal the active request plus complete history groups"
             )
+        if not isinstance(self.attempt, ContextProjectionAttempt):
+            raise ValueError("Context projection attempt must be typed")
+        if self.attempt is ContextProjectionAttempt.OVERFLOW_RECOVERY:
+            _require_non_empty_text(
+                self.overflow_failure_event_id,
+                "overflow failure event ID",
+            )
+        elif self.overflow_failure_event_id is not None:
+            raise ValueError(
+                "proactive projection cannot cite an overflow failure event"
+            )
 
 
 @dataclass(frozen=True)
@@ -473,6 +550,10 @@ class ModelContext:
     estimator_source: str
     estimator_confidence: str
     artifact_refs: tuple[ArtifactReference, ...] = ()
+    context_window_tokens: int | None = None
+    context_window_provenance: str = "unknown"
+    context_window_source: str = "not supplied"
+    context_window_confidence: str = "unknown"
     schema_version: str = MODEL_CONTEXT_SCHEMA_VERSION
 
     def __post_init__(self) -> None:
@@ -487,8 +568,32 @@ class ModelContext:
             ("estimator identity", self.estimator_identity),
             ("estimator source", self.estimator_source),
             ("estimator confidence", self.estimator_confidence),
+            ("Context window provenance", self.context_window_provenance),
+            ("Context window source", self.context_window_source),
+            ("Context window confidence", self.context_window_confidence),
         ):
             _require_non_empty_text(value, label)
+        if self.context_window_tokens is not None:
+            _require_positive_integer(
+                self.context_window_tokens,
+                "Context window",
+            )
+        if self.context_window_provenance not in {
+            "verified",
+            "fallback",
+            "unknown",
+        }:
+            raise ValueError("unsupported Context window provenance")
+        if (
+            self.context_window_provenance == "unknown"
+            and self.context_window_tokens is not None
+        ):
+            raise ValueError("unknown Context window cannot contain a Token value")
+        if (
+            self.context_window_provenance != "unknown"
+            and self.context_window_tokens is None
+        ):
+            raise ValueError("known Context window provenance requires a Token value")
 
     def semantic_identity_material(self) -> object:
         return {
@@ -517,6 +622,10 @@ class ModelContext:
                 "estimator_identity": self.estimator_identity,
                 "estimator_source": self.estimator_source,
                 "estimator_confidence": self.estimator_confidence,
+                "context_window_tokens": self.context_window_tokens,
+                "context_window_provenance": self.context_window_provenance,
+                "context_window_source": self.context_window_source,
+                "context_window_confidence": self.context_window_confidence,
             }
         )
 
@@ -555,6 +664,10 @@ class ModelContextProjector(Protocol):
     def project(self, request: ContextProjectionRequest) -> ContextProjection: ...
 
 
+class OverflowRecoveryUnavailableError(RuntimeError):
+    """The selected projector cannot produce a semantic overflow projection."""
+
+
 class ExactContextProjector:
     """Unbounded compatibility Adapter for the accepted short-run #6 behavior."""
 
@@ -562,6 +675,10 @@ class ExactContextProjector:
         self._estimator = estimator or CanonicalJsonTokenEstimator()
 
     def project(self, request: ContextProjectionRequest) -> ContextProjection:
+        if request.attempt is ContextProjectionAttempt.OVERFLOW_RECOVERY:
+            raise OverflowRecoveryUnavailableError(
+                "overflow recovery requires SemanticContextProjector"
+            )
         tool_set_identity = _tool_set_identity(request.tools)
         material = _model_visible_material(request.canonical_history, None)
         estimate = self._estimator.estimate(material)
@@ -626,7 +743,13 @@ class SemanticContextProjector:
             )
         raw_material = _model_visible_material(request.canonical_history, None)
         raw_estimate = self._estimator.estimate(raw_material)
-        if self._policy.verified_context_window is None or self._fits(raw_estimate):
+        if (
+            request.attempt is ContextProjectionAttempt.PROACTIVE
+            and (
+                self._policy.verified_context_window is None
+                or self._fits(raw_estimate)
+            )
+        ):
             return ContextProjection(
                 model_context=self._model_context(
                     request=request,
@@ -640,7 +763,7 @@ class SemanticContextProjector:
 
         compaction_id = identity_sha256(
             {
-                "attempt": "proactive",
+                "attempt": request.attempt.value,
                 "run_id": request.run_id,
                 "turn_id": request.turn_id,
                 "source_history_identity": request.canonical_history.identity,
@@ -660,7 +783,7 @@ class SemanticContextProjector:
                             phase="accepted",
                             compaction_id=compaction_id,
                             payload={
-                                "attempt": "proactive",
+                                "attempt": request.attempt.value,
                                 "source_event_ids": list(group.source_event_ids),
                                 "tool_call_id": group.call.call.call_id,
                                 "artifact": retention.reference.as_dict(),
@@ -681,7 +804,7 @@ class SemanticContextProjector:
                         phase="failed",
                         compaction_id=compaction_id,
                         payload={
-                            "attempt": "proactive",
+                            "attempt": request.attempt.value,
                             "error_code": "artifact_retention_failed",
                             "error": str(error),
                             "source_history_identity": request.canonical_history.identity,
@@ -713,7 +836,10 @@ class SemanticContextProjector:
         estimate = self._estimator.estimate(
             _model_visible_material(conversation, summary)
         )
-        if not self._fits(estimate):
+        if (
+            self._policy.verified_context_window is not None
+            and not self._fits(estimate)
+        ):
             return self._failed_projection(
                 planned_events,
                 request,
@@ -722,7 +848,11 @@ class SemanticContextProjector:
                 "minimal_semantic_projection_does_not_fit",
             )
 
-        for index in range(len(projected_groups) - 1, -1, -1):
+        for index in (
+            range(len(projected_groups) - 1, -1, -1)
+            if self._policy.verified_context_window is not None
+            else ()
+        ):
             candidate_recent = [projected_groups[index], *recent_groups]
             candidate_omitted = projected_groups[:index]
             candidate_summary = self._build_summary(
@@ -795,8 +925,8 @@ class SemanticContextProjector:
                 phase="accepted",
                 compaction_id=compaction_id,
                 payload={
-                    "attempt": "proactive",
-                    "trigger": self._fit_material(raw_estimate),
+                    "attempt": request.attempt.value,
+                    "trigger": self._trigger_material(request, raw_estimate),
                     "source_history_identity": request.canonical_history.identity,
                     "preserved_source_history_identity": request.canonical_history.identity,
                     "result_context_identity": model_context.identity,
@@ -947,6 +1077,9 @@ class SemanticContextProjector:
         tool_set_identity: str,
         artifact_refs: tuple[ArtifactReference, ...],
     ) -> ModelContext:
+        window = self._policy.context_window_metadata
+        window_tokens = window["tokens"]
+        assert window_tokens is None or isinstance(window_tokens, int)
         return ModelContext(
             conversation=conversation,
             summary=summary,
@@ -959,6 +1092,10 @@ class SemanticContextProjector:
             estimator_source=self._estimator.source,
             estimator_confidence=self._estimator.confidence,
             artifact_refs=artifact_refs,
+            context_window_tokens=window_tokens,
+            context_window_provenance=str(window["provenance"]),
+            context_window_source=str(window["source"]),
+            context_window_confidence=str(window["confidence"]),
         )
 
     def _fits(self, input_estimate: int) -> bool:
@@ -986,7 +1123,25 @@ class SemanticContextProjector:
             "overhead_confidence": self._policy.overhead_confidence,
             "safety_margin": self._policy.safety_margin,
             "verified_context_window": self._policy.verified_context_window,
+            "context_window": self._policy.context_window_metadata,
             "comparison": "sum>verified_context_window",
+        }
+
+    def _trigger_material(
+        self,
+        request: ContextProjectionRequest,
+        input_estimate: int,
+    ) -> dict[str, object]:
+        if request.attempt is ContextProjectionAttempt.PROACTIVE:
+            return self._fit_material(input_estimate)
+        return {
+            "reason": "provider_context_overflow",
+            "provider_failure_event_id": request.overflow_failure_event_id,
+            "estimated_input_tokens": input_estimate,
+            "input_estimator_id": self._estimator.identity,
+            "input_estimator_source": self._estimator.source,
+            "input_estimator_confidence": self._estimator.confidence,
+            "context_window": self._policy.context_window_metadata,
         }
 
     def _compaction_started_event(
@@ -1000,8 +1155,8 @@ class SemanticContextProjector:
             phase="candidate",
             compaction_id=compaction_id,
             payload={
-                "attempt": "proactive",
-                "trigger": self._fit_material(raw_estimate),
+                "attempt": request.attempt.value,
+                "trigger": self._trigger_material(request, raw_estimate),
                 "source_history_identity": request.canonical_history.identity,
                 "context_policy_identity": self._policy_identity,
             },
@@ -1024,7 +1179,7 @@ class SemanticContextProjector:
                 phase="failed",
                 compaction_id=compaction_id,
                 payload={
-                    "attempt": "proactive",
+                    "attempt": request.attempt.value,
                     "error_code": error_code,
                     "error": error,
                     "source_history_identity": request.canonical_history.identity,
@@ -1137,6 +1292,7 @@ __all__ = [
     "CanonicalJsonTokenEstimator",
     "ContextPolicy",
     "ContextProjection",
+    "ContextProjectionAttempt",
     "ContextProjectionRequest",
     "ExactContextProjector",
     "FileArtifactStore",
@@ -1144,6 +1300,7 @@ __all__ = [
     "MODEL_CONTEXT_SCHEMA_VERSION",
     "ModelContext",
     "ModelContextProjector",
+    "OverflowRecoveryUnavailableError",
     "ProjectionEvent",
     "ProjectionHistoryGroup",
     "SEMANTIC_SUMMARY_SCHEMA_VERSION",

@@ -20,6 +20,7 @@ from workspace_agent_harness.evented import (
     DemoJournalTool,
     DeterministicDemoGateway,
     DeterministicLongDemoGateway,
+    DeterministicOverflowDemoGateway,
     EventedRunStatus,
     JsonlRunEventLog,
     WaitingDemoGateway,
@@ -54,6 +55,16 @@ def main(arguments: Sequence[str] | None = None) -> int:
         help="run the deterministic three-stage proactive-compaction path",
     )
     parser.add_argument(
+        "--overflow-recovery-demo",
+        action="store_true",
+        help="run one deterministic Provider overflow followed by a successful retry",
+    )
+    parser.add_argument(
+        "--overflow-exhaustion-demo",
+        action="store_true",
+        help="run two deterministic Provider overflows and exhaust the one retry",
+    )
+    parser.add_argument(
         "--explain-compaction",
         action="store_true",
         help="expand retained compaction decisions in live or replay output",
@@ -65,10 +76,13 @@ def main(arguments: Sequence[str] | None = None) -> int:
             options.log is not None
             or options.wait_for_cancel
             or options.semantic_compaction_demo
+            or options.overflow_recovery_demo
+            or options.overflow_exhaustion_demo
         ):
             parser.error(
                 "--replay cannot be combined with --log, --wait-for-cancel, "
-                "or --semantic-compaction-demo"
+                "--semantic-compaction-demo, --overflow-recovery-demo, or "
+                "--overflow-exhaustion-demo"
             )
         try:
             sys.stdout.write(
@@ -82,10 +96,14 @@ def main(arguments: Sequence[str] | None = None) -> int:
             return 2
         return 0
 
-    if options.wait_for_cancel and options.semantic_compaction_demo:
-        parser.error(
-            "--wait-for-cancel cannot be combined with --semantic-compaction-demo"
-        )
+    demo_modes = (
+        options.wait_for_cancel,
+        options.semantic_compaction_demo,
+        options.overflow_recovery_demo,
+        options.overflow_exhaustion_demo,
+    )
+    if sum(bool(selected) for selected in demo_modes) > 1:
+        parser.error("select at most one deterministic demo mode")
 
     try:
         prompt = input("Task> ")
@@ -108,20 +126,47 @@ def main(arguments: Sequence[str] | None = None) -> int:
         return 2
     context_projector = None
     artifact_path: Path | None = None
-    if options.semantic_compaction_demo:
+    if (
+        options.semantic_compaction_demo
+        or options.overflow_recovery_demo
+        or options.overflow_exhaustion_demo
+    ):
         artifact_path = Path(f"{log_path}.artifacts")
         try:
             artifact_store = FileArtifactStore(artifact_path)
         except OSError as error:
             print(f"Cannot create artifact store: {error}", file=sys.stderr)
             return 2
-        gateway = DeterministicLongDemoGateway(stage_count=3)
-        tools = (DemoJournalTool(large_stage=1),)
+        if options.semantic_compaction_demo:
+            gateway = DeterministicLongDemoGateway(stage_count=3)
+            tools = (DemoJournalTool(large_stage=1),)
+            verified_context_window = 10_000
+            fallback_context_window = None
+            context_window_source = "deterministic-demo-lock"
+            context_window_confidence = "high"
+            requested_output_room = 6_900
+            protocol_tool_overhead_tokens = 256
+            limits = RunLimits(max_steps=3, max_model_calls=4, timeout_seconds=30)
+        else:
+            gateway = DeterministicOverflowDemoGateway(
+                exhaust_retry=options.overflow_exhaustion_demo
+            )
+            tools = (DemoEchoTool(),)
+            verified_context_window = None
+            fallback_context_window = 4_096
+            context_window_source = "deterministic Provider catalog fallback"
+            context_window_confidence = "low"
+            requested_output_room = 512
+            protocol_tool_overhead_tokens = 64
+            limits = RunLimits(max_steps=1, max_model_calls=3, timeout_seconds=30)
         context_projector = SemanticContextProjector(
             policy=ContextPolicy(
-                verified_context_window=10_000,
-                requested_output_room=6_900,
-                protocol_tool_overhead_tokens=256,
+                verified_context_window=verified_context_window,
+                fallback_context_window=fallback_context_window,
+                context_window_source=context_window_source,
+                context_window_confidence=context_window_confidence,
+                requested_output_room=requested_output_room,
+                protocol_tool_overhead_tokens=protocol_tool_overhead_tokens,
                 overhead_estimator_id="demo-translation-overhead/v1",
                 overhead_source="deterministic-demo-lock",
                 overhead_confidence="high",
@@ -133,7 +178,6 @@ def main(arguments: Sequence[str] | None = None) -> int:
             estimator=CanonicalJsonTokenEstimator(),
             artifact_store=artifact_store,
         )
-        limits = RunLimits(max_steps=3, max_model_calls=4, timeout_seconds=30)
     else:
         gateway = (
             WaitingDemoGateway()

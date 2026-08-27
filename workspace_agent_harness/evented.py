@@ -4,7 +4,7 @@ import hashlib
 import json
 import time
 import uuid
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import StrEnum
 from pathlib import Path
 from threading import Event
@@ -14,9 +14,11 @@ from typing import Callable, Mapping, Protocol, Sequence, TypeAlias
 from workspace_agent_harness import RunLimits, Task
 from workspace_agent_harness.context_projection import (
     ContextProjectionRequest,
+    ContextProjectionAttempt,
     ExactContextProjector,
     ModelContext,
     ModelContextProjector,
+    OverflowRecoveryUnavailableError,
     ProjectionHistoryGroup,
     SemanticToolObservation,
     SourcedSummaryEntry,
@@ -58,6 +60,7 @@ class EventedRunStatus(StrEnum):
     MODEL_CALL_LIMIT = "model_call_limit"
     TIME_LIMIT = "time_limit"
     CONTEXT_COMPACTION_ERROR = "context_compaction_error"
+    CONTEXT_OVERFLOW = "context_overflow"
 
 
 class FinalDisposition(StrEnum):
@@ -102,6 +105,16 @@ class PreparedModelTurn:
     turn_id: str
     model_context: ModelContext
     tools: tuple[ActionTool, ...]
+    exchange_attempt: int = 1
+    retry_of_exchange_id: str | None = None
+
+    def __post_init__(self) -> None:
+        if self.exchange_attempt not in {1, 2}:
+            raise ValueError("exchange attempt must be 1 or 2")
+        if self.exchange_attempt == 1 and self.retry_of_exchange_id is not None:
+            raise ValueError("an original exchange cannot cite a retry source")
+        if self.exchange_attempt == 2 and not self.retry_of_exchange_id:
+            raise ValueError("a retry exchange must cite its failed exchange")
 
     @property
     def conversation(self) -> CanonicalConversation:
@@ -117,8 +130,86 @@ class PreparedModelTurn:
                 "turn_id": self.turn_id,
                 "model_context_identity": self.model_context.identity,
                 "tools": [tool.identity_material() for tool in self.tools],
+                "exchange_attempt": self.exchange_attempt,
+                "retry_of_exchange_id": self.retry_of_exchange_id,
             }
         )
+
+
+@dataclass(frozen=True)
+class ExchangeUsage:
+    input_tokens: int | None = None
+    output_tokens: int | None = None
+    total_tokens: int | None = None
+
+    def __post_init__(self) -> None:
+        for label, value in (
+            ("input Tokens", self.input_tokens),
+            ("output Tokens", self.output_tokens),
+            ("total Tokens", self.total_tokens),
+        ):
+            if value is not None and (
+                isinstance(value, bool) or not isinstance(value, int) or value < 0
+            ):
+                raise ValueError(f"{label} must be a non-negative integer or unknown")
+
+    def as_dict(self) -> dict[str, int | None]:
+        return {
+            "input_tokens": self.input_tokens,
+            "output_tokens": self.output_tokens,
+            "total_tokens": self.total_tokens,
+        }
+
+
+@dataclass(frozen=True)
+class ExchangeEvidence:
+    response_identity: str = "unreported"
+    usage: ExchangeUsage = field(default_factory=ExchangeUsage)
+    duration_ms: int | None = None
+    cost_microusd: int | None = None
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.response_identity, str) or not self.response_identity:
+            raise ValueError("response identity must be non-empty text")
+        for label, value in (
+            ("exchange duration", self.duration_ms),
+            ("exchange cost", self.cost_microusd),
+        ):
+            if value is not None and (
+                isinstance(value, bool) or not isinstance(value, int) or value < 0
+            ):
+                raise ValueError(f"{label} must be a non-negative integer or unknown")
+
+    def as_event_payload(self) -> dict[str, object]:
+        return {
+            "response_identity": self.response_identity,
+            "usage": self.usage.as_dict(),
+            "timing": {"duration_ms": self.duration_ms},
+            "cost": {"microusd": self.cost_microusd},
+        }
+
+
+class ProviderFailureKind(StrEnum):
+    CONTEXT_OVERFLOW = "context_overflow"
+    AUTHENTICATION = "authentication"
+    RATE_LIMIT = "rate_limit"
+    TRANSPORT = "transport"
+    PROTOCOL = "protocol"
+    UNKNOWN = "unknown"
+
+
+@dataclass(frozen=True)
+class ProviderFailure:
+    kind: ProviderFailureKind
+    code: str
+    message: str
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.kind, ProviderFailureKind):
+            raise ValueError("Provider failure kind must be typed")
+        for label, value in (("failure code", self.code), ("failure message", self.message)):
+            if not isinstance(value, str) or not value:
+                raise ValueError(f"{label} must be non-empty text")
 
 
 @dataclass(frozen=True)
@@ -126,6 +217,35 @@ class ExchangeSettled:
     exchange_id: str
     candidate: CandidateAction
     stop_reason: str = "completed"
+    evidence: ExchangeEvidence = field(default_factory=ExchangeEvidence)
+
+    def __post_init__(self) -> None:
+        for label, value in (
+            ("exchange ID", self.exchange_id),
+            ("stop reason", self.stop_reason),
+        ):
+            if not isinstance(value, str) or not value:
+                raise ValueError(f"{label} must be non-empty text")
+        if not isinstance(self.evidence, ExchangeEvidence):
+            raise ValueError("settled exchange evidence must be typed")
+
+
+@dataclass(frozen=True)
+class ExchangeFailed:
+    exchange_id: str
+    failure: ProviderFailure
+    evidence: ExchangeEvidence = field(default_factory=ExchangeEvidence)
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.exchange_id, str) or not self.exchange_id:
+            raise ValueError("exchange ID must be non-empty text")
+        if not isinstance(self.failure, ProviderFailure):
+            raise ValueError("Provider failure must be typed")
+        if not isinstance(self.evidence, ExchangeEvidence):
+            raise ValueError("failed exchange evidence must be typed")
+
+
+ExchangeResult: TypeAlias = ExchangeSettled | ExchangeFailed
 
 
 class ModelGateway(Protocol):
@@ -133,7 +253,7 @@ class ModelGateway(Protocol):
         self,
         prepared_turn: PreparedModelTurn,
         cancel_signal: Event,
-    ) -> ExchangeSettled: ...
+    ) -> ExchangeResult: ...
 
 
 class EventTool(Protocol):
@@ -464,6 +584,66 @@ class DeterministicLongDemoGateway:
         )
 
 
+class DeterministicOverflowDemoGateway:
+    """Offline Provider Adapter for one overflow recovery or exhaustion trace."""
+
+    def __init__(self, *, exhaust_retry: bool = False) -> None:
+        self._exhaust_retry = exhaust_retry
+        self._prepared_turns: list[PreparedModelTurn] = []
+
+    @property
+    def prepared_turns(self) -> tuple[PreparedModelTurn, ...]:
+        return tuple(self._prepared_turns)
+
+    def exchange(
+        self,
+        prepared_turn: PreparedModelTurn,
+        cancel_signal: Event,
+    ) -> ExchangeResult:
+        self._prepared_turns.append(prepared_turn)
+        call_number = len(self._prepared_turns)
+        evidence = ExchangeEvidence(
+            response_identity=f"overflow-demo-response-{call_number}",
+            usage=ExchangeUsage(
+                input_tokens=400 - (call_number * 25),
+                output_tokens=0 if call_number <= 2 else 12,
+            ),
+            duration_ms=call_number * 3,
+            cost_microusd=call_number * 5,
+        )
+        if call_number == 1 or (call_number == 2 and self._exhaust_retry):
+            return ExchangeFailed(
+                exchange_id=f"{prepared_turn.turn_id}:overflow-demo:{call_number}",
+                failure=ProviderFailure(
+                    kind=ProviderFailureKind.CONTEXT_OVERFLOW,
+                    code="context_length_exceeded",
+                    message="deterministic Provider Context overflow",
+                ),
+                evidence=evidence,
+            )
+        if call_number == 2:
+            request = prepared_turn.conversation.messages[0]
+            assert isinstance(request, UserMessage)
+            return ExchangeSettled(
+                exchange_id=f"{prepared_turn.turn_id}:overflow-demo:retry",
+                candidate=CandidateToolCall(
+                    call_id="overflow-demo-call-1",
+                    tool_name="echo",
+                    arguments={"text": request.content},
+                ),
+                evidence=evidence,
+            )
+        result = prepared_turn.conversation.messages[-1]
+        assert isinstance(result, ToolResultMessage)
+        return ExchangeSettled(
+            exchange_id=f"{prepared_turn.turn_id}:overflow-demo:final",
+            candidate=CandidateFinal(
+                content=f"Recovered and observed: {result.content}"
+            ),
+            evidence=evidence,
+        )
+
+
 class WaitingDemoGateway:
     """Deterministic manual Adapter used to exercise Ctrl-C cancellation."""
 
@@ -601,6 +781,31 @@ class AgentLoop:
                 cause=last_event,
             )
 
+        def record_failed_exchange(
+            failed_exchange: ExchangeFailed,
+            *,
+            exchange_started_event: RunEvent,
+            prepared_turn: PreparedModelTurn,
+        ) -> RunEvent:
+            return self._append(
+                run_id=run_id,
+                event_type="model.exchange_failed",
+                phase="failed",
+                cause=exchange_started_event,
+                turn_id=prepared_turn.turn_id,
+                exchange_id=failed_exchange.exchange_id,
+                payload={
+                    "exchange_attempt": prepared_turn.exchange_attempt,
+                    "retry_of_exchange_id": prepared_turn.retry_of_exchange_id,
+                    "prepared_turn_identity": prepared_turn.identity,
+                    "model_context_identity": prepared_turn.model_context.identity,
+                    "failure_kind": failed_exchange.failure.kind.value,
+                    "failure_code": failed_exchange.failure.code,
+                    "failure_message": failed_exchange.failure.message,
+                    **failed_exchange.evidence.as_event_payload(),
+                },
+            )
+
         while True:
             if signal.is_set():
                 return cancelled(last_event)
@@ -620,6 +825,7 @@ class AgentLoop:
                 cause=last_event,
                 turn_id=turn_id,
                 payload={
+                    "projection_attempt": ContextProjectionAttempt.PROACTIVE.value,
                     "history_identity": conversation.identity,
                     "history_schema": "canonical-conversation/v1",
                     "remaining_model_calls": limits.max_model_calls - model_calls,
@@ -719,6 +925,7 @@ class AgentLoop:
                 cause=projection_cause,
                 turn_id=turn_id,
                 payload={
+                    "projection_attempt": ContextProjectionAttempt.PROACTIVE.value,
                     "prepared_turn_identity": prepared.identity,
                     "source_history_identity": conversation.identity,
                     "model_context_identity": model_context.identity,
@@ -731,6 +938,7 @@ class AgentLoop:
                     ),
                     "context_policy_identity": model_context.context_policy_identity,
                     "input_estimate_tokens": model_context.input_estimate_tokens,
+                    "context_window": _model_context_window_payload(model_context),
                 },
             )
             exchange_started = self._append(
@@ -739,7 +947,11 @@ class AgentLoop:
                 phase="candidate",
                 cause=projected,
                 turn_id=turn_id,
-                payload={"prepared_turn_identity": prepared.identity},
+                payload={
+                    "prepared_turn_identity": prepared.identity,
+                    "exchange_attempt": prepared.exchange_attempt,
+                    "retry_of_exchange_id": prepared.retry_of_exchange_id,
+                },
             )
             model_calls += 1
             try:
@@ -754,6 +966,273 @@ class AgentLoop:
                 )
             if signal.is_set():
                 return cancelled(exchange_started)
+            recovered_from_overflow = False
+            if isinstance(settled, ExchangeFailed):
+                original_failure = record_failed_exchange(
+                    settled,
+                    exchange_started_event=exchange_started,
+                    prepared_turn=prepared,
+                )
+                if settled.failure.kind is not ProviderFailureKind.CONTEXT_OVERFLOW:
+                    return terminal(
+                        EventedRunStatus.MODEL_ERROR,
+                        error=(
+                            f"{settled.failure.kind.value}: "
+                            f"{settled.failure.code}: {settled.failure.message}"
+                        ),
+                        cause=original_failure,
+                    )
+                if model_calls >= limits.max_model_calls:
+                    exhausted = self._append(
+                        run_id=run_id,
+                        event_type="context.overflow_retry_exhausted",
+                        phase="failed",
+                        cause=original_failure,
+                        turn_id=turn_id,
+                        exchange_id=settled.exchange_id,
+                        payload={
+                            "reason": "model_call_budget_unavailable",
+                            "allowed_retries": 1,
+                            "completed_retries": 0,
+                        },
+                    )
+                    return terminal(
+                        EventedRunStatus.CONTEXT_OVERFLOW,
+                        error="Context overflow recovery unavailable within model-call limit",
+                        cause=exhausted,
+                    )
+
+                overflow_projection_started = self._append(
+                    run_id=run_id,
+                    event_type="context.projection_started",
+                    phase="candidate",
+                    cause=original_failure,
+                    turn_id=turn_id,
+                    payload={
+                        "projection_attempt": (
+                            ContextProjectionAttempt.OVERFLOW_RECOVERY.value
+                        ),
+                        "history_identity": conversation.identity,
+                        "history_schema": "canonical-conversation/v1",
+                        "remaining_model_calls": (
+                            limits.max_model_calls - model_calls
+                        ),
+                        "remaining_tool_steps": limits.max_steps - steps,
+                        "overflow_failure_event_id": original_failure.event_id,
+                        "retry_of_exchange_id": settled.exchange_id,
+                    },
+                )
+                overflow_projection_cause = overflow_projection_started
+                try:
+                    overflow_projection = self._context_projector.project(
+                        ContextProjectionRequest(
+                            run_id=run_id,
+                            turn_id=turn_id,
+                            active_request_event_id=run_started_event.event_id,
+                            canonical_history=conversation,
+                            history_groups=tuple(history_groups),
+                            unresolved_commitments=unresolved_commitments,
+                            tools=tuple(
+                                tool.definition for tool in self._tools.values()
+                            ),
+                            system_policy_identity=self._system_policy_identity,
+                            prior_summary_identity=prior_summary_identity,
+                            attempt=(
+                                ContextProjectionAttempt.OVERFLOW_RECOVERY
+                            ),
+                            overflow_failure_event_id=original_failure.event_id,
+                        )
+                    )
+                except OverflowRecoveryUnavailableError as error:
+                    exhausted = self._append(
+                        run_id=run_id,
+                        event_type="context.overflow_retry_exhausted",
+                        phase="failed",
+                        cause=overflow_projection_started,
+                        turn_id=turn_id,
+                        exchange_id=settled.exchange_id,
+                        payload={
+                            "reason": "semantic_projector_unavailable",
+                            "allowed_retries": 1,
+                            "completed_retries": 0,
+                            "error": str(error),
+                        },
+                    )
+                    return terminal(
+                        EventedRunStatus.CONTEXT_OVERFLOW,
+                        error=str(error),
+                        cause=exhausted,
+                    )
+                except Exception as error:
+                    failed_compaction_id = _sha256_json(
+                        {
+                            "attempt": "overflow-recovery",
+                            "run_id": run_id,
+                            "turn_id": turn_id,
+                            "source_history_identity": conversation.identity,
+                            "failure": "context_projector_failed",
+                        }
+                    )
+                    started = self._append(
+                        run_id=run_id,
+                        event_type="context.compaction_started",
+                        phase="candidate",
+                        cause=overflow_projection_started,
+                        turn_id=turn_id,
+                        compaction_id=failed_compaction_id,
+                        payload={
+                            "attempt": "overflow-recovery",
+                            "trigger": "projector-unavailable-or-invalid",
+                            "source_history_identity": conversation.identity,
+                            "overflow_failure_event_id": original_failure.event_id,
+                        },
+                    )
+                    failed = self._append(
+                        run_id=run_id,
+                        event_type="context.compaction_failed",
+                        phase="failed",
+                        cause=started,
+                        turn_id=turn_id,
+                        compaction_id=failed_compaction_id,
+                        payload={
+                            "attempt": "overflow-recovery",
+                            "error_code": "context_projector_failed",
+                            "error": str(error),
+                            "source_history_identity": conversation.identity,
+                        },
+                    )
+                    return terminal(
+                        EventedRunStatus.CONTEXT_COMPACTION_ERROR,
+                        error=f"context_projector_failed: {error}",
+                        cause=failed,
+                    )
+                for planned_event in overflow_projection.events:
+                    overflow_projection_cause = self._append(
+                        run_id=run_id,
+                        event_type=planned_event.event_type,
+                        phase=planned_event.phase,
+                        cause=overflow_projection_cause,
+                        turn_id=turn_id,
+                        compaction_id=planned_event.compaction_id,
+                        visibility=planned_event.visibility,
+                        payload=planned_event.payload,
+                    )
+                if overflow_projection.error is not None:
+                    return terminal(
+                        EventedRunStatus.CONTEXT_COMPACTION_ERROR,
+                        error=overflow_projection.error,
+                        cause=overflow_projection_cause,
+                    )
+                assert overflow_projection.model_context is not None
+                model_context = overflow_projection.model_context
+                if model_context.summary is not None:
+                    prior_summary_identity = model_context.summary.identity
+                prepared = PreparedModelTurn(
+                    run_id=run_id,
+                    turn_id=turn_id,
+                    model_context=model_context,
+                    tools=tuple(tool.definition for tool in self._tools.values()),
+                    exchange_attempt=2,
+                    retry_of_exchange_id=settled.exchange_id,
+                )
+                projected = self._append(
+                    run_id=run_id,
+                    event_type="context.projected",
+                    phase="accepted",
+                    cause=overflow_projection_cause,
+                    turn_id=turn_id,
+                    payload={
+                        "projection_attempt": (
+                            ContextProjectionAttempt.OVERFLOW_RECOVERY.value
+                        ),
+                        "prepared_turn_identity": prepared.identity,
+                        "source_history_identity": conversation.identity,
+                        "model_context_identity": model_context.identity,
+                        "semantic_context_identity": model_context.semantic_identity,
+                        "model_context_schema": model_context.schema_version,
+                        "summary_schema": (
+                            None
+                            if model_context.summary is None
+                            else model_context.summary.schema_version
+                        ),
+                        "context_policy_identity": (
+                            model_context.context_policy_identity
+                        ),
+                        "input_estimate_tokens": (
+                            model_context.input_estimate_tokens
+                        ),
+                        "context_window": _model_context_window_payload(
+                            model_context
+                        ),
+                        "retry_of_exchange_id": settled.exchange_id,
+                    },
+                )
+                exchange_started = self._append(
+                    run_id=run_id,
+                    event_type="model.exchange_started",
+                    phase="candidate",
+                    cause=projected,
+                    turn_id=turn_id,
+                    payload={
+                        "prepared_turn_identity": prepared.identity,
+                        "exchange_attempt": prepared.exchange_attempt,
+                        "retry_of_exchange_id": prepared.retry_of_exchange_id,
+                    },
+                )
+                model_calls += 1
+                try:
+                    settled = self._gateway.exchange(prepared, signal)
+                except KeyboardInterrupt:
+                    return cancelled(exchange_started)
+                except Exception as error:
+                    return terminal(
+                        EventedRunStatus.MODEL_ERROR,
+                        error=str(error),
+                        cause=exchange_started,
+                    )
+                if signal.is_set():
+                    return cancelled(exchange_started)
+                if isinstance(settled, ExchangeFailed):
+                    retry_failure = record_failed_exchange(
+                        settled,
+                        exchange_started_event=exchange_started,
+                        prepared_turn=prepared,
+                    )
+                    if (
+                        settled.failure.kind
+                        is ProviderFailureKind.CONTEXT_OVERFLOW
+                    ):
+                        exhausted = self._append(
+                            run_id=run_id,
+                            event_type="context.overflow_retry_exhausted",
+                            phase="failed",
+                            cause=retry_failure,
+                            turn_id=turn_id,
+                            exchange_id=settled.exchange_id,
+                            payload={
+                                "reason": "retry_context_overflow",
+                                "allowed_retries": 1,
+                                "completed_retries": 1,
+                                "retry_of_exchange_id": (
+                                    prepared.retry_of_exchange_id
+                                ),
+                            },
+                        )
+                        return terminal(
+                            EventedRunStatus.CONTEXT_OVERFLOW,
+                            error="Context overflow recovery retry was exhausted",
+                            cause=exhausted,
+                        )
+                    return terminal(
+                        EventedRunStatus.MODEL_ERROR,
+                        error=(
+                            f"{settled.failure.kind.value}: "
+                            f"{settled.failure.code}: {settled.failure.message}"
+                        ),
+                        cause=retry_failure,
+                    )
+                recovered_from_overflow = True
+
             if not isinstance(settled, ExchangeSettled):
                 failed = self._append(
                     run_id=run_id,
@@ -761,11 +1240,16 @@ class AgentLoop:
                     phase="failed",
                     cause=exchange_started,
                     turn_id=turn_id,
-                    payload={"error": "gateway did not return ExchangeSettled"},
+                    payload={
+                        "error": (
+                            "gateway did not return ExchangeSettled or ExchangeFailed"
+                        ),
+                        "exchange_attempt": prepared.exchange_attempt,
+                    },
                 )
                 return terminal(
                     EventedRunStatus.MODEL_ERROR,
-                    error="gateway did not return ExchangeSettled",
+                    error="gateway did not return ExchangeSettled or ExchangeFailed",
                     cause=failed,
                 )
 
@@ -784,14 +1268,34 @@ class AgentLoop:
                 exchange_id=settled.exchange_id,
                 candidate_id=candidate_id,
                 payload={
+                    "exchange_attempt": prepared.exchange_attempt,
+                    "retry_of_exchange_id": prepared.retry_of_exchange_id,
                     "candidate_kind": (
                         "invalid"
                         if candidate_schema_error is not None
                         else _candidate_kind(settled.candidate)
                     ),
                     "stop_reason": settled.stop_reason,
+                    **settled.evidence.as_event_payload(),
                 },
             )
+            admission_cause = settled_event
+            if recovered_from_overflow:
+                admission_cause = self._append(
+                    run_id=run_id,
+                    event_type="context.overflow_retry_succeeded",
+                    phase="accepted",
+                    cause=settled_event,
+                    turn_id=turn_id,
+                    exchange_id=settled.exchange_id,
+                    payload={
+                        "exchange_attempt": prepared.exchange_attempt,
+                        "retry_of_exchange_id": prepared.retry_of_exchange_id,
+                        "response_identity": (
+                            settled.evidence.response_identity
+                        ),
+                    },
+                )
             admission_error = candidate_schema_error or self._admission_error(
                 settled.candidate,
                 used_call_ids,
@@ -801,7 +1305,7 @@ class AgentLoop:
                     run_id=run_id,
                     event_type="candidate.rejected",
                     phase="failed",
-                    cause=settled_event,
+                    cause=admission_cause,
                     turn_id=turn_id,
                     exchange_id=settled.exchange_id,
                     candidate_id=candidate_id,
@@ -817,7 +1321,7 @@ class AgentLoop:
                 run_id=run_id,
                 event_type="candidate.accepted",
                 phase="accepted",
-                cause=settled_event,
+                cause=admission_cause,
                 turn_id=turn_id,
                 exchange_id=settled.exchange_id,
                 candidate_id=candidate_id,
@@ -1181,9 +1685,26 @@ def render_run_events(
             artifact_refs = event.payload.get("artifact_refs")
             artifact_count = len(artifact_refs) if isinstance(artifact_refs, list) else 0
             detail = (
+                f" attempt={_display_value(event.payload.get('attempt'))}"
                 f" context={_short_identity(event.payload.get('result_context_identity'))}"
                 f" summary={_short_identity(event.payload.get('summary_identity'))}"
                 f" artifacts={artifact_count}"
+            )
+        elif event.event_type == "model.exchange_failed":
+            detail = (
+                f" attempt={_display_value(event.payload.get('exchange_attempt'))}"
+                f" kind={_display_value(event.payload.get('failure_kind'))}"
+                f" response={_short_identity(event.payload.get('response_identity'))}"
+            )
+        elif event.event_type == "context.overflow_retry_succeeded":
+            detail = (
+                " retry=success"
+                f" response={_short_identity(event.payload.get('response_identity'))}"
+            )
+        elif event.event_type == "context.overflow_retry_exhausted":
+            detail = (
+                " retry=exhausted"
+                f" reason={_display_value(event.payload.get('reason'))}"
             )
         lines.append(
             f"{event.sequence:03d} [{event.phase}] {event.event_type}{detail}"
@@ -1292,6 +1813,18 @@ def _short_identity(value: object) -> str:
     return value[:19]
 
 
+def _model_context_window_payload(model_context: ModelContext) -> dict[str, object]:
+    return {
+        "tokens": model_context.context_window_tokens,
+        "provenance": model_context.context_window_provenance,
+        "source": model_context.context_window_source,
+        "confidence": model_context.context_window_confidence,
+        "used_for_proactive_fit": (
+            model_context.context_window_provenance == "verified"
+        ),
+    }
+
+
 def _render_compaction_explanation(event: RunEvent) -> list[str]:
     trigger = event.payload.get("trigger")
     if not isinstance(trigger, Mapping):
@@ -1301,13 +1834,29 @@ def _render_compaction_explanation(event: RunEvent) -> list[str]:
     atomic_pairs = event.payload.get("atomic_tool_pairs")
     commitments = event.payload.get("unresolved_commitment_keys")
     artifact_refs = event.payload.get("artifact_refs")
+    attempt = event.payload.get("attempt")
+    if attempt == ContextProjectionAttempt.OVERFLOW_RECOVERY.value:
+        window = trigger.get("context_window")
+        if not isinstance(window, Mapping):
+            window = {}
+        why = (
+            "    WHY_COMPACT overflow-recovery "
+            f"failure={_short_identity(trigger.get('provider_failure_event_id'))} "
+            f"window={window.get('tokens', 'unknown')} "
+            f"provenance={window.get('provenance', 'unknown')} "
+            f"confidence={window.get('confidence', 'unknown')}"
+        )
+    else:
+        why = (
+            "    WHY_COMPACT "
+            f"input={trigger.get('estimated_input_tokens', 'unknown')} + "
+            f"output={trigger.get('requested_output_room', 'unknown')} + "
+            f"overhead={trigger.get('provider_protocol_and_tool_overhead', 'unknown')} + "
+            f"safety={trigger.get('safety_margin', 'unknown')} > "
+            f"window={trigger.get('verified_context_window', 'unknown')}"
+        )
     return [
-        "    WHY_COMPACT "
-        f"input={trigger.get('estimated_input_tokens', 'unknown')} + "
-        f"output={trigger.get('requested_output_room', 'unknown')} + "
-        f"overhead={trigger.get('provider_protocol_and_tool_overhead', 'unknown')} + "
-        f"safety={trigger.get('safety_margin', 'unknown')} > "
-        f"window={trigger.get('verified_context_window', 'unknown')}",
+        why,
         "    PRESERVED "
         f"events={len(preserved) if isinstance(preserved, list) else 0} "
         f"summarized={len(summarized) if isinstance(summarized, list) else 0} "

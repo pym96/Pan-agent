@@ -32,9 +32,11 @@ The accepted implementation baseline is split across:
 
 `test_evented_agent.py` exercises WorkOrder #6's pending-review evented Runtime slice: one admitted deterministic tool round trip through the public AgentLoop/ModelGateway seam, multi-action rejection before History or effects, `run-event/v1` sequence/hash/causal/terminal invariants, read-only replay, cancellation settlement, and terminal-consumer deletion equivalence.
 
-`test_evented_tui.py` drives the documented Python entry through a real pseudo-terminal. It covers non-blank Unicode input, blank-input refusal without a Run, one-tool completion, Ctrl-C during exchange, process exits, equality between rendered terminal state and retained events, and WorkOrder #7's long proactive-compaction demo with event-derived explanation.
+`test_evented_tui.py` drives the documented Python entry through a real pseudo-terminal. It covers non-blank Unicode input, blank-input refusal without a Run, one-tool completion, Ctrl-C during exchange, process exits, equality between rendered terminal state and retained events, WorkOrder #7's long proactive-compaction demo, and WorkOrder #8's successful/exhausted overflow paths with event-derived explanation and replay.
 
 `test_semantic_context.py` exercises WorkOrder #7 through public seams: exact versus semantic fit controls, known-window proactive triggering, source-attributed summary and active-commitment preservation, whole call/result groups, exact artifact recovery through two stores, replay equivalence, fail-closed non-fitting projections, and refusal to truncate an oversized active request.
+
+`test_context_overflow_recovery.py` exercises WorkOrder #8 through the public AgentLoop/ModelGateway/Context-projector seams: only typed Context overflow enters recovery; the original failed exchange and per-attempt accounting remain separate; fallback/unknown windows do not block the first call; the #7 semantic summary preserves exact source semantics without truncation; one retry succeeds through normal admission or exhausts explicitly; unrelated failures remain distinct; malformed retry candidates execute no tool; and the exact-history projector cannot fake semantic recovery.
 
 Run the full handoff command with:
 
