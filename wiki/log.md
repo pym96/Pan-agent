@@ -278,3 +278,8 @@ Do not edit or delete existing entries. Corrections are new entries that link to
 - Converged two session threads: "installing MCP" means installing MCP servers (self-describing tool-set providers); the protocol itself is not installable. And harnesses natively embed their own tools plus skill ecosystems, while MCP is the shared external protocol — the opposite of a private layer.
 - Admitted `concepts/harness-mcp-skills.md` as triangulated (MCP official docs + skill-packaging mechanics + canonical conversation). Key framing: the three layers converge at the wire (all become tool schema in the canonical request) and diverge at the trust layer (in-process vs external RPC; MCP tools and third-party skills demand stronger M2 by default). Tools are the hands; skills are the technique.
 - Boundary recorded: vendor internal architectures are not fully public, so "built-ins don't ride MCP internally" rests on public surfaces.
+
+## 2026-08-28 | Open question admitted: do criteria steer generation before feedback?
+
+- The user identified a precise gap in this repository's evidence lane: the Strict-vs-JSON result proves format constraint reduces output-space entropy (peakedness), but says nothing about whether criteria *content* steers generation direction (peak location). The Anthropic article's first-iteration observation is the qualitative claim; no quantified ablation exists there.
+- Admitted `questions/do-criteria-steer-generation-quality.md` (open). Verification path frozen as: evaluator-calibration experiment first (the dependent variable must pass M2), then a three-arm frozen matrix (no criteria / criteria-only / full loop).

@@ -57,6 +57,7 @@ This Wiki contains only Verified Learning Facts and Open Learning Questions. It 
 - [Failure-retention question](failures/README.md)
 - [Multi-agent coordination protocol question](questions/multiagent-runtime-coordination.md)
 - [Why does self-generated thought improve action quality?](questions/why-self-generated-thought-helps.md)
+- [Do grading criteria steer generation quality before any feedback loop?](questions/do-criteria-steer-generation-quality.md)
 
 ## External decisions and facts
 
