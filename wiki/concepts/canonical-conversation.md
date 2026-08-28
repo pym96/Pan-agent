@@ -32,3 +32,4 @@ Supporting observations, each inspected at the pinned locators above:
 - [Earendil: What is a harness](../sources/2026-08-23-earendil-what-is-a-harness.md) — the "translation layer across models" is the product-level statement of the same boundary.
 - [Fixed-context DeepSeek action-protocol reliability](../experiments/2026-08-23-protocol-reliability-v1.md) — L3 canonical action as the measurement yardstick across two wire protocols.
 - Design candidate: `../../docs/design/translation-adapter.md` and ADR-0013 (not yet independently accepted).
+- [Provider tool-call envelopes](../sources/2026-08-28-provider-tool-envelopes.md) — concrete dialect diversity (Anthropic blocks vs OpenAI two generations) that motivates the canonical layer.

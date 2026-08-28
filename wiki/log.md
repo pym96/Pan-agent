@@ -283,3 +283,9 @@ Do not edit or delete existing entries. Corrections are new entries that link to
 
 - The user identified a precise gap in this repository's evidence lane: the Strict-vs-JSON result proves format constraint reduces output-space entropy (peakedness), but says nothing about whether criteria *content* steers generation direction (peak location). The Anthropic article's first-iteration observation is the qualitative claim; no quantified ablation exists there.
 - Admitted `questions/do-criteria-steer-generation-quality.md` (open). Verification path frozen as: evaluator-calibration experiment first (the dependent variable must pass M2), then a three-arm frozen matrix (no criteria / criteria-only / full loop).
+
+## 2026-08-28 | Learning ingest: provider tool-call envelopes
+
+- The user shared a GPT-5.6 answer comparing OpenAI and Anthropic tool-call envelopes. Per ingest discipline the chat output was treated as catalyst, not source: its claims were re-grounded against primary documentation before admission.
+- Verified against Anthropic's tool-use overview (content-block architecture; tool_use blocks with structured input; tool_result blocks in user-role messages; strict tool use; client vs server tools) and OpenAI's function-calling guide (Responses API function_call items with JSON-string arguments and call_id correlation; the guide itself notes tool_calls/role:tool are Chat Completions concepts).
+- Two facts the GPT answer missed: OpenAI has two envelope generations (DeepSeek follows the Chat Completions one), and Anthropic now has strict tool use too. Admitted `sources/2026-08-28-provider-tool-envelopes.md` as source-located, and linked it from the canonical-conversation concept as dialect-diversity evidence.
