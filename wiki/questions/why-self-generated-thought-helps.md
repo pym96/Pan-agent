@@ -3,7 +3,7 @@
 - Type: open-learning-question
 - Verification: open
 - Source: session discussion on 2026-08-24 (user's question after reading the ReAct paper); empirical basis in [ReAct paper](../sources/2026-08-20-react-paper.md)
-- Updated: 2026-08-24
+- Updated: 2026-08-28
 
 ## Question
 
@@ -18,6 +18,12 @@ A principled explanation would tell harness designers which mechanisms are load-
 - The ReAct paper's empirical results (ReAct beats Act-only consistently; failure-mode tradeoffs) are already recorded and are not what this question asks about.
 - The entropy/compression framing from the session is an interpretation, not an established theory; any valid explanation is bounded by the data processing inequality — thought cannot add information about the world.
 - The user's refined Runtime formulation from the same session (declaration vs enforcement layers, model-portable rather than model-independent) is consistent with existing concept pages and adds no open question of its own.
+
+## Session refinements (2026-08-28, still interpretation-layer)
+
+- Role/system prompts decompose into explicit rules (directly checkable constraint, the measured kind) and persona priors (semantic steering toward a training-data manifold — an instance of the same unproven class as this question). Reported persona effects are robust for style/format/vocabulary and unstable for objective accuracy (recollection-level, uncited).
+- Conditional computation unifies four routing levels, each learning a low-dimensional R answering "which capability applies to this input": role prompts (representation space), MoE routers (network structure — structurally explicit partitioning whose learned expert boundaries are not semantically legible; the design motivation was sparse capacity: total parameters grow while activated FLOPs per token stay flat), tool routers (harness level), and WorkOrder dispatch (governance level). The information-theoretic lens: R reduces conditional uncertainty, H(Y|X,R) ≤ H(Y|X).
+- Uncertainty management is cost engineering, measurable without any theory: Strict transport needed 27 repairs versus JSON's 110 in the protocol experiment; deterministic tool ordering buys prompt-cache hits; replay costs zero model calls.
 
 ## Verification path
 

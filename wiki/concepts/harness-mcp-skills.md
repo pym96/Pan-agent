@@ -21,6 +21,10 @@ A skill is not a tool: it teaches the model *when and how* to use tools — whet
 
 **Convergence at the wire, divergence at the trust layer.** To the model, native and MCP tools are nearly indistinguishable: both enter the canonical conversation as tool schema plus description and are encoded identically into the provider request. The differences live in the harness's execution and trust layers: native tools execute in-process under the harness's own authority; MCP tools are RPC across a process/network boundary with runtime discovery, untrusted-by-default annotations, and third-party code inside the trust perimeter.
 
+**Discovery differs per layer.** Tools are *declared* to the model; skills are *read* by it. Native tools are hardcoded in the harness; Anthropic-schema tools arrive trained-in and are merely referenced by type/name (no local artifact at all — server tools leave the client holding only results); MCP tools are discovered at runtime by a machine-to-machine `tools/list` RPC whose result the harness converts into the provider's structured `tools` parameter — the model never reads a tool-list document; skills alone are filesystem artifacts (`SKILL.md`) that the model may literally open and read.
+
+**Asymmetry observation (session 2026-08-27):** the tool side of the boundary has an industry standard (MCP); the model side has none, so every harness builds its own canonical layer and TranslationAdapter. MCP is to tool servers what a hypothetical provider-protocol standard would be to models — the former exists, the latter does not, and provider dialects drift over time as well as across vendors (OpenAI replaces envelope generations; Anthropic extends additively via beta headers).
+
 **Corollary (Signal–decision separation):** tool origin determines the verification burden. MCP-sourced tools (and installed skills, which import third-party instructions) demand stronger M2 by default — independent verification and permission gates — because they are external code and text entering the harness's trust boundary.
 
 ## Boundaries

@@ -33,6 +33,7 @@ This Wiki contains only Verified Learning Facts and Open Learning Questions. It 
 - [Model Context Protocol: official documentation and the "why MCP matters" claims](sources/2026-08-26-mcp-official-docs.md)
 - [Anthropic: Harness design for long-running applications](sources/2026-08-26-anthropic-long-running-harness.md)
 - [Provider tool-call envelopes: Anthropic blocks vs OpenAI tool_calls](sources/2026-08-28-provider-tool-envelopes.md)
+- [SWE-bench and the 2026 SWE-agent benchmark landscape](sources/2026-08-28-swe-benchmark-landscape.md)
 - [Andrew Ng: AI Engineering Skills Map and follow-up article](sources/2026-08-25-andrew-ng-skills-map.md)
 
 ### Triangulated
