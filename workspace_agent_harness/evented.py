@@ -52,6 +52,7 @@ _COMPACTION_EVENT_PHASES = {
 class EventedRunStatus(StrEnum):
     COMPLETED = "completed"
     ABSTAINED = "abstained"
+    LOOP_POLICY_STOP = "loop_policy_stop"
     CANCELLED = "cancelled"
     MODEL_ERROR = "model_error"
     PROTOCOL_ERROR = "protocol_error"
@@ -132,9 +133,15 @@ class CandidateToolCall:
     call_id: str
     tool_name: str
     arguments: Mapping[str, object]
+    reasoning: str | None = None
+    provider_metadata: tuple[tuple[str, str], ...] = ()
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "arguments", MappingProxyType(dict(self.arguments)))
+        if self.reasoning is not None and (
+            not isinstance(self.reasoning, str) or not self.reasoning
+        ):
+            raise ValueError("candidate reasoning must be non-empty text when present")
 
 
 @dataclass(frozen=True)
@@ -142,6 +149,8 @@ class CandidateFinal:
     content: str
     disposition: FinalDisposition = FinalDisposition.COMPLETED
     reason_code: str | None = None
+    reasoning: str | None = None
+    provider_metadata: tuple[tuple[str, str], ...] = ()
 
 
 CandidateAction: TypeAlias = CandidateToolCall | CandidateFinal
@@ -215,6 +224,11 @@ class ExchangeEvidence:
     usage: ExchangeUsage = field(default_factory=ExchangeUsage)
     duration_ms: int | None = None
     cost_microusd: int | None = None
+    request_identity: str | None = None
+    requested_model: str | None = None
+    returned_model: str | None = None
+    system_fingerprint: str | None = None
+    finish_reason: str | None = None
 
     def __post_init__(self) -> None:
         if not isinstance(self.response_identity, str) or not self.response_identity:
@@ -229,17 +243,34 @@ class ExchangeEvidence:
                 raise ValueError(f"{label} must be a non-negative integer or unknown")
 
     def as_event_payload(self) -> dict[str, object]:
-        return {
+        payload: dict[str, object] = {
             "response_identity": self.response_identity,
             "usage": self.usage.as_dict(),
             "timing": {"duration_ms": self.duration_ms},
             "cost": {"microusd": self.cost_microusd},
         }
+        provider = {
+            key: value
+            for key, value in {
+                "request_identity": self.request_identity,
+                "requested_model": self.requested_model,
+                "returned_model": self.returned_model,
+                "system_fingerprint": self.system_fingerprint,
+                "finish_reason": self.finish_reason,
+            }.items()
+            if value is not None
+        }
+        if provider:
+            payload["provider"] = provider
+        return payload
 
 
 class ProviderFailureKind(StrEnum):
     CONTEXT_OVERFLOW = "context_overflow"
     AUTHENTICATION = "authentication"
+    AUTHORIZATION = "authorization"
+    BALANCE = "balance"
+    BUDGET = "budget"
     RATE_LIMIT = "rate_limit"
     TRANSPORT = "transport"
     PROTOCOL = "protocol"
@@ -481,7 +512,24 @@ class JsonlRunEventLog:
             "visibility": visibility,
             "payload": dict(payload),
         }
-        event = RunEvent(event_id=_sha256_json(material), **material)
+        event = RunEvent(
+            schema_version=RUN_EVENT_SCHEMA_VERSION,
+            event_id=_sha256_json(material),
+            run_id=run_id,
+            sequence=sequence,
+            previous_event_hash=previous_hash,
+            event_type=event_type,
+            phase=phase,
+            caused_by_event_id=caused_by_event_id,
+            turn_id=turn_id,
+            exchange_id=exchange_id,
+            candidate_id=candidate_id,
+            tool_call_id=tool_call_id,
+            compaction_id=compaction_id,
+            monotonic_offset_ns=monotonic_offset_ns,
+            visibility=visibility,
+            payload=dict(payload),
+        )
         with self.path.open("a", encoding="utf-8") as stream:
             stream.write(_canonical_json(event.as_dict()) + "\n")
         self._events.append(event)
@@ -718,6 +766,7 @@ class AgentLoop:
         run_id: str | None = None,
         agent_id: str = "evented-agent/v1",
         system_policy_identity: str = "evented-demo-policy/v1",
+        loop_policy_id: str | None = None,
         monotonic=time.monotonic,
     ) -> None:
         self._gateway = gateway
@@ -733,6 +782,11 @@ class AgentLoop:
         if not system_policy_identity:
             raise ValueError("system policy identity must be non-empty")
         self._system_policy_identity = system_policy_identity
+        selected_loop_policy = loop_policy_id or "observation-feedback-v0"
+        if selected_loop_policy not in {"observation-feedback-v0", "act-once-v0"}:
+            raise ValueError("unsupported Loop Policy identity")
+        self._loop_policy_id = selected_loop_policy
+        self._record_loop_policy = loop_policy_id is not None
         self._monotonic = monotonic
 
     def run(
@@ -753,25 +807,28 @@ class AgentLoop:
         history_groups: list[ProjectionHistoryGroup] = []
         prior_summary_identity: str | None = None
 
+        run_started_payload: dict[str, object] = {
+            "agent_id": self._agent_id,
+            "system_policy_identity": self._system_policy_identity,
+            "task_id": task.task_id,
+            "task_identity": _sha256_json(
+                {"task_id": task.task_id, "prompt": task.prompt}
+            ),
+            "prompt": task.prompt,
+            "limits": {
+                "max_steps": limits.max_steps,
+                "max_model_calls": limits.max_model_calls,
+                "timeout_seconds": limits.timeout_seconds,
+            },
+        }
+        if self._record_loop_policy:
+            run_started_payload["loop_policy_id"] = self._loop_policy_id
         last_event = self._append(
             run_id=run_id,
             event_type="run.started",
             phase="accepted",
             cause=None,
-            payload={
-                "agent_id": self._agent_id,
-                "system_policy_identity": self._system_policy_identity,
-                "task_id": task.task_id,
-                "task_identity": _sha256_json(
-                    {"task_id": task.task_id, "prompt": task.prompt}
-                ),
-                "prompt": task.prompt,
-                "limits": {
-                    "max_steps": limits.max_steps,
-                    "max_model_calls": limits.max_model_calls,
-                    "timeout_seconds": limits.timeout_seconds,
-                },
-            },
+            payload=run_started_payload,
         )
         run_started_event = last_event
         unresolved_commitments = (
@@ -1383,7 +1440,11 @@ class AgentLoop:
 
             if isinstance(settled.candidate, CandidateFinal):
                 conversation = conversation.append(
-                    AssistantFinalMessage(settled.candidate.content)
+                    AssistantFinalMessage(
+                        settled.candidate.content,
+                        reasoning=settled.candidate.reasoning,
+                        provider_metadata=settled.candidate.provider_metadata,
+                    )
                 )
                 last_event = self._append(
                     run_id=run_id,
@@ -1419,7 +1480,9 @@ class AgentLoop:
                     call_id=call.call_id,
                     tool_name=call.tool_name,
                     arguments=call.arguments,
-                )
+                ),
+                reasoning=call.reasoning,
+                provider_metadata=call.provider_metadata,
             )
             conversation = conversation.append(call_message)
             history_event = self._append(
@@ -1552,6 +1615,12 @@ class AgentLoop:
                     failures=semantic_failures,
                 )
             )
+            if self._loop_policy_id == "act-once-v0":
+                return terminal(
+                    EventedRunStatus.LOOP_POLICY_STOP,
+                    error="act-once Loop Policy stopped after the first retained tool result",
+                    cause=last_event,
+                )
 
     def _admission_error(
         self,

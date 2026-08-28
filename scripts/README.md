@@ -128,3 +128,14 @@ PYTHONPATH=. python3 scripts/run_agent_loop_behavioral_eval.py \
 ```
 
 The output directory is exclusive and retains one `run-event/v1` log per case, `report.json`, and the documented `stable-summary.json`. The script uses a credential-free deterministic Gateway and local tools: it makes no Provider, network, or external benchmark call. A 12/12 reference result checks implementation consistency only and is not a model or benchmark score.
+
+## DeepSeek live Behavioral Eval Stage A dry-run
+
+Enumerate the frozen paired 120-slot campaign without constructing a live transport or reading a credential:
+
+```bash
+PYTHONPATH=. python3 scripts/dry_run_deepseek_live_behavioral_eval.py \
+  --output .runs/workorder-11-stage-a-manual/zero-call-dry-run.json
+```
+
+The output path is exclusive. The artifact binds every slot, both Loop Policy arms, Provider/Translation/Context identities, formal call/Token/CNY ceilings, and stop rules while reporting `live_model_calls=0`, `balance_queries=0`, and `causal_result=null`. It is a Stage A plan receipt, not permission to start Stage B or a model result.

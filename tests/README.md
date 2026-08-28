@@ -42,6 +42,10 @@ The accepted implementation baseline is split across:
 
 `test_agent_loop_behavioral_eval.py` exercises WorkOrder #9's exact 12-case/four-family manifest through the public evented `AgentLoop.run(...)` seam, verifies reference actions and model-visible recovery observations against protected exact oracles, keeps Runtime terminal status separate from evaluator verdict, distinguishes Provider/protocol/Context/tool/policy/task failures, rejects count/category/hash/oracle/limit/environment/tool/prose drift before execution, proves nested fixture immutability, compares repeated byte-stable reports, and reconstructs the same report from Event Logs with zero Gateway or Tool Adapter calls.
 
+`test_deepseek_live_gateway.py` exercises WorkOrder #11 Stage A's native DeepSeek request/response Translation, separate restricted reasoning/native tool history, typed terminal functions, injected constructor-time-zero-I/O HTTP Adapter, exact secret-free exchange retention, Provider failure classification, and fail-closed admission. It proves malformed/multiple/missing-reasoning responses execute no tool and restricted reasoning never enters Event Log or TUI views.
+
+`test_deepseek_live_campaign.py` exercises WorkOrder #11 Stage A's content-hashed paired 120-slot lock, act-once terminal, verified live Context policy, constructor-time-zero-I/O balance Adapter, CNY/call/Token/model/fingerprint stops, append-only denominator reconstruction, and exclusive dry-run CLI with `0` model and balance calls.
+
 Run the full handoff command with:
 
 ```bash

@@ -24,6 +24,7 @@ from workspace_agent_harness.context_projection import (
     ContextPolicy,
     InMemoryArtifactStore,
     SemanticContextProjector,
+    ModelContextProjector,
     action_tool_set_identity,
 )
 from workspace_agent_harness.evented import (
@@ -687,6 +688,7 @@ class ReferenceBehaviorGateway:
 
 
 GatewayFactory = Callable[[BehavioralCase], ModelGateway]
+ContextProjectorFactory = Callable[[tuple[ActionTool, ...]], ModelContextProjector]
 
 
 class BehavioralEvalCampaign:
@@ -698,11 +700,19 @@ class BehavioralEvalCampaign:
         manifest: BehavioralManifest,
         artifacts_root: Path,
         gateway_factory: GatewayFactory | None = None,
+        loop_policy_id: str | None = None,
+        context_projector_factory: ContextProjectorFactory | None = None,
     ) -> None:
         self._manifest = manifest
         self._artifacts_root = Path(artifacts_root)
         self._gateway_factory = gateway_factory or (
             lambda case: ReferenceBehaviorGateway(case.case_id)
+        )
+        if loop_policy_id not in {None, "observation-feedback-v0", "act-once-v0"}:
+            raise ValueError("unsupported Behavioral Eval Loop Policy")
+        self._loop_policy_id = loop_policy_id
+        self._context_projector_factory = (
+            context_projector_factory or _semantic_context_projector
         )
 
     def run(self, *, case_ids: Sequence[str] | None = None) -> BehavioralEvalReport:
@@ -728,7 +738,7 @@ class BehavioralEvalCampaign:
                 BehavioralEventTool(definition, environment)
                 for definition in case.tools
             )
-            context_projector = _semantic_context_projector(
+            context_projector = self._context_projector_factory(
                 tuple(tool.definition for tool in tools)
             )
             relative_log = Path("runs") / f"{case.case_id}.jsonl"
@@ -743,6 +753,7 @@ class BehavioralEvalCampaign:
                 context_projector=context_projector,
                 run_id=f"{self._manifest.suite_id}:{case.case_id}:reference",
                 system_policy_identity=case.system_policy_identity,
+                loop_policy_id=self._loop_policy_id,
                 monotonic=_IncrementingClock(),
             ).run(
                 Task(task_id=case.case_id, prompt=case.model_prompt),
@@ -1079,7 +1090,11 @@ def _evaluate(
     events: Sequence[RunEvent],
     result: EventedRunResult,
 ) -> OracleEvaluation:
-    if result.status not in {EventedRunStatus.COMPLETED, EventedRunStatus.ABSTAINED}:
+    if result.status not in {
+        EventedRunStatus.COMPLETED,
+        EventedRunStatus.ABSTAINED,
+        EventedRunStatus.LOOP_POLICY_STOP,
+    }:
         return OracleEvaluation(
             verdict=EvaluatorVerdict.NOT_SCORED,
             failure_codes=(),

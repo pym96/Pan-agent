@@ -36,6 +36,12 @@ The configuration declares one development repetition and a minimum of three rep
 
 This lock is a local AgentLoop learning/evaluation instrument. It is not a Provider result, external benchmark, or public score.
 
+## DeepSeek live Behavioral Eval v0 Stage A
+
+`deepseek-live-behavioral-eval-v0.json` binds the accepted 12 cases to five repetitions and the paired `observation-feedback-v0`/`act-once-v0` Loop Policy arms, yielding exactly 120 slots in a deterministic case-major order. It also freezes the DeepSeek model/endpoint/thinking/tool profile, native Translation and Context identities, historical #4 fixture and #9 manifest hashes, per-slot and campaign call/Token/CNY ceilings, pricing observation, stop rules, and reconstructable denominator states. The loader requires compiled identity `sha256:ea23dceaa9b8131a54399e7eda5f8cdd8bf968816e0d4efd2668884753dd52fa`; recomputing an edited document's internal hash does not authorize drift.
+
+This Stage A lock and its dry-run make zero live model or balance calls and contain no causal result. Stage B requires separate authorization after independent review.
+
 ## ReAct learning smoke
 
 `react-mvp-5-v1.json` freezes a separate Phase 0 mechanism experiment in the `workspace-coding` lane. It pins the current official `SWE-bench/SWE-bench_Lite` development source/revision, five deterministic case IDs and their x86_64 evaluation images, Act-only/ReAct variants, three repetitions, DeepSeek V4 Flash with thinking disabled, bash-only Docker isolation, dual-channel observations, and official `resolved` as the primary outcome.

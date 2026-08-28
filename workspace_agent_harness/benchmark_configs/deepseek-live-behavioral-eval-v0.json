@@ -1,0 +1,99 @@
+{
+  "schema": "workspace-agent-harness/deepseek-live-behavioral-eval-lock/v1",
+  "content_hash": "sha256:ea23dceaa9b8131a54399e7eda5f8cdd8bf968816e0d4efd2668884753dd52fa",
+  "stage": "stage-a-zero-paid-calls",
+  "provider": {
+    "name": "DeepSeek",
+    "requested_model": "deepseek-v4-flash",
+    "endpoint": "https://api.deepseek.com/chat/completions",
+    "wire": "openai-compatible-chat-completions",
+    "stream": false,
+    "thinking": "enabled",
+    "reasoning_effort": "high",
+    "sampling_parameters": "omitted-in-thinking-mode",
+    "tool_choice": "required",
+    "provider_strict": false,
+    "context_window_tokens": 1000000,
+    "maximum_output_tokens": 384000,
+    "capability_observed_on": "2026-08-28",
+    "capability_source": "https://api-docs.deepseek.com/zh-cn/quick_start/pricing/"
+  },
+  "translation": {
+    "version": "deepseek-behavioral-native-tools/v1",
+    "system_prompt_sha256": "sha256:6d6395049d4a8282de159b336fda0a946405c79baa5c3ce93d4b81947c2607bd",
+    "history_carrier": "native-tool-calls",
+    "reasoning_carrier": "reasoning_content-restricted",
+    "executable_argument_carrier": "command-only",
+    "maximum_actions_per_turn": 1,
+    "terminal_tools": ["complete", "abstain"],
+    "abstention_reason_codes": ["insufficient_evidence", "authority_denied"]
+  },
+  "behavioral_suite": {
+    "suite_id": "agent-loop-behavioral-eval-v0",
+    "manifest_identity": "sha256:026543baf0a1d48d640b695ee21c7aaab5713e75cef437024a48fb0e66f180f8",
+    "manifest_file_sha256": "90f8bae80e5f4afa4fa7fb5a077709437c2f9c8b15791a1ae072a6c3864ff5a6",
+    "case_order": ["IA-01", "IA-02", "IA-03", "DO-01", "DO-02", "DO-03", "RC-01", "RC-02", "RC-03", "SA-01", "SA-02", "SA-03"],
+    "loop_policy_ids": ["observation-feedback-v0", "act-once-v0"],
+    "repetitions": 5,
+    "schedule_order": "case-major-then-repetition; pair arm first by low bit of SHA-256(suite_id + NUL + case_id + NUL + repetition)",
+    "maximum_model_exchanges_per_run": 5,
+    "maximum_tool_steps_per_run": 4,
+    "protocol_repairs": 0,
+    "context_overflow_recoveries": 1,
+    "system_policy_identity": "behavioral-eval-system-policy/v1"
+  },
+  "budget": {
+    "planned_runs": 120,
+    "maximum_paid_model_calls": 600,
+    "maximum_campaign_cost_cny": "15.00",
+    "maximum_context_tokens_per_call": 1000000,
+    "maximum_input_tokens_per_call": 616000,
+    "maximum_output_tokens_per_call": 384000,
+    "campaign_input_token_ceiling": 369600000,
+    "campaign_output_token_ceiling": 230400000,
+    "campaign_combined_token_ceiling": 600000000,
+    "balance_endpoint": "https://api.deepseek.com/user/balance",
+    "balance_currency": "CNY",
+    "initial_balance_rule": "positive-and-no-greater-than-CNY-15.00",
+    "balance_query_policy": "before-first-and-after-every-paid-exchange",
+    "concurrent_balance_use": "forbidden"
+  },
+  "pricing_snapshot": {
+    "observed_on": "2026-08-28",
+    "source": "https://api-docs.deepseek.com/zh-cn/quick_start/pricing/",
+    "currency": "CNY",
+    "unit": "per-million-tokens",
+    "off_peak": {
+      "cache_hit_input": "0.05",
+      "cache_miss_input": "1.50",
+      "output": "4.50"
+    },
+    "peak": {
+      "cache_hit_input": "0.10",
+      "cache_miss_input": "3.00",
+      "output": "9.00"
+    },
+    "peak_beijing_time": "Monday-Friday 09:00-12:00 and 14:00-18:00",
+    "execution_preference": "off-peak-Beijing-time"
+  },
+  "stop_rules": [
+    "stage-a-or-authorization-missing",
+    "stage-a-commit-or-lock-drift",
+    "manifest-tool-oracle-system-translation-loop-context-identity-drift",
+    "authentication-or-authorization-failure",
+    "balance-unavailable-nonpositive-over-authorized-or-concurrent-drift",
+    "pricing-source-drift",
+    "requested-or-returned-model-or-fingerprint-drift",
+    "three-consecutive-pre-candidate-provider-transport-failures",
+    "paid-call-token-cost-or-wall-time-ceiling-reached",
+    "event-sequence-hash-or-causal-invariant-failure"
+  ],
+  "retention": {
+    "exchange_store_schema": "workspace-agent-harness/deepseek-exchange-receipt/v1",
+    "slot_states": ["completed", "failed", "skipped-by-stop-rule", "missing"],
+    "credentials": "never-retained",
+    "requests_and_responses": "exact-secret-free-bytes-and-sha256",
+    "reconstruction": "zero-provider-zero-tool-calls"
+  },
+  "historical_translation_fixture_manifest_sha256": "795780729dfe38c07ca9b26d987331087076406b590474b0ac7c5a87df204133"
+}
