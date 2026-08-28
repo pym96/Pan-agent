@@ -12,6 +12,8 @@ import unittest
 from pathlib import Path
 
 from workspace_agent_harness.evented import (
+    JsonlRunEventLog,
+    classified_event_field,
     load_run_event_log,
     render_run_events,
     replay_run_event_log,
@@ -22,6 +24,147 @@ PROJECT_ROOT = Path(__file__).parents[1]
 
 
 class EventedTuiPtyTest(unittest.TestCase):
+    def test_replay_filters_visibility_in_all_three_pty_views(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            log_path = Path(temporary_directory) / "visibility-replay.jsonl"
+            event_log = JsonlRunEventLog(log_path)
+            started = event_log.append(
+                run_id="visibility-pty-run",
+                event_type="run.started",
+                phase="accepted",
+                caused_by_event_id=None,
+                payload={
+                    "prompt": "Replay safely.",
+                    "expanded": classified_event_field(
+                        "allowed-expanded-detail", "expanded"
+                    ),
+                    "restricted": classified_event_field(
+                        "restricted-payload-must-not-leak", "restricted"
+                    ),
+                    "reasoning": "reasoning-payload-must-not-leak",
+                    "credential": "credential-payload-must-not-leak",
+                },
+            )
+            secret = event_log.append(
+                run_id="visibility-pty-run",
+                event_type="provider.secret_reference",
+                phase="accepted",
+                caused_by_event_id=started.event_id,
+                visibility="secret-ref",
+                payload={"locator": "secret-locator-must-not-leak"},
+            )
+            event_log.append(
+                run_id="visibility-pty-run",
+                event_type="run.terminal",
+                phase="terminal",
+                caused_by_event_id=secret.event_id,
+                payload={
+                    "status": "completed",
+                    "output": "safe",
+                    "error": None,
+                    "steps": 0,
+                    "model_calls": 0,
+                },
+            )
+
+            process, master = _spawn_tui(
+                "--replay",
+                str(log_path),
+                "--view",
+                "compact",
+                "--view",
+                "expanded",
+                "--view",
+                "trace",
+            )
+            try:
+                output = _read_to_exit(process, master)
+            finally:
+                _stop_if_running(process)
+                os.close(master)
+
+            text = output.decode(errors="replace")
+            self.assertEqual(0, process.returncode, text)
+            self.assertIn("allowed-expanded-detail", text)
+            for prohibited in (
+                "restricted-payload-must-not-leak",
+                "reasoning-payload-must-not-leak",
+                "credential-payload-must-not-leak",
+                "secret-locator-must-not-leak",
+            ):
+                self.assertNotIn(prohibited, text)
+            self.assertIn("<restricted>", text)
+            self.assertIn("<secret-ref>", text)
+
+    def test_malformed_view_selection_exits_before_creating_a_run(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            log_path = Path(temporary_directory) / "invalid-view.jsonl"
+            process, master = _spawn_tui(
+                "--log",
+                str(log_path),
+                "--view",
+                "provider-wire",
+            )
+            try:
+                output = _read_to_exit(process, master)
+            finally:
+                _stop_if_running(process)
+                os.close(master)
+
+            text = output.decode(errors="replace")
+            self.assertEqual(2, process.returncode, text)
+            self.assertIn("invalid choice", text)
+            self.assertFalse(log_path.exists())
+
+    def test_live_and_replay_switch_across_the_same_three_views(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            log_path = Path(temporary_directory) / "three-views.jsonl"
+            arguments = (
+                "--view",
+                "compact",
+                "--view",
+                "expanded",
+                "--view",
+                "trace",
+            )
+            process, master = _spawn_tui("--log", str(log_path), *arguments)
+            try:
+                output = _read_until(master, b"Task> ")
+                os.write(master, "切换 café 三视图\n".encode())
+                output += _read_to_exit(process, master)
+            finally:
+                _stop_if_running(process)
+                os.close(master)
+
+            live_text = output.decode(errors="replace").replace("\r\n", "\n")
+            self.assertEqual(0, process.returncode, live_text)
+            self.assertLess(
+                live_text.index("VIEW compact"),
+                live_text.index("VIEW expanded"),
+            )
+            self.assertLess(
+                live_text.index("VIEW expanded"),
+                live_text.index("VIEW trace"),
+            )
+            self.assertEqual(3, live_text.count("TERMINAL completed"))
+
+            replay, replay_master = _spawn_tui(
+                "--replay",
+                str(log_path),
+                *arguments,
+            )
+            try:
+                replay_output = _read_to_exit(replay, replay_master)
+            finally:
+                _stop_if_running(replay)
+                os.close(replay_master)
+            replay_text = replay_output.decode(errors="replace").replace("\r\n", "\n")
+
+            self.assertEqual(0, replay.returncode, replay_text)
+            live_projection = live_text[live_text.index("VIEW compact") :]
+            live_projection = live_projection[: live_projection.index("EVENT_LOG")]
+            self.assertEqual(live_projection.strip(), replay_text.strip())
+
     def test_overflow_demo_recovers_through_the_tui_and_replays_offline(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_directory:
             log_path = Path(temporary_directory) / "overflow-recovery.jsonl"
@@ -30,6 +173,10 @@ class EventedTuiPtyTest(unittest.TestCase):
                 str(log_path),
                 "--overflow-recovery-demo",
                 "--explain-compaction",
+                "--view",
+                "compact",
+                "--view",
+                "expanded",
             )
             try:
                 output = _read_until(master, b"Task> ")
@@ -50,6 +197,11 @@ class EventedTuiPtyTest(unittest.TestCase):
             self.assertIn("tool.execution_completed", text)
             self.assertIn("WHY_COMPACT overflow-recovery", text)
             self.assertIn("TERMINAL completed", text)
+            self.assertIn('"usage":', text)
+            self.assertIn('"timing":', text)
+            self.assertIn('"response_identity":', text)
+            self.assertIn('"context_window":', text)
+            self.assertIn(" cause=", text)
 
             before = log_path.read_bytes()
             replayed = replay_run_event_log(log_path, explain_compaction=True)
@@ -92,6 +244,10 @@ class EventedTuiPtyTest(unittest.TestCase):
                 str(log_path),
                 "--semantic-compaction-demo",
                 "--explain-compaction",
+                "--view",
+                "expanded",
+                "--view",
+                "trace",
             )
             try:
                 output = _read_until(master, b"Task> ")
@@ -108,6 +264,9 @@ class EventedTuiPtyTest(unittest.TestCase):
             self.assertIn("context.compaction_completed", text)
             self.assertIn("WHY_COMPACT", text)
             self.assertIn("PRESERVED", text)
+            self.assertIn("VIEW expanded", text)
+            self.assertIn("VIEW trace", text)
+            self.assertLess(len(output), 100_000)
             self.assertTrue(Path(f"{log_path}.artifacts").is_dir())
 
     def test_unicode_task_runs_one_tool_round_trip_in_a_real_pty(self) -> None:
@@ -159,6 +318,8 @@ class EventedTuiPtyTest(unittest.TestCase):
                 "--log",
                 str(log_path),
                 "--wait-for-cancel",
+                "--view",
+                "trace",
             )
             try:
                 output = _read_until(master, b"Task> ")
@@ -178,6 +339,8 @@ class EventedTuiPtyTest(unittest.TestCase):
                 1,
                 sum(event.event_type == "run.terminal" for event in events),
             )
+            self.assertIn("control.cancel_requested", output.decode(errors="replace"))
+            self.assertIn('"status":"cancelled"', output.decode(errors="replace"))
             self.assertNotIn(
                 "tool.execution_started",
                 [event.event_type for event in events],

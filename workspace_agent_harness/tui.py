@@ -23,10 +23,11 @@ from workspace_agent_harness.evented import (
     DeterministicOverflowDemoGateway,
     EventedRunStatus,
     JsonlRunEventLog,
+    RunEvent,
+    RunEventView,
     WaitingDemoGateway,
     load_run_event_log,
     render_run_events,
-    replay_run_event_log,
 )
 
 
@@ -69,7 +70,20 @@ def main(arguments: Sequence[str] | None = None) -> int:
         action="store_true",
         help="expand retained compaction decisions in live or replay output",
     )
+    parser.add_argument(
+        "--view",
+        action="append",
+        choices=tuple(view.value for view in RunEventView),
+        help=(
+            "render compact, expanded, or trace; repeat to switch views over "
+            "the same retained Run (default: compact)"
+        ),
+    )
     options = parser.parse_args(arguments)
+    selected_views = tuple(
+        RunEventView(view)
+        for view in (options.view or (RunEventView.COMPACT.value,))
+    )
 
     if options.replay is not None:
         if (
@@ -85,9 +99,11 @@ def main(arguments: Sequence[str] | None = None) -> int:
                 "--overflow-exhaustion-demo"
             )
         try:
+            retained_events = load_run_event_log(options.replay)
             sys.stdout.write(
-                replay_run_event_log(
-                    options.replay,
+                _render_selected_views(
+                    retained_events,
+                    selected_views,
                     explain_compaction=options.explain_compaction,
                 )
             )
@@ -198,8 +214,9 @@ def main(arguments: Sequence[str] | None = None) -> int:
     )
     retained_events = load_run_event_log(log_path)
     sys.stdout.write(
-        render_run_events(
+        _render_selected_views(
             retained_events,
+            selected_views,
             explain_compaction=options.explain_compaction,
         )
     )
@@ -212,6 +229,22 @@ def main(arguments: Sequence[str] | None = None) -> int:
     if result.status is EventedRunStatus.CANCELLED:
         return 130
     return 1
+
+
+def _render_selected_views(
+    events: Sequence[RunEvent],
+    views: Sequence[RunEventView],
+    *,
+    explain_compaction: bool,
+) -> str:
+    return "".join(
+        render_run_events(
+            events,
+            view=view,
+            explain_compaction=explain_compaction,
+        )
+        for view in views
+    )
 
 
 if __name__ == "__main__":

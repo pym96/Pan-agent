@@ -63,6 +63,54 @@ class EventedRunStatus(StrEnum):
     CONTEXT_OVERFLOW = "context_overflow"
 
 
+class RunEventView(StrEnum):
+    COMPACT = "compact"
+    EXPANDED = "expanded"
+    TRACE = "trace"
+
+
+class FieldVisibility(StrEnum):
+    PUBLIC = "public"
+    EXPANDED = "expanded"
+    RESTRICTED = "restricted"
+    SECRET_REF = "secret-ref"
+    NEVER_DISPLAY = "never-display"
+
+
+_NEVER_DISPLAY_FIELD_NAMES = {
+    "access_token",
+    "api_key",
+    "auth_token",
+    "authorization",
+    "chain_of_thought",
+    "credential",
+    "credentials",
+    "password",
+    "private_key",
+    "raw_reasoning",
+    "refresh_token",
+    "reasoning",
+    "secret",
+    "thought",
+    "token",
+}
+_OMITTED = object()
+_MAX_RENDERED_TEXT_BYTES = 1_024
+
+
+def classified_event_field(
+    value: object,
+    visibility: FieldVisibility | str,
+) -> dict[str, object]:
+    """Attach field-level display policy without changing retained value identity."""
+
+    try:
+        selected = FieldVisibility(visibility)
+    except ValueError as error:
+        raise ValueError(f"unknown field visibility: {visibility!r}") from error
+    return {"$visibility": selected.value, "value": value}
+
+
 class FinalDisposition(StrEnum):
     COMPLETED = "completed"
     ABSTAINED = "abstained"
@@ -1666,71 +1714,164 @@ def load_run_event_log(path: Path) -> tuple[RunEvent, ...]:
 def render_run_events(
     events: Sequence[RunEvent],
     *,
+    view: RunEventView | str = RunEventView.COMPACT,
     explain_compaction: bool = False,
 ) -> str:
-    """Render one basic terminal trace as a pure projection of retained events."""
+    """Render one terminal view as a pure projection of retained events."""
 
     if not events:
         raise ValueError("cannot render an empty event sequence")
-    lines = [f"RUN {events[0].run_id}"]
-    for event in events:
-        detail = ""
-        if event.event_type == "run.started":
-            detail = f" task={_display_value(event.payload.get('prompt'))}"
-        elif event.event_type == "candidate.accepted":
-            detail = f" candidate={_display_value(dict(event.payload))}"
-        elif event.event_type == "tool.execution_completed":
-            detail = f" observation={_display_tool_observation(event.payload.get('observation'))}"
-        elif event.event_type == "context.compaction_completed":
-            artifact_refs = event.payload.get("artifact_refs")
-            artifact_count = len(artifact_refs) if isinstance(artifact_refs, list) else 0
-            detail = (
-                f" attempt={_display_value(event.payload.get('attempt'))}"
-                f" context={_short_identity(event.payload.get('result_context_identity'))}"
-                f" summary={_short_identity(event.payload.get('summary_identity'))}"
-                f" artifacts={artifact_count}"
-            )
-        elif event.event_type == "model.exchange_failed":
-            detail = (
-                f" attempt={_display_value(event.payload.get('exchange_attempt'))}"
-                f" kind={_display_value(event.payload.get('failure_kind'))}"
-                f" response={_short_identity(event.payload.get('response_identity'))}"
-            )
-        elif event.event_type == "context.overflow_retry_succeeded":
-            detail = (
-                " retry=success"
-                f" response={_short_identity(event.payload.get('response_identity'))}"
-            )
-        elif event.event_type == "context.overflow_retry_exhausted":
-            detail = (
-                " retry=exhausted"
-                f" reason={_display_value(event.payload.get('reason'))}"
-            )
-        lines.append(
-            f"{event.sequence:03d} [{event.phase}] {event.event_type}{detail}"
-        )
-        if explain_compaction and event.event_type == "context.compaction_completed":
-            lines.extend(_render_compaction_explanation(event))
+    try:
+        selected_view = RunEventView(view)
+    except ValueError as error:
+        raise ValueError(f"unknown Run Event view: {view!r}") from error
     terminal = events[-1]
     if terminal.event_type != "run.terminal":
         raise ValueError("cannot render a run without a terminal event")
-    status = terminal.payload.get("status")
-    output = terminal.payload.get("output")
-    error = terminal.payload.get("error")
-    if isinstance(output, str):
-        lines.append(f"TERMINAL {status}: {output}")
-    elif isinstance(error, str):
-        lines.append(f"TERMINAL {status}: {error}")
-    else:
-        lines.append(f"TERMINAL {status}")
+    if selected_view is RunEventView.COMPACT:
+        return _render_compact_run_events(events, explain_compaction)
+    if selected_view is RunEventView.EXPANDED:
+        return _render_expanded_run_events(events, explain_compaction)
+    return _render_trace_run_events(events)
+
+
+def _render_compact_run_events(
+    events: Sequence[RunEvent],
+    explain_compaction: bool,
+) -> str:
+    lines = ["VIEW compact", f"RUN {events[0].run_id}"]
+    for event in events:
+        projected_payload = _project_event_payload(event, RunEventView.COMPACT)
+        if projected_payload is _OMITTED:
+            continue
+        if not isinstance(projected_payload, Mapping):
+            continue
+        if event.event_type == "run.started":
+            lines.append(f"TASK {_display_value(projected_payload.get('prompt'))}")
+        elif event.event_type == "candidate.accepted":
+            lines.append(
+                "ACTION candidate.accepted"
+                f" kind={_display_value(projected_payload.get('kind'))}"
+                f" tool={_display_value(projected_payload.get('tool_name'))}"
+                f" call={_display_value(projected_payload.get('call_id'))}"
+            )
+        elif event.event_type == "tool.execution_completed":
+            lines.append(
+                "OBSERVATION tool.execution_completed"
+                f" tool={_display_value(projected_payload.get('tool_name'))}"
+                " observation="
+                f"{_display_tool_observation(projected_payload.get('observation'))}"
+            )
+        elif event.event_type == "context.compaction_completed":
+            artifact_refs = projected_payload.get("artifact_refs")
+            artifact_count = len(artifact_refs) if isinstance(artifact_refs, list) else 0
+            lines.append(
+                "COMPACTION context.compaction_completed"
+                f" attempt={_display_value(projected_payload.get('attempt'))}"
+                f" context={_short_identity(projected_payload.get('result_context_identity'))}"
+                f" summary={_short_identity(projected_payload.get('summary_identity'))}"
+                f" artifacts={artifact_count}"
+            )
+        elif event.event_type == "model.exchange_failed":
+            lines.append(
+                "RECOVERY model.exchange_failed"
+                f" attempt={_display_value(projected_payload.get('exchange_attempt'))}"
+                f" kind={_display_value(projected_payload.get('failure_kind'))}"
+                f" response={_short_identity(projected_payload.get('response_identity'))}"
+            )
+        elif event.event_type == "context.overflow_retry_succeeded":
+            lines.append(
+                "RETRY context.overflow_retry_succeeded retry=success"
+                f" response={_short_identity(projected_payload.get('response_identity'))}"
+            )
+        elif event.event_type == "context.overflow_retry_exhausted":
+            lines.append(
+                "RETRY context.overflow_retry_exhausted retry=exhausted"
+                f" reason={_display_value(projected_payload.get('reason'))}"
+            )
+        if explain_compaction and event.event_type == "context.compaction_completed":
+            lines.extend(_render_compaction_explanation(event, projected_payload))
+    terminal = events[-1]
+    terminal_payload = _project_event_payload(terminal, RunEventView.COMPACT)
+    assert isinstance(terminal_payload, Mapping)
+    lines.append(_render_terminal_summary(terminal_payload))
     return "\n".join(lines) + "\n"
 
 
-def replay_run_event_log(path: Path, *, explain_compaction: bool = False) -> str:
+def _render_expanded_run_events(
+    events: Sequence[RunEvent],
+    explain_compaction: bool,
+) -> str:
+    lines = ["VIEW expanded", f"RUN {events[0].run_id}"]
+    for event in events:
+        projected_payload = _project_event_payload(event, RunEventView.EXPANDED)
+        if projected_payload is _OMITTED:
+            continue
+        label = "SETTLED"
+        if event.event_type == "model.exchange_settled":
+            label = "CANDIDATE"
+        elif event.phase == "candidate":
+            label = "IN_FLIGHT"
+        elif event.event_type == "candidate.accepted":
+            label = "ADMITTED"
+        elif event.phase == "failed":
+            label = "FAILED"
+        elif event.phase == "terminal":
+            label = "TERMINAL_EVENT"
+        lines.append(
+            f"{label} {event.event_type} seq={event.sequence:03d}"
+            f" cause={event.caused_by_event_id or '-'}"
+            f" turn={event.turn_id or '-'}"
+            f" exchange={event.exchange_id or '-'}"
+            f" candidate={event.candidate_id or '-'}"
+            f" tool_call={event.tool_call_id or '-'}"
+            f" compaction={event.compaction_id or '-'}"
+            f" visibility={event.visibility}"
+            f" payload={_canonical_json(projected_payload)}"
+        )
+        if explain_compaction and event.event_type == "context.compaction_completed":
+            assert isinstance(projected_payload, Mapping)
+            lines.extend(_render_compaction_explanation(event, projected_payload))
+    terminal_payload = _project_event_payload(events[-1], RunEventView.EXPANDED)
+    assert isinstance(terminal_payload, Mapping)
+    lines.append(_render_terminal_summary(terminal_payload))
+    return "\n".join(lines) + "\n"
+
+
+def _render_trace_run_events(events: Sequence[RunEvent]) -> str:
+    lines = ["VIEW trace", f"RUN {events[0].run_id}"]
+    for event in events:
+        material = event.as_dict()
+        material["payload"] = _project_event_payload(event, RunEventView.TRACE)
+        lines.append(f"TRACE {_canonical_json(material)}")
+    terminal_payload = _project_event_payload(events[-1], RunEventView.TRACE)
+    assert isinstance(terminal_payload, Mapping)
+    lines.append(_render_terminal_summary(terminal_payload))
+    return "\n".join(lines) + "\n"
+
+
+def _render_terminal_summary(payload: Mapping[str, object]) -> str:
+    status = payload.get("status")
+    output = payload.get("output")
+    error = payload.get("error")
+    if isinstance(output, str):
+        return f"TERMINAL {status}: {output}"
+    if isinstance(error, str):
+        return f"TERMINAL {status}: {error}"
+    return f"TERMINAL {status}"
+
+
+def replay_run_event_log(
+    path: Path,
+    *,
+    view: RunEventView | str = RunEventView.COMPACT,
+    explain_compaction: bool = False,
+) -> str:
     """Replay a retained Run without constructing a ModelGateway or tool Adapter."""
 
     return render_run_events(
         load_run_event_log(path),
+        view=view,
         explain_compaction=explain_compaction,
     )
 
@@ -1813,6 +1954,90 @@ def _short_identity(value: object) -> str:
     return value[:19]
 
 
+def _project_event_payload(
+    event: RunEvent,
+    view: RunEventView,
+) -> object:
+    try:
+        visibility = FieldVisibility(event.visibility)
+    except ValueError:
+        return "<never-display>"
+    if visibility is FieldVisibility.EXPANDED and view is RunEventView.COMPACT:
+        return _OMITTED
+    if visibility is FieldVisibility.RESTRICTED:
+        return "<restricted>"
+    if visibility is FieldVisibility.SECRET_REF:
+        return "<secret-ref>"
+    if visibility is FieldVisibility.NEVER_DISPLAY:
+        return "<never-display>"
+    projected = _project_visible_value(dict(event.payload), view)
+    if projected is _OMITTED:
+        return {}
+    return projected
+
+
+def _project_visible_value(
+    value: object,
+    view: RunEventView,
+    *,
+    field_name: str | None = None,
+) -> object:
+    if isinstance(value, Mapping):
+        declared_visibility = value.get("$visibility")
+        if declared_visibility is not None:
+            try:
+                visibility = FieldVisibility(str(declared_visibility))
+            except ValueError:
+                return "<never-display>"
+            if visibility is FieldVisibility.EXPANDED and view is RunEventView.COMPACT:
+                return _OMITTED
+            if visibility is FieldVisibility.RESTRICTED:
+                return "<restricted>"
+            if visibility is FieldVisibility.SECRET_REF:
+                return "<secret-ref>"
+            if visibility is FieldVisibility.NEVER_DISPLAY:
+                return "<never-display>"
+            if field_name is not None and _is_never_display_field(field_name):
+                return "<never-display>"
+            return _project_visible_value(value.get("value"), view)
+    if field_name is not None and _is_never_display_field(field_name):
+        return "<never-display>"
+    if isinstance(value, Mapping):
+        projected: dict[str, object] = {}
+        for key, item in value.items():
+            key_text = str(key)
+            visible = _project_visible_value(item, view, field_name=key_text)
+            if visible is not _OMITTED:
+                projected[key_text] = visible
+        return projected
+    if isinstance(value, (list, tuple)):
+        projected_items = [
+            _project_visible_value(item, view)
+            for item in value
+        ]
+        return [item for item in projected_items if item is not _OMITTED]
+    if isinstance(value, str):
+        body = value.encode("utf-8")
+        if len(body) > _MAX_RENDERED_TEXT_BYTES:
+            return (
+                f"<exact text retained: {len(body)} bytes, "
+                f"sha256:{hashlib.sha256(body).hexdigest()}>"
+            )
+    return value
+
+
+def _is_never_display_field(field_name: str) -> bool:
+    normalized = field_name.casefold().replace("-", "_").replace(" ", "_")
+    return (
+        normalized in _NEVER_DISPLAY_FIELD_NAMES
+        or "reasoning" in normalized
+        or "chain_of_thought" in normalized
+        or "credential" in normalized
+        or "secret" in normalized
+        or normalized.endswith("_api_key")
+    )
+
+
 def _model_context_window_payload(model_context: ModelContext) -> dict[str, object]:
     return {
         "tokens": model_context.context_window_tokens,
@@ -1825,16 +2050,20 @@ def _model_context_window_payload(model_context: ModelContext) -> dict[str, obje
     }
 
 
-def _render_compaction_explanation(event: RunEvent) -> list[str]:
-    trigger = event.payload.get("trigger")
+def _render_compaction_explanation(
+    event: RunEvent,
+    payload: Mapping[str, object] | None = None,
+) -> list[str]:
+    visible_payload = payload or event.payload
+    trigger = visible_payload.get("trigger")
     if not isinstance(trigger, Mapping):
         trigger = {}
-    preserved = event.payload.get("preserved_event_ids")
-    summarized = event.payload.get("summarized_event_ids")
-    atomic_pairs = event.payload.get("atomic_tool_pairs")
-    commitments = event.payload.get("unresolved_commitment_keys")
-    artifact_refs = event.payload.get("artifact_refs")
-    attempt = event.payload.get("attempt")
+    preserved = visible_payload.get("preserved_event_ids")
+    summarized = visible_payload.get("summarized_event_ids")
+    atomic_pairs = visible_payload.get("atomic_tool_pairs")
+    commitments = visible_payload.get("unresolved_commitment_keys")
+    artifact_refs = visible_payload.get("artifact_refs")
+    attempt = visible_payload.get("attempt")
     if attempt == ContextProjectionAttempt.OVERFLOW_RECOVERY.value:
         window = trigger.get("context_window")
         if not isinstance(window, Mapping):
@@ -1864,9 +2093,9 @@ def _render_compaction_explanation(event: RunEvent) -> list[str]:
         f"commitments={len(commitments) if isinstance(commitments, list) else 0} "
         f"artifacts={len(artifact_refs) if isinstance(artifact_refs, list) else 0}",
         "    IDENTITIES "
-        f"history={event.payload.get('source_history_identity')} "
-        f"summary={event.payload.get('summary_identity')} "
-        f"context={event.payload.get('result_context_identity')}",
+        f"history={visible_payload.get('source_history_identity')} "
+        f"summary={visible_payload.get('summary_identity')} "
+        f"context={visible_payload.get('result_context_identity')}",
     ]
 
 
@@ -1877,6 +2106,7 @@ def _sha256_json(value: object) -> str:
 __all__ = [
     "CandidateFinal",
     "CandidateToolCall",
+    "classified_event_field",
     "DemoEchoTool",
     "DemoJournalTool",
     "DeterministicDemoGateway",
@@ -1886,6 +2116,7 @@ __all__ = [
     "EventedAgentLoop",
     "EventedRunResult",
     "EventedRunStatus",
+    "FieldVisibility",
     "ExchangeSettled",
     "FinalDisposition",
     "JsonlRunEventLog",
@@ -1894,6 +2125,7 @@ __all__ = [
     "RUN_EVENT_SCHEMA_VERSION",
     "RunEvent",
     "RunEventLog",
+    "RunEventView",
     "WaitingDemoGateway",
     "load_run_event_log",
     "render_run_events",
