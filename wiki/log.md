@@ -311,3 +311,8 @@ Do not edit or delete existing entries. Corrections are new entries that link to
 - Newly verified sources this pass: Chat Completions reference (`tool_choice` semantics: none/auto/required, named-tool form, defaults none/auto) and the official thinking+tool-call example page (confirms zero `tool_choice` occurrences; stable base_url with thinking via extra_body).
 - Status upgrade: the thinking=enabled + tool_choice=required 400 is no longer Working-level — Issue #11's Regulator Verdict independently accepted it with the provider's own error text "Thinking mode does not support this tool_choice" (hash-verified retained bodies). Recorded as experiment-observed, independently accepted, dated to the v2 lock window.
 - Acceptance criteria covered: per-statement locators and dates; the schema-level `required` vs request-level `tool_choice=required` distinction is explicit; the page states that general schema availability does not prove Thinking-Mode compatibility; unknowns for the v3 lock are enumerated.
+
+## 2026-08-29 | Correction: English-only fix on the DeepSeek contract page
+
+- The full-package acceptance gate flagged `sources/2026-08-29-deepseek-thinking-tool-contract.md` for non-English prose: five Chinese section names used as in-table locators. They were replaced with English equivalents; URLs and quoted provider error text are unchanged. Per the append-only rule this correction is logged, not hidden.
+- Also completed: the issue #18 handoff comment was re-issued in English (content unchanged) to match the repository's artifact language convention.
