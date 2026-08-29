@@ -304,3 +304,10 @@ Do not edit or delete existing entries. Corrections are new entries that link to
 - Key verified requirement: with tools present, ALL historical reasoning_content must be replayed in every subsequent request (even turns without tool calls) or the API returns 400; without tools, reasoning_content is ignored. The token `tool_choice` appears zero times in the thinking-mode guide.
 - Boundary kept: the specific combination constraint (thinking + tool_choice=required → 400) is empirical single-session observation, not documented and not independently reproduced; the documented 400 trigger is the reasoning_content replay violation. The current live adapter sends tool_choice:"required" (deepseek_live.py:287) — intersection recorded.
 - Admitted `sources/2026-08-29-deepseek-thinking-tool-contract.md` as source-located.
+
+## 2026-08-29 | Issue #18: DeepSeek provider contract page upgraded to v3-lock standard
+
+- Completed the #18 learning assignment: upgraded `sources/2026-08-29-deepseek-thinking-tool-contract.md` into a nine-row evidence table with exact locators and capture dates for every documented statement.
+- Newly verified sources this pass: Chat Completions reference (`tool_choice` semantics: none/auto/required, named-tool form, defaults none/auto) and the official thinking+tool-call example page (confirms zero `tool_choice` occurrences; stable base_url with thinking via extra_body).
+- Status upgrade: the thinking=enabled + tool_choice=required 400 is no longer Working-level — Issue #11's Regulator Verdict independently accepted it with the provider's own error text "Thinking mode does not support this tool_choice" (hash-verified retained bodies). Recorded as experiment-observed, independently accepted, dated to the v2 lock window.
+- Acceptance criteria covered: per-statement locators and dates; the schema-level `required` vs request-level `tool_choice=required` distinction is explicit; the page states that general schema availability does not prove Thinking-Mode compatibility; unknowns for the v3 lock are enumerated.
