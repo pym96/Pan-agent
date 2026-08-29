@@ -40,7 +40,7 @@ This lock is a local AgentLoop learning/evaluation instrument. It is not a Provi
 
 `deepseek-live-behavioral-eval-v0.json` binds the accepted 12 cases to five repetitions and the paired `observation-feedback-v0`/`act-once-v0` Loop Policy arms, yielding exactly 120 slots in a deterministic case-major order. It also freezes the DeepSeek model/endpoint/thinking/tool profile, native Translation and Context identities, historical #4 fixture and #9 manifest hashes, per-slot and campaign call/Token/CNY ceilings, pricing observation, stop rules, and reconstructable denominator states. Stage A-R preserves the original `sha256:ea23dceaa9b8131a54399e7eda5f8cdd8bf968816e0d4efd2668884753dd52fa` as parent lineage and requires repaired v2 identity `sha256:731a567feb8589afedd43a83f0a37d1c1080514acd07ca8b8c93843338c62c25`, which additionally binds the sole budgeted serial runner and live entry. Recomputing an edited document's internal hash does not authorize drift.
 
-This independently accepted Stage A-R lock and its default preview make zero live model or balance calls and contain no causal result. Stage B remains suspended pending separate authorization against the landed identity triple.
+This independently accepted Stage A-R lock and its default preview make zero live model or balance calls and contain no causal result. The separately authorized v2 Stage B campaign later reached exactly one frozen Provider exchange and terminated under `model_usage_missing`; its accepted Evidence is [`../../docs/evidence/deepseek-live-stage-b-terminal-2026-08-29.md`](../../docs/evidence/deepseek-live-stage-b-terminal-2026-08-29.md). The v2 campaign cannot be resumed or repaired; any v3 requires a new lock and fresh Human budget authorization.
 
 ## ReAct learning smoke
 
