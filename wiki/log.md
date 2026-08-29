@@ -296,3 +296,11 @@ Do not edit or delete existing entries. Corrections are new entries that link to
 - Admitted `sources/2026-08-28-swe-benchmark-landscape.md` (source-located, mixed-credibility snapshot): SWE-bench family divergence, 2026 alternatives by dimension, and the methodology consensus (harness swings 10–20 points; vendor vs reproduced divergence; quote ≥2 benchmarks and disclose the harness). Kimi-K3-style vendor claims recorded as vendor-reported only.
 - `questions/why-self-generated-thought-helps.md` refined (still interpretation-layer): role-prompt decomposition (explicit rules vs persona priors), four-level conditional-computation routing with H(Y|X,R) ≤ H(Y|X), and the cost-engineering note with the Strict 27-vs-110 repair datum.
 - Session decision recorded (no page change): native tools remain correct for the current evidence-lane phase; MCP adoption is deferred until it can serve as a second tool source proving the seam, and must pass the same policy/M2 gates when it arrives.
+
+## 2026-08-29 | Learning ingest: DeepSeek thinking-mode tool-call contract
+
+- The user brought a provider-contract finding from the live Stage A session: thinking=enabled + tool_choice=required → HTTP 400, candidate fix = omit tool_choice (default auto).
+- Verified against official docs (fetched via curl, WebFetch was domain-blocked): thinking mode supports tool calls since V3.2; strict mode works in both modes; thinking defaults ON with effort default high; effort mapping low→low, medium→high, high→high, xhigh→high, max→max; temperature/top_p/penalties silently ignored in thinking mode.
+- Key verified requirement: with tools present, ALL historical reasoning_content must be replayed in every subsequent request (even turns without tool calls) or the API returns 400; without tools, reasoning_content is ignored. The token `tool_choice` appears zero times in the thinking-mode guide.
+- Boundary kept: the specific combination constraint (thinking + tool_choice=required → 400) is empirical single-session observation, not documented and not independently reproduced; the documented 400 trigger is the reasoning_content replay violation. The current live adapter sends tool_choice:"required" (deepseek_live.py:287) — intersection recorded.
+- Admitted `sources/2026-08-29-deepseek-thinking-tool-contract.md` as source-located.
