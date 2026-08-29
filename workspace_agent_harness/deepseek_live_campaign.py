@@ -33,13 +33,35 @@ from .translation import ActionTool
 from .evented import ExchangeUsage
 
 
-LOCK_SCHEMA = "workspace-agent-harness/deepseek-live-behavioral-eval-lock/v1"
+LOCK_SCHEMA = "workspace-agent-harness/deepseek-live-behavioral-eval-lock/v2"
 LOCK_PATH = (
     Path(__file__).with_name("benchmark_configs")
     / "deepseek-live-behavioral-eval-v0.json"
 )
-EXPECTED_LOCK_IDENTITY = (
+PARENT_STAGE_A_LOCK_IDENTITY = (
     "sha256:ea23dceaa9b8131a54399e7eda5f8cdd8bf968816e0d4efd2668884753dd52fa"
+)
+BUDGETED_RUNNER_VERSION = "budgeted-serial-campaign-runner/v1"
+BUDGETED_RUNNER_IDENTITY = identity_sha256(
+    {
+        "version": BUDGETED_RUNNER_VERSION,
+        "ordering": "frozen-slot-sequence-serial",
+        "exchange_control": "intent-then-single-authorization-then-settlement",
+        "runtime": "behavioral-eval-campaign-over-evented-agent-loop",
+        "reconstruction": "retained-artifacts-only",
+    }
+)
+LIVE_ENTRY_VERSION = "deepseek-live-behavioral-eval-entry/v1"
+LIVE_ENTRY_IDENTITY = identity_sha256(
+    {
+        "version": LIVE_ENTRY_VERSION,
+        "runner_identity": BUDGETED_RUNNER_IDENTITY,
+        "default": "zero-call-preview",
+        "live_gate": "exact-lock-and-runner-acknowledgement",
+    }
+)
+EXPECTED_LOCK_IDENTITY = (
+    "sha256:731a567feb8589afedd43a83f0a37d1c1080514acd07ca8b8c93843338c62c25"
 )
 OBSERVATION_FEEDBACK_POLICY_ID = "observation-feedback-v0"
 ACT_ONCE_POLICY_ID = "act-once-v0"
@@ -85,6 +107,9 @@ class LiveEvalSlot:
 class DeepSeekLiveEvalLock:
     identity: str
     source_path: Path
+    parent_stage_a_lock_identity: str
+    runner_identity: str
+    live_entry_identity: str
     suite_id: str
     manifest_identity: str
     repetitions: int
@@ -456,6 +481,31 @@ class CampaignBudgetMeter:
         self._record_identity("system_fingerprint", system_fingerprint)
         return receipt
 
+    def record_not_dispatched(self) -> None:
+        """Release one authorization proven not to have crossed Provider dispatch."""
+
+        if not self._pending_call:
+            raise BudgetStop("no_authorized_model_call_to_cancel")
+        self._pending_call = False
+        self._model_calls -= 1
+        self._slot_calls -= 1
+
+    def settle_uncertain_dispatch(self) -> BalanceReceipt:
+        """Retain the mandatory balance receipt, then stop on unknowable usage."""
+
+        if not self._pending_call:
+            raise BudgetStop("no_authorized_model_call_to_record")
+        receipt = self._balance_client.query_balance()
+        self._receipts.append(receipt)
+        self._pending_call = False
+        if not receipt.is_available or receipt.cny_total is None:
+            self._fail("balance_unavailable")
+        assert self._initial_balance is not None
+        if receipt.cny_total > self._initial_balance:
+            self._fail("balance_concurrent_use_or_top_up_drift")
+        self._current_balance = receipt.cny_total
+        self._fail("provider_dispatch_uncertain")
+
     def settle_slot(self) -> None:
         self._ensure_running()
         if self._active_slot is None or self._pending_call:
@@ -501,11 +551,17 @@ class FileLiveCampaignStore:
         self.root.mkdir(parents=True, exist_ok=False)
         self._lock = lock
         self._active_slot: LiveEvalSlot | None = None
+        self._active_exchange_count = 0
         (self.root / "campaign-lock.json").write_bytes(
             canonical_json_bytes(
                 {
-                    "schema": "workspace-agent-harness/live-campaign-anchor/v1",
+                    "schema": "workspace-agent-harness/live-campaign-anchor/v2",
                     "lock_identity": lock.identity,
+                    "parent_stage_a_lock_identity": (
+                        lock.parent_stage_a_lock_identity
+                    ),
+                    "runner_identity": lock.runner_identity,
+                    "live_entry_identity": lock.live_entry_identity,
                     "schedule_identity": lock.schedule_identity,
                     "planned_slots": len(lock.slots),
                 }
@@ -513,6 +569,18 @@ class FileLiveCampaignStore:
             + b"\n"
         )
         (self.root / "slots").mkdir(exist_ok=False)
+
+    def record_balance_preflight(self, receipt: BalanceReceipt) -> None:
+        (self.root / "budget-preflight.json").write_bytes(
+            canonical_json_bytes(
+                {
+                    "schema": "workspace-agent-harness/live-budget-preflight/v1",
+                    "lock_identity": self._lock.identity,
+                    "receipt": receipt.identity_material(),
+                }
+            )
+            + b"\n"
+        )
 
     def begin_slot(self, slot: LiveEvalSlot) -> Path:
         if self._active_slot is not None:
@@ -533,7 +601,98 @@ class FileLiveCampaignStore:
             + b"\n"
         )
         self._active_slot = slot
+        self._active_exchange_count = 0
         return slot_root
+
+    def record_exchange_intent(
+        self,
+        slot: LiveEvalSlot,
+        *,
+        prepared_turn_identity: str,
+    ) -> int:
+        """Durably retain one immediate pre-exchange intent before authorization."""
+
+        if self._active_slot != slot:
+            raise ValueError("exchange intent requires the active campaign slot")
+        if not isinstance(prepared_turn_identity, str) or not prepared_turn_identity:
+            raise ValueError("prepared turn identity must be non-empty")
+        self._active_exchange_count += 1
+        ordinal = self._active_exchange_count
+        exchanges_root = self.root / "slots" / slot.slot_id / "exchanges"
+        exchanges_root.mkdir(exist_ok=ordinal != 1)
+        exchange_root = exchanges_root / f"exchange-{ordinal:03d}"
+        exchange_root.mkdir(exist_ok=False)
+        (exchange_root / "intent.json").write_bytes(
+            canonical_json_bytes(
+                {
+                    "schema": "workspace-agent-harness/live-exchange-intent/v1",
+                    "lock_identity": self._lock.identity,
+                    "slot_identity": slot.identity,
+                    "ordinal": ordinal,
+                    "prepared_turn_identity": prepared_turn_identity,
+                }
+            )
+            + b"\n"
+        )
+        return ordinal
+
+    def record_exchange_authorization(
+        self,
+        slot: LiveEvalSlot,
+        *,
+        ordinal: int,
+        authorization_number: int,
+    ) -> None:
+        if self._active_slot != slot:
+            raise ValueError("exchange authorization requires the active campaign slot")
+        exchange_root = self._exchange_root(slot, ordinal)
+        (exchange_root / "authorization.json").write_bytes(
+            canonical_json_bytes(
+                {
+                    "schema": "workspace-agent-harness/live-exchange-authorization/v1",
+                    "lock_identity": self._lock.identity,
+                    "slot_identity": slot.identity,
+                    "ordinal": ordinal,
+                    "authorization_number": authorization_number,
+                }
+            )
+            + b"\n"
+        )
+
+    def record_exchange_settlement(
+        self,
+        slot: LiveEvalSlot,
+        *,
+        ordinal: int,
+        outcome: str,
+        evidence: Mapping[str, object],
+        balance_receipt: BalanceReceipt | None,
+        stop_code: str | None,
+    ) -> None:
+        if self._active_slot != slot:
+            raise ValueError("exchange settlement requires the active campaign slot")
+        if outcome not in {"settled", "failed", "not-dispatched", "uncertain"}:
+            raise ValueError("unknown exchange settlement outcome")
+        exchange_root = self._exchange_root(slot, ordinal)
+        (exchange_root / "settlement.json").write_bytes(
+            canonical_json_bytes(
+                {
+                    "schema": "workspace-agent-harness/live-exchange-settlement/v1",
+                    "lock_identity": self._lock.identity,
+                    "slot_identity": slot.identity,
+                    "ordinal": ordinal,
+                    "outcome": outcome,
+                    "evidence": dict(evidence),
+                    "balance_receipt": (
+                        None
+                        if balance_receipt is None
+                        else balance_receipt.identity_material()
+                    ),
+                    "stop_code": stop_code,
+                }
+            )
+            + b"\n"
+        )
 
     def settle_slot(
         self,
@@ -571,14 +730,36 @@ class FileLiveCampaignStore:
             + b"\n"
         )
         self._active_slot = None
+        self._active_exchange_count = 0
+
+    def _exchange_root(self, slot: LiveEvalSlot, ordinal: int) -> Path:
+        if (
+            isinstance(ordinal, bool)
+            or not isinstance(ordinal, int)
+            or not 1 <= ordinal <= self._active_exchange_count
+        ):
+            raise ValueError("exchange ordinal is outside the active slot")
+        root = (
+            self.root
+            / "slots"
+            / slot.slot_id
+            / "exchanges"
+            / f"exchange-{ordinal:03d}"
+        )
+        if not root.is_dir():
+            raise ValueError("exchange intent is not durably retained")
+        return root
 
     def record_stop(self, *, after_sequence: int, code: str) -> None:
-        if self._active_slot is not None:
-            raise ValueError("campaign stop must follow retained slot settlement")
+        if (
+            self._active_slot is not None
+            and self._active_slot.sequence != after_sequence
+        ):
+            raise ValueError("campaign stop cannot skip an unsettled active slot")
         if (
             isinstance(after_sequence, bool)
             or not isinstance(after_sequence, int)
-            or not 0 <= after_sequence < len(self._lock.slots)
+            or not -1 <= after_sequence < len(self._lock.slots)
         ):
             raise ValueError("campaign stop sequence is outside the lock")
         if not isinstance(code, str) or not code:
@@ -606,8 +787,11 @@ def reconstruct_slot_inventory(
     campaign_root = Path(root)
     anchor = _read_json_object(campaign_root / "campaign-lock.json")
     if anchor != {
-        "schema": "workspace-agent-harness/live-campaign-anchor/v1",
+        "schema": "workspace-agent-harness/live-campaign-anchor/v2",
         "lock_identity": lock.identity,
+        "parent_stage_a_lock_identity": lock.parent_stage_a_lock_identity,
+        "runner_identity": lock.runner_identity,
+        "live_entry_identity": lock.live_entry_identity,
         "schedule_identity": lock.schedule_identity,
         "planned_slots": len(lock.slots),
     }:
@@ -692,8 +876,19 @@ def load_deepseek_live_eval_lock(path: Path | None = None) -> DeepSeekLiveEvalLo
     computed = identity_sha256(material)
     if claimed != computed or computed != EXPECTED_LOCK_IDENTITY:
         raise ValueError("DeepSeek live lock identity drift")
-    if raw.get("stage") != "stage-a-zero-paid-calls":
-        raise ValueError("DeepSeek live lock Stage A identity drift")
+    if raw.get("stage") != "stage-a-r-zero-paid-calls":
+        raise ValueError("DeepSeek live lock Stage A-R identity drift")
+    execution = _mapping(raw, "execution")
+    if dict(execution) != {
+        "parent_stage_a_lock_identity": PARENT_STAGE_A_LOCK_IDENTITY,
+        "runner_version": BUDGETED_RUNNER_VERSION,
+        "runner_identity": BUDGETED_RUNNER_IDENTITY,
+        "live_entry_version": LIVE_ENTRY_VERSION,
+        "live_entry_identity": LIVE_ENTRY_IDENTITY,
+        "serial_order": "exact-frozen-slot-sequence",
+        "maximum_retries": 0,
+    }:
+        raise ValueError("DeepSeek live runner identity drift")
 
     manifest = load_behavioral_eval_manifest()
     suite = _mapping(raw, "behavioral_suite")
@@ -723,6 +918,9 @@ def load_deepseek_live_eval_lock(path: Path | None = None) -> DeepSeekLiveEvalLo
     return DeepSeekLiveEvalLock(
         identity=computed,
         source_path=selected,
+        parent_stage_a_lock_identity=PARENT_STAGE_A_LOCK_IDENTITY,
+        runner_identity=BUDGETED_RUNNER_IDENTITY,
+        live_entry_identity=LIVE_ENTRY_IDENTITY,
         suite_id=manifest.suite_id,
         manifest_identity=manifest.identity,
         repetitions=5,
@@ -745,9 +943,12 @@ def build_zero_call_dry_run(*, lock: DeepSeekLiveEvalLock) -> dict[str, object]:
     }
     budget = lock.budget
     return {
-        "schema": "workspace-agent-harness/deepseek-live-zero-call-dry-run/v1",
-        "stage": "stage-a-zero-paid-calls",
+        "schema": "workspace-agent-harness/deepseek-live-zero-call-dry-run/v2",
+        "stage": "stage-a-r-zero-paid-calls",
         "lock_identity": lock.identity,
+        "parent_stage_a_lock_identity": lock.parent_stage_a_lock_identity,
+        "runner_identity": lock.runner_identity,
+        "live_entry_identity": lock.live_entry_identity,
         "suite_id": lock.suite_id,
         "suite_identity": lock.manifest_identity,
         "behavioral_manifest_file_sha256": _sha256(MANIFEST_PATH),
@@ -1013,13 +1214,18 @@ def _read_json_object(path: Path) -> dict[str, object]:
 
 __all__ = [
     "ACT_ONCE_POLICY_ID",
+    "BUDGETED_RUNNER_IDENTITY",
+    "BUDGETED_RUNNER_VERSION",
     "BalanceReceipt",
     "BudgetStop",
     "CampaignBudgetMeter",
     "DeepSeekLiveEvalLock",
     "FileLiveCampaignStore",
     "LiveEvalSlot",
+    "LIVE_ENTRY_IDENTITY",
+    "LIVE_ENTRY_VERSION",
     "OBSERVATION_FEEDBACK_POLICY_ID",
+    "PARENT_STAGE_A_LOCK_IDENTITY",
     "build_zero_call_dry_run",
     "deepseek_live_context_policy",
     "deepseek_live_context_policy_identity",

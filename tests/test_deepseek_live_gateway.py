@@ -17,6 +17,7 @@ from workspace_agent_harness.deepseek_live import (
     DeepSeekModelGateway,
     DeepSeekHttpTransport,
     DeepSeekToolBinding,
+    DeepSeekTransportError,
     FileDeepSeekExchangeStore,
     RetainedDeepSeekResponse,
     locked_deepseek_model_profile,
@@ -27,6 +28,8 @@ from workspace_agent_harness.evented import (
     ExchangeFailed,
     ExchangeSettled,
     FinalDisposition,
+    ModelExchangeException,
+    ProviderDispatchState,
     ProviderFailureKind,
     PreparedModelTurn,
     RunEventView,
@@ -44,6 +47,52 @@ from workspace_agent_harness.translation import (
 
 
 class DeepSeekLiveGatewayTest(unittest.TestCase):
+    def test_gateway_exposes_pre_dispatch_uncertain_and_post_response_boundaries(self) -> None:
+        case = load_behavioral_eval_manifest().case("SA-01")
+        bindings = _bindings(case)
+        adapter = DeepSeekLiveTranslationAdapter(
+            profile=locked_deepseek_model_profile(),
+            tool_bindings=bindings,
+        )
+
+        pre_dispatch_transport = _QueueTransport(())
+        pre_dispatch = DeepSeekModelGateway(
+            adapter=adapter,
+            transport=pre_dispatch_transport,
+        )
+        other = load_behavioral_eval_manifest().case("SA-02")
+        with self.assertRaises(ModelExchangeException) as raised_pre:
+            pre_dispatch.exchange(_prepared_turn(other, _bindings(other)), Event())
+        self.assertEqual(
+            ProviderDispatchState.NOT_DISPATCHED,
+            raised_pre.exception.dispatch_state,
+        )
+        self.assertEqual(0, len(pre_dispatch_transport.requests))
+
+        uncertain = DeepSeekModelGateway(
+            adapter=adapter,
+            transport=_RaisingTransport(),
+        ).exchange(_prepared_turn(case, bindings), Event())
+        self.assertIsInstance(uncertain, ExchangeFailed)
+        self.assertEqual(
+            ProviderDispatchState.UNCERTAIN,
+            uncertain.evidence.dispatch_state,
+        )
+
+        response = _response("inspect_status", {}, call_id="post-response")
+        post_response = DeepSeekModelGateway(
+            adapter=adapter,
+            transport=_QueueTransport((response,)),
+            exchange_store=_FailingExchangeStore(),
+        )
+        with self.assertRaises(ModelExchangeException) as raised_post:
+            post_response.exchange(_prepared_turn(case, bindings), Event())
+        self.assertEqual(
+            ProviderDispatchState.RESPONSE_RECEIVED,
+            raised_post.exception.dispatch_state,
+        )
+        self.assertEqual(2, raised_post.exception.evidence.usage.total_tokens)
+
     def test_locked_request_uses_exact_native_schemas_and_thinking_profile(self) -> None:
         case = load_behavioral_eval_manifest().case("DO-02")
         bindings = tuple(
@@ -308,8 +357,10 @@ class DeepSeekLiveGatewayTest(unittest.TestCase):
 
         self.assertIsInstance(multiple, ExchangeFailed)
         self.assertEqual("action_count_invalid", multiple.failure.code)
+        self.assertEqual(2, multiple.evidence.usage.total_tokens)
         self.assertIsInstance(missing_reasoning, ExchangeFailed)
         self.assertEqual("reasoning_content_missing", missing_reasoning.failure.code)
+        self.assertEqual(2, missing_reasoning.evidence.usage.total_tokens)
         self.assertIsInstance(overflow, ExchangeFailed)
         self.assertEqual(ProviderFailureKind.CONTEXT_OVERFLOW, overflow.failure.kind)
         self.assertEqual("context_overflow", overflow.failure.code)
@@ -434,6 +485,16 @@ class _QueueTransport:
     def send(self, request, cancel_signal: Event) -> RetainedDeepSeekResponse:
         self.requests.append(request)
         return self.responses[len(self.requests) - 1]
+
+
+class _RaisingTransport:
+    def send(self, request, cancel_signal: Event):
+        raise DeepSeekTransportError("deterministic uncertain dispatch")
+
+
+class _FailingExchangeStore:
+    def record(self, request, response) -> None:
+        raise OSError("deterministic response persistence failure")
 
 
 class _FakeHttpResponse:

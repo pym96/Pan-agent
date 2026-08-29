@@ -218,6 +218,12 @@ class ExchangeUsage:
         }
 
 
+class ProviderDispatchState(StrEnum):
+    NOT_DISPATCHED = "not_dispatched"
+    UNCERTAIN = "uncertain"
+    RESPONSE_RECEIVED = "response_received"
+
+
 @dataclass(frozen=True)
 class ExchangeEvidence:
     response_identity: str = "unreported"
@@ -229,6 +235,7 @@ class ExchangeEvidence:
     returned_model: str | None = None
     system_fingerprint: str | None = None
     finish_reason: str | None = None
+    dispatch_state: ProviderDispatchState | None = None
 
     def __post_init__(self) -> None:
         if not isinstance(self.response_identity, str) or not self.response_identity:
@@ -241,6 +248,10 @@ class ExchangeEvidence:
                 isinstance(value, bool) or not isinstance(value, int) or value < 0
             ):
                 raise ValueError(f"{label} must be a non-negative integer or unknown")
+        if self.dispatch_state is not None and not isinstance(
+            self.dispatch_state, ProviderDispatchState
+        ):
+            raise ValueError("Provider dispatch state must be typed when present")
 
     def as_event_payload(self) -> dict[str, object]:
         payload: dict[str, object] = {
@@ -257,12 +268,37 @@ class ExchangeEvidence:
                 "returned_model": self.returned_model,
                 "system_fingerprint": self.system_fingerprint,
                 "finish_reason": self.finish_reason,
+                "dispatch_state": (
+                    None
+                    if self.dispatch_state is None
+                    else self.dispatch_state.value
+                ),
             }.items()
             if value is not None
         }
         if provider:
             payload["provider"] = provider
         return payload
+
+
+class ModelExchangeException(RuntimeError):
+    """A Gateway exception with an explicit Provider dispatch boundary."""
+
+    def __init__(
+        self,
+        message: str,
+        *,
+        dispatch_state: ProviderDispatchState,
+        evidence: ExchangeEvidence | None = None,
+    ) -> None:
+        if not isinstance(dispatch_state, ProviderDispatchState):
+            raise ValueError("Provider dispatch exception state must be typed")
+        self.dispatch_state = dispatch_state
+        self.evidence = evidence or ExchangeEvidence(
+            response_identity="unreported",
+            dispatch_state=dispatch_state,
+        )
+        super().__init__(message)
 
 
 class ProviderFailureKind(StrEnum):
@@ -2187,9 +2223,11 @@ __all__ = [
     "EventedRunStatus",
     "FieldVisibility",
     "ExchangeSettled",
+    "ModelExchangeException",
     "FinalDisposition",
     "JsonlRunEventLog",
     "ModelGateway",
+    "ProviderDispatchState",
     "PreparedModelTurn",
     "RUN_EVENT_SCHEMA_VERSION",
     "RunEvent",

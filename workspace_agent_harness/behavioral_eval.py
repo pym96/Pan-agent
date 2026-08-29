@@ -702,6 +702,7 @@ class BehavioralEvalCampaign:
         gateway_factory: GatewayFactory | None = None,
         loop_policy_id: str | None = None,
         context_projector_factory: ContextProjectorFactory | None = None,
+        cancel_signal: Event | None = None,
     ) -> None:
         self._manifest = manifest
         self._artifacts_root = Path(artifacts_root)
@@ -714,6 +715,7 @@ class BehavioralEvalCampaign:
         self._context_projector_factory = (
             context_projector_factory or _semantic_context_projector
         )
+        self._cancel_signal = cancel_signal
 
     def run(self, *, case_ids: Sequence[str] | None = None) -> BehavioralEvalReport:
         _assert_runtime_manifest_lock(self._manifest)
@@ -762,6 +764,7 @@ class BehavioralEvalCampaign:
                     max_model_calls=case.run_limits["max_model_exchanges"],
                     timeout_seconds=case.run_limits["timeout_seconds"],
                 ),
+                cancel_signal=self._cancel_signal,
             )
             events = load_run_event_log(log_path)
             evaluation = _safe_evaluate(case, environment, events, result)

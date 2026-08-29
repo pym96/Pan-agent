@@ -10,6 +10,8 @@
 - Paid Provider cost: `CNY 0`
 - Stage B, #12–#16, fact/Wiki/resume/PDF promotion: not started
 
+> Historical identity note (2026-08-29): this record preserves the original Stage A Evidence. Its lock is no longer proposed as a live-executable identity; the independently accepted [Stage A-R repair](deepseek-live-stage-a-r-candidate-2026-08-29.md) adds the missing budgeted serial runner and entry bindings. No Stage B call occurred between these records.
+
 ## Candidate surface
 
 - DeepSeek Translation/Gateway: [`deepseek_live.py`](../../workspace_agent_harness/deepseek_live.py)

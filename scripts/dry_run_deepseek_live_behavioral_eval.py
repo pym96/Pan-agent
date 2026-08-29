@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Write the frozen #11 Stage A plan without constructing any live Adapter."""
+"""Write the repaired #11 Stage A-R preview without any live Adapter."""
 
 from __future__ import annotations
 
@@ -43,7 +43,9 @@ def main() -> int:
     print(f"sha256={hashlib.sha256(body.encode('utf-8')).hexdigest()}")
     print("planned_slots=120")
     print("maximum_paid_model_calls=600")
+    print("balance_queries=0")
     print("live_model_calls=0")
+    print("cost=CNY 0")
     return 0
 
 

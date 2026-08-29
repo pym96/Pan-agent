@@ -1,7 +1,16 @@
 {
-  "schema": "workspace-agent-harness/deepseek-live-behavioral-eval-lock/v1",
-  "content_hash": "sha256:ea23dceaa9b8131a54399e7eda5f8cdd8bf968816e0d4efd2668884753dd52fa",
-  "stage": "stage-a-zero-paid-calls",
+  "schema": "workspace-agent-harness/deepseek-live-behavioral-eval-lock/v2",
+  "content_hash": "sha256:731a567feb8589afedd43a83f0a37d1c1080514acd07ca8b8c93843338c62c25",
+  "stage": "stage-a-r-zero-paid-calls",
+  "execution": {
+    "parent_stage_a_lock_identity": "sha256:ea23dceaa9b8131a54399e7eda5f8cdd8bf968816e0d4efd2668884753dd52fa",
+    "runner_version": "budgeted-serial-campaign-runner/v1",
+    "runner_identity": "sha256:b11e6ef4861ffbd5b2d804895bc3d6c78c62b0951f319b1a72e5cb93dd4db7bc",
+    "live_entry_version": "deepseek-live-behavioral-eval-entry/v1",
+    "live_entry_identity": "sha256:a37752b350f784c8c8b4f2bca370e508acee989276e5639eb0988287a7034efb",
+    "serial_order": "exact-frozen-slot-sequence",
+    "maximum_retries": 0
+  },
   "provider": {
     "name": "DeepSeek",
     "requested_model": "deepseek-v4-flash",

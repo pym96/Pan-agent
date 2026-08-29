@@ -6,6 +6,8 @@
 - Scope: Translation/Gateway, budget control, frozen 120-slot lock, and zero-call dry-run only
 - Live model calls, balance queries, and paid cost during Stage A: `0 / 0 / CNY 0`
 
+> Execution identity note (2026-08-29): the original Stage A lock below is retained as historical lineage. The independently accepted [Stage A-R budgeted serial runner](deepseek-live-budgeted-serial-runner.md) binds a repaired v2 lock, sole production runner, and exact live entry. Stage B remains suspended until separately authorized against the landed identity triple.
+
 ## Boundary
 
 Stage A makes the future DeepSeek experiment executable only after a separate Stage B authorization. It does not run the experiment and cannot produce a causal result:

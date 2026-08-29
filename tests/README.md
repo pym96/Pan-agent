@@ -46,6 +46,8 @@ The accepted implementation baseline is split across:
 
 `test_deepseek_live_campaign.py` exercises WorkOrder #11 Stage A's content-hashed paired 120-slot lock, act-once terminal, verified live Context policy, constructor-time-zero-I/O balance Adapter, CNY/call/Token/model/fingerprint stops, append-only denominator reconstruction, and exclusive dry-run CLI with `0` model and balance calls.
 
+`test_deepseek_live_runner.py` exercises WorkOrder #11 Stage A-R only through the production runner seam: repaired identity/acknowledgement, deterministic 120-slot high-seam composition, intent/authorization/settlement ordering, typed dispatch exceptions, balance/usage/persistence/cancellation/fingerprint/transport stops, 600-call ceiling, duplicate invocation, full denominator reconstruction, and byte-stable default preview. Every Provider and balance Adapter is a local fake; real balance queries, model calls, and cost remain `0 / 0 / CNY 0`.
+
 Run the full handoff command with:
 
 ```bash

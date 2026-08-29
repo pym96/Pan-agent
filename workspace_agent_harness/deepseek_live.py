@@ -26,9 +26,11 @@ from .evented import (
     ExchangeSettled,
     ExchangeUsage,
     FinalDisposition,
+    ModelExchangeException,
     PreparedModelTurn,
     ProviderFailure,
     ProviderFailureKind,
+    ProviderDispatchState,
 )
 from .translation import (
     ActionTool,
@@ -386,6 +388,7 @@ class DeepSeekLiveTranslationAdapter:
             returned_model=_optional_text(envelope.get("model")),
             system_fingerprint=_optional_text(envelope.get("system_fingerprint")),
             finish_reason="tool_calls",
+            dispatch_state=ProviderDispatchState.RESPONSE_RECEIVED,
         )
         candidate: CandidateFinal | CandidateToolCall
         if tool_name == "complete":
@@ -586,7 +589,13 @@ class DeepSeekModelGateway:
         prepared_turn: PreparedModelTurn,
         cancel_signal: Event,
     ) -> ExchangeResult:
-        request = self._adapter.encode_request(prepared_turn)
+        try:
+            request = self._adapter.encode_request(prepared_turn)
+        except Exception as error:
+            raise ModelExchangeException(
+                f"DeepSeek request preparation failed: {type(error).__name__}",
+                dispatch_state=ProviderDispatchState.NOT_DISPATCHED,
+            ) from error
         try:
             response = self._transport.send(request, cancel_signal)
         except DeepSeekTransportError as error:
@@ -605,11 +614,20 @@ class DeepSeekModelGateway:
                 evidence=ExchangeEvidence(
                     request_identity=request.payload_identity,
                     requested_model="deepseek-v4-flash",
+                    dispatch_state=ProviderDispatchState.UNCERTAIN,
                 ),
             )
+        result = self._adapter.decode_response(request, response)
         if self._exchange_store is not None:
-            self._exchange_store.record(request, response)
-        return self._adapter.decode_response(request, response)
+            try:
+                self._exchange_store.record(request, response)
+            except Exception as error:
+                raise ModelExchangeException(
+                    f"DeepSeek response persistence failed: {type(error).__name__}",
+                    dispatch_state=ProviderDispatchState.RESPONSE_RECEIVED,
+                    evidence=result.evidence,
+                ) from error
+        return result
 
 
 def _provider_tool(binding: DeepSeekToolBinding) -> dict[str, object]:
@@ -782,10 +800,12 @@ def _protocol_failure(
         ),
         evidence=ExchangeEvidence(
             response_identity=response.identity,
+            usage=_retained_response_usage(response),
             duration_ms=response.duration_ms,
             request_identity=request.payload_identity,
             requested_model="deepseek-v4-flash",
             finish_reason=finish_reason,
+            dispatch_state=ProviderDispatchState.RESPONSE_RECEIVED,
         ),
     )
 
@@ -831,8 +851,19 @@ def _http_failure(
             duration_ms=response.duration_ms,
             request_identity=request.payload_identity,
             requested_model="deepseek-v4-flash",
+            dispatch_state=ProviderDispatchState.RESPONSE_RECEIVED,
         ),
     )
+
+
+def _retained_response_usage(response: RetainedDeepSeekResponse) -> ExchangeUsage:
+    try:
+        decoded = json.loads(response.body.decode("utf-8"))
+    except (UnicodeDecodeError, json.JSONDecodeError):
+        return ExchangeUsage()
+    if not isinstance(decoded, dict):
+        return ExchangeUsage()
+    return _usage(decoded.get("usage"))
 
 
 def _json_copy(value: object) -> object:

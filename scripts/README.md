@@ -139,3 +139,14 @@ PYTHONPATH=. python3 scripts/dry_run_deepseek_live_behavioral_eval.py \
 ```
 
 The output path is exclusive. The artifact binds every slot, both Loop Policy arms, Provider/Translation/Context identities, formal call/Token/CNY ceilings, and stop rules while reporting `live_model_calls=0`, `balance_queries=0`, and `causal_result=null`. It is a Stage A plan receipt, not permission to start Stage B or a model result.
+
+## DeepSeek live Behavioral Eval Stage A-R safe entry
+
+The repaired production entry defaults to the same zero-call behavior while additionally binding the sole serial runner and exact live acknowledgement:
+
+```bash
+PYTHONPATH=. python3 scripts/run_deepseek_live_behavioral_eval.py \
+  --output .runs/workorder-11-stage-a-r-manual/zero-call-preview.json
+```
+
+The command neither reads `DEEPSEEK_API_KEY` nor constructs/calls a live Adapter. `--live` is rejected before credential access unless `--acknowledgement` exactly matches the repaired lock + runner + entry string printed by preview. Stage A-R did not invoke `--live`; its offline boundary passed independent review, while a later Stage B still requires separate Human authorization against the landed identity triple.
