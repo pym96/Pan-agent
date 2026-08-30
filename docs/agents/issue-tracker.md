@@ -19,6 +19,17 @@ Issues and PRDs for this repo live as GitHub issues. Use the `gh` CLI for all op
 - A specialist controls implementation choices inside that contract. It may post a `ScopeChallenge`, but must not switch work until Master amends, pauses, or replaces the WorkOrder.
 - Builder Handoffs and Regulator Verdicts stay on the same issue so scope, Evidence, rejection, repair, and closure remain one trace. A distinct newly discovered problem starts as a linked Issue Candidate rather than silently expanding scope.
 
+## Immutable candidate workflow
+
+1. The WorkOrder names the accepted `main` base SHA. Builder creates `workorder/<issue>-candidate`, commits and pushes the candidate there, and never pushes `main`.
+2. Handoff records the branch, base SHA, full candidate SHA, exact changed-file list, Evidence, checks, and limitations. The SHA is immutable; later repair is an additional commit and a new Handoff.
+3. From Handoff until Verdict, Master freezes `main` integration. Other work may remain on branches but cannot land.
+4. Regulator fetches the remote candidate and verifies that exact SHA in a clean worktree. Its probes stay outside the candidate. Verdict is `accepted | rejected` and binds only that SHA.
+5. Rejected work returns to Builder on the same candidate branch. Accepted work is integrated by Master with a fast-forward of the same SHA; there is no landing-only WorkOrder and Builder is not recalled.
+6. If `main` drift prevents a fast-forward, do not rebase, cherry-pick, merge, or transfer the Verdict. Produce and independently verify a new candidate SHA.
+
+Candidate branches and accepted Verdicts do not themselves promote project facts or authorize paid execution. A paid WorkOrder still binds its final accepted `main` SHA, frozen runtime identities, and Human-approved budget.
+
 Infer the repository from `git remote -v`; `gh` does this automatically inside the clone.
 
 ## Skill vocabulary

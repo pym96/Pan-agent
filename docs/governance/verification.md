@@ -4,11 +4,11 @@ This document is the canonical process contract for producing, checking, accepti
 
 ## Roles
 
-**Master Agent** triages Issue Candidates, publishes WorkOrders, and routes Handoffs and Verdicts. It cannot implement the WorkOrder, perform its independent Acceptance Gate, or promote a Claim without the applicable Verdict and human authority.
+**Master Agent** triages Issue Candidates, publishes WorkOrders, freezes `main` integration during review, and routes Handoffs and Verdicts. After acceptance it may only fast-forward the exact accepted candidate SHA. It cannot implement the WorkOrder, perform its independent Acceptance Gate, or promote a Claim without the applicable Verdict and human authority.
 
-**Working Agent** produces candidate code, documents, experiments, and handoffs. It cannot accept its own work or promote a project claim into any external factual or resume ledger.
+**Working Agent** produces candidate code, documents, experiments, and handoffs on `workorder/<issue>-candidate`. It commits and pushes before Handoff, cites the full candidate SHA, and never pushes `main`. It cannot accept its own work or promote a project claim into any external factual or resume ledger.
 
-**Regulator Agent** accepts or rejects a handoff against predeclared Criteria. It must use a separate session/process, read primary Evidence independently, design or rerun negative tests, and avoid relying on the Working Agent's summary.
+**Regulator Agent** accepts or rejects the exact remote candidate SHA against predeclared Criteria. It must use a separate session/process and clean worktree, read primary Evidence independently, design or rerun negative tests outside the candidate commit, and avoid relying on the Working Agent's summary.
 
 **Learning Wiki Agent** answers an assigned learning question and maintains Wiki knowledge objects under `wiki/SCHEMA.md`. It cannot change implementation, governance decisions, project facts, or resume facts.
 
@@ -20,8 +20,15 @@ The human assigns one immutable `SessionRole` at session creation. A missing rol
 
 - **WorkOrder** is the Master-promoted GitHub issue defined in [`../agents/issue-tracker.md`](../agents/issue-tracker.md). It fixes the target role, scope, deliverables, predeclared Criteria, budget, write authority, non-goals, dependencies, risks, and human authorization before execution.
 - **ScopeChallenge** reports why the assigned contract should change and links Evidence. It does not authorize the specialist to switch tasks.
-- **Handoff** links produced artifacts, primary Evidence, executed checks, limitations, unresolved items, and candidate next steps. Its narrative is not Evidence by itself.
-- **Verdict** records `accepted | rejected`, the applied Criteria, independently inspected Evidence and probes, limits, and any new Issue Candidates. Master uses it to update Outcome state; it does not independently authorize project-fact or resume-fact promotion.
+- **Handoff** records the candidate branch, accepted-base SHA, full candidate SHA, exact changed-file list, produced artifacts, primary Evidence, executed checks, limitations, and unresolved items. Its narrative is not Evidence by itself, and its SHA cannot be edited in place.
+- **Verdict** records `accepted | rejected`, the exact candidate SHA, applied Criteria, independently inspected Evidence and probes, limits, and any new Issue Candidates. It does not transfer across rebases, cherry-picks, merges, or replacement commits and does not independently authorize project-fact or resume-fact promotion.
+
+## Candidate integration
+
+- Rejection returns the same candidate branch to Builder for additive repair. The repair produces a new tip SHA and Handoff.
+- Acceptance allows Master to verify the remote SHA, confirm the frozen `main` is its ancestor, and fast-forward that exact SHA. Builder is not recalled for landing.
+- If fast-forward is impossible, integration stops. Any rebased, cherry-picked, merged, or otherwise rewritten result is a new candidate requiring a new Verdict.
+- Regulator probes and review notes remain separate from product commits. Candidate branches are durable review objects, not sources of project facts.
 
 ## Verification vocabulary
 

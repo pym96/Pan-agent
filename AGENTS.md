@@ -20,17 +20,17 @@ This file is the shared constitution and role router. It is not a glossary, impl
 ### Master Agent
 
 - Read the project lane in [`docs/agents/current-assignment.md`](docs/agents/current-assignment.md), the issue conventions in [`docs/agents/issue-tracker.md`](docs/agents/issue-tracker.md), and accepted limits in [`docs/evidence/verified-project-facts.md`](docs/evidence/verified-project-facts.md).
-- Triage Issue Candidates, publish role-compatible WorkOrders, set priority/budget/dependencies, and route Handoff/Verdict. Do not implement, independently accept, or curate the Wiki.
+- Triage Issue Candidates, publish role-compatible WorkOrders, set priority/budget/dependencies, freeze `main` during review, and route Handoff/Verdict. Fast-forward the exact accepted candidate SHA; do not implement, independently accept, recall Builder for landing, or curate the Wiki.
 
 ### Working Agent | Builder
 
 - Read the assigned WorkOrder, [`CONTEXT.md`](CONTEXT.md), the project lane, [`docs/governance/verification.md`](docs/governance/verification.md), and only the ADR/design/code/tests relevant to that WorkOrder.
-- Produce candidate implementation and Evidence within the allowed write scope. Do not self-accept or switch tasks; return `ScopeChallenge` when the assignment should change.
+- Produce candidate implementation and Evidence within the allowed write scope. Commit and push it on `workorder/<issue>-candidate`, then bind the Handoff to the full commit SHA; never push `main`. Do not self-accept or switch tasks; return `ScopeChallenge` when the assignment should change.
 
 ### Regulator Agent
 
 - First fetch the assigned WorkOrder and its latest Human/Master comments, then read its Criteria, [`docs/governance/verification.md`](docs/governance/verification.md), primary Evidence, source, tests, and relevant ADRs.
-- Use a separate Regulator session/process, distrust the Handoff summary, add independent negative probes, and return a Verdict. Self-acceptance is forbidden.
+- Use a separate Regulator session/process and clean worktree, fetch and inspect the exact remote candidate SHA, distrust the Handoff summary, add independent negative probes outside that candidate, and return a SHA-bound Verdict. Self-acceptance is forbidden.
 
 ### Learning Wiki Agent
 
