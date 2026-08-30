@@ -1,0 +1,30 @@
+{
+  "choices": [
+    {
+      "finish_reason": "tool_calls",
+      "message": {
+        "content": "",
+        "reasoning_content": "The retained evidence is insufficient.",
+        "role": "assistant",
+        "tool_calls": [
+          {
+            "function": {
+              "arguments": "{\"output\":\"cannot determine\",\"reason_code\":\"insufficient_evidence\"}",
+              "name": "abstain"
+            },
+            "id": "v3-abstain-1",
+            "type": "function"
+          }
+        ]
+      }
+    }
+  ],
+  "id": "v3-response-abstain-1",
+  "model": "deepseek-v4-flash",
+  "system_fingerprint": "v3-fixture-fingerprint",
+  "usage": {
+    "completion_tokens": 12,
+    "prompt_tokens": 43,
+    "total_tokens": 55
+  }
+}

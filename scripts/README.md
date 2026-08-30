@@ -150,3 +150,14 @@ PYTHONPATH=. python3 scripts/run_deepseek_live_behavioral_eval.py \
 ```
 
 The command neither reads `DEEPSEEK_API_KEY` nor constructs/calls a live Adapter. `--live` is rejected before credential access unless `--acknowledgement` exactly matches the repaired lock + runner + entry string printed by preview. Stage A-R did not invoke `--live`. The separately authorized v2 Stage B campaign later reached one frozen Provider exchange and terminated under `model_usage_missing`; its accepted Evidence is indexed at [`../docs/evidence/deepseek-live-stage-b-terminal-2026-08-29.md`](../docs/evidence/deepseek-live-stage-b-terminal-2026-08-29.md). Do not rerun or resume v2; any v3 requires a new lock and fresh Human budget authorization.
+
+## DeepSeek live v3 Stage A safe entry
+
+Preview WorkOrder #19's new Provider-controlled/default tool-choice lock without reading a credential or constructing a Provider/balance Adapter:
+
+```bash
+PYTHONPATH=. python3 scripts/run_deepseek_live_behavioral_eval_v3.py \
+  --output .runs/workorder-19-v3-stage-a/zero-call-preview.json
+```
+
+The preview deterministically enumerates the unchanged 120-slot denominator and prints the new exact v3 lock + runner + entry acknowledgement while reporting `formal_runs_started=0`, `balance_queries=0`, `live_model_calls=0`, and `cost=CNY 0`. The v2 acknowledgement is rejected before credential access. WorkOrder #19 did not enter `--live`; the candidate acknowledgement is not paid-execution authority.

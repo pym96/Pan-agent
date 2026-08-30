@@ -24,9 +24,11 @@ from .context_projection import (
 from .deepseek_live import (
     DEEPSEEK_LIVE_SYSTEM_PROMPT,
     DEEPSEEK_LIVE_TRANSLATION_VERSION,
+    DEEPSEEK_LIVE_V3_TRANSLATION_VERSION,
     DeepSeekLiveTranslationAdapter,
     DeepSeekToolBinding,
     locked_deepseek_model_profile,
+    locked_deepseek_v3_model_profile,
 )
 from .translation import canonical_json_bytes, identity_sha256
 from .translation import ActionTool
@@ -63,11 +65,56 @@ LIVE_ENTRY_IDENTITY = identity_sha256(
 EXPECTED_LOCK_IDENTITY = (
     "sha256:731a567feb8589afedd43a83f0a37d1c1080514acd07ca8b8c93843338c62c25"
 )
+V3_LOCK_SCHEMA = "workspace-agent-harness/deepseek-live-behavioral-eval-lock/v3"
+V3_LOCK_PATH = (
+    Path(__file__).with_name("benchmark_configs")
+    / "deepseek-live-behavioral-eval-v3.json"
+)
+V3_PARENT_LOCK_IDENTITY = EXPECTED_LOCK_IDENTITY
+V3_BUDGETED_RUNNER_VERSION = "budgeted-serial-campaign-runner/v2"
+V3_BUDGETED_RUNNER_IDENTITY = identity_sha256(
+    {
+        "version": V3_BUDGETED_RUNNER_VERSION,
+        "parent_runner_identity": BUDGETED_RUNNER_IDENTITY,
+        "ordering": "frozen-slot-sequence-serial",
+        "exchange_control": "intent-then-single-authorization-then-settlement",
+        "runtime": "behavioral-eval-campaign-over-evented-agent-loop",
+        "reconstruction": "retained-artifacts-only",
+        "identity_source": "selected-lock-runner-and-entry",
+        "translation_contract": "deepseek-v3-provider-controlled-default-tool-choice",
+    }
+)
+V3_LIVE_ENTRY_VERSION = "deepseek-live-behavioral-eval-entry/v2"
+V3_LIVE_ENTRY_IDENTITY = identity_sha256(
+    {
+        "version": V3_LIVE_ENTRY_VERSION,
+        "parent_live_entry_identity": LIVE_ENTRY_IDENTITY,
+        "runner_identity": V3_BUDGETED_RUNNER_IDENTITY,
+        "default": "zero-call-preview",
+        "live_gate": "exact-v3-lock-runner-entry-acknowledgement",
+    }
+)
+V3_EXPECTED_LOCK_IDENTITY = (
+    "sha256:cbc23aaf211a02a492c147f40dcad7b017888ba96d68b030cadbcf87d337a5f4"
+)
+V3_TERMINAL_EVIDENCE_SHA256 = (
+    "1b4e978de901c48901c7429ea39fc696463c441a5cd346922631290e9e868520"
+)
+V3_LEARNING_ARTIFACT_SHA256 = (
+    "b4ed702ea7caa16ccdcd038a8703d5970e17aa35eac6e2d578632d2fbb5558aa"
+)
 OBSERVATION_FEEDBACK_POLICY_ID = "observation-feedback-v0"
 ACT_ONCE_POLICY_ID = "act-once-v0"
 _POLICIES = (OBSERVATION_FEEDBACK_POLICY_ID, ACT_ONCE_POLICY_ID)
 _TRANSLATION_FIXTURE_MANIFEST = (
     Path(__file__).parents[1] / "tests" / "fixtures" / "translation" / "manifest.json"
+)
+_V3_FIXTURE_MANIFEST = (
+    Path(__file__).parents[1]
+    / "tests"
+    / "fixtures"
+    / "deepseek_live_v3"
+    / "manifest.json"
 )
 
 
@@ -934,6 +981,87 @@ def load_deepseek_live_eval_lock(path: Path | None = None) -> DeepSeekLiveEvalLo
     )
 
 
+def load_deepseek_live_eval_v3_lock(path: Path | None = None) -> DeepSeekLiveEvalLock:
+    """Load the isolated zero-call v3 lock without weakening historical v2."""
+
+    selected = V3_LOCK_PATH if path is None else Path(path)
+    raw_bytes = selected.read_bytes()
+    try:
+        raw = json.loads(raw_bytes)
+    except (UnicodeDecodeError, json.JSONDecodeError) as error:
+        raise ValueError("DeepSeek live v3 lock is not UTF-8 JSON") from error
+    if not isinstance(raw, dict) or raw.get("schema") != V3_LOCK_SCHEMA:
+        raise ValueError("unsupported DeepSeek live v3 lock schema")
+    claimed = raw.get("content_hash")
+    material = dict(raw)
+    material.pop("content_hash", None)
+    computed = identity_sha256(material)
+    if claimed != computed or computed != V3_EXPECTED_LOCK_IDENTITY:
+        raise ValueError("DeepSeek live v3 lock identity drift")
+    if raw.get("stage") != "stage-a-v3-zero-external-calls":
+        raise ValueError("DeepSeek live v3 Stage A identity drift")
+    lineage = _mapping(raw, "lineage")
+    if dict(lineage) != _v3_lineage_material():
+        raise ValueError("DeepSeek live v3 lineage drift")
+    execution = _mapping(raw, "execution")
+    if dict(execution) != {
+        "parent_v2_lock_identity": V3_PARENT_LOCK_IDENTITY,
+        "runner_version": V3_BUDGETED_RUNNER_VERSION,
+        "runner_identity": V3_BUDGETED_RUNNER_IDENTITY,
+        "live_entry_version": V3_LIVE_ENTRY_VERSION,
+        "live_entry_identity": V3_LIVE_ENTRY_IDENTITY,
+        "serial_order": "exact-frozen-slot-sequence",
+        "maximum_retries": 0,
+    }:
+        raise ValueError("DeepSeek live v3 runner identity drift")
+
+    manifest = load_behavioral_eval_manifest()
+    suite = _mapping(raw, "behavioral_suite")
+    provider = _mapping(raw, "provider")
+    translation = _mapping(raw, "translation")
+    budget = _mapping(raw, "budget")
+    pricing = _mapping(raw, "pricing_snapshot")
+    _validate_v3_provider(provider)
+    _validate_v3_translation(translation)
+    _validate_suite(suite, manifest)
+    _validate_budget(budget)
+    _validate_pricing(pricing)
+    if suite.get("manifest_file_sha256") != _sha256(MANIFEST_PATH):
+        raise ValueError("Behavioral Eval manifest file identity drift")
+    historical_fixture_sha = _sha256(_TRANSLATION_FIXTURE_MANIFEST)
+    if raw.get("historical_translation_fixture_manifest_sha256") != historical_fixture_sha:
+        raise ValueError("historical Translation fixture manifest identity drift")
+    v3_fixture_sha = _sha256(_V3_FIXTURE_MANIFEST)
+    if raw.get("v3_fixture_manifest_sha256") != v3_fixture_sha:
+        raise ValueError("DeepSeek live v3 fixture manifest identity drift")
+    _validate_v3_fixture_files()
+    stop_rules = raw.get("stop_rules")
+    if not isinstance(stop_rules, list) or len(stop_rules) != 10 or not all(
+        isinstance(rule, str) and rule for rule in stop_rules
+    ):
+        raise ValueError("DeepSeek live v3 stop rules drift")
+    slots = _build_slots(manifest, repetitions=5, v3=True)
+    if len(slots) != 120:
+        raise AssertionError("frozen v3 schedule must contain 120 slots")
+    return DeepSeekLiveEvalLock(
+        identity=computed,
+        source_path=selected,
+        parent_stage_a_lock_identity=V3_PARENT_LOCK_IDENTITY,
+        runner_identity=V3_BUDGETED_RUNNER_IDENTITY,
+        live_entry_identity=V3_LIVE_ENTRY_IDENTITY,
+        suite_id=manifest.suite_id,
+        manifest_identity=manifest.identity,
+        repetitions=5,
+        maximum_paid_model_calls=600,
+        maximum_campaign_cost_cny="15.00",
+        budget=budget,
+        pricing_snapshot=pricing,
+        stop_rules=tuple(stop_rules),
+        historical_translation_fixture_manifest_sha256=historical_fixture_sha,
+        slots=slots,
+    )
+
+
 def build_zero_call_dry_run(*, lock: DeepSeekLiveEvalLock) -> dict[str, object]:
     """Enumerate the complete frozen denominator without any I/O Adapter."""
 
@@ -978,10 +1106,61 @@ def build_zero_call_dry_run(*, lock: DeepSeekLiveEvalLock) -> dict[str, object]:
     }
 
 
+def build_v3_zero_call_dry_run(*, lock: DeepSeekLiveEvalLock) -> dict[str, object]:
+    """Enumerate the v3 denominator without credentials, balances, or Providers."""
+
+    if lock.source_path != V3_LOCK_PATH and lock.identity != V3_EXPECTED_LOCK_IDENTITY:
+        raise ValueError("v3 dry-run requires the frozen v3 lock")
+    counts = {
+        policy: sum(slot.loop_policy_id == policy for slot in lock.slots)
+        for policy in _POLICIES
+    }
+    budget = lock.budget
+    return {
+        "schema": "workspace-agent-harness/deepseek-live-zero-call-dry-run/v3",
+        "stage": "stage-a-v3-zero-external-calls",
+        "lock_identity": lock.identity,
+        "parent_v2_lock_identity": lock.parent_stage_a_lock_identity,
+        "runner_identity": lock.runner_identity,
+        "live_entry_identity": lock.live_entry_identity,
+        "suite_id": lock.suite_id,
+        "suite_identity": lock.manifest_identity,
+        "behavioral_manifest_file_sha256": _sha256(MANIFEST_PATH),
+        "historical_translation_fixture_manifest_sha256": (
+            lock.historical_translation_fixture_manifest_sha256
+        ),
+        "v3_fixture_manifest_sha256": _sha256(_V3_FIXTURE_MANIFEST),
+        "model_profile_identity": locked_deepseek_v3_model_profile().identity,
+        "schedule_identity": lock.schedule_identity,
+        "pricing_snapshot_identity": identity_sha256(lock.pricing_snapshot),
+        "lineage": _v3_lineage_material(),
+        "planned_slots": len(lock.slots),
+        "slots_per_arm": counts,
+        "maximum_paid_model_calls": lock.maximum_paid_model_calls,
+        "formal_token_envelope": {
+            "input_tokens": budget["campaign_input_token_ceiling"],
+            "output_tokens": budget["campaign_output_token_ceiling"],
+            "combined_tokens": budget["campaign_combined_token_ceiling"],
+        },
+        "maximum_campaign_cost_cny": lock.maximum_campaign_cost_cny,
+        "stop_rules": list(lock.stop_rules),
+        "slots": [
+            {**slot.identity_material(), "slot_identity": slot.identity}
+            for slot in lock.slots
+        ],
+        "live_model_calls": 0,
+        "balance_queries": 0,
+        "formal_runs_started": 0,
+        "cost_cny": "0",
+        "causal_result": None,
+    }
+
+
 def _build_slots(
     manifest: BehavioralManifest,
     *,
     repetitions: int,
+    v3: bool = False,
 ) -> tuple[LiveEvalSlot, ...]:
     slots: list[LiveEvalSlot] = []
     for case in manifest.cases:
@@ -993,7 +1172,11 @@ def _build_slots(
             for definition in case.tools
         )
         translation_identity = DeepSeekLiveTranslationAdapter(
-            profile=locked_deepseek_model_profile(),
+            profile=(
+                locked_deepseek_v3_model_profile()
+                if v3
+                else locked_deepseek_model_profile()
+            ),
             tool_bindings=bindings,
         ).identity
         context_policy_identity = deepseek_live_context_policy_identity(
@@ -1139,6 +1322,121 @@ def _validate_translation(translation: Mapping[str, object]) -> None:
         raise ValueError("DeepSeek abstention reason drift")
 
 
+def _v3_lineage_material() -> dict[str, object]:
+    return {
+        "clean_baseline_commit": "92aba6e000d42d5c70fb009d539916cfb3ac1049",
+        "accepted_v2": {
+            "lock_identity": EXPECTED_LOCK_IDENTITY,
+            "runner_identity": BUDGETED_RUNNER_IDENTITY,
+            "live_entry_identity": LIVE_ENTRY_IDENTITY,
+            "schedule_identity": (
+                "sha256:ba5c11e1ca3a968970d4a04df0b228115d4daac952a6511f133229dee79d2284"
+            ),
+            "model_profile_identity": (
+                "sha256:9bcb9f358dc6f106f93d455c4961ace1131715bf11ed2410686ab7c11cd015f8"
+            ),
+            "terminal_evidence_path": (
+                "docs/evidence/deepseek-live-stage-b-terminal-2026-08-29.md"
+            ),
+            "terminal_evidence_sha256": V3_TERMINAL_EVIDENCE_SHA256,
+            "regulator_verdict": (
+                "https://github.com/pym96/workspace-agent-harness/issues/11"
+                "#issuecomment-5461826495"
+            ),
+        },
+        "provider_learning": {
+            "artifact_path": (
+                "wiki/sources/2026-08-29-deepseek-thinking-tool-contract.md"
+            ),
+            "artifact_sha256": V3_LEARNING_ARTIFACT_SHA256,
+            "learning_handoff": (
+                "https://github.com/pym96/workspace-agent-harness/issues/18"
+                "#issuecomment-5461903273"
+            ),
+        },
+    }
+
+
+def _validate_v3_provider(provider: Mapping[str, object]) -> None:
+    profile = locked_deepseek_v3_model_profile()
+    expected = {
+        "name": profile.provider,
+        "requested_model": profile.requested_model,
+        "endpoint": profile.endpoint,
+        "wire": "openai-compatible-chat-completions",
+        "stream": False,
+        "thinking": profile.thinking,
+        "reasoning_effort": profile.reasoning_effort,
+        "sampling_parameters": "omitted-in-thinking-mode",
+        "tool_choice_contract": "provider-controlled-default-omitted",
+        "wire_tool_choice_key": "omitted",
+        "provider_strict": False,
+        "context_window_tokens": profile.context_window_tokens,
+        "maximum_output_tokens": profile.max_output_tokens,
+        "capability_observed_on": profile.capability_observed_on,
+        "capability_source": profile.capability_source,
+    }
+    if dict(provider) != expected:
+        raise ValueError("DeepSeek v3 Provider profile identity drift")
+
+
+def _validate_v3_translation(translation: Mapping[str, object]) -> None:
+    expected = {
+        "version": DEEPSEEK_LIVE_V3_TRANSLATION_VERSION,
+        "system_prompt_sha256": identity_sha256(DEEPSEEK_LIVE_SYSTEM_PROMPT),
+        "history_carrier": "native-tool-calls",
+        "reasoning_carrier": "reasoning_content-restricted",
+        "reasoning_history_replay": "all-assistant-turns-with-tools",
+        "executable_argument_carrier": "command-only",
+        "maximum_actions_per_turn": 1,
+        "response_admission": [
+            "one-native-tool-call",
+            "stop-with-nonempty-final-content",
+        ],
+        "ordinary_final_mapping": "completed",
+        "terminal_tools": ["complete", "abstain"],
+        "abstention_reason_codes": [
+            "insufficient_evidence",
+            "authority_denied",
+        ],
+    }
+    if dict(translation) != expected:
+        raise ValueError("DeepSeek v3 Translation identity drift")
+
+
+def _validate_v3_fixture_files() -> None:
+    manifest = _read_json_object(_V3_FIXTURE_MANIFEST)
+    if manifest.get("schema") != "workspace-agent-harness/deepseek-live-v3-fixture-manifest/v1":
+        raise ValueError("DeepSeek live v3 fixture schema drift")
+    files = manifest.get("files")
+    if not isinstance(files, list) or len(files) != 5:
+        raise ValueError("DeepSeek live v3 fixture inventory drift")
+    expected_names = {
+        "valid-abstain-tool.response.json",
+        "valid-complete-tool.response.json",
+        "valid-final-content.response.json",
+        "valid-multiturn.conversation.json",
+        "valid-tool-call.response.json",
+    }
+    observed_names: set[str] = set()
+    for item in files:
+        if not isinstance(item, Mapping):
+            raise ValueError("DeepSeek live v3 fixture entry drift")
+        name = item.get("path")
+        digest = item.get("sha256")
+        if (
+            not isinstance(name, str)
+            or name in observed_names
+            or name not in expected_names
+            or not isinstance(digest, str)
+            or _sha256(_V3_FIXTURE_MANIFEST.parent / name) != digest
+        ):
+            raise ValueError("DeepSeek live v3 fixture identity drift")
+        observed_names.add(name)
+    if observed_names != expected_names:
+        raise ValueError("DeepSeek live v3 fixture inventory drift")
+
+
 def _validate_suite(suite: Mapping[str, object], manifest: BehavioralManifest) -> None:
     if suite.get("suite_id") != manifest.suite_id:
         raise ValueError("Behavioral Eval suite ID drift")
@@ -1227,9 +1525,19 @@ __all__ = [
     "OBSERVATION_FEEDBACK_POLICY_ID",
     "PARENT_STAGE_A_LOCK_IDENTITY",
     "build_zero_call_dry_run",
+    "build_v3_zero_call_dry_run",
     "deepseek_live_context_policy",
     "deepseek_live_context_policy_identity",
     "deepseek_live_context_projector",
     "load_deepseek_live_eval_lock",
+    "load_deepseek_live_eval_v3_lock",
     "reconstruct_slot_inventory",
+    "V3_BUDGETED_RUNNER_IDENTITY",
+    "V3_BUDGETED_RUNNER_VERSION",
+    "V3_EXPECTED_LOCK_IDENTITY",
+    "V3_LIVE_ENTRY_IDENTITY",
+    "V3_LIVE_ENTRY_VERSION",
+    "V3_LOCK_PATH",
+    "V3_LOCK_SCHEMA",
+    "V3_PARENT_LOCK_IDENTITY",
 ]

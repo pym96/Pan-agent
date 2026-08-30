@@ -42,6 +42,12 @@ This lock is a local AgentLoop learning/evaluation instrument. It is not a Provi
 
 This independently accepted Stage A-R lock and its default preview make zero live model or balance calls and contain no causal result. The separately authorized v2 Stage B campaign later reached exactly one frozen Provider exchange and terminated under `model_usage_missing`; its accepted Evidence is [`../../docs/evidence/deepseek-live-stage-b-terminal-2026-08-29.md`](../../docs/evidence/deepseek-live-stage-b-terminal-2026-08-29.md). The v2 campaign cannot be resumed or repaired; any v3 requires a new lock and fresh Human budget authorization.
 
+## DeepSeek live Behavioral Eval v3 Stage A
+
+`deepseek-live-behavioral-eval-v3.json` is WorkOrder #19's new zero-call identity. It binds the accepted terminal v2 lock/Verdict/Evidence and the #18 Provider learning artifact, retains the stable endpoint, model, Thinking/high mode, tools, Context/output settings, cases, exact paired schedule, Loop Policies, evaluator, `120` Runs, `600`-exchange ceiling, `CNY 15` ceiling, and stop taxonomy, while changing the Profile/Translation contract to Provider-controlled/default tool choice with the wire-level `tool_choice` key omitted. It also admits either one valid typed tool call or non-empty `finish_reason="stop"` final content and binds full assistant reasoning-history replay.
+
+The v3 lock identity is `sha256:cbc23aaf211a02a492c147f40dcad7b017888ba96d68b030cadbcf87d337a5f4`. Its default preview reports `formal_runs_started=0`, `live_model_calls=0`, `balance_queries=0`, `cost=CNY 0`, and no causal result. Its offline boundary was independently accepted on 2026-08-29 and grants no live execution or budget authority.
+
 ## ReAct learning smoke
 
 `react-mvp-5-v1.json` freezes a separate Phase 0 mechanism experiment in the `workspace-coding` lane. It pins the current official `SWE-bench/SWE-bench_Lite` development source/revision, five deterministic case IDs and their x86_64 evaluation images, Act-only/ReAct variants, three repetitions, DeepSeek V4 Flash with thinking disabled, bash-only Docker isolation, dual-channel observations, and official `resolved` as the primary outcome.

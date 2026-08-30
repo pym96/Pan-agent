@@ -1,0 +1,25 @@
+{
+  "files": [
+    {
+      "path": "valid-abstain-tool.response.json",
+      "sha256": "2a4b09544c4f093a50f70590fc96c13d1350c7febd28f84ef6170cba9304c420"
+    },
+    {
+      "path": "valid-complete-tool.response.json",
+      "sha256": "717adefc6758616979a4f50c638e54fd1692b6b1167168ccd51e7e908cc16a73"
+    },
+    {
+      "path": "valid-final-content.response.json",
+      "sha256": "f214245299748f90e9af7c5a9912e4dc0f681a87e7b1ed8e7350be9987b8e158"
+    },
+    {
+      "path": "valid-multiturn.conversation.json",
+      "sha256": "503fc0575fbdee3e1bed1ea56a2136688117044e326c3689a21f6c7a6d0b9d0b"
+    },
+    {
+      "path": "valid-tool-call.response.json",
+      "sha256": "56cef88c27c50f7fdcda0eb86c4a6695e0e57d69682a0721238eee045f120417"
+    }
+  ],
+  "schema": "workspace-agent-harness/deepseek-live-v3-fixture-manifest/v1"
+}

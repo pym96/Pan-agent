@@ -1,0 +1,30 @@
+{
+  "choices": [
+    {
+      "finish_reason": "tool_calls",
+      "message": {
+        "content": "",
+        "reasoning_content": "Inspect the retained status before deciding.",
+        "role": "assistant",
+        "tool_calls": [
+          {
+            "function": {
+              "arguments": "{}",
+              "name": "inspect_status"
+            },
+            "id": "v3-call-1",
+            "type": "function"
+          }
+        ]
+      }
+    }
+  ],
+  "id": "v3-response-tool-1",
+  "model": "deepseek-v4-flash",
+  "system_fingerprint": "v3-fixture-fingerprint",
+  "usage": {
+    "completion_tokens": 13,
+    "prompt_tokens": 41,
+    "total_tokens": 54
+  }
+}

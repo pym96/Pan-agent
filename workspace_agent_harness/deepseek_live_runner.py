@@ -54,7 +54,10 @@ CampaignStoreFactory = Callable[[Path, DeepSeekLiveEvalLock], FileLiveCampaignSt
 
 
 def required_live_acknowledgement(lock: DeepSeekLiveEvalLock) -> str:
-    return f"execute-live:{lock.identity}:{RUNNER_IDENTITY}:{LIVE_ENTRY_IDENTITY}"
+    return (
+        f"execute-live:{lock.identity}:{lock.runner_identity}:"
+        f"{lock.live_entry_identity}"
+    )
 
 
 @dataclass(frozen=True)
@@ -581,8 +584,8 @@ def reconstruct_live_campaign_report(
     return LiveCampaignReport(
         lock_identity=lock.identity,
         schedule_identity=lock.schedule_identity,
-        runner_identity=RUNNER_IDENTITY,
-        live_entry_identity=LIVE_ENTRY_IDENTITY,
+        runner_identity=lock.runner_identity,
+        live_entry_identity=lock.live_entry_identity,
         planned_slots=len(inventory),
         executed_slots=state_counts["completed"] + state_counts["failed"],
         skipped_slots=state_counts["skipped-by-stop-rule"],

@@ -1,0 +1,20 @@
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "message": {
+        "content": "The requested state is already satisfied.",
+        "reasoning_content": "The retained status directly establishes completion.",
+        "role": "assistant"
+      }
+    }
+  ],
+  "id": "v3-response-final-1",
+  "model": "deepseek-v4-flash",
+  "system_fingerprint": "v3-fixture-fingerprint",
+  "usage": {
+    "completion_tokens": 17,
+    "prompt_tokens": 39,
+    "total_tokens": 56
+  }
+}

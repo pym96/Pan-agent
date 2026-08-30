@@ -1,0 +1,30 @@
+{
+  "messages": [
+    {
+      "content": "Inspect the status.",
+      "role": "user"
+    },
+    {
+      "arguments": {},
+      "call_id": "history-call-1",
+      "reasoning": "First inspect the status.",
+      "role": "assistant_tool_call",
+      "tool_name": "inspect_status"
+    },
+    {
+      "call_id": "history-call-1",
+      "content": "{\"ready\":false}",
+      "role": "tool",
+      "tool_name": "inspect_status"
+    },
+    {
+      "content": "No action was needed for that question.",
+      "reasoning": "The question can be answered from the retained result.",
+      "role": "assistant_final"
+    },
+    {
+      "content": "Inspect it once more.",
+      "role": "user"
+    }
+  ]
+}

@@ -48,6 +48,8 @@ The accepted implementation baseline is split across:
 
 `test_deepseek_live_runner.py` exercises WorkOrder #11 Stage A-R only through the production runner seam: repaired identity/acknowledgement, deterministic 120-slot high-seam composition, intent/authorization/settlement ordering, typed dispatch exceptions, balance/usage/persistence/cancellation/fingerprint/transport stops, 600-call ceiling, duplicate invocation, full denominator reconstruction, and byte-stable default preview. Every Provider and balance Adapter is a local fake; real balance queries, model calls, and cost remain `0 / 0 / CNY 0`.
 
+`test_deepseek_live_v3_gateway.py`, `test_deepseek_live_v3_campaign.py`, and `test_deepseek_live_v3_runner.py` exercise WorkOrder #19's zero-call v3 seam: exact omission of request-level `tool_choice`; retained Thinking/tools/endpoint/output factors; tool, typed-terminal, and ordinary-final admission; restricted reasoning replay/privacy; malformed/ambiguous/history/identity/HTTP rejection; content-hashed v2-linked lock; byte-stable 120-slot preview; v2 preservation; old-ack rejection; and fail-on-use Provider/balance Adapters. Credential reads, balance queries, model calls, formal Runs, and cost remain `0 / 0 / 0 / 0 / CNY 0`.
+
 Run the full handoff command with:
 
 ```bash

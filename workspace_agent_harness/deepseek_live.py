@@ -45,6 +45,7 @@ from .translation import (
 
 
 DEEPSEEK_LIVE_TRANSLATION_VERSION = "deepseek-behavioral-native-tools/v1"
+DEEPSEEK_LIVE_V3_TRANSLATION_VERSION = "deepseek-behavioral-native-tools/v2"
 DEEPSEEK_LIVE_SYSTEM_PROMPT = (
     "Act on the task only through exactly one provided function per response. "
     "Use a domain function to inspect or mutate local state. Use complete only "
@@ -65,6 +66,8 @@ class DeepSeekLiveModelProfile:
     max_output_tokens: int = 384_000
     capability_observed_on: str = "2026-08-28"
     capability_source: str = "https://api-docs.deepseek.com/zh-cn/quick_start/pricing/"
+    tool_choice_contract: str = "required"
+    response_admission: str = "tool-calls-only"
 
     def __post_init__(self) -> None:
         if self.provider != "DeepSeek":
@@ -79,9 +82,21 @@ class DeepSeekLiveModelProfile:
             raise ValueError("live profile Context window must be 1,000,000 Tokens")
         if self.max_output_tokens != 384_000:
             raise ValueError("live profile maximum output must be 384,000 Tokens")
+        supported_contracts = {
+            ("required", "tool-calls-only"),
+            (
+                "provider-controlled-default-omitted",
+                "one-tool-call-or-nonempty-stop-content",
+            ),
+        }
+        if (
+            self.tool_choice_contract,
+            self.response_admission,
+        ) not in supported_contracts:
+            raise ValueError("unsupported DeepSeek tool-choice/response contract")
 
     def identity_material(self) -> dict[str, object]:
-        return {
+        material: dict[str, object] = {
             "provider": self.provider,
             "requested_model": self.requested_model,
             "endpoint": self.endpoint,
@@ -95,6 +110,15 @@ class DeepSeekLiveModelProfile:
             "capability_observed_on": self.capability_observed_on,
             "capability_source": self.capability_source,
         }
+        if self.tool_choice_contract != "required":
+            material.update(
+                {
+                    "tool_choice_contract": self.tool_choice_contract,
+                    "wire_tool_choice_key": "omitted",
+                    "response_admission": self.response_admission,
+                }
+            )
+        return material
 
     @property
     def identity(self) -> str:
@@ -103,6 +127,13 @@ class DeepSeekLiveModelProfile:
 
 def locked_deepseek_model_profile() -> DeepSeekLiveModelProfile:
     return DeepSeekLiveModelProfile()
+
+
+def locked_deepseek_v3_model_profile() -> DeepSeekLiveModelProfile:
+    return DeepSeekLiveModelProfile(
+        tool_choice_contract="provider-controlled-default-omitted",
+        response_admission="one-tool-call-or-nonempty-stop-content",
+    )
 
 
 @dataclass(frozen=True)
@@ -192,21 +223,41 @@ class DeepSeekLiveTranslationAdapter:
 
     @property
     def identity(self) -> str:
-        return identity_sha256(
-            {
-                "version": DEEPSEEK_LIVE_TRANSLATION_VERSION,
-                "model_profile_identity": self._profile.identity,
-                "system_prompt_sha256": identity_sha256(self._system_prompt),
-                "history_carrier": "native-tool-calls",
-                "reasoning_carrier": "reasoning_content-restricted",
-                "executable_argument_carrier": "command-only",
-                "provider_strict": False,
-                "max_actions_per_turn": 1,
-                "tool_bindings": [
-                    binding.identity_material() for binding in self._bindings
-                ],
-                "terminal_tools": _terminal_tool_material(),
-            }
+        material: dict[str, object] = {
+            "version": (
+                DEEPSEEK_LIVE_V3_TRANSLATION_VERSION
+                if self._uses_provider_controlled_tool_choice
+                else DEEPSEEK_LIVE_TRANSLATION_VERSION
+            ),
+            "model_profile_identity": self._profile.identity,
+            "system_prompt_sha256": identity_sha256(self._system_prompt),
+            "history_carrier": "native-tool-calls",
+            "reasoning_carrier": "reasoning_content-restricted",
+            "executable_argument_carrier": "command-only",
+            "provider_strict": False,
+            "max_actions_per_turn": 1,
+            "tool_bindings": [
+                binding.identity_material() for binding in self._bindings
+            ],
+            "terminal_tools": _terminal_tool_material(),
+        }
+        if self._uses_provider_controlled_tool_choice:
+            material.update(
+                {
+                    "tool_choice_contract": self._profile.tool_choice_contract,
+                    "wire_tool_choice_key": "omitted",
+                    "response_admission": self._profile.response_admission,
+                    "ordinary_final_mapping": "stop-nonempty-content-to-completed",
+                    "reasoning_history_replay": "all-assistant-turns-with-tools",
+                }
+            )
+        return identity_sha256(material)
+
+    @property
+    def _uses_provider_controlled_tool_choice(self) -> bool:
+        return (
+            self._profile.tool_choice_contract
+            == "provider-controlled-default-omitted"
         )
 
     def encode_request(self, prepared_turn: PreparedModelTurn) -> DeepSeekLiveRequest:
@@ -219,7 +270,8 @@ class DeepSeekLiveTranslationAdapter:
         ]
         historical_call_ids: list[str] = []
         awaiting_result: tuple[str, str] | None = None
-        for message in prepared_turn.conversation.messages:
+        conversation_messages = prepared_turn.conversation.messages
+        for index, message in enumerate(conversation_messages):
             if isinstance(message, UserMessage):
                 if awaiting_result is not None:
                     raise ValueError("assistant tool call is missing its paired result")
@@ -236,6 +288,8 @@ class DeepSeekLiveTranslationAdapter:
                     binding,
                     message.call.arguments,
                 )
+                if self._uses_provider_controlled_tool_choice and not message.reasoning:
+                    raise ValueError("v3 assistant reasoning history must be complete")
                 historical_call_ids.append(message.call.call_id)
                 awaiting_result = (message.call.call_id, message.call.tool_name)
                 messages.append(
@@ -269,7 +323,24 @@ class DeepSeekLiveTranslationAdapter:
                 )
                 awaiting_result = None
             elif isinstance(message, AssistantFinalMessage):
-                raise ValueError("terminal assistant history cannot be sent again")
+                if not self._uses_provider_controlled_tool_choice:
+                    raise ValueError("terminal assistant history cannot be sent again")
+                if not message.reasoning:
+                    raise ValueError("v3 assistant reasoning history must be complete")
+                if (
+                    index + 1 >= len(conversation_messages)
+                    or not isinstance(conversation_messages[index + 1], UserMessage)
+                ):
+                    raise ValueError(
+                        "terminal assistant history requires a subsequent user turn"
+                    )
+                messages.append(
+                    {
+                        "role": "assistant",
+                        "content": message.content,
+                        "reasoning_content": message.reasoning,
+                    }
+                )
             else:
                 raise ValueError("unsupported canonical history message")
         if awaiting_result is not None:
@@ -284,8 +355,9 @@ class DeepSeekLiveTranslationAdapter:
             "tools": [
                 _provider_tool(binding) for binding in self._bindings
             ] + _terminal_provider_tools(),
-            "tool_choice": "required",
         }
+        if not self._uses_provider_controlled_tool_choice:
+            payload["tool_choice"] = "required"
         return DeepSeekLiveRequest(
             endpoint=self._profile.endpoint,
             payload=payload,
@@ -334,7 +406,12 @@ class DeepSeekLiveTranslationAdapter:
                 "length_terminated",
                 finish_reason="length",
             )
-        if finish_reason != "tool_calls":
+        allowed_finish_reasons = (
+            {"tool_calls", "stop"}
+            if self._uses_provider_controlled_tool_choice
+            else {"tool_calls"}
+        )
+        if finish_reason not in allowed_finish_reasons:
             return _protocol_failure(
                 request,
                 response,
@@ -347,6 +424,64 @@ class DeepSeekLiveTranslationAdapter:
         reasoning = message.get("reasoning_content")
         if not isinstance(reasoning, str):
             return _protocol_failure(request, response, "reasoning_content_missing")
+        if self._uses_provider_controlled_tool_choice and not reasoning:
+            return _protocol_failure(request, response, "reasoning_content_missing")
+        if finish_reason == "stop":
+            content = message.get("content")
+            tool_calls = message.get("tool_calls")
+            if tool_calls not in (None, []):
+                return _protocol_failure(
+                    request,
+                    response,
+                    "content_tool_calls_conflict",
+                    finish_reason="stop",
+                )
+            if not isinstance(content, str) or not content.strip():
+                return _protocol_failure(
+                    request,
+                    response,
+                    "final_content_invalid",
+                    finish_reason="stop",
+                )
+            usage = _usage(envelope.get("usage"))
+            metadata = provider_metadata(
+                response_id=_optional_text(envelope.get("id")),
+                returned_model=_optional_text(envelope.get("model")),
+                system_fingerprint=_optional_text(envelope.get("system_fingerprint")),
+                finish_reason="stop",
+            )
+            evidence = ExchangeEvidence(
+                response_identity=response_identity,
+                usage=usage,
+                duration_ms=response.duration_ms,
+                request_identity=request.payload_identity,
+                requested_model=self._profile.requested_model,
+                returned_model=_optional_text(envelope.get("model")),
+                system_fingerprint=_optional_text(envelope.get("system_fingerprint")),
+                finish_reason="stop",
+                dispatch_state=ProviderDispatchState.RESPONSE_RECEIVED,
+            )
+            return ExchangeSettled(
+                exchange_id=_exchange_id(request, response),
+                candidate=CandidateFinal(
+                    content=content,
+                    disposition=FinalDisposition.COMPLETED,
+                    reasoning=reasoning,
+                    provider_metadata=metadata,
+                ),
+                stop_reason="stop",
+                evidence=evidence,
+            )
+        if (
+            self._uses_provider_controlled_tool_choice
+            and message.get("content") not in (None, "")
+        ):
+            return _protocol_failure(
+                request,
+                response,
+                "content_tool_calls_conflict",
+                finish_reason="tool_calls",
+            )
         tool_calls = message.get("tool_calls")
         if not isinstance(tool_calls, list) or len(tool_calls) != 1:
             return _protocol_failure(request, response, "action_count_invalid")
@@ -873,6 +1008,7 @@ def _json_copy(value: object) -> object:
 __all__ = [
     "DEEPSEEK_LIVE_SYSTEM_PROMPT",
     "DEEPSEEK_LIVE_TRANSLATION_VERSION",
+    "DEEPSEEK_LIVE_V3_TRANSLATION_VERSION",
     "DeepSeekLiveModelProfile",
     "DeepSeekLiveRequest",
     "DeepSeekLiveTranslationAdapter",
@@ -883,4 +1019,5 @@ __all__ = [
     "FileDeepSeekExchangeStore",
     "RetainedDeepSeekResponse",
     "locked_deepseek_model_profile",
+    "locked_deepseek_v3_model_profile",
 ]
