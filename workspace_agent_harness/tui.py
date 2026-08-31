@@ -29,11 +29,35 @@ from workspace_agent_harness.evented import (
     load_run_event_log,
     render_run_events,
 )
+from workspace_agent_harness.live_tui import run_live_tui
 
 
 def main(arguments: Sequence[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
-        description="Run or replay the credential-free evented Agent tracer."
+        description=(
+            "Run or replay the evented Agent tracer, or explicitly start the "
+            "DeepSeek Live workspace TUI."
+        )
+    )
+    parser.add_argument(
+        "--live-deepseek",
+        action="store_true",
+        help=(
+            "start the reusable DeepSeek v3 workspace TUI; no external call "
+            "occurs until a confirmed non-empty task is submitted"
+        ),
+    )
+    parser.add_argument(
+        "--workspace",
+        type=Path,
+        help="explicit model-writable workspace root for --live-deepseek",
+    )
+    parser.add_argument(
+        "--session-root",
+        type=Path,
+        help=(
+            "new artifact root outside the selected workspace for --live-deepseek"
+        ),
     )
     parser.add_argument(
         "--log",
@@ -88,6 +112,7 @@ def main(arguments: Sequence[str] | None = None) -> int:
     if options.replay is not None:
         if (
             options.log is not None
+            or options.live_deepseek
             or options.wait_for_cancel
             or options.semantic_compaction_demo
             or options.overflow_recovery_demo
@@ -95,8 +120,8 @@ def main(arguments: Sequence[str] | None = None) -> int:
         ):
             parser.error(
                 "--replay cannot be combined with --log, --wait-for-cancel, "
-                "--semantic-compaction-demo, --overflow-recovery-demo, or "
-                "--overflow-exhaustion-demo"
+                "--live-deepseek, --semantic-compaction-demo, "
+                "--overflow-recovery-demo, or --overflow-exhaustion-demo"
             )
         try:
             retained_events = load_run_event_log(options.replay)
@@ -111,6 +136,33 @@ def main(arguments: Sequence[str] | None = None) -> int:
             print(f"Replay failed: {error}", file=sys.stderr)
             return 2
         return 0
+
+    if options.live_deepseek:
+        if options.log is not None or any(
+            (
+                options.wait_for_cancel,
+                options.semantic_compaction_demo,
+                options.overflow_recovery_demo,
+                options.overflow_exhaustion_demo,
+            )
+        ):
+            parser.error(
+                "--live-deepseek cannot be combined with --log or a deterministic "
+                "demo mode"
+            )
+        if options.workspace is None or options.session_root is None:
+            parser.error("--live-deepseek requires --workspace and --session-root")
+        if len(selected_views) != 1:
+            parser.error("--live-deepseek accepts exactly one initial --view")
+        return run_live_tui(
+            workspace_root=options.workspace,
+            session_root=options.session_root,
+            initial_view=selected_views[0],
+            explain_compaction=options.explain_compaction,
+        )
+
+    if options.workspace is not None or options.session_root is not None:
+        parser.error("--workspace and --session-root require --live-deepseek")
 
     demo_modes = (
         options.wait_for_cancel,

@@ -32,6 +32,7 @@ The architecture is Human-accepted. The code and tests below remain a candidate,
 - [`docs/design/deepseek-live-behavioral-eval-stage-a.md`](docs/design/deepseek-live-behavioral-eval-stage-a.md): WorkOrder #11 Stage A's DeepSeek native-tool Translation/Gateway, balance and call/token/cost controls, content-hashed paired 120-slot lock, and zero-call inventory candidate; pending independent Regulator review and containing no live result;
 - [`docs/design/deepseek-live-budgeted-serial-runner.md`](docs/design/deepseek-live-budgeted-serial-runner.md) and [`Stage B terminal Evidence`](docs/evidence/deepseek-live-stage-b-terminal-2026-08-29.md): WorkOrder #11's independently accepted runner later retained one frozen HTTP 400 Provider exchange, mandatory balance settlement, `model_usage_missing` stop, and the complete `1 failed / 119 skipped / 0 missing` denominator; v2 is terminal, with no task result or arm comparison, and any v3 requires a new lock and fresh Human budget authorization;
 - [`docs/design/deepseek-live-v3-adapter-stage-a.md`](docs/design/deepseek-live-v3-adapter-stage-a.md) and [`candidate Evidence`](docs/evidence/deepseek-live-v3-stage-a-candidate-2026-08-29.md): WorkOrder #19's independently accepted zero-call v3 repair retains Thinking/tools/stable endpoint, omits request-level `tool_choice`, accepts one typed tool call or non-empty ordinary final content, versions the lock/runner/entry identity chain, and preserves the 120-slot controls; accepted on 2026-08-29 and authorizing no live call;
+- [`docs/design/deepseek-live-tui.md`](docs/design/deepseek-live-tui.md) and [`smoke candidate Evidence`](docs/evidence/deepseek-live-tui-smoke-candidate-2026-08-31.md): WorkOrder #21's reusable Human-driven DeepSeek workspace TUI candidate, with fresh AgentLoop/Context/Event Log per task, persistent bounded workspace, typed no-shell tools, active committed-event projection, offline replay, and accepted semantic compaction/overflow recovery; its only authorized smoke retained one three-ToolCall response rejected before effects and remains pending independent review;
 - [`tests/test_general_runtime_contract.py`](tests/test_general_runtime_contract.py): Runtime/Pack seam, authority, admission, and evaluator-limit contracts;
 - [`tests/test_benchmark_campaign_contract.py`](tests/test_benchmark_campaign_contract.py): suite selection, eligibility, aggregation, and append-only attempt contracts.
 - [`workspace_agent_harness/proof_packs.py`](workspace_agent_harness/proof_packs.py): concrete seed Pack implementation candidate; the Runtime Module does not import it;
@@ -48,6 +49,21 @@ The completed Working Agent result and its explicit limits are indexed at [`docs
 The follow-up [`maximum-token sensitivity candidate Evidence`](docs/evidence/protocol-max-token-sensitivity-candidate-2026-08-24.md) qualifies that result: higher ceilings extended many malformed Strict/ReAct outputs to 16K without a monotonic L3 gain. It supports bounded validation/repair rather than using 16K as the default protocol fix and remains pending independent review.
 
 The WorkOrder #4 implementation candidate adds [`translation.py`](workspace_agent_harness/translation.py), the provider-specific [`deepseek_translation.py`](workspace_agent_harness/deepseek_translation.py), and an [offline four-cell dry-run](scripts/dry_run_translation_matrix.py). Its offline candidate passed an independent Regulator Gate on 2026-08-25, while its secret-free fixture contracts prove local mapping and rejection behavior only; no live call, causal result, Verified Project Fact, Wiki entry, or resume claim was produced.
+
+## DeepSeek Live workspace TUI candidate
+
+WorkOrder #21 adds an explicit reusable terminal session without turning the TUI into another Agent loop. Choose an existing workspace and a new artifact path outside it:
+
+```bash
+read -s DEEPSEEK_API_KEY
+export DEEPSEEK_API_KEY
+PYTHONPATH=. python3 -m workspace_agent_harness.tui \
+  --live-deepseek \
+  --workspace /absolute/path/to/workspace \
+  --session-root /absolute/new/path/to/live-session
+```
+
+The command displays and asks you to confirm the Provider, model, resolved workspace, and no-shell tool boundary before accepting `Task>`. Each task gets a new Run and model Context while the workspace persists. Use `:help`, `:view compact|expanded|trace`, `:runs`, `:replay RUN_ID`, or `:exit`. Starting, cancelling before confirmation, using help/views, or replaying makes no Provider call. Run artifacts contain the append-only Event Log, secret-free Provider exchanges, Context artifacts, public metadata, reported usage, and changed workspace paths. The WorkOrder's sole Builder smoke has been consumed and retained; no further live call is authorized before independent acceptance and a later Human execution decision.
 
 PinchBench is pinned as an external compatibility source, not vendored as the Runtime contract. [`workspace_agent_harness/benchmark_configs/`](workspace_agent_harness/benchmark_configs/) holds content locks; `workspace_agent_harness.benchmarks.load_pinchbench_suite(...)` audits a caller-supplied clean checkout without executing embedded graders. All 21/147 upstream cases are currently ineligible because no local translation is frozen. Any later translated local run must be labelled `pinchbench-compatible`; official compatibility requires the unmodified upstream runner. The Composio thread contributes campaign shape and efficiency metrics only, not reusable tasks or results.
 
