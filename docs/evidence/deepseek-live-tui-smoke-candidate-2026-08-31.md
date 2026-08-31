@@ -1,10 +1,10 @@
 # DeepSeek Live TUI smoke candidate Evidence — 2026-08-31
 
-- Status: Working Agent candidate; pending independent Regulator review
+- Status: historical Working Agent observation; Regulator rejected its authorization qualification, so it is not accepted Evidence
 - Session role: Working Agent (Builder)
 - Base commit: `f3e1e0d34937034c69b1f7dcdac7075da4aa262f`
 - WorkOrder: [Issue #21](https://github.com/pym96/workspace-agent-harness/issues/21)
-- Human authorization: one real smoke Run under a private maximum-spend ceiling; no retry, replacement task, or second Run
+- Authorization qualification: chat-level approval existed, but the Regulator found no contemporaneous durable issue-level pre-call authorization; the observation is retained without retroactively treating the Run as authorized
 - Observed external use: `2` official balance queries / `1` Provider-model exchange / `1` formal Run
 
 ## Frozen task and workspace
@@ -47,11 +47,11 @@ The Provider response contained three parallel ToolCalls. The accepted Translati
 
 This is a time/configuration-bound observation, not evidence that DeepSeek always emits parallel calls. It does show that the reusable entry reaches the live Provider seam and that the current single-action admission fails closed without workspace effects for this observed response.
 
-## Balance and authorization boundary
+## Balance and authority qualification
 
-The official CNY balance response identity was unchanged before and after the Run: `sha256:02429d0bbad687306db881e6a47a55f343860d53e090889ebd75ac34f4261fff`. The observed balance delta was `CNY 0.00`, within the private Human-authorized maximum. This is the balance endpoint's observable precision; it is not a claim that the unrounded economic cost was exactly zero.
+The official CNY balance response identity was unchanged before and after the Run: `sha256:02429d0bbad687306db881e6a47a55f343860d53e090889ebd75ac34f4261fff`. The observed balance delta was `CNY 0.00`. This is the balance endpoint's observable precision; it is not a claim that the unrounded economic cost was exactly zero or that the call satisfied the repository's durable authorization protocol.
 
-The private account balance and authorization amount are not reproduced in this public candidate. Raw balance responses remain only in the ignored local Evidence root. This WorkOrder's one live Run is consumed; this candidate authorizes no further Provider-model call.
+The private account balance and chat-level ceiling are not reproduced in this public candidate. Raw balance responses remain only in the ignored local Evidence root. The latest [Human/Master override](https://github.com/pym96/workspace-agent-harness/issues/21#issuecomment-5474512300) forbids the Builder from making another Provider call or smoke Run. It separately permits Human-operated use of the repaired candidate; each task the Human submits is that Human's execution decision, not authorization for a Builder-run experiment.
 
 ## Retained artifacts
 
@@ -90,4 +90,4 @@ The full suite emitted the existing evaluator process-group negative-probe `Reso
 
 ## Claim boundary
 
-This candidate records one reusable Live TUI implementation and one terminal smoke observation. The smoke did not satisfy its task oracle and is not a benchmark, persistent Provider property, model-quality conclusion, Verified Project Fact, Learning Wiki fact, resume fact, or public product claim. It authorizes no second Run, retry, prompt repair, task replacement, new protocol behavior, Provider matrix, or fact promotion. Independent Regulator review remains mandatory.
+This document records one historical terminal observation from the rejected candidate. The smoke did not satisfy its task oracle and is not accepted Evidence, a benchmark, a persistent Provider property, a model-quality conclusion, a Verified Project Fact, a Learning Wiki fact, a resume fact, or a public product claim. It authorizes no Builder Run, retry, prompt repair, task replacement, Provider matrix, or fact promotion. Independent review may still govern landing or later claims, but the latest Human/Master override does not make it a prerequisite for direct Human-operated use of the repaired candidate.

@@ -24,7 +24,6 @@ from workspace_agent_harness.context_projection import (
     action_tool_set_identity,
 )
 from workspace_agent_harness.deepseek_live import (
-    DEEPSEEK_LIVE_SYSTEM_PROMPT,
     DeepSeekHttpTransport,
     DeepSeekLiveTranslationAdapter,
     DeepSeekModelGateway,
@@ -38,6 +37,7 @@ from workspace_agent_harness.evented import (
     EventedRunStatus,
     EventTool,
     JsonlRunEventLog,
+    MAX_TOOL_CALLS_PER_BATCH,
     ModelGateway,
     RunEvent,
     RunEventView,
@@ -57,8 +57,12 @@ LIVE_TUI_RUN_LIMITS = RunLimits(
     timeout_seconds=300,
 )
 LIVE_TUI_SYSTEM_PROMPT = (
-    DEEPSEEK_LIVE_SYSTEM_PROMPT
-    + " The selected workspace is the only filesystem authority. All paths must "
+    "Act on the task only through provided functions. One response may contain "
+    f"between 1 and {MAX_TOOL_CALLS_PER_BATCH} independent domain function calls; "
+    "they execute serially in the returned order after the complete batch validates. "
+    "Use complete or abstain only as the single function in a response. Never place "
+    "reasoning, rationale, thought, or analysis in function arguments. The selected "
+    "workspace is the only filesystem authority. All paths must "
     "be relative to that workspace. Use inspect_workspace and read_file before "
     "changing unfamiliar files. Use write_file for bounded atomic text changes. "
     "Use verify_workspace for supported syntax checks; no host shell is available. "
@@ -103,9 +107,8 @@ class WorkspaceBoundary:
         self.root = resolved
 
     def inspect(self, relative_path: str) -> SemanticToolObservation:
+        self.validate_inspect(relative_path)
         selected = self._resolve_existing(relative_path, allow_root=True)
-        if not selected.is_dir():
-            raise ValueError("inspect_workspace path must name a directory")
         entries: list[dict[str, object]] = []
         for child in sorted(selected.iterdir(), key=lambda item: item.name):
             if len(entries) >= LIVE_TUI_MAX_LIST_ENTRIES:
@@ -135,12 +138,8 @@ class WorkspaceBoundary:
         )
 
     def read_text(self, relative_path: str) -> SemanticToolObservation:
+        self.validate_read(relative_path)
         selected = self._resolve_existing(relative_path)
-        selected_stat = selected.stat()
-        if not stat.S_ISREG(selected_stat.st_mode):
-            raise ValueError("read_file path must name a regular file")
-        if selected_stat.st_size > LIVE_TUI_MAX_FILE_BYTES:
-            raise ValueError("read_file exceeds the bounded text-file size")
         body = selected.read_bytes()
         if len(body) > LIVE_TUI_MAX_FILE_BYTES:
             raise ValueError("read_file changed beyond the bounded text-file size")
@@ -156,11 +155,8 @@ class WorkspaceBoundary:
         )
 
     def write_text(self, relative_path: str, content: str) -> tuple[str, bool]:
-        if not isinstance(content, str):
-            raise ValueError("write_file content must be text")
+        self.validate_write(relative_path, content)
         body = content.encode("utf-8")
-        if len(body) > LIVE_TUI_MAX_FILE_BYTES:
-            raise ValueError("write_file exceeds the bounded text-file size")
         selected = self._resolve_write_target(relative_path)
         previous: bytes | None = None
         if selected.exists():
@@ -195,8 +191,7 @@ class WorkspaceBoundary:
         return receipt, changed
 
     def verify(self, check: str) -> SemanticToolObservation:
-        if check not in {"python-syntax", "json-syntax"}:
-            raise ValueError("unsupported workspace verification check")
+        self.validate_verify(check)
         suffix = ".py" if check == "python-syntax" else ".json"
         checked = 0
         failures: list[str] = []
@@ -230,6 +225,30 @@ class WorkspaceBoundary:
             facts=(f"Ran {check} over {checked} workspace files: {status}.",),
             failures=tuple(failures),
         )
+
+    def validate_inspect(self, relative_path: str) -> None:
+        selected = self._resolve_existing(relative_path, allow_root=True)
+        if not selected.is_dir():
+            raise ValueError("inspect_workspace path must name a directory")
+
+    def validate_read(self, relative_path: str) -> None:
+        selected = self._resolve_existing(relative_path)
+        selected_stat = selected.stat()
+        if not stat.S_ISREG(selected_stat.st_mode):
+            raise ValueError("read_file path must name a regular file")
+        if selected_stat.st_size > LIVE_TUI_MAX_FILE_BYTES:
+            raise ValueError("read_file exceeds the bounded text-file size")
+
+    def validate_write(self, relative_path: str, content: str) -> None:
+        if not isinstance(content, str):
+            raise ValueError("write_file content must be text")
+        if len(content.encode("utf-8")) > LIVE_TUI_MAX_FILE_BYTES:
+            raise ValueError("write_file exceeds the bounded text-file size")
+        self._resolve_write_target(relative_path)
+
+    def validate_verify(self, check: str) -> None:
+        if check not in {"python-syntax", "json-syntax"}:
+            raise ValueError("unsupported workspace verification check")
 
     def _safe_regular_files(self, suffix: str) -> Sequence[Path]:
         selected: list[Path] = []
@@ -345,6 +364,10 @@ class InspectWorkspaceTool(_WorkspaceTool):
         payload = _decode_tool_input(arguments, ("path",))
         return self._boundary.inspect(cast(str, payload["path"]))
 
+    def validate(self, arguments: Mapping[str, object]) -> None:
+        payload = _decode_tool_input(arguments, ("path",))
+        self._boundary.validate_inspect(cast(str, payload["path"]))
+
 
 class ReadWorkspaceFileTool(_WorkspaceTool):
     definition = ActionTool(
@@ -364,6 +387,10 @@ class ReadWorkspaceFileTool(_WorkspaceTool):
     ) -> SemanticToolObservation:
         payload = _decode_tool_input(arguments, ("path",))
         return self._boundary.read_text(cast(str, payload["path"]))
+
+    def validate(self, arguments: Mapping[str, object]) -> None:
+        payload = _decode_tool_input(arguments, ("path",))
+        self._boundary.validate_read(cast(str, payload["path"]))
 
 
 class WriteWorkspaceFileTool(_WorkspaceTool):
@@ -404,6 +431,13 @@ class WriteWorkspaceFileTool(_WorkspaceTool):
             facts=(f"Wrote workspace file {normalized}; changed={str(changed).lower()}.",),
         )
 
+    def validate(self, arguments: Mapping[str, object]) -> None:
+        payload = _decode_tool_input(arguments, ("path", "content"))
+        self._boundary.validate_write(
+            cast(str, payload["path"]),
+            cast(str, payload["content"]),
+        )
+
 
 class VerifyWorkspaceTool(_WorkspaceTool):
     definition = ActionTool(
@@ -423,6 +457,10 @@ class VerifyWorkspaceTool(_WorkspaceTool):
     ) -> SemanticToolObservation:
         payload = _decode_tool_input(arguments, ("check",))
         return self._boundary.verify(cast(str, payload["check"]))
+
+    def validate(self, arguments: Mapping[str, object]) -> None:
+        payload = _decode_tool_input(arguments, ("check",))
+        self._boundary.validate_verify(cast(str, payload["check"]))
 
 
 def live_workspace_tools(boundary: WorkspaceBoundary) -> tuple[EventTool, ...]:
@@ -690,6 +728,7 @@ class LiveTuiSession:
                 profile=locked_deepseek_v3_model_profile(),
                 tool_bindings=live_workspace_bindings(tools),
                 system_prompt=LIVE_TUI_SYSTEM_PROMPT,
+                max_tool_calls_per_response=MAX_TOOL_CALLS_PER_BATCH,
             ),
             transport=DeepSeekHttpTransport(
                 api_key=self._api_key,
@@ -747,11 +786,11 @@ class LiveTuiSession:
                 self._output.write(f"VIEW_SELECTED {self._view.value}\n")
             return False
         if name == ":replay" and len(pieces) == 2:
-            record = self._records.get(pieces[1])
-            if record is None:
+            replay_record = self._records.get(pieces[1])
+            if replay_record is None:
                 self._output.write("Unknown Run ID; no replay or external call occurred.\n")
                 return False
-            events = load_run_event_log(record.event_log_path)
+            events = load_run_event_log(replay_record.event_log_path)
             self._output.write(
                 render_run_events(
                     events,

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import io
 import json
 import os
@@ -28,6 +29,7 @@ from workspace_agent_harness.evented import (
     PreparedModelTurn,
     ProviderFailure,
     ProviderFailureKind,
+    MAX_TOOL_CALLS_PER_BATCH,
     load_run_event_log,
 )
 from workspace_agent_harness.live_tui import (
@@ -44,7 +46,25 @@ from workspace_agent_harness.live_tui import (
 )
 
 
+LIVE_TUI_FIXTURES = Path(__file__).parent / "fixtures" / "live_tui"
+
+
 class LiveTuiSessionTest(unittest.TestCase):
+    def test_multi_tool_fixtures_are_hash_bound_and_secret_free(self) -> None:
+        manifest = json.loads(
+            (LIVE_TUI_FIXTURES / "manifest.json").read_text(encoding="utf-8")
+        )
+        self.assertEqual(
+            "workspace-agent-harness/live-tui-multi-tool-fixtures/v1",
+            manifest["schema"],
+        )
+        for entry in manifest["files"]:
+            body = (LIVE_TUI_FIXTURES / entry["path"]).read_bytes()
+            self.assertEqual(entry["sha256"], hashlib.sha256(body).hexdigest())
+            lowered = body.lower()
+            self.assertNotIn(b"api_key", lowered)
+            self.assertNotIn(b"authorization", lowered)
+
     def test_multiple_tasks_share_workspace_but_start_fresh_model_contexts(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_directory:
             root = Path(temporary_directory)
@@ -149,6 +169,7 @@ class LiveTuiSessionTest(unittest.TestCase):
                         profile=locked_deepseek_v3_model_profile(),
                         tool_bindings=live_workspace_bindings(tools),
                         system_prompt=LIVE_TUI_SYSTEM_PROMPT,
+                        max_tool_calls_per_response=MAX_TOOL_CALLS_PER_BATCH,
                     ),
                     transport=transport,
                     exchange_store=FileDeepSeekExchangeStore(
@@ -212,6 +233,176 @@ class LiveTuiSessionTest(unittest.TestCase):
             self.assertNotIn(
                 "The retained tool result proves completion.",
                 output.getvalue(),
+            )
+
+    def test_live_tui_executes_provider_tool_batch_in_order_with_paired_history(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            workspace = root / "workspace"
+            (workspace / "notes").mkdir(parents=True)
+            (workspace / "notes" / "a.txt").write_text("alpha=2\n", encoding="utf-8")
+            (workspace / "notes" / "b.txt").write_text("beta=3\n", encoding="utf-8")
+            transport = _RetainedTransport(
+                (
+                    _live_tui_fixture("valid-three-domain-tools.response.json"),
+                    _provider_final_response(
+                        content="The exact result is present.",
+                        input_tokens=1_100,
+                        output_tokens=21,
+                    ),
+                )
+            )
+
+            def gateway_factory(run_root, tools):
+                return DeepSeekModelGateway(
+                    adapter=DeepSeekLiveTranslationAdapter(
+                        profile=locked_deepseek_v3_model_profile(),
+                        tool_bindings=live_workspace_bindings(tools),
+                        system_prompt=LIVE_TUI_SYSTEM_PROMPT,
+                        max_tool_calls_per_response=MAX_TOOL_CALLS_PER_BATCH,
+                    ),
+                    transport=transport,
+                    exchange_store=FileDeepSeekExchangeStore(
+                        run_root / "provider-exchanges"
+                    ),
+                )
+
+            output = io.StringIO()
+            session = LiveTuiSession(
+                workspace_root=workspace,
+                session_root=root / "session",
+                input_stream=io.StringIO("yes\ncalculate the exact total\n:exit\n"),
+                output=output,
+                gateway_factory=gateway_factory,
+                credential_loader=_must_not_be_called,
+                run_id_factory=lambda: "multi-tool-live-run",
+            )
+
+            self.assertEqual(0, session.run())
+            self.assertEqual("total=5", (workspace / "result.txt").read_text())
+            self.assertEqual(2, transport.calls)
+            follow_up = transport.requests[1].payload["messages"]
+            self.assertEqual(
+                ["system", "user", "assistant", "tool", "tool", "tool"],
+                [message["role"] for message in follow_up],
+            )
+            self.assertEqual(
+                ["batch-read-a", "batch-read-b", "batch-write-result"],
+                [call["id"] for call in follow_up[2]["tool_calls"]],
+            )
+            self.assertEqual(
+                ["batch-read-a", "batch-read-b", "batch-write-result"],
+                [message["tool_call_id"] for message in follow_up[3:]],
+            )
+            record = session.records[0]
+            self.assertEqual(2, record.model_calls)
+            self.assertEqual(3, record.tool_calls)
+            self.assertIn(
+                "ACTION candidate.accepted kind=tool_call_batch calls=3",
+                output.getvalue(),
+            )
+            events = load_run_event_log(record.event_log_path)
+            self.assertEqual(
+                ["read_file", "read_file", "write_file"],
+                [
+                    event.payload["tool_name"]
+                    for event in events
+                    if event.event_type == "tool.execution_started"
+                ],
+            )
+
+    def test_invalid_late_batch_call_rejects_every_call_before_effects(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            workspace = root / "workspace"
+            workspace.mkdir()
+            (root / "outside.txt").write_text("outside", encoding="utf-8")
+            transport = _RetainedTransport(
+                (_live_tui_fixture("invalid-last-path.response.json"),)
+            )
+
+            def gateway_factory(run_root, tools):
+                return DeepSeekModelGateway(
+                    adapter=DeepSeekLiveTranslationAdapter(
+                        profile=locked_deepseek_v3_model_profile(),
+                        tool_bindings=live_workspace_bindings(tools),
+                        system_prompt=LIVE_TUI_SYSTEM_PROMPT,
+                        max_tool_calls_per_response=MAX_TOOL_CALLS_PER_BATCH,
+                    ),
+                    transport=transport,
+                    exchange_store=FileDeepSeekExchangeStore(
+                        run_root / "provider-exchanges"
+                    ),
+                )
+
+            session = LiveTuiSession(
+                workspace_root=workspace,
+                session_root=root / "session",
+                input_stream=io.StringIO("yes\nreject the unsafe batch\n:exit\n"),
+                output=io.StringIO(),
+                gateway_factory=gateway_factory,
+                credential_loader=_must_not_be_called,
+                run_id_factory=lambda: "invalid-late-batch-run",
+            )
+
+            self.assertEqual(0, session.run())
+            self.assertEqual("protocol_error", session.records[0].status.value)
+            self.assertEqual(1, transport.calls)
+            self.assertFalse((workspace / "marker.txt").exists())
+            events = load_run_event_log(session.records[0].event_log_path)
+            self.assertNotIn(
+                "tool.execution_started",
+                [event.event_type for event in events],
+            )
+            rejected = next(
+                event for event in events if event.event_type == "candidate.rejected"
+            )
+            self.assertIn("tool preflight rejected", rejected.payload["error"])
+
+    def test_mixed_terminal_domain_batch_fails_in_translation_before_effects(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            workspace = root / "workspace"
+            (workspace / "notes").mkdir(parents=True)
+            (workspace / "notes" / "a.txt").write_text("alpha", encoding="utf-8")
+            transport = _RetainedTransport(
+                (_live_tui_fixture("invalid-mixed-terminal-domain.response.json"),)
+            )
+
+            def gateway_factory(run_root, tools):
+                return DeepSeekModelGateway(
+                    adapter=DeepSeekLiveTranslationAdapter(
+                        profile=locked_deepseek_v3_model_profile(),
+                        tool_bindings=live_workspace_bindings(tools),
+                        system_prompt=LIVE_TUI_SYSTEM_PROMPT,
+                        max_tool_calls_per_response=MAX_TOOL_CALLS_PER_BATCH,
+                    ),
+                    transport=transport,
+                    exchange_store=FileDeepSeekExchangeStore(
+                        run_root / "provider-exchanges"
+                    ),
+                )
+
+            session = LiveTuiSession(
+                workspace_root=workspace,
+                session_root=root / "session",
+                input_stream=io.StringIO("yes\nreject the ambiguous batch\n:exit\n"),
+                output=io.StringIO(),
+                gateway_factory=gateway_factory,
+                credential_loader=_must_not_be_called,
+                run_id_factory=lambda: "mixed-terminal-batch-run",
+            )
+
+            self.assertEqual(0, session.run())
+            self.assertEqual("model_error", session.records[0].status.value)
+            events = load_run_event_log(session.records[0].event_log_path)
+            failed = next(
+                event for event in events if event.event_type == "model.exchange_failed"
+            )
+            self.assertEqual("terminal_action_mixed", failed.payload["failure_code"])
+            self.assertNotIn(
+                "tool.execution_started",
+                [event.event_type for event in events],
             )
 
     def test_semantic_context_overflow_recovery_remains_active_in_live_session(self) -> None:
@@ -678,6 +869,14 @@ def _provider_tool_response(
         },
         input_tokens=input_tokens,
         output_tokens=output_tokens,
+    )
+
+
+def _live_tui_fixture(name: str) -> RetainedDeepSeekResponse:
+    return RetainedDeepSeekResponse(
+        status_code=200,
+        body=(LIVE_TUI_FIXTURES / name).read_bytes(),
+        duration_ms=1,
     )
 
 

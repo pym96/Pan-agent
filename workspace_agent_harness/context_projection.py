@@ -464,25 +464,48 @@ class SemanticSummary:
 @dataclass(frozen=True)
 class ProjectionHistoryGroup:
     call: AssistantToolCall
-    result: ToolResultMessage
+    results: tuple[ToolResultMessage, ...]
     call_event_id: str
-    result_event_id: str
-    facts: tuple[str, ...]
-    failures: tuple[str, ...] = ()
+    result_event_ids: tuple[str, ...]
+    facts: tuple[tuple[str, ...], ...]
+    failures: tuple[tuple[str, ...], ...] = ()
 
     def __post_init__(self) -> None:
-        if self.call.call.call_id != self.result.call_id:
-            raise ValueError("history group call/result IDs must match")
-        if self.call.call.tool_name != self.result.tool_name:
-            raise ValueError("history group call/result tool names must match")
-        for event_id in (self.call_event_id, self.result_event_id):
+        if not self.results or len(self.call.calls) != len(self.results):
+            raise ValueError("history group must retain one result per assistant call")
+        if len(self.result_event_ids) != len(self.results):
+            raise ValueError("history group must retain one event per tool result")
+        if len(self.facts) != len(self.results) or (
+            self.failures and len(self.failures) != len(self.results)
+        ):
+            raise ValueError("history group semantic entries must align with results")
+        if not self.failures:
+            object.__setattr__(
+                self,
+                "failures",
+                tuple(() for _ in self.results),
+            )
+        for call, result in zip(self.call.calls, self.results, strict=True):
+            if call.call_id != result.call_id:
+                raise ValueError("history group call/result IDs must match")
+            if call.tool_name != result.tool_name:
+                raise ValueError("history group call/result tool names must match")
+        for event_id in (self.call_event_id, *self.result_event_ids):
             _require_non_empty_text(event_id, "history group event ID")
-        for value in (*self.facts, *self.failures):
+        for value in (
+            entry
+            for entries in (*self.facts, *self.failures)
+            for entry in entries
+        ):
             _require_non_empty_text(value, "history group semantic entry")
 
     @property
-    def source_event_ids(self) -> tuple[str, str]:
-        return (self.call_event_id, self.result_event_id)
+    def messages(self) -> tuple[AssistantToolCall | ToolResultMessage, ...]:
+        return (self.call, *self.results)
+
+    @property
+    def source_event_ids(self) -> tuple[str, ...]:
+        return (self.call_event_id, *self.result_event_ids)
 
 
 class ContextProjectionAttempt(StrEnum):
@@ -518,7 +541,7 @@ class ContextProjectionRequest:
         flattened = tuple(
             message
             for group in self.history_groups
-            for message in (group.call, group.result)
+            for message in group.messages
         )
         if messages[1:] != flattened:
             raise ValueError(
@@ -595,7 +618,7 @@ class ModelContext:
         ):
             raise ValueError("known Context window provenance requires a Token value")
 
-    def semantic_identity_material(self) -> object:
+    def semantic_identity_material(self) -> dict[str, object]:
         return {
             "schema_version": self.schema_version,
             "conversation": self.conversation.identity_material(),
@@ -701,12 +724,12 @@ class ExactContextProjector:
 @dataclass(frozen=True)
 class _ProjectedGroup:
     source: ProjectionHistoryGroup
-    result: ToolResultMessage
-    artifact: ArtifactReference | None
+    results: tuple[ToolResultMessage, ...]
+    artifacts: tuple[ArtifactReference | None, ...]
 
     @property
-    def messages(self) -> tuple[AssistantToolCall, ToolResultMessage]:
-        return (self.source.call, self.result)
+    def messages(self) -> tuple[AssistantToolCall | ToolResultMessage, ...]:
+        return (self.source.call, *self.results)
 
 
 class SemanticContextProjector:
@@ -774,22 +797,28 @@ class SemanticContextProjector:
         projected_groups: list[_ProjectedGroup] = []
         try:
             for group in request.history_groups:
-                projected, retention = self._project_group(group)
+                projected, retentions = self._project_group(group)
                 projected_groups.append(projected)
-                if retention is not None and retention.created:
-                    planned_events.append(
-                        ProjectionEvent(
-                            event_type="artifact.externalized",
-                            phase="accepted",
-                            compaction_id=compaction_id,
-                            payload={
-                                "attempt": request.attempt.value,
-                                "source_event_ids": list(group.source_event_ids),
-                                "tool_call_id": group.call.call.call_id,
-                                "artifact": retention.reference.as_dict(),
-                            },
+                for index, (call, retention) in enumerate(
+                    zip(group.call.calls, retentions, strict=True)
+                ):
+                    if retention is not None and retention.created:
+                        planned_events.append(
+                            ProjectionEvent(
+                                event_type="artifact.externalized",
+                                phase="accepted",
+                                compaction_id=compaction_id,
+                                payload={
+                                    "attempt": request.attempt.value,
+                                    "source_event_ids": [
+                                        group.call_event_id,
+                                        group.result_event_ids[index],
+                                    ],
+                                    "tool_call_id": call.call_id,
+                                    "artifact": retention.reference.as_dict(),
+                                },
+                            )
                         )
-                    )
         except (OSError, ValueError) as error:
             started = self._compaction_started_event(
                 request,
@@ -912,12 +941,12 @@ class SemanticContextProjector:
             )
 
         preserved_event_ids = [request.active_request_event_id]
-        for group in recent_groups:
-            preserved_event_ids.extend(group.source.source_event_ids)
+        for recent_group in recent_groups:
+            preserved_event_ids.extend(recent_group.source.source_event_ids)
         summarized_event_ids = [
             event_id
-            for group in omitted_groups
-            for event_id in group.source.source_event_ids
+            for omitted_group in omitted_groups
+            for event_id in omitted_group.source.source_event_ids
         ]
         planned_events.append(
             ProjectionEvent(
@@ -957,41 +986,53 @@ class SemanticContextProjector:
     def _project_group(
         self,
         group: ProjectionHistoryGroup,
-    ) -> tuple[_ProjectedGroup, ArtifactRetention | None]:
-        body = group.result.content.encode("utf-8")
-        if len(body) <= self._policy.large_tool_output_bytes:
-            return _ProjectedGroup(group, group.result, None), None
-        retention = self._artifact_store.retain_text(group.result.content)
-        reference = retention.reference
-        model_visible = json.dumps(
-            {
-                "externalized_tool_result": {
-                    "artifact_id": reference.artifact_id,
-                    "byte_count": reference.byte_count,
-                    "locator": reference.locator,
-                    "media_type": reference.media_type,
-                    "preview": reference.preview,
-                    "preview_policy_identity": reference.preview_policy_identity,
-                    "sha256": reference.sha256,
-                }
-            },
-            ensure_ascii=False,
-            sort_keys=True,
-            separators=(",", ":"),
-        )
+    ) -> tuple[_ProjectedGroup, tuple[ArtifactRetention | None, ...]]:
+        projected_results: list[ToolResultMessage] = []
+        artifacts: list[ArtifactReference | None] = []
+        retentions: list[ArtifactRetention | None] = []
+        for result in group.results:
+            body = result.content.encode("utf-8")
+            if len(body) <= self._policy.large_tool_output_bytes:
+                projected_results.append(result)
+                artifacts.append(None)
+                retentions.append(None)
+                continue
+            retention = self._artifact_store.retain_text(result.content)
+            reference = retention.reference
+            model_visible = json.dumps(
+                {
+                    "externalized_tool_result": {
+                        "artifact_id": reference.artifact_id,
+                        "byte_count": reference.byte_count,
+                        "locator": reference.locator,
+                        "media_type": reference.media_type,
+                        "preview": reference.preview,
+                        "preview_policy_identity": reference.preview_policy_identity,
+                        "sha256": reference.sha256,
+                    }
+                },
+                ensure_ascii=False,
+                sort_keys=True,
+                separators=(",", ":"),
+            )
+            projected_results.append(
+                ToolResultMessage(
+                    call_id=result.call_id,
+                    tool_name=result.tool_name,
+                    content=model_visible,
+                    is_error=result.is_error,
+                    provider_metadata=result.provider_metadata,
+                )
+            )
+            artifacts.append(reference)
+            retentions.append(retention)
         return (
             _ProjectedGroup(
                 source=group,
-                result=ToolResultMessage(
-                    call_id=group.result.call_id,
-                    tool_name=group.result.tool_name,
-                    content=model_visible,
-                    is_error=group.result.is_error,
-                    provider_metadata=group.result.provider_metadata,
-                ),
-                artifact=reference,
+                results=tuple(projected_results),
+                artifacts=tuple(artifacts),
             ),
-            retention,
+            tuple(retentions),
         )
 
     def _build_summary(
@@ -1005,49 +1046,62 @@ class SemanticContextProjector:
         failures: list[SourcedSummaryEntry] = []
         artifacts: list[SourcedArtifactReference] = []
         for group in omitted_groups:
-            call = group.source.call.call
-            fact_values = group.source.facts
-            if not fact_values:
-                if group.artifact is not None:
-                    fact_values = (
-                        f"Exact result for {call.call_id} is retained as "
-                        f"{group.artifact.artifact_id}.",
+            for index, (call, result, artifact) in enumerate(
+                zip(
+                    group.source.call.calls,
+                    group.results,
+                    group.artifacts,
+                    strict=True,
+                )
+            ):
+                source_event_ids = (
+                    group.source.call_event_id,
+                    group.source.result_event_ids[index],
+                )
+                fact_values = group.source.facts[index]
+                if not fact_values:
+                    if artifact is not None:
+                        fact_values = (
+                            f"Exact result for {call.call_id} is retained as "
+                            f"{artifact.artifact_id}.",
+                        )
+                    else:
+                        fact_values = (result.content,)
+                for fact_index, content in enumerate(fact_values):
+                    facts.append(
+                        SourcedSummaryEntry(
+                            key=f"{call.call_id}:fact:{fact_index}",
+                            content=content,
+                            source_event_ids=source_event_ids,
+                        )
                     )
-                else:
-                    fact_values = (group.source.result.content,)
-            for fact_index, content in enumerate(fact_values):
-                facts.append(
+                decisions.append(
                     SourcedSummaryEntry(
-                        key=f"{call.call_id}:fact:{fact_index}",
-                        content=content,
-                        source_event_ids=group.source.source_event_ids,
+                        key=f"{call.call_id}:decision",
+                        content=(
+                            f"Called {call.tool_name} with "
+                            f"{json.dumps(dict(call.arguments), ensure_ascii=False, sort_keys=True)}"
+                        ),
+                        source_event_ids=(group.source.call_event_id,),
                     )
                 )
-            decisions.append(
-                SourcedSummaryEntry(
-                    key=f"{call.call_id}:decision",
-                    content=(
-                        f"Called {call.tool_name} with "
-                        f"{json.dumps(dict(call.arguments), ensure_ascii=False, sort_keys=True)}"
-                    ),
-                    source_event_ids=(group.source.call_event_id,),
-                )
-            )
-            for failure_index, content in enumerate(group.source.failures):
-                failures.append(
-                    SourcedSummaryEntry(
-                        key=f"{call.call_id}:failure:{failure_index}",
-                        content=content,
-                        source_event_ids=group.source.source_event_ids,
+                for failure_index, content in enumerate(
+                    group.source.failures[index]
+                ):
+                    failures.append(
+                        SourcedSummaryEntry(
+                            key=f"{call.call_id}:failure:{failure_index}",
+                            content=content,
+                            source_event_ids=source_event_ids,
+                        )
                     )
-                )
-            if group.artifact is not None:
-                artifacts.append(
-                    SourcedArtifactReference(
-                        reference=group.artifact,
-                        source_event_ids=group.source.source_event_ids,
+                if artifact is not None:
+                    artifacts.append(
+                        SourcedArtifactReference(
+                            reference=artifact,
+                            source_event_ids=source_event_ids,
+                        )
                     )
-                )
         active_request = request.canonical_history.messages[0]
         assert isinstance(active_request, UserMessage)
         return SemanticSummary(
@@ -1230,8 +1284,9 @@ def _unique_artifacts(
 ) -> tuple[ArtifactReference, ...]:
     references: dict[str, ArtifactReference] = {}
     for group in groups:
-        if group.artifact is not None:
-            references.setdefault(group.artifact.artifact_id, group.artifact)
+        for artifact in group.artifacts:
+            if artifact is not None:
+                references.setdefault(artifact.artifact_id, artifact)
     return tuple(references.values())
 
 
@@ -1240,18 +1295,22 @@ def _validate_atomic_conversation(conversation: CanonicalConversation) -> None:
     if not messages or not isinstance(messages[0], UserMessage):
         raise ValueError("Model Context must retain the active request")
     tail = messages[1:]
-    if len(tail) % 2:
-        raise ValueError("Model Context contains an orphaned causal item")
-    for index in range(0, len(tail), 2):
-        call = tail[index]
-        result = tail[index + 1]
-        if not isinstance(call, AssistantToolCall) or not isinstance(
-            result,
-            ToolResultMessage,
+    index = 0
+    while index < len(tail):
+        assistant = tail[index]
+        if not isinstance(assistant, AssistantToolCall):
+            raise ValueError("Model Context recent tail must begin with a tool-call turn")
+        expected_results = len(assistant.calls)
+        selected_results = tail[index + 1 : index + 1 + expected_results]
+        if len(selected_results) != expected_results or not all(
+            isinstance(result, ToolResultMessage) for result in selected_results
         ):
-            raise ValueError("Model Context recent tail must contain call/result pairs")
-        if call.call.call_id != result.call_id:
-            raise ValueError("Model Context call/result correlation mismatch")
+            raise ValueError("Model Context contains an orphaned tool-call turn")
+        for call, result in zip(assistant.calls, selected_results, strict=True):
+            assert isinstance(result, ToolResultMessage)
+            if call.call_id != result.call_id or call.tool_name != result.tool_name:
+                raise ValueError("Model Context call/result correlation mismatch")
+        index += 1 + expected_results
 
 
 def _validate_summary(

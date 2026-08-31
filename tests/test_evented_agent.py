@@ -7,6 +7,7 @@ from threading import Event
 
 from workspace_agent_harness import RunLimits, Task
 from workspace_agent_harness.evented import (
+    CandidateToolBatch,
     CandidateToolCall,
     DemoEchoTool,
     DeterministicDemoGateway,
@@ -157,6 +158,35 @@ class EventedAgentLoopTest(unittest.TestCase):
             self.assertNotIn("tool.execution_started", [event.event_type for event in events])
             self.assertEqual("candidate.rejected", events[-2].event_type)
             self.assertIn("exactly one", str(events[-2].payload["error"]))
+
+    def test_batch_exceeding_remaining_step_budget_has_zero_tool_effects(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            log_path = Path(temporary_directory) / "batch-step-limit.jsonl"
+            tool = DemoEchoTool()
+            gateway = FixedGateway(
+                CandidateToolBatch(
+                    calls=(
+                        CandidateToolCall("batch-1", "echo", {"text": "first"}),
+                        CandidateToolCall("batch-2", "echo", {"text": "second"}),
+                    )
+                )
+            )
+            result = EventedAgentLoop(
+                gateway=gateway,
+                tools=(tool,),
+                event_log=JsonlRunEventLog(log_path),
+                run_id="batch-step-limit",
+            ).run(
+                Task(task_id="batch-step-limit", prompt="do both or neither"),
+                RunLimits(max_steps=1, max_model_calls=1, timeout_seconds=5),
+            )
+
+            self.assertEqual(EventedRunStatus.STEP_LIMIT, result.status)
+            self.assertEqual((), tool.calls)
+            events = load_run_event_log(log_path)
+            event_types = [event.event_type for event in events]
+            self.assertNotIn("history.advanced", event_types)
+            self.assertNotIn("tool.execution_started", event_types)
 
     def test_replay_and_terminal_projection_read_only_the_retained_events(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_directory:

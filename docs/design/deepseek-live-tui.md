@@ -1,6 +1,6 @@
 # DeepSeek Live Workspace TUI
 
-Status: Working Agent candidate for WorkOrder #21; the one authorized smoke is retained as [candidate Evidence](../evidence/deepseek-live-tui-smoke-candidate-2026-08-31.md), pending independent Regulator review.
+Status: repaired Working Agent candidate for WorkOrder #21. The earlier smoke is retained only as a [historical observation](../evidence/deepseek-live-tui-smoke-candidate-2026-08-31.md) after the Regulator rejected its authorization qualification. The latest [Human/Master override](https://github.com/pym96/workspace-agent-harness/issues/21#issuecomment-5474512300) permits direct Human-operated use and forbids any further Builder Provider call.
 
 ## Product slice
 
@@ -41,7 +41,7 @@ Human task
   -> fresh AgentLoop.run(Task, RunLimits)
   -> SemanticContextProjector
   -> DeepSeek v3 Translation -> ModelGateway.exchange
-  -> admitted typed workspace Tool
+  -> admitted typed workspace Tool turn (one call or one bounded batch)
   -> append-only Run Event Log -> terminal result
 
 read-only polling
@@ -68,18 +68,18 @@ The resolved workspace is the sole model-writable filesystem boundary. Session a
 | `write_file` | atomic replacement of one complete UTF-8 file | existing in-workspace parent, no traversal/symlink, maximum 262,144 bytes |
 | `verify_workspace` | parse Python or JSON syntax | fixed `python-syntax` / `json-syntax` enum; workspace code is never executed |
 
-There is no shell tool or arbitrary command carrier. Every path is rejected before the corresponding read/write effect when it is absolute, contains traversal, resolves through a symlink, leaves the root, or targets an unsupported file type. Writes use a same-directory temporary file plus atomic replacement, so an existing hard link is replaced rather than mutated through to an external inode.
+There is no shell tool or arbitrary command carrier. Every path is rejected before the corresponding read/write effect when it is absolute, contains traversal, resolves through a symlink, leaves the root, or targets an unsupported file type. A multi-call response is validated as one unit for unique IDs, known tools, closed arguments, workspace authority, batch/step limits, and terminal ambiguity before the first effect. Any invalid call rejects the whole batch with zero effects. A valid domain-only batch executes serially in Provider order. Writes use a same-directory temporary file plus atomic replacement, so an existing hard link is replaced rather than mutated through to an external inode.
 
 ## Context and Provider contract
 
-The product reuses `locked_deepseek_v3_model_profile()` and `DeepSeekLiveTranslationAdapter`: stable Chat Completions endpoint, `deepseek-v4-flash`, Thinking enabled at high effort, request-level `tool_choice` omitted, one typed tool call or non-empty ordinary final admitted, and full assistant reasoning replay only inside restricted Provider history.
+The product reuses `locked_deepseek_v3_model_profile()` and explicitly configures `DeepSeekLiveTranslationAdapter` for one to eight domain ToolCalls in one Provider response. The historical #19/#20 campaign contract remains singleton by default and keeps its frozen identity. In the Live TUI, complete and abstain remain singleton-only; mixed terminal/domain and multiple-terminal responses fail closed. A valid batch becomes one canonical assistant turn followed by one ordered tool-result message per call, so one response remains one model exchange while each call remains one tool action. The stable Chat Completions endpoint, `deepseek-v4-flash`, Thinking at high effort, omitted request-level `tool_choice`, non-empty ordinary final admission, and restricted reasoning-history replay remain unchanged.
 
 The `SemanticContextProjector` receives the accepted 1,000,000-Token profile window and 384,000-Token profile output room. Protocol/tool overhead is derived from the canonical Live TUI system prompt and closed Provider schemas with the existing estimator. No arbitrary text truncation or new output-token ceiling is introduced. Only a typed Provider context-overflow failure can enter the accepted one-retry semantic recovery path.
 
-Per-Run lifecycle limits are `12` tool steps, `16` model calls, and `300` seconds. They bound loop work; they do not alter the accepted Provider output ceiling.
+Per-Run lifecycle limits are `12` tool steps, `16` model calls, and `300` seconds. A batch cannot exceed eight calls or the Run's remaining step budget. These limits bound loop work; they do not alter the accepted Provider output ceiling.
 
 ## Verification boundary
 
-[`../../tests/test_live_tui.py`](../../tests/test_live_tui.py) uses only deterministic gateways and retained fake Provider responses. It covers the real CLI entry, zero-call help/view/replay/cancel/validation behavior, multiple Runs with fresh Context and shared workspace, the actual DeepSeek v3 Translation/Gateway seam, native tool-result replay, semantic overflow recovery, terminal failure return, cancellation, restricted-reasoning display denial, observer removal, traversal, absolute paths, symlink escape, malformed and unknown tools, atomic writes, and non-executing verification.
+[`../../tests/test_live_tui.py`](../../tests/test_live_tui.py) uses only deterministic gateways and synthetic retained Provider-response fixtures. It covers Provider-ordered three-call execution and paired native history; whole-batch rejection for a late workspace escape; terminal/domain ambiguity; duplicate IDs and batch limits; zero effects when the remaining step budget cannot admit a batch; semantic compaction of one assistant turn plus all paired results; the real CLI entry; zero-call help/view/replay/cancel/validation behavior; fresh Context with shared workspace; overflow recovery; cancellation; display denial; path boundaries; atomic writes; and non-executing verification.
 
-The WorkOrder's one real smoke is a separate release observation. After private Human maximum-spend authorization, it produced one formal Run and one Provider exchange. The Provider returned three parallel ToolCalls; the single-action admission contract rejected the response before any tool effect, so the exact-file oracle failed. The [candidate Evidence](../evidence/deepseek-live-tui-smoke-candidate-2026-08-31.md) retains that result without prompt repair, task replacement, or rerun. It is not a benchmark, persistent Provider property, Verified Project Fact, Wiki fact, or resume claim, and it authorizes no further live call.
+The earlier candidate produced one formal Run and one Provider exchange whose three ToolCalls exposed the first-only defect. The Regulator later found that the Run lacked the required durable issue-level pre-call authorization, so the [historical observation](../evidence/deepseek-live-tui-smoke-candidate-2026-08-31.md) is not accepted Evidence. The repaired candidate used no credential, balance query, Provider call, or replacement smoke. The Human may now use it directly under the latest override; the Builder may not run it on the Human's behalf.

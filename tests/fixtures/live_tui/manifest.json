@@ -1,0 +1,21 @@
+{
+  "schema": "workspace-agent-harness/live-tui-multi-tool-fixtures/v1",
+  "provenance": "Synthetic deterministic fixtures derived from the minimized three-ToolCall response shape retained by WorkOrder #21; no Provider reasoning, credential, balance, or account data is included.",
+  "files": [
+    {
+      "path": "invalid-last-path.response.json",
+      "sha256": "43459c9a9d8a445cb272671df0206b80fdf6952c789895a97b4a136669639042",
+      "purpose": "A valid write followed by a workspace-escape read must reject the entire batch before effects."
+    },
+    {
+      "path": "invalid-mixed-terminal-domain.response.json",
+      "sha256": "1e63cee6df1d4af0852b7ce5d580b931a74484bd9adc18212ce9cb8a0992b914",
+      "purpose": "A domain call mixed with complete must fail Translation admission."
+    },
+    {
+      "path": "valid-three-domain-tools.response.json",
+      "sha256": "023abc74d8812b084d828f6fa8c7169ca28a44a9f8ed360811602656da58baab",
+      "purpose": "Three independent domain calls execute serially and replay as one assistant turn plus three ordered tool results."
+    }
+  ]
+}

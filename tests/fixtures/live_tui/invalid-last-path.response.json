@@ -1,0 +1,38 @@
+{
+  "id": "live-tui-batch-invalid-path",
+  "model": "deepseek-v4-flash",
+  "system_fingerprint": "synthetic-live-tui-batch-fixture",
+  "choices": [
+    {
+      "finish_reason": "tool_calls",
+      "message": {
+        "role": "assistant",
+        "content": "",
+        "reasoning_content": "Attempt two workspace operations.",
+        "tool_calls": [
+          {
+            "id": "batch-valid-write",
+            "type": "function",
+            "function": {
+              "name": "write_file",
+              "arguments": "{\"content\":\"must-not-exist\",\"path\":\"marker.txt\"}"
+            }
+          },
+          {
+            "id": "batch-invalid-read",
+            "type": "function",
+            "function": {
+              "name": "read_file",
+              "arguments": "{\"path\":\"../outside.txt\"}"
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 200,
+    "completion_tokens": 50,
+    "total_tokens": 250
+  }
+}

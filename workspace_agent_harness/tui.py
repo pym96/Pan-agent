@@ -22,7 +22,9 @@ from workspace_agent_harness.evented import (
     DeterministicLongDemoGateway,
     DeterministicOverflowDemoGateway,
     EventedRunStatus,
+    EventTool,
     JsonlRunEventLog,
+    ModelGateway,
     RunEvent,
     RunEventView,
     WaitingDemoGateway,
@@ -192,7 +194,9 @@ def main(arguments: Sequence[str] | None = None) -> int:
     except OSError as error:
         print(f"Cannot create event log: {error}", file=sys.stderr)
         return 2
-    context_projector = None
+    context_projector: SemanticContextProjector | None = None
+    gateway: ModelGateway
+    tools: tuple[EventTool, ...]
     artifact_path: Path | None = None
     if (
         options.semantic_compaction_demo
@@ -247,11 +251,10 @@ def main(arguments: Sequence[str] | None = None) -> int:
             artifact_store=artifact_store,
         )
     else:
-        gateway = (
-            WaitingDemoGateway()
-            if options.wait_for_cancel
-            else DeterministicDemoGateway()
-        )
+        if options.wait_for_cancel:
+            gateway = WaitingDemoGateway()
+        else:
+            gateway = DeterministicDemoGateway()
         tools = (DemoEchoTool(),)
         limits = RunLimits(max_steps=1, max_model_calls=2, timeout_seconds=30)
     result = AgentLoop(

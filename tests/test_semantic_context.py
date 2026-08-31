@@ -10,10 +10,12 @@ from workspace_agent_harness import RunLimits, Task
 from workspace_agent_harness.context_projection import (
     action_tool_set_identity,
     CanonicalJsonTokenEstimator,
+    ContextProjectionRequest,
     ContextPolicy,
     ExactContextProjector,
     FileArtifactStore,
     InMemoryArtifactStore,
+    ProjectionHistoryGroup,
     SemanticContextProjector,
 )
 from workspace_agent_harness.evented import (
@@ -30,6 +32,8 @@ from workspace_agent_harness.evented import (
 )
 from workspace_agent_harness.translation import (
     AssistantToolCall,
+    CanonicalConversation,
+    CanonicalToolCall,
     ToolResultMessage,
     UserMessage,
 )
@@ -337,6 +341,74 @@ class SemanticContextProjectionTest(unittest.TestCase):
                 expanded,
                 replay_run_event_log(log_path, explain_compaction=True),
             )
+
+    def test_compaction_keeps_one_multi_call_turn_and_all_results_atomic(self) -> None:
+        tool = DemoEchoTool()
+        first_call = CanonicalToolCall("batch-a", "echo", {"text": "first"})
+        second_call = CanonicalToolCall("batch-b", "echo", {"text": "second"})
+        assistant = AssistantToolCall(
+            call=first_call,
+            additional_calls=(second_call,),
+            reasoning="Run two independent reads.",
+        )
+        first_result = ToolResultMessage(
+            "batch-a",
+            "echo",
+            "large:" + ("evidence" * 6_000),
+        )
+        second_result = ToolResultMessage("batch-b", "echo", "small-result")
+        conversation = CanonicalConversation(
+            (UserMessage("retain the complete batch"), assistant, first_result, second_result)
+        )
+        request = ContextProjectionRequest(
+            run_id="batch-compaction",
+            turn_id="batch-compaction:turn:2",
+            active_request_event_id="event-user",
+            canonical_history=conversation,
+            history_groups=(
+                ProjectionHistoryGroup(
+                    call=assistant,
+                    results=(first_result, second_result),
+                    call_event_id="event-batch",
+                    result_event_ids=("event-result-a", "event-result-b"),
+                    facts=(("first fact",), ("second fact",)),
+                ),
+            ),
+            unresolved_commitments=(),
+            tools=(tool.definition,),
+            system_policy_identity="evented-demo-policy/v1",
+        )
+        projection = SemanticContextProjector(
+            policy=ContextPolicy(
+                verified_context_window=15_000,
+                requested_output_room=6_000,
+                protocol_tool_overhead_tokens=256,
+                overhead_estimator_id="demo-translation-overhead/v1",
+                overhead_source="deterministic-demo-lock",
+                overhead_confidence="high",
+                overhead_tool_set_identity=action_tool_set_identity(
+                    (tool.definition,)
+                ),
+                system_policy_identity="evented-demo-policy/v1",
+            ),
+            estimator=CanonicalJsonTokenEstimator(),
+            artifact_store=InMemoryArtifactStore(),
+        ).project(request)
+
+        self.assertTrue(projection.compacted)
+        self.assertIsNotNone(projection.model_context)
+        assert projection.model_context is not None
+        retained = projection.model_context.conversation.messages
+        self.assertEqual(4, len(retained))
+        self.assertIsInstance(retained[1], AssistantToolCall)
+        assert isinstance(retained[1], AssistantToolCall)
+        self.assertEqual(("batch-a", "batch-b"), tuple(call.call_id for call in retained[1].calls))
+        self.assertEqual(
+            ("batch-a", "batch-b"),
+            tuple(message.call_id for message in retained[2:]),
+        )
+        self.assertIn("externalized_tool_result", retained[2].content)
+        self.assertEqual("small-result", retained[3].content)
 
     def test_projection_fails_closed_before_exchange_when_minimum_cannot_fit(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_directory:

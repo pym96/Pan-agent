@@ -1,0 +1,38 @@
+{
+  "id": "live-tui-batch-invalid-terminal",
+  "model": "deepseek-v4-flash",
+  "system_fingerprint": "synthetic-live-tui-batch-fixture",
+  "choices": [
+    {
+      "finish_reason": "tool_calls",
+      "message": {
+        "role": "assistant",
+        "content": "",
+        "reasoning_content": "Return an ambiguous terminal batch.",
+        "tool_calls": [
+          {
+            "id": "batch-domain-read",
+            "type": "function",
+            "function": {
+              "name": "read_file",
+              "arguments": "{\"path\":\"notes/a.txt\"}"
+            }
+          },
+          {
+            "id": "batch-terminal-complete",
+            "type": "function",
+            "function": {
+              "name": "complete",
+              "arguments": "{\"output\":\"ambiguous\"}"
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 200,
+    "completion_tokens": 50,
+    "total_tokens": 250
+  }
+}

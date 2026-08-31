@@ -49,10 +49,27 @@ class AssistantToolCall:
     call: CanonicalToolCall
     reasoning: str | None = None
     provider_metadata: ProviderMetadata = ()
+    additional_calls: tuple[CanonicalToolCall, ...] = ()
 
     def __post_init__(self) -> None:
         _validate_optional_reasoning(self.reasoning)
         _validate_provider_metadata(self.provider_metadata)
+        if not isinstance(self.call, CanonicalToolCall) or not isinstance(
+            self.additional_calls,
+            tuple,
+        ) or not all(
+            isinstance(call, CanonicalToolCall) for call in self.additional_calls
+        ):
+            raise ValueError("assistant calls must be canonical tool-call tuples")
+        call_ids = tuple(call.call_id for call in self.calls)
+        if len(set(call_ids)) != len(call_ids):
+            raise ValueError("assistant tool-call turn must use unique call IDs")
+
+    @property
+    def calls(self) -> tuple[CanonicalToolCall, ...]:
+        """Provider-ordered calls belonging to one canonical assistant turn."""
+
+        return (self.call, *self.additional_calls)
 
 
 @dataclass(frozen=True)
@@ -413,6 +430,20 @@ def _message_material(message: CanonicalMessage) -> object:
     if isinstance(message, UserMessage):
         return {"role": "user", "content": message.content}
     if isinstance(message, AssistantToolCall):
+        if message.additional_calls:
+            return {
+                "role": "assistant-tool-call-batch",
+                "calls": [
+                    {
+                        "call_id": call.call_id,
+                        "tool_name": call.tool_name,
+                        "arguments": call.arguments,
+                    }
+                    for call in message.calls
+                ],
+                "reasoning": message.reasoning,
+                "provider_metadata": message.provider_metadata,
+            }
         return {
             "role": "assistant-tool-call",
             "call_id": message.call.call_id,

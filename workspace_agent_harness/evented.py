@@ -9,7 +9,7 @@ from enum import StrEnum
 from pathlib import Path
 from threading import Event
 from types import MappingProxyType
-from typing import Callable, Mapping, Protocol, Sequence, TypeAlias
+from typing import Callable, Mapping, Protocol, Sequence, TypeAlias, runtime_checkable
 
 from workspace_agent_harness import RunLimits, Task
 from workspace_agent_harness.context_projection import (
@@ -144,6 +144,40 @@ class CandidateToolCall:
             raise ValueError("candidate reasoning must be non-empty text when present")
 
 
+MAX_TOOL_CALLS_PER_BATCH = 8
+
+
+@dataclass(frozen=True)
+class CandidateToolBatch:
+    """A bounded Provider-ordered set of domain calls from one assistant turn."""
+
+    calls: tuple[CandidateToolCall, ...]
+    reasoning: str | None = None
+    provider_metadata: tuple[tuple[str, str], ...] = ()
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.calls, tuple) or not 2 <= len(
+            self.calls
+        ) <= MAX_TOOL_CALLS_PER_BATCH:
+            raise ValueError(
+                "candidate tool batch must contain between 2 and "
+                f"{MAX_TOOL_CALLS_PER_BATCH} calls"
+            )
+        if not all(isinstance(call, CandidateToolCall) for call in self.calls):
+            raise ValueError("candidate tool batch entries must be typed calls")
+        call_ids = tuple(call.call_id for call in self.calls)
+        if len(set(call_ids)) != len(call_ids):
+            raise ValueError("candidate tool batch call IDs must be unique")
+        if any(call.reasoning is not None for call in self.calls):
+            raise ValueError("batch reasoning belongs to the assistant turn")
+        if any(call.provider_metadata for call in self.calls):
+            raise ValueError("batch Provider metadata belongs to the assistant turn")
+        if self.reasoning is not None and (
+            not isinstance(self.reasoning, str) or not self.reasoning
+        ):
+            raise ValueError("candidate batch reasoning must be non-empty when present")
+
+
 @dataclass(frozen=True)
 class CandidateFinal:
     content: str
@@ -153,7 +187,7 @@ class CandidateFinal:
     provider_metadata: tuple[tuple[str, str], ...] = ()
 
 
-CandidateAction: TypeAlias = CandidateToolCall | CandidateFinal
+CandidateAction: TypeAlias = CandidateToolCall | CandidateToolBatch | CandidateFinal
 
 
 @dataclass(frozen=True)
@@ -379,6 +413,13 @@ class EventTool(Protocol):
         arguments: Mapping[str, object],
         cancel_signal: Event,
     ) -> str | SemanticToolObservation: ...
+
+
+@runtime_checkable
+class PreflightEventTool(Protocol):
+    """Optional effect-free validation used before a batch starts execution."""
+
+    def validate(self, arguments: Mapping[str, object]) -> None: ...
 
 
 @dataclass(frozen=True)
@@ -1503,22 +1544,29 @@ class AgentLoop:
                     output=settled.candidate.content,
                 )
 
-            call = settled.candidate
-            if steps >= limits.max_steps:
+            tool_calls = _candidate_tool_calls(settled.candidate)
+            if steps + len(tool_calls) > limits.max_steps:
                 return terminal(
                     EventedRunStatus.STEP_LIMIT,
-                    error="maximum tool steps reached",
+                    error="tool-call turn exceeds the remaining step budget",
                     cause=accepted,
                 )
-            used_call_ids.add(call.call_id)
-            call_message = AssistantToolCall(
+            used_call_ids.update(call.call_id for call in tool_calls)
+            reasoning = settled.candidate.reasoning
+            metadata = settled.candidate.provider_metadata
+            canonical_calls = tuple(
                 CanonicalToolCall(
                     call_id=call.call_id,
                     tool_name=call.tool_name,
                     arguments=call.arguments,
-                ),
-                reasoning=call.reasoning,
-                provider_metadata=call.provider_metadata,
+                )
+                for call in tool_calls
+            )
+            call_message = AssistantToolCall(
+                call=canonical_calls[0],
+                reasoning=reasoning,
+                provider_metadata=metadata,
+                additional_calls=canonical_calls[1:],
             )
             conversation = conversation.append(call_message)
             history_event = self._append(
@@ -1529,61 +1577,94 @@ class AgentLoop:
                 turn_id=turn_id,
                 exchange_id=settled.exchange_id,
                 candidate_id=candidate_id,
-                tool_call_id=call.call_id,
+                tool_call_id=(tool_calls[0].call_id if len(tool_calls) == 1 else None),
                 payload={
-                    "message_type": "assistant_tool_call",
-                    **_candidate_material(call),
+                    "message_type": (
+                        "assistant_tool_call"
+                        if len(tool_calls) == 1
+                        else "assistant_tool_call_batch"
+                    ),
+                    **_candidate_material(settled.candidate),
                     "history_identity": conversation.identity,
                 },
             )
-            execution_started = self._append(
-                run_id=run_id,
-                event_type="tool.execution_started",
-                phase="candidate",
-                cause=history_event,
-                turn_id=turn_id,
-                exchange_id=settled.exchange_id,
-                candidate_id=candidate_id,
-                tool_call_id=call.call_id,
-                payload={"tool_name": call.tool_name, "arguments": dict(call.arguments)},
-            )
-            tool = self._tools[call.tool_name]
-            try:
-                tool_observation = tool.execute(call.arguments, signal)
-            except KeyboardInterrupt:
-                return cancelled(execution_started)
-            except Exception as error:
-                failed = self._append(
+            result_messages: list[ToolResultMessage] = []
+            result_event_ids: list[str] = []
+            fact_groups: list[tuple[str, ...]] = []
+            failure_groups: list[tuple[str, ...]] = []
+            execution_cause = history_event
+            for call in tool_calls:
+                execution_started = self._append(
                     run_id=run_id,
-                    event_type="tool.execution_failed",
-                    phase="failed",
-                    cause=execution_started,
+                    event_type="tool.execution_started",
+                    phase="candidate",
+                    cause=execution_cause,
                     turn_id=turn_id,
                     exchange_id=settled.exchange_id,
                     candidate_id=candidate_id,
                     tool_call_id=call.call_id,
-                    payload={"tool_name": call.tool_name, "error": str(error)},
+                    payload={
+                        "tool_name": call.tool_name,
+                        "arguments": dict(call.arguments),
+                    },
                 )
-                return terminal(
-                    EventedRunStatus.TOOL_ERROR,
-                    error=str(error),
-                    cause=failed,
-                )
-            if signal.is_set():
-                return cancelled(execution_started)
-            if isinstance(tool_observation, SemanticToolObservation):
-                observation = tool_observation.content
-                semantic_facts = tool_observation.facts
-                semantic_failures = tool_observation.failures
-            elif isinstance(tool_observation, str):
-                observation = tool_observation
-                semantic_facts = ()
-                semantic_failures = ()
-            else:
-                failed = self._append(
+                tool = self._tools[call.tool_name]
+                try:
+                    tool_observation = tool.execute(call.arguments, signal)
+                except KeyboardInterrupt:
+                    return cancelled(execution_started)
+                except Exception as error:
+                    failed = self._append(
+                        run_id=run_id,
+                        event_type="tool.execution_failed",
+                        phase="failed",
+                        cause=execution_started,
+                        turn_id=turn_id,
+                        exchange_id=settled.exchange_id,
+                        candidate_id=candidate_id,
+                        tool_call_id=call.call_id,
+                        payload={"tool_name": call.tool_name, "error": str(error)},
+                    )
+                    return terminal(
+                        EventedRunStatus.TOOL_ERROR,
+                        error=str(error),
+                        cause=failed,
+                    )
+                if signal.is_set():
+                    return cancelled(execution_started)
+                if isinstance(tool_observation, SemanticToolObservation):
+                    observation = tool_observation.content
+                    semantic_facts = tool_observation.facts
+                    semantic_failures = tool_observation.failures
+                elif isinstance(tool_observation, str):
+                    observation = tool_observation
+                    semantic_facts = ()
+                    semantic_failures = ()
+                else:
+                    failed = self._append(
+                        run_id=run_id,
+                        event_type="tool.execution_failed",
+                        phase="failed",
+                        cause=execution_started,
+                        turn_id=turn_id,
+                        exchange_id=settled.exchange_id,
+                        candidate_id=candidate_id,
+                        tool_call_id=call.call_id,
+                        payload={
+                            "tool_name": call.tool_name,
+                            "error": "tool observation must be text",
+                        },
+                    )
+                    return terminal(
+                        EventedRunStatus.TOOL_ERROR,
+                        error="tool observation must be text",
+                        cause=failed,
+                    )
+                steps += 1
+                completed = self._append(
                     run_id=run_id,
-                    event_type="tool.execution_failed",
-                    phase="failed",
+                    event_type="tool.execution_completed",
+                    phase="accepted",
                     cause=execution_started,
                     turn_id=turn_id,
                     exchange_id=settled.exchange_id,
@@ -1591,70 +1672,55 @@ class AgentLoop:
                     tool_call_id=call.call_id,
                     payload={
                         "tool_name": call.tool_name,
-                        "error": "tool observation must be text",
+                        "observation": observation,
+                        "semantic_facts": list(semantic_facts),
+                        "semantic_failures": list(semantic_failures),
                     },
                 )
-                return terminal(
-                    EventedRunStatus.TOOL_ERROR,
-                    error="tool observation must be text",
-                    cause=failed,
+                result_message = ToolResultMessage(
+                    call_id=call.call_id,
+                    tool_name=call.tool_name,
+                    content=observation,
                 )
-            steps += 1
-            completed = self._append(
-                run_id=run_id,
-                event_type="tool.execution_completed",
-                phase="accepted",
-                cause=execution_started,
-                turn_id=turn_id,
-                exchange_id=settled.exchange_id,
-                candidate_id=candidate_id,
-                tool_call_id=call.call_id,
-                payload={
-                    "tool_name": call.tool_name,
-                    "observation": observation,
-                    "semantic_facts": list(semantic_facts),
-                    "semantic_failures": list(semantic_failures),
-                },
-            )
-            result_message = ToolResultMessage(
-                call_id=call.call_id,
-                tool_name=call.tool_name,
-                content=observation,
-            )
-            conversation = conversation.append(result_message)
-            last_event = self._append(
-                run_id=run_id,
-                event_type="history.advanced",
-                phase="accepted",
-                cause=completed,
-                turn_id=turn_id,
-                exchange_id=settled.exchange_id,
-                candidate_id=candidate_id,
-                tool_call_id=call.call_id,
-                payload={
-                    "message_type": "tool_result",
-                    "call_id": call.call_id,
-                    "tool_name": call.tool_name,
-                    "content": observation,
-                    "semantic_facts": list(semantic_facts),
-                    "semantic_failures": list(semantic_failures),
-                    "history_identity": conversation.identity,
-                },
-            )
+                conversation = conversation.append(result_message)
+                last_event = self._append(
+                    run_id=run_id,
+                    event_type="history.advanced",
+                    phase="accepted",
+                    cause=completed,
+                    turn_id=turn_id,
+                    exchange_id=settled.exchange_id,
+                    candidate_id=candidate_id,
+                    tool_call_id=call.call_id,
+                    payload={
+                        "message_type": "tool_result",
+                        "call_id": call.call_id,
+                        "tool_name": call.tool_name,
+                        "content": observation,
+                        "semantic_facts": list(semantic_facts),
+                        "semantic_failures": list(semantic_failures),
+                        "history_identity": conversation.identity,
+                    },
+                )
+                result_messages.append(result_message)
+                result_event_ids.append(last_event.event_id)
+                fact_groups.append(semantic_facts)
+                failure_groups.append(semantic_failures)
+                execution_cause = last_event
             history_groups.append(
                 ProjectionHistoryGroup(
                     call=call_message,
-                    result=result_message,
+                    results=tuple(result_messages),
                     call_event_id=history_event.event_id,
-                    result_event_id=last_event.event_id,
-                    facts=semantic_facts,
-                    failures=semantic_failures,
+                    result_event_ids=tuple(result_event_ids),
+                    facts=tuple(fact_groups),
+                    failures=tuple(failure_groups),
                 )
             )
             if self._loop_policy_id == "act-once-v0":
                 return terminal(
                     EventedRunStatus.LOOP_POLICY_STOP,
-                    error="act-once Loop Policy stopped after the first retained tool result",
+                    error="act-once Loop Policy stopped after one retained tool-call turn",
                     cause=last_event,
                 )
 
@@ -1674,19 +1740,30 @@ class AgentLoop:
             ):
                 return "final reason code must be text when present"
             return None
-        if not isinstance(candidate.call_id, str) or not candidate.call_id:
-            return "tool call ID must be non-empty text"
-        if candidate.call_id in used_call_ids:
-            return f"tool call ID was already used: {candidate.call_id}"
-        tool = self._tools.get(candidate.tool_name)
-        if tool is None:
-            return f"unknown tool: {candidate.tool_name}"
-        argument_name = tool.definition.argument_name
-        if set(candidate.arguments) != {argument_name}:
-            return f"tool {candidate.tool_name!r} requires only {argument_name!r}"
-        argument = candidate.arguments[argument_name]
-        if not isinstance(argument, str) or not argument:
-            return f"tool argument {argument_name!r} must be non-empty text"
+        batch_call_ids: set[str] = set()
+        for call in _candidate_tool_calls(candidate):
+            if not isinstance(call.call_id, str) or not call.call_id:
+                return "tool call ID must be non-empty text"
+            if call.call_id in used_call_ids or call.call_id in batch_call_ids:
+                return f"tool call ID was already used: {call.call_id}"
+            batch_call_ids.add(call.call_id)
+            tool = self._tools.get(call.tool_name)
+            if tool is None:
+                return f"unknown tool: {call.tool_name}"
+            argument_name = tool.definition.argument_name
+            if set(call.arguments) != {argument_name}:
+                return f"tool {call.tool_name!r} requires only {argument_name!r}"
+            argument = call.arguments[argument_name]
+            if not isinstance(argument, str) or not argument:
+                return f"tool argument {argument_name!r} must be non-empty text"
+            if isinstance(tool, PreflightEventTool):
+                try:
+                    tool.validate(call.arguments)
+                except Exception as error:
+                    return (
+                        f"tool preflight rejected {call.call_id} "
+                        f"({call.tool_name}): {error}"
+                    )
         return None
 
     def _append(
@@ -1854,12 +1931,21 @@ def _render_compact_run_events(
         if event.event_type == "run.started":
             lines.append(f"TASK {_display_value(projected_payload.get('prompt'))}")
         elif event.event_type == "candidate.accepted":
-            lines.append(
-                "ACTION candidate.accepted"
-                f" kind={_display_value(projected_payload.get('kind'))}"
-                f" tool={_display_value(projected_payload.get('tool_name'))}"
-                f" call={_display_value(projected_payload.get('call_id'))}"
-            )
+            if projected_payload.get("kind") == "tool_call_batch":
+                calls = projected_payload.get("calls")
+                call_count = len(calls) if isinstance(calls, list) else 0
+                lines.append(
+                    "ACTION candidate.accepted"
+                    " kind=tool_call_batch"
+                    f" calls={call_count}"
+                )
+            else:
+                lines.append(
+                    "ACTION candidate.accepted"
+                    f" kind={_display_value(projected_payload.get('kind'))}"
+                    f" tool={_display_value(projected_payload.get('tool_name'))}"
+                    f" call={_display_value(projected_payload.get('call_id'))}"
+                )
         elif event.event_type == "tool.execution_completed":
             lines.append(
                 "OBSERVATION tool.execution_completed"
@@ -1982,6 +2068,8 @@ def replay_run_event_log(
 
 
 def _candidate_kind(candidate: CandidateAction) -> str:
+    if isinstance(candidate, CandidateToolBatch):
+        return "tool_call_batch"
     return "tool_call" if isinstance(candidate, CandidateToolCall) else "final"
 
 
@@ -1991,8 +2079,11 @@ def _require_demo_stage(value: object) -> None:
 
 
 def _candidate_schema_error(candidate: object) -> str | None:
-    if not isinstance(candidate, (CandidateToolCall, CandidateFinal)):
-        return "candidate must contain exactly one tool call or final result"
+    if not isinstance(
+        candidate,
+        (CandidateToolCall, CandidateToolBatch, CandidateFinal),
+    ):
+        return "candidate must contain exactly one typed tool-call turn or final result"
     if isinstance(candidate, CandidateFinal):
         if not isinstance(candidate.content, str):
             return "final content must be text"
@@ -2004,16 +2095,29 @@ def _candidate_schema_error(candidate: object) -> str | None:
         ):
             return "final reason code must be text when present"
         return None
-    if not all(isinstance(key, str) for key in candidate.arguments):
-        return "tool argument names must be text"
-    try:
-        _canonical_json(dict(candidate.arguments))
-    except (TypeError, ValueError):
-        return "tool arguments must be canonical JSON"
+    for call in _candidate_tool_calls(candidate):
+        if not all(isinstance(key, str) for key in call.arguments):
+            return "tool argument names must be text"
+        try:
+            _canonical_json(dict(call.arguments))
+        except (TypeError, ValueError):
+            return "tool arguments must be canonical JSON"
     return None
 
 
 def _candidate_material(candidate: CandidateAction) -> dict[str, object]:
+    if isinstance(candidate, CandidateToolBatch):
+        return {
+            "kind": "tool_call_batch",
+            "calls": [
+                {
+                    "call_id": call.call_id,
+                    "tool_name": call.tool_name,
+                    "arguments": dict(call.arguments),
+                }
+                for call in candidate.calls
+            ],
+        }
     if isinstance(candidate, CandidateToolCall):
         return {
             "kind": "tool_call",
@@ -2027,6 +2131,14 @@ def _candidate_material(candidate: CandidateAction) -> dict[str, object]:
         "disposition": candidate.disposition.value,
         "reason_code": candidate.reason_code,
     }
+
+
+def _candidate_tool_calls(
+    candidate: CandidateToolCall | CandidateToolBatch,
+) -> tuple[CandidateToolCall, ...]:
+    if isinstance(candidate, CandidateToolBatch):
+        return candidate.calls
+    return (candidate,)
 
 
 def _candidate_identity(candidate: CandidateAction) -> str:
@@ -2210,6 +2322,7 @@ def _sha256_json(value: object) -> str:
 
 __all__ = [
     "CandidateFinal",
+    "CandidateToolBatch",
     "CandidateToolCall",
     "classified_event_field",
     "DemoEchoTool",
@@ -2227,6 +2340,8 @@ __all__ = [
     "FinalDisposition",
     "JsonlRunEventLog",
     "ModelGateway",
+    "MAX_TOOL_CALLS_PER_BATCH",
+    "PreflightEventTool",
     "ProviderDispatchState",
     "PreparedModelTurn",
     "RUN_EVENT_SCHEMA_VERSION",

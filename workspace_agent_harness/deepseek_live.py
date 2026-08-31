@@ -19,6 +19,7 @@ import urllib.request
 
 from .evented import (
     CandidateFinal,
+    CandidateToolBatch,
     CandidateToolCall,
     ExchangeEvidence,
     ExchangeFailed,
@@ -26,6 +27,7 @@ from .evented import (
     ExchangeSettled,
     ExchangeUsage,
     FinalDisposition,
+    MAX_TOOL_CALLS_PER_BATCH,
     ModelExchangeException,
     PreparedModelTurn,
     ProviderFailure,
@@ -204,6 +206,7 @@ class DeepSeekLiveTranslationAdapter:
         profile: DeepSeekLiveModelProfile,
         tool_bindings: tuple[DeepSeekToolBinding, ...],
         system_prompt: str = DEEPSEEK_LIVE_SYSTEM_PROMPT,
+        max_tool_calls_per_response: int | None = None,
     ) -> None:
         if not tool_bindings:
             raise ValueError("at least one domain tool binding is required")
@@ -215,6 +218,21 @@ class DeepSeekLiveTranslationAdapter:
         if not system_prompt:
             raise ValueError("DeepSeek live system prompt must be non-empty")
         self._profile = profile
+        selected_batch_limit = max_tool_calls_per_response
+        if selected_batch_limit is None:
+            selected_batch_limit = 1
+        if (
+            isinstance(selected_batch_limit, bool)
+            or not isinstance(selected_batch_limit, int)
+            or not 1 <= selected_batch_limit <= MAX_TOOL_CALLS_PER_BATCH
+        ):
+            raise ValueError(
+                "DeepSeek tool-call response limit must be between 1 and "
+                f"{MAX_TOOL_CALLS_PER_BATCH}"
+            )
+        if selected_batch_limit > 1 and not self._uses_provider_controlled_tool_choice:
+            raise ValueError("multi-ToolCall admission requires the v3 response contract")
+        self._max_tool_calls_per_response = selected_batch_limit
         self._bindings = tool_bindings
         self._bindings_by_name = {
             binding.runtime_tool.name: binding for binding in tool_bindings
@@ -235,7 +253,7 @@ class DeepSeekLiveTranslationAdapter:
             "reasoning_carrier": "reasoning_content-restricted",
             "executable_argument_carrier": "command-only",
             "provider_strict": False,
-            "max_actions_per_turn": 1,
+            "max_actions_per_turn": self._max_tool_calls_per_response,
             "tool_bindings": [
                 binding.identity_material() for binding in self._bindings
             ],
@@ -249,6 +267,14 @@ class DeepSeekLiveTranslationAdapter:
                     "response_admission": self._profile.response_admission,
                     "ordinary_final_mapping": "stop-nonempty-content-to-completed",
                     "reasoning_history_replay": "all-assistant-turns-with-tools",
+                }
+            )
+        if self._max_tool_calls_per_response > 1:
+            material.update(
+                {
+                    "tool_batch_admission": "all-before-effects",
+                    "tool_batch_execution": "provider-order-serial",
+                    "terminal_action_batching": "singleton-only",
                 }
             )
         return identity_sha256(material)
@@ -269,51 +295,61 @@ class DeepSeekLiveTranslationAdapter:
             {"role": "system", "content": self._system_prompt}
         ]
         historical_call_ids: list[str] = []
-        awaiting_result: tuple[str, str] | None = None
+        awaiting_results: list[tuple[str, str]] = []
         conversation_messages = prepared_turn.conversation.messages
         for index, message in enumerate(conversation_messages):
             if isinstance(message, UserMessage):
-                if awaiting_result is not None:
-                    raise ValueError("assistant tool call is missing its paired result")
+                if awaiting_results:
+                    raise ValueError("assistant tool-call turn is missing paired results")
                 messages.append({"role": "user", "content": message.content})
             elif isinstance(message, AssistantToolCall):
-                if awaiting_result is not None:
+                if awaiting_results:
                     raise ValueError("assistant tool calls cannot overlap")
-                binding = self._bindings_by_name.get(message.call.tool_name)
-                if binding is None:
-                    raise ValueError("canonical history contains an unknown tool call")
-                if message.call.call_id in historical_call_ids:
-                    raise ValueError("canonical history reuses a tool call ID")
-                direct_arguments = _decode_runtime_arguments(
-                    binding,
-                    message.call.arguments,
-                )
+                if len(message.calls) > self._max_tool_calls_per_response:
+                    raise ValueError("canonical tool-call turn exceeds the Adapter limit")
                 if self._uses_provider_controlled_tool_choice and not message.reasoning:
                     raise ValueError("v3 assistant reasoning history must be complete")
-                historical_call_ids.append(message.call.call_id)
-                awaiting_result = (message.call.call_id, message.call.tool_name)
+                provider_calls: list[dict[str, object]] = []
+                for call in message.calls:
+                    binding = self._bindings_by_name.get(call.tool_name)
+                    if binding is None:
+                        raise ValueError("canonical history contains an unknown tool call")
+                    if call.call_id in historical_call_ids:
+                        raise ValueError("canonical history reuses a tool call ID")
+                    direct_arguments = _decode_runtime_arguments(
+                        binding,
+                        call.arguments,
+                    )
+                    historical_call_ids.append(call.call_id)
+                    awaiting_results.append((call.call_id, call.tool_name))
+                    provider_calls.append(
+                        {
+                            "id": call.call_id,
+                            "type": "function",
+                            "function": {
+                                "name": call.tool_name,
+                                "arguments": canonical_json_bytes(
+                                    direct_arguments
+                                ).decode("utf-8"),
+                            },
+                        }
+                    )
                 messages.append(
                     {
                         "role": "assistant",
                         "content": "",
                         "reasoning_content": message.reasoning or "",
-                        "tool_calls": [
-                            {
-                                "id": message.call.call_id,
-                                "type": "function",
-                                "function": {
-                                    "name": message.call.tool_name,
-                                    "arguments": canonical_json_bytes(
-                                        direct_arguments
-                                    ).decode("utf-8"),
-                                },
-                            }
-                        ],
+                        "tool_calls": provider_calls,
                     }
                 )
             elif isinstance(message, ToolResultMessage):
-                if awaiting_result != (message.call_id, message.tool_name):
-                    raise ValueError("tool result does not match the preceding call")
+                if not awaiting_results or awaiting_results[0] != (
+                    message.call_id,
+                    message.tool_name,
+                ):
+                    raise ValueError(
+                        "tool result does not match the next Provider-ordered call"
+                    )
                 messages.append(
                     {
                         "role": "tool",
@@ -321,8 +357,10 @@ class DeepSeekLiveTranslationAdapter:
                         "content": message.content,
                     }
                 )
-                awaiting_result = None
+                awaiting_results.pop(0)
             elif isinstance(message, AssistantFinalMessage):
+                if awaiting_results:
+                    raise ValueError("assistant tool-call turn is missing paired results")
                 if not self._uses_provider_controlled_tool_choice:
                     raise ValueError("terminal assistant history cannot be sent again")
                 if not message.reasoning:
@@ -343,8 +381,8 @@ class DeepSeekLiveTranslationAdapter:
                 )
             else:
                 raise ValueError("unsupported canonical history message")
-        if awaiting_result is not None:
-            raise ValueError("assistant tool call is missing its paired result")
+        if awaiting_results:
+            raise ValueError("assistant tool-call turn is missing paired results")
         payload: dict[str, object] = {
             "model": self._profile.requested_model,
             "messages": messages,
@@ -483,36 +521,57 @@ class DeepSeekLiveTranslationAdapter:
                 finish_reason="tool_calls",
             )
         tool_calls = message.get("tool_calls")
-        if not isinstance(tool_calls, list) or len(tool_calls) != 1:
+        if not isinstance(tool_calls, list) or not tool_calls:
             return _protocol_failure(request, response, "action_count_invalid")
-        raw_call = tool_calls[0]
-        if not isinstance(raw_call, dict) or raw_call.get("type") != "function":
-            return _protocol_failure(request, response, "tool_call_invalid")
-        call_id = raw_call.get("id")
-        if not isinstance(call_id, str) or not call_id:
-            return _protocol_failure(request, response, "tool_call_id_missing")
-        if call_id in request.historical_call_ids:
-            return _protocol_failure(request, response, "tool_call_id_reused")
-        function = raw_call.get("function")
-        if not isinstance(function, dict):
-            return _protocol_failure(request, response, "tool_function_missing")
-        tool_name = function.get("name")
-        raw_arguments = function.get("arguments")
-        if not isinstance(tool_name, str) or not isinstance(raw_arguments, str):
-            return _protocol_failure(request, response, "tool_function_invalid")
-        try:
-            arguments = json.loads(raw_arguments)
-        except json.JSONDecodeError:
-            return _protocol_failure(request, response, "tool_arguments_not_json")
-        if not isinstance(arguments, dict):
-            return _protocol_failure(request, response, "tool_arguments_not_object")
+        if len(tool_calls) > self._max_tool_calls_per_response:
+            return _protocol_failure(
+                request,
+                response,
+                (
+                    "action_count_invalid"
+                    if self._max_tool_calls_per_response == 1
+                    else "action_batch_limit_exceeded"
+                ),
+            )
+        parsed_calls: list[tuple[str, str, dict[str, object]]] = []
+        response_call_ids: set[str] = set()
+        for raw_call in tool_calls:
+            if not isinstance(raw_call, dict) or raw_call.get("type") != "function":
+                return _protocol_failure(request, response, "tool_call_invalid")
+            call_id = raw_call.get("id")
+            if not isinstance(call_id, str) or not call_id:
+                return _protocol_failure(request, response, "tool_call_id_missing")
+            if call_id in request.historical_call_ids:
+                return _protocol_failure(request, response, "tool_call_id_reused")
+            if call_id in response_call_ids:
+                return _protocol_failure(request, response, "tool_call_id_duplicate")
+            response_call_ids.add(call_id)
+            function = raw_call.get("function")
+            if not isinstance(function, dict):
+                return _protocol_failure(request, response, "tool_function_missing")
+            tool_name = function.get("name")
+            raw_arguments = function.get("arguments")
+            if not isinstance(tool_name, str) or not isinstance(raw_arguments, str):
+                return _protocol_failure(request, response, "tool_function_invalid")
+            try:
+                arguments = json.loads(raw_arguments)
+            except json.JSONDecodeError:
+                return _protocol_failure(request, response, "tool_arguments_not_json")
+            if not isinstance(arguments, dict):
+                return _protocol_failure(request, response, "tool_arguments_not_object")
+            parsed_calls.append((call_id, tool_name, cast(dict[str, object], arguments)))
+        terminal_calls = [
+            name for _, name, _ in parsed_calls if name in {"complete", "abstain"}
+        ]
+        if terminal_calls and len(parsed_calls) != 1:
+            return _protocol_failure(request, response, "terminal_action_mixed")
         usage = _usage(envelope.get("usage"))
         metadata = provider_metadata(
             response_id=_optional_text(envelope.get("id")),
             returned_model=_optional_text(envelope.get("model")),
             system_fingerprint=_optional_text(envelope.get("system_fingerprint")),
             finish_reason="tool_calls",
-            tool_call_id=call_id,
+            tool_call_id=(parsed_calls[0][0] if len(parsed_calls) == 1 else None),
         )
         evidence = ExchangeEvidence(
             response_identity=response_identity,
@@ -525,7 +584,8 @@ class DeepSeekLiveTranslationAdapter:
             finish_reason="tool_calls",
             dispatch_state=ProviderDispatchState.RESPONSE_RECEIVED,
         )
-        candidate: CandidateFinal | CandidateToolCall
+        call_id, tool_name, arguments = parsed_calls[0]
+        candidate: CandidateFinal | CandidateToolCall | CandidateToolBatch
         if tool_name == "complete":
             if _schema_error(_terminal_parameters(0), arguments):
                 return _protocol_failure(request, response, "complete_arguments_invalid")
@@ -546,20 +606,43 @@ class DeepSeekLiveTranslationAdapter:
                 provider_metadata=metadata,
             )
         else:
-            binding = self._bindings_by_name.get(tool_name)
-            if binding is None:
-                return _protocol_failure(request, response, "action_tool_unknown")
-            if _schema_error(binding.provider_parameters, arguments):
-                return _protocol_failure(request, response, "action_arguments_schema")
-            candidate = CandidateToolCall(
-                call_id=call_id,
-                tool_name=tool_name,
-                arguments={
-                    "input": canonical_json_bytes(arguments).decode("utf-8")
-                },
-                reasoning=reasoning or None,
-                provider_metadata=metadata,
-            )
+            canonical_calls: list[CandidateToolCall] = []
+            for parsed_call_id, parsed_tool_name, parsed_arguments in parsed_calls:
+                binding = self._bindings_by_name.get(parsed_tool_name)
+                if binding is None:
+                    return _protocol_failure(request, response, "action_tool_unknown")
+                if _schema_error(binding.provider_parameters, parsed_arguments):
+                    return _protocol_failure(
+                        request,
+                        response,
+                        "action_arguments_schema",
+                    )
+                canonical_calls.append(
+                    CandidateToolCall(
+                        call_id=parsed_call_id,
+                        tool_name=parsed_tool_name,
+                        arguments={
+                            "input": canonical_json_bytes(parsed_arguments).decode(
+                                "utf-8"
+                            )
+                        },
+                    )
+                )
+            if len(canonical_calls) == 1:
+                only_call = canonical_calls[0]
+                candidate = CandidateToolCall(
+                    call_id=only_call.call_id,
+                    tool_name=only_call.tool_name,
+                    arguments=only_call.arguments,
+                    reasoning=reasoning or None,
+                    provider_metadata=metadata,
+                )
+            else:
+                candidate = CandidateToolBatch(
+                    calls=tuple(canonical_calls),
+                    reasoning=reasoning or None,
+                    provider_metadata=metadata,
+                )
         return ExchangeSettled(
             exchange_id=_exchange_id(request, response),
             candidate=candidate,

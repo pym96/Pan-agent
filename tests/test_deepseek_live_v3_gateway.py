@@ -19,10 +19,12 @@ from workspace_agent_harness.deepseek_live import (
 )
 from workspace_agent_harness.evented import (
     CandidateFinal,
+    CandidateToolBatch,
     CandidateToolCall,
     ExchangeFailed,
     ExchangeSettled,
     FinalDisposition,
+    MAX_TOOL_CALLS_PER_BATCH,
     PreparedModelTurn,
 )
 from workspace_agent_harness.translation import (
@@ -178,6 +180,67 @@ class DeepSeekLiveV3GatewayTest(unittest.TestCase):
         self.assertIsInstance(http_error, ExchangeFailed)
         assert isinstance(http_error, ExchangeFailed)
         self.assertEqual("provider_http_status", http_error.failure.code)
+
+    def test_explicit_batch_contract_is_bounded_unique_and_domain_only(self) -> None:
+        case = load_behavioral_eval_manifest().case("SA-01")
+        bindings = _bindings(case)
+        adapter = DeepSeekLiveTranslationAdapter(
+            profile=locked_deepseek_v3_model_profile(),
+            tool_bindings=bindings,
+            max_tool_calls_per_response=MAX_TOOL_CALLS_PER_BATCH,
+        )
+        request = adapter.encode_request(_prepared_turn(case, bindings))
+        valid_tool = _fixture_document("valid-tool-call.response.json")
+
+        valid_batch = _batch_document(valid_tool, 2)
+        admitted = adapter.decode_response(
+            request,
+            RetainedDeepSeekResponse(
+                status_code=200,
+                body=_json_bytes(valid_batch),
+            ),
+        )
+        self.assertIsInstance(admitted, ExchangeSettled)
+        assert isinstance(admitted, ExchangeSettled)
+        self.assertIsInstance(admitted.candidate, CandidateToolBatch)
+        assert isinstance(admitted.candidate, CandidateToolBatch)
+        self.assertEqual(
+            ("v3-call-1", "v3-call-2"),
+            tuple(call.call_id for call in admitted.candidate.calls),
+        )
+
+        duplicate = _append_call(valid_tool)
+        duplicate_result = adapter.decode_response(
+            request,
+            RetainedDeepSeekResponse(status_code=200, body=_json_bytes(duplicate)),
+        )
+        self.assertIsInstance(duplicate_result, ExchangeFailed)
+        assert isinstance(duplicate_result, ExchangeFailed)
+        self.assertEqual("tool_call_id_duplicate", duplicate_result.failure.code)
+
+        oversized = _batch_document(valid_tool, MAX_TOOL_CALLS_PER_BATCH + 1)
+        oversized_result = adapter.decode_response(
+            request,
+            RetainedDeepSeekResponse(status_code=200, body=_json_bytes(oversized)),
+        )
+        self.assertIsInstance(oversized_result, ExchangeFailed)
+        assert isinstance(oversized_result, ExchangeFailed)
+        self.assertEqual(
+            "action_batch_limit_exceeded",
+            oversized_result.failure.code,
+        )
+
+        mixed = _fixture_document("valid-complete-tool.response.json")
+        mixed["choices"][0]["message"]["tool_calls"].append(
+            valid_tool["choices"][0]["message"]["tool_calls"][0]
+        )
+        mixed_result = adapter.decode_response(
+            request,
+            RetainedDeepSeekResponse(status_code=200, body=_json_bytes(mixed)),
+        )
+        self.assertIsInstance(mixed_result, ExchangeFailed)
+        assert isinstance(mixed_result, ExchangeFailed)
+        self.assertEqual("terminal_action_mixed", mixed_result.failure.code)
 
     def test_identity_and_history_mismatch_fail_before_any_tool_effect(self) -> None:
         case = load_behavioral_eval_manifest().case("SA-01")
@@ -382,6 +445,20 @@ def _append_call(source: dict[str, object]) -> dict[str, object]:
     copied["choices"][0]["message"]["tool_calls"].append(
         json.loads(json.dumps(copied["choices"][0]["message"]["tool_calls"][0]))
     )
+    return copied
+
+
+def _batch_document(
+    source: dict[str, object],
+    count: int,
+) -> dict[str, object]:
+    copied = json.loads(json.dumps(source))
+    template = copied["choices"][0]["message"]["tool_calls"][0]
+    copied["choices"][0]["message"]["tool_calls"] = []
+    for index in range(1, count + 1):
+        call = json.loads(json.dumps(template))
+        call["id"] = f"v3-call-{index}"
+        copied["choices"][0]["message"]["tool_calls"].append(call)
     return copied
 
 

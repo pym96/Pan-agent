@@ -506,6 +506,10 @@ def _validate_conversation(
         elif isinstance(message, AssistantToolCall):
             if pending is not None:
                 raise TranslationRejected(_request_failure("missing_tool_result"))
+            if message.additional_calls:
+                raise TranslationRejected(
+                    _request_failure("historical_multi_call_unsupported")
+                )
             if message.call.call_id in call_ids:
                 raise TranslationRejected(
                     _request_failure("historical_tool_call_id_duplicate")
