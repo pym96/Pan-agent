@@ -729,6 +729,7 @@ class LiveTuiSession:
                 tool_bindings=live_workspace_bindings(tools),
                 system_prompt=LIVE_TUI_SYSTEM_PROMPT,
                 max_tool_calls_per_response=MAX_TOOL_CALLS_PER_BATCH,
+                allow_tool_call_content=True,
             ),
             transport=DeepSeekHttpTransport(
                 api_key=self._api_key,

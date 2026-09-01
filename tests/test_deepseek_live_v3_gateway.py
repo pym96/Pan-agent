@@ -103,6 +103,51 @@ class DeepSeekLiveV3GatewayTest(unittest.TestCase):
         self.assertEqual(FinalDisposition.ABSTAINED, abstained.candidate.disposition)
         self.assertEqual("insufficient_evidence", abstained.candidate.reason_code)
 
+    def test_opt_in_tool_content_is_non_authoritative_and_identity_bound(self) -> None:
+        case = load_behavioral_eval_manifest().case("SA-01")
+        bindings = _bindings(case)
+        strict_adapter = DeepSeekLiveTranslationAdapter(
+            profile=locked_deepseek_v3_model_profile(),
+            tool_bindings=bindings,
+        )
+        adapter = DeepSeekLiveTranslationAdapter(
+            profile=locked_deepseek_v3_model_profile(),
+            tool_bindings=bindings,
+            allow_tool_call_content=True,
+        )
+        request = adapter.encode_request(_prepared_turn(case, bindings))
+        document = _mutate(
+            _fixture_document("valid-tool-call.response.json"),
+            ("choices", 0, "message", "content"),
+            "I will inspect the retained status.",
+        )
+
+        result = adapter.decode_response(
+            request,
+            RetainedDeepSeekResponse(status_code=200, body=_json_bytes(document)),
+        )
+
+        self.assertIsInstance(result, ExchangeSettled)
+        assert isinstance(result, ExchangeSettled)
+        self.assertIsInstance(result.candidate, CandidateToolCall)
+        assert isinstance(result.candidate, CandidateToolCall)
+        self.assertEqual("inspect_status", result.candidate.tool_name)
+        self.assertEqual({"input": "{}"}, dict(result.candidate.arguments))
+        self.assertNotEqual(strict_adapter.identity, adapter.identity)
+
+        malformed = _mutate(
+            document,
+            ("choices", 0, "message", "content"),
+            {"not": "text"},
+        )
+        rejected = adapter.decode_response(
+            request,
+            RetainedDeepSeekResponse(status_code=200, body=_json_bytes(malformed)),
+        )
+        self.assertIsInstance(rejected, ExchangeFailed)
+        assert isinstance(rejected, ExchangeFailed)
+        self.assertEqual("tool_content_invalid", rejected.failure.code)
+
     def test_retained_stop_content_becomes_attributed_completed_final(self) -> None:
         case = load_behavioral_eval_manifest().case("SA-01")
         adapter, request = _adapter_and_request(case)

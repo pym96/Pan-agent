@@ -152,6 +152,7 @@ class LiveTuiSessionTest(unittest.TestCase):
                         call_id="provider-write-1",
                         name="write_file",
                         arguments={"path": "result.txt", "content": "total=5"},
+                        content="I will write the requested result.",
                         input_tokens=41,
                         output_tokens=13,
                     ),
@@ -170,6 +171,7 @@ class LiveTuiSessionTest(unittest.TestCase):
                         tool_bindings=live_workspace_bindings(tools),
                         system_prompt=LIVE_TUI_SYSTEM_PROMPT,
                         max_tool_calls_per_response=MAX_TOOL_CALLS_PER_BATCH,
+                        allow_tool_call_content=True,
                     ),
                     transport=transport,
                     exchange_store=FileDeepSeekExchangeStore(
@@ -220,6 +222,7 @@ class LiveTuiSessionTest(unittest.TestCase):
                 "Use the bounded write tool.",
                 second_messages[2]["reasoning_content"],
             )
+            self.assertEqual("", second_messages[2]["content"])
             record = session.records[0]
             self.assertEqual(108, record.usage["input_tokens"])
             self.assertEqual(24, record.usage["output_tokens"])
@@ -847,6 +850,7 @@ def _provider_tool_response(
     call_id: str,
     name: str,
     arguments: object,
+    content: str = "",
     input_tokens: int,
     output_tokens: int,
 ) -> RetainedDeepSeekResponse:
@@ -854,7 +858,7 @@ def _provider_tool_response(
         finish_reason="tool_calls",
         message={
             "role": "assistant",
-            "content": "",
+            "content": content,
             "reasoning_content": "Use the bounded write tool.",
             "tool_calls": [
                 {

@@ -207,6 +207,7 @@ class DeepSeekLiveTranslationAdapter:
         tool_bindings: tuple[DeepSeekToolBinding, ...],
         system_prompt: str = DEEPSEEK_LIVE_SYSTEM_PROMPT,
         max_tool_calls_per_response: int | None = None,
+        allow_tool_call_content: bool = False,
     ) -> None:
         if not tool_bindings:
             raise ValueError("at least one domain tool binding is required")
@@ -232,7 +233,12 @@ class DeepSeekLiveTranslationAdapter:
             )
         if selected_batch_limit > 1 and not self._uses_provider_controlled_tool_choice:
             raise ValueError("multi-ToolCall admission requires the v3 response contract")
+        if not isinstance(allow_tool_call_content, bool):
+            raise ValueError("tool-call content policy must be boolean")
+        if allow_tool_call_content and not self._uses_provider_controlled_tool_choice:
+            raise ValueError("tool-call content admission requires the v3 response contract")
         self._max_tool_calls_per_response = selected_batch_limit
+        self._allow_tool_call_content = allow_tool_call_content
         self._bindings = tool_bindings
         self._bindings_by_name = {
             binding.runtime_tool.name: binding for binding in tool_bindings
@@ -277,6 +283,8 @@ class DeepSeekLiveTranslationAdapter:
                     "terminal_action_batching": "singleton-only",
                 }
             )
+        if self._allow_tool_call_content:
+            material["tool_call_content_policy"] = "retain-raw-ignore-non-authoritative-text"
         return identity_sha256(material)
 
     @property
@@ -510,16 +518,25 @@ class DeepSeekLiveTranslationAdapter:
                 stop_reason="stop",
                 evidence=evidence,
             )
-        if (
-            self._uses_provider_controlled_tool_choice
-            and message.get("content") not in (None, "")
-        ):
-            return _protocol_failure(
-                request,
-                response,
-                "content_tool_calls_conflict",
-                finish_reason="tool_calls",
-            )
+        if self._uses_provider_controlled_tool_choice:
+            tool_content = message.get("content")
+            if self._allow_tool_call_content:
+                if tool_content is not None and not isinstance(tool_content, str):
+                    return _protocol_failure(
+                        request,
+                        response,
+                        "tool_content_invalid",
+                        finish_reason="tool_calls",
+                    )
+                # The exact response remains in the exchange store.  Tool-adjacent
+                # text is non-authoritative and never becomes an action or final.
+            elif tool_content not in (None, ""):
+                return _protocol_failure(
+                    request,
+                    response,
+                    "content_tool_calls_conflict",
+                    finish_reason="tool_calls",
+                )
         tool_calls = message.get("tool_calls")
         if not isinstance(tool_calls, list) or not tool_calls:
             return _protocol_failure(request, response, "action_count_invalid")
