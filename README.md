@@ -1,12 +1,18 @@
 # Workspace Agent Harness
 
-Workspace Agent Harness targets a General Agent Runtime plus materially different Vertical Domain Packs. The earlier single-user Local Workspace Agent remains a historical design baseline, not the active implementation plan.
+Workspace Agent Harness now targets a Human-usable TypeScript/Pi General Agent Working Stack. WorkOrder #23 is the active tracer bullet; the accepted Python #21 stack, the historical Local Workspace Agent contract, and the earlier General Runtime/Vertical Domain Pack work remain reference implementations and design history until a separately governed #24 cutover decides their long-term classification.
 
 > **Mixed verification state; not a new verified fact (2026-08-25):** Human accepted ADR-0009/0010/0011/0012/0013/0014. Separate same-model Regulator reviews accepted the ordinary Runtime/Campaign/seed/configuration boundary through HF-20260820-022, a sixth review reproduced the ReAct MVP ordinary candidate-Evidence boundary, WorkOrder #4's offline Translation Adapter boundary passed its independent Gate, and WorkOrder #3's design freeze was independently accepted. All 30 ReAct slots executed, with 29 task outcomes and one infrastructure/artifact failure; this is not a SWE-bench Lite score. The 240-slot `protocol-reliability-v1` replay and its 75-call maximum-token sensitivity plus separately identified 25-call 16K extension have completed as Working Agent candidate Evidence; they still require a new independent review. WorkOrder #6's evented Python TUI tracer is only a Working Agent candidate pending its own independent review. Start at `AGENTS.md`; the bounded assignment lives in `docs/agents/current-assignment.md`.
 
 ## Learning Wiki
 
 The project maintains a source-grounded [Learning Wiki](wiki/index.md) recording what building this system teaches: harness engineering, agent tool design, evaluation methodology, and verification practice. Every substantive page is either a **Verified Learning Fact** (with an explicit verification level — `source-located`, `triangulated`, or `experiment-reproduced` — and stated boundaries) or an **Open Learning Question** (with a verification path). The [log](wiki/log.md) is append-only. The Wiki claims no product, benchmark, or resume authority; it is the project's public learning trail.
+
+## TypeScript/Pi General Agent Working Stack candidate
+
+WorkOrder #23 adds a [TypeScript package and Human command](typescript/README.md) backed by the [candidate design](docs/design/typescript-pi-general-agent-working-stack.md). One deep `GeneralAgentSession` Module owns Pi's stateful Context and Agent loop, translates through a real DeepSeek Adapter, exposes typed read/write/edit/bash tools, returns control for successive tasks, renders usage and attributable terminals, and supports cancellation. Its test Adapter is Pi's deterministic Faux Provider; Builder verification makes no paid Provider call.
+
+The shell is explicitly **trusted-local**: it runs as the host user, and the selected workspace is only the default cwd. This candidate claims neither path containment nor an OS/network sandbox. Security isolation belongs to #22; authoritative cutover and Python cleanup belong to #24. The existing Python entry remains unchanged.
 
 ## Current implementation gate
 

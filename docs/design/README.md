@@ -2,6 +2,7 @@
 
 Design documents are candidate contracts, not implementation facts.
 
+- [`typescript-pi-general-agent-working-stack.md`](typescript-pi-general-agent-working-stack.md): WorkOrder #23's active-product TypeScript/Pi tracer bullet, deep session Interface, real DeepSeek and deterministic Faux Adapters, typed workspace tools, explicitly trusted-local shell, observable terminals, and #22/#24 boundary; pending independent review and containing no Builder Provider call.
 - [`general-vertical-system.md`](general-vertical-system.md): active General Runtime and Vertical Domain Pack design entry.
 - [`deerflow-mechanism-map.md`](deerflow-mechanism-map.md): pinned external mechanism inspection and local adopt/defer/reject map.
 - [`proof-domains.md`](proof-domains.md): the two bounded proof domains and deterministic evaluation contracts.

@@ -1,8 +1,14 @@
-# Current Assignment | Bash-only ReAct MVP before SWE-style ACI work
+# Current Assignment | TypeScript/Pi General Agent Working Stack
 
 This document owns the current project lane, constraints, and non-goals. It does not grant a session-specific task or establish implementation facts. A Working session starts only from a Master-published WorkOrder, and that WorkOrder cannot widen this lane or override Human decisions. Read the fact register linked from the root Agent map before making any current-state statement.
 
-## Mission
+## Active mission | WorkOrder #23 supersession
+
+The latest Human/Master record on GitHub WorkOrder #23 supersedes the stale Bash-only Phase 0 assignment for the bounded #23 implementation. The accepted Python #21 stack is retained as a reference, while the active product direction becomes a Human-usable TypeScript/Pi General Agent Working Stack: Pi-maintained model/session/Context and Provider translation, typed read/write/edit tools, a clearly labelled trusted-local shell, successive tasks, cancellation, usage, response identity, and attributable terminal/failure behavior.
+
+WorkOrder #23 is only a tracer bullet. It must use deterministic Faux Provider tests, make no Builder paid Provider call, preserve the Python paths, and produce an immutable candidate for independent review. It does not authorize #22 OS isolation/security claims, #24 cutover/deletion/default cleanup, an evaluation matrix, project-fact promotion, Wiki/resume changes, or any live Builder smoke. The candidate design and Human command live in [`../design/typescript-pi-general-agent-working-stack.md`](../design/typescript-pi-general-agent-working-stack.md) and [`../../typescript/README.md`](../../typescript/README.md).
+
+## Retained prior mission history | superseded for #23
 
 Human accepted ADR-0009 and ADR-0010 on 2026-08-19. The HF-20260820-022 benchmark-configuration assignment completed its ordinary independent Gate on 2026-08-20. After reading ReAct and SWE-agent, the human then accepted ADR-0011's next bounded learning phase: reproduce a bash-only visible ReAct mechanism first, then use its Bad Cases to choose later SWE-agent-style Agent-Computer Interface changes.
 

@@ -1,5 +1,7 @@
 # Tests
 
+The active TypeScript/Pi tracer bullet has its separate deterministic suite at [`../typescript/test/general-agent.test.ts`](../typescript/test/general-agent.test.ts). Run `npm --prefix typescript run check` from the repository root. It uses Pi's Faux Provider and the same `GeneralAgentSession`/tool seams as the real DeepSeek Adapter, with zero network, credential, balance, or paid-model calls.
+
 The accepted implementation baseline is split across:
 
 - `test_package_identity.py`;

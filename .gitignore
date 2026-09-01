@@ -17,6 +17,10 @@ dist/
 build/
 *.egg-info/
 
+# Node / TypeScript
+node_modules/
+npm-debug.log*
+
 # Local run state and generated artifacts
 .scratch/
 .runs/
