@@ -1026,6 +1026,7 @@ class LiveTuiSession:
                 system_prompt=self._system_prompt,
                 max_tool_calls_per_response=MAX_TOOL_CALLS_PER_BATCH,
                 allow_tool_call_content=True,
+                allow_optional_reasoning=True,
             ),
             transport=DeepSeekHttpTransport(
                 api_key=self._api_key,

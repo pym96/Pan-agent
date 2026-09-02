@@ -8,6 +8,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
+from unittest.mock import patch
 from pathlib import Path
 from threading import Event
 
@@ -410,33 +411,21 @@ class LiveTuiSessionTest(unittest.TestCase):
                 )
             )
 
-            def gateway_factory(run_root, tools):
-                return DeepSeekModelGateway(
-                    adapter=DeepSeekLiveTranslationAdapter(
-                        profile=locked_deepseek_v3_model_profile(),
-                        tool_bindings=live_workspace_bindings(tools),
-                        system_prompt=LIVE_TUI_SYSTEM_PROMPT,
-                        max_tool_calls_per_response=MAX_TOOL_CALLS_PER_BATCH,
-                        allow_tool_call_content=True,
-                    ),
-                    transport=transport,
-                    exchange_store=FileDeepSeekExchangeStore(
-                        run_root / "provider-exchanges"
-                    ),
-                )
-
             output = io.StringIO()
             session = LiveTuiSession(
                 workspace_root=workspace,
                 session_root=root / "session",
                 input_stream=io.StringIO("yes\nwrite the exact result\n:exit\n"),
                 output=output,
-                gateway_factory=gateway_factory,
-                credential_loader=_must_not_be_called,
+                credential_loader=lambda: "test-only-key",
                 run_id_factory=lambda: "deepseek-seam-run",
             )
 
-            self.assertEqual(0, session.run())
+            with patch(
+                "workspace_agent_harness.live_tui.DeepSeekHttpTransport",
+                return_value=transport,
+            ):
+                self.assertEqual(0, session.run())
             self.assertEqual("total=5", (workspace / "result.txt").read_text())
             self.assertEqual(2, transport.calls)
             first_payload = transport.requests[0].payload
@@ -465,7 +454,7 @@ class LiveTuiSessionTest(unittest.TestCase):
                 [message["role"] for message in second_messages],
             )
             self.assertEqual(
-                "Use the bounded write tool.",
+                "",
                 second_messages[2]["reasoning_content"],
             )
             self.assertEqual("", second_messages[2]["content"])
@@ -478,7 +467,6 @@ class LiveTuiSessionTest(unittest.TestCase):
                 2,
                 len(tuple((record.run_root / "provider-exchanges").iterdir())),
             )
-            self.assertNotIn("Use the bounded write tool.", output.getvalue())
             self.assertNotIn(
                 "The retained tool result proves completion.",
                 output.getvalue(),
@@ -1207,7 +1195,7 @@ def _provider_tool_response(
         message={
             "role": "assistant",
             "content": content,
-            "reasoning_content": "Use the bounded write tool.",
+            "reasoning_content": "",
             "tool_calls": [
                 {
                     "id": call_id,

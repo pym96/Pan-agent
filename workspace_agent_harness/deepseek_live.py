@@ -208,6 +208,7 @@ class DeepSeekLiveTranslationAdapter:
         system_prompt: str = DEEPSEEK_LIVE_SYSTEM_PROMPT,
         max_tool_calls_per_response: int | None = None,
         allow_tool_call_content: bool = False,
+        allow_optional_reasoning: bool = False,
     ) -> None:
         if not tool_bindings:
             raise ValueError("at least one domain tool binding is required")
@@ -237,8 +238,13 @@ class DeepSeekLiveTranslationAdapter:
             raise ValueError("tool-call content policy must be boolean")
         if allow_tool_call_content and not self._uses_provider_controlled_tool_choice:
             raise ValueError("tool-call content admission requires the v3 response contract")
+        if not isinstance(allow_optional_reasoning, bool):
+            raise ValueError("optional-reasoning policy must be boolean")
+        if allow_optional_reasoning and not self._uses_provider_controlled_tool_choice:
+            raise ValueError("optional reasoning requires the v3 response contract")
         self._max_tool_calls_per_response = selected_batch_limit
         self._allow_tool_call_content = allow_tool_call_content
+        self._allow_optional_reasoning = allow_optional_reasoning
         self._bindings = tool_bindings
         self._bindings_by_name = {
             binding.runtime_tool.name: binding for binding in tool_bindings
@@ -285,6 +291,8 @@ class DeepSeekLiveTranslationAdapter:
             )
         if self._allow_tool_call_content:
             material["tool_call_content_policy"] = "retain-raw-ignore-non-authoritative-text"
+        if self._allow_optional_reasoning:
+            material["reasoning_content_policy"] = "optional-string-normalized-to-none"
         return identity_sha256(material)
 
     @property
@@ -315,7 +323,11 @@ class DeepSeekLiveTranslationAdapter:
                     raise ValueError("assistant tool calls cannot overlap")
                 if len(message.calls) > self._max_tool_calls_per_response:
                     raise ValueError("canonical tool-call turn exceeds the Adapter limit")
-                if self._uses_provider_controlled_tool_choice and not message.reasoning:
+                if (
+                    self._uses_provider_controlled_tool_choice
+                    and not self._allow_optional_reasoning
+                    and not message.reasoning
+                ):
                     raise ValueError("v3 assistant reasoning history must be complete")
                 provider_calls: list[dict[str, object]] = []
                 for call in message.calls:
@@ -371,7 +383,7 @@ class DeepSeekLiveTranslationAdapter:
                     raise ValueError("assistant tool-call turn is missing paired results")
                 if not self._uses_provider_controlled_tool_choice:
                     raise ValueError("terminal assistant history cannot be sent again")
-                if not message.reasoning:
+                if not self._allow_optional_reasoning and not message.reasoning:
                     raise ValueError("v3 assistant reasoning history must be complete")
                 if (
                     index + 1 >= len(conversation_messages)
@@ -384,7 +396,7 @@ class DeepSeekLiveTranslationAdapter:
                     {
                         "role": "assistant",
                         "content": message.content,
-                        "reasoning_content": message.reasoning,
+                        "reasoning_content": message.reasoning or "",
                     }
                 )
             else:
@@ -467,10 +479,19 @@ class DeepSeekLiveTranslationAdapter:
         message = choice.get("message")
         if not isinstance(message, dict) or message.get("role") != "assistant":
             return _protocol_failure(request, response, "assistant_message_invalid")
-        reasoning = message.get("reasoning_content")
-        if not isinstance(reasoning, str):
+        raw_reasoning = message.get("reasoning_content")
+        reasoning: str | None
+        if raw_reasoning is None and self._allow_optional_reasoning:
+            reasoning = None
+        elif not isinstance(raw_reasoning, str):
             return _protocol_failure(request, response, "reasoning_content_missing")
-        if self._uses_provider_controlled_tool_choice and not reasoning:
+        else:
+            reasoning = raw_reasoning
+        if (
+            self._uses_provider_controlled_tool_choice
+            and not self._allow_optional_reasoning
+            and not reasoning
+        ):
             return _protocol_failure(request, response, "reasoning_content_missing")
         if finish_reason == "stop":
             content = message.get("content")
@@ -512,7 +533,7 @@ class DeepSeekLiveTranslationAdapter:
                 candidate=CandidateFinal(
                     content=content,
                     disposition=FinalDisposition.COMPLETED,
-                    reasoning=reasoning,
+                    reasoning=reasoning or None,
                     provider_metadata=metadata,
                 ),
                 stop_reason="stop",
