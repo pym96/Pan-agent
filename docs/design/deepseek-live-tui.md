@@ -1,6 +1,6 @@
 # DeepSeek Live Workspace TUI
 
-Status: WorkOrder #22 Working Agent repair candidate. Its current deterministic implementation checks pass (`58` focused Python tests, `235` full Python tests, `12` TypeScript/Pi checks, and changed-source `mypy`). Human-operated candidate attempts first exposed cancellation blocked on a pending repeat handoff and later exposed rejection of a valid ToolCall whose Provider reasoning was an empty string. Both repairs have red/green deterministic coverage; no Provider call was made while repairing them, and a new exact-candidate smoke is still required before independent high-risk Regulator review. It extends the accepted #21 Python entry from base `4ebf660b7166724e604263e6c3d60a139bf0db8b`; the earlier #21 smoke remains only a [historical observation](../evidence/deepseek-live-tui-smoke-candidate-2026-08-31.md).
+Status: WorkOrder #22 Working Agent repair candidate. Its current deterministic implementation checks pass (`58` focused Python tests, `235` full Python tests, `12` TypeScript/Pi checks, and changed-source `mypy`). Human-operated candidate attempts first exposed cancellation blocked on a pending repeat handoff, then a legitimate multi-part trusted-local task terminated at the earlier `12`-step Run budget, and later exposed rejection of a valid ToolCall whose Provider reasoning was an empty string. The cancellation and reasoning repairs have red/green deterministic coverage, and the step-budget repair raised the interactive defaults to `100` steps / `160` model calls with the `300`-second timeout unchanged; no Provider call was made while repairing them, and a new exact-candidate smoke is still required before independent high-risk Regulator review. It extends the accepted #21 Python entry from base `4ebf660b7166724e604263e6c3d60a139bf0db8b`; the earlier #21 smoke remains only a [historical observation](../evidence/deepseek-live-tui-smoke-candidate-2026-08-31.md).
 
 ## Product slice
 
@@ -115,7 +115,7 @@ These policies make Provider expression permissive without making execution perm
 
 The `SemanticContextProjector` receives the accepted 1,000,000-Token profile window and 384,000-Token profile output room. Protocol/tool overhead is derived from the selected no-shell or trusted-local system prompt and its exact closed Provider schemas with the existing estimator. No arbitrary text truncation or new output-token ceiling is introduced. Only a typed Provider context-overflow failure can enter the accepted one-retry semantic recovery path.
 
-Per-Run lifecycle limits are `12` tool steps, `16` model calls, and `300` seconds. A batch cannot exceed eight calls or the Run's remaining step budget. These limits bound loop work; they do not alter the accepted Provider output ceiling.
+Per-Run lifecycle limits are `100` tool steps, `160` model calls, and `300` seconds. A batch cannot exceed eight calls or the Run's remaining step budget. These limits bound loop work; they do not alter the accepted Provider output ceiling. WorkOrder #22's human-operated attempts showed that the earlier `12`-step / `16`-call budget terminated a legitimate multi-part trusted-local task with `step_limit` before it could finish exploration, so the interactive defaults were raised while the `300`-second wall-clock timeout and per-call ModelProfile limits remain the binding guards.
 
 ## Verification boundary
 

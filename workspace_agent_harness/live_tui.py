@@ -64,8 +64,8 @@ LIVE_TUI_TRUSTED_LOCAL_SYSTEM_POLICY_ID = "deepseek-live-trusted-local-policy/v1
 LIVE_TUI_MAX_FILE_BYTES = 262_144
 LIVE_TUI_MAX_LIST_ENTRIES = 500
 LIVE_TUI_RUN_LIMITS = RunLimits(
-    max_steps=12,
-    max_model_calls=16,
+    max_steps=100,
+    max_model_calls=160,
     timeout_seconds=300,
 )
 LIVE_TUI_SYSTEM_PROMPT = (
