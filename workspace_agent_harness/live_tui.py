@@ -68,6 +68,10 @@ LIVE_TUI_RUN_LIMITS = RunLimits(
     max_model_calls=160,
     timeout_seconds=300,
 )
+# One non-streaming Provider exchange can spend well over a minute in
+# server-side Thinking before the first response byte; the per-socket-operation
+# HTTP timeout must tolerate that stall while still bounding a hung read.
+LIVE_TUI_TRANSPORT_TIMEOUT_SECONDS = 240.0
 LIVE_TUI_SYSTEM_PROMPT = (
     "Act on the task only through provided functions. One response may contain "
     f"between 1 and {MAX_TOOL_CALLS_PER_BATCH} independent domain function calls; "
@@ -1030,7 +1034,7 @@ class LiveTuiSession:
             ),
             transport=DeepSeekHttpTransport(
                 api_key=self._api_key,
-                timeout_seconds=60,
+                timeout_seconds=LIVE_TUI_TRANSPORT_TIMEOUT_SECONDS,
             ),
             exchange_store=FileDeepSeekExchangeStore(
                 run_root / "provider-exchanges"

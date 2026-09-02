@@ -35,7 +35,9 @@ from workspace_agent_harness.evented import (
     load_run_event_log,
 )
 from workspace_agent_harness.live_tui import (
+    LIVE_TUI_RUN_LIMITS,
     LIVE_TUI_SYSTEM_PROMPT,
+    LIVE_TUI_TRANSPORT_TIMEOUT_SECONDS,
     LiveProgressProjection,
     LiveTuiSession,
     ReadWorkspaceFileTool,
@@ -470,6 +472,48 @@ class LiveTuiSessionTest(unittest.TestCase):
             self.assertNotIn(
                 "The retained tool result proves completion.",
                 output.getvalue(),
+            )
+
+    def test_live_transport_timeout_tolerates_thinking_stall(self) -> None:
+        # WorkOrder #22 smoke attempt e926148d: the second real exchange
+        # (server-side Thinking plus a whole-file generation) exceeded the
+        # earlier 60-second HTTP timeout and terminally failed as
+        # transport_unavailable. The per-socket-operation timeout must
+        # tolerate that stall while remaining bounded by the Run timeout.
+        self.assertGreaterEqual(LIVE_TUI_TRANSPORT_TIMEOUT_SECONDS, 120.0)
+        self.assertLessEqual(
+            LIVE_TUI_TRANSPORT_TIMEOUT_SECONDS,
+            LIVE_TUI_RUN_LIMITS.timeout_seconds,
+        )
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            workspace = root / "workspace"
+            workspace.mkdir()
+            transport = _RetainedTransport(
+                (
+                    _provider_final_response(
+                        content="done",
+                        input_tokens=1,
+                        output_tokens=1,
+                    ),
+                )
+            )
+            session = LiveTuiSession(
+                workspace_root=workspace,
+                session_root=root / "session",
+                input_stream=io.StringIO("yes\nsay done\n:exit\n"),
+                output=io.StringIO(),
+                credential_loader=lambda: "test-only-key",
+                run_id_factory=lambda: "deepseek-timeout-run",
+            )
+            with patch(
+                "workspace_agent_harness.live_tui.DeepSeekHttpTransport",
+                return_value=transport,
+            ) as transport_factory:
+                self.assertEqual(0, session.run())
+            self.assertEqual(
+                LIVE_TUI_TRANSPORT_TIMEOUT_SECONDS,
+                transport_factory.call_args.kwargs["timeout_seconds"],
             )
 
     def test_live_tui_executes_provider_tool_batch_in_order_with_paired_history(self) -> None:
