@@ -66,7 +66,9 @@ LIVE_TUI_MAX_LIST_ENTRIES = 500
 LIVE_TUI_RUN_LIMITS = RunLimits(
     max_steps=100,
     max_model_calls=160,
-    timeout_seconds=300,
+    # The Run clock includes Human confirmation and PTY attach time; a
+    # Human-paced pause must not starve the model's remaining exchanges.
+    timeout_seconds=3600,
 )
 # One non-streaming Provider exchange can spend well over a minute in
 # server-side Thinking before the first response byte; the per-socket-operation
