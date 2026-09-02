@@ -1,0 +1,10 @@
+{
+  "schema": "workspace-agent-harness/trusted-local-fixtures/v1",
+  "files": [
+    {
+      "path": "snake.py",
+      "bytes": 623,
+      "sha256": "09328032e0cb440780695043f2d8002083cf5a026eec4570091aa320a976c011"
+    }
+  ]
+}

@@ -55,6 +55,14 @@ def main(arguments: Sequence[str] | None = None) -> int:
         help="explicit model-writable workspace root for --live-deepseek",
     )
     parser.add_argument(
+        "--trusted-local",
+        action="store_true",
+        help=(
+            "opt in to host-user non-interactive shell and Human-confirmed PTY "
+            "capabilities in --live-deepseek; cwd is not containment"
+        ),
+    )
+    parser.add_argument(
         "--session-root",
         type=Path,
         help=(
@@ -115,6 +123,7 @@ def main(arguments: Sequence[str] | None = None) -> int:
         if (
             options.log is not None
             or options.live_deepseek
+            or options.trusted_local
             or options.wait_for_cancel
             or options.semantic_compaction_demo
             or options.overflow_recovery_demo
@@ -122,7 +131,7 @@ def main(arguments: Sequence[str] | None = None) -> int:
         ):
             parser.error(
                 "--replay cannot be combined with --log, --wait-for-cancel, "
-                "--live-deepseek, --semantic-compaction-demo, "
+                "--live-deepseek, --trusted-local, --semantic-compaction-demo, "
                 "--overflow-recovery-demo, or --overflow-exhaustion-demo"
             )
         try:
@@ -161,8 +170,11 @@ def main(arguments: Sequence[str] | None = None) -> int:
             session_root=options.session_root,
             initial_view=selected_views[0],
             explain_compaction=options.explain_compaction,
+            trusted_local=options.trusted_local,
         )
 
+    if options.trusted_local:
+        parser.error("--trusted-local requires --live-deepseek")
     if options.workspace is not None or options.session_root is not None:
         parser.error("--workspace and --session-root require --live-deepseek")
 

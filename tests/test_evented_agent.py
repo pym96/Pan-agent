@@ -16,6 +16,7 @@ from workspace_agent_harness.evented import (
     ExchangeSettled,
     JsonlRunEventLog,
     PreparedModelTurn,
+    ToolLifecycleEvent,
     load_run_event_log,
     render_run_events,
     replay_run_event_log,
@@ -60,7 +61,74 @@ class IncrementingClock:
         return self.value
 
 
+class LifecycleEchoTool:
+    definition = DemoEchoTool.definition
+
+    def execute(self, arguments, cancel_signal):
+        raise AssertionError("observed execution seam was bypassed")
+
+    def execute_observed(self, arguments, cancel_signal, observe):
+        observe(
+            ToolLifecycleEvent(
+                event_type="tool.human_handoff_requested",
+                phase="candidate",
+                payload={"command": "python3 snake.py", "cwd": "."},
+            )
+        )
+        observe(
+            ToolLifecycleEvent(
+                event_type="tool.human_handoff_accepted",
+                phase="accepted",
+                payload={"decision": "accepted"},
+            )
+        )
+        observe(
+            ToolLifecycleEvent(
+                event_type="tool.pty_started",
+                phase="candidate",
+                payload={"process_group": "retained-reference"},
+            )
+        )
+        observe(
+            ToolLifecycleEvent(
+                event_type="tool.pty_settled",
+                phase="accepted",
+                payload={"status": "completed", "exit_code": 0},
+            )
+        )
+        return "pty settled"
+
+
 class EventedAgentLoopTest(unittest.TestCase):
+    def test_observed_tool_lifecycle_is_ordered_inside_one_tool_execution(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            log_path = Path(temporary_directory) / "observed-tool.jsonl"
+            result = EventedAgentLoop(
+                gateway=DeterministicDemoGateway(),
+                tools=(LifecycleEchoTool(),),
+                event_log=JsonlRunEventLog(log_path),
+                run_id="observed-tool-run",
+            ).run(
+                Task(task_id="observed-tool", prompt="handoff"),
+                RunLimits(max_steps=1, max_model_calls=2, timeout_seconds=5),
+            )
+
+            self.assertEqual(EventedRunStatus.COMPLETED, result.status)
+            events = load_run_event_log(log_path)
+            event_types = [event.event_type for event in events]
+            expected = [
+                "tool.execution_started",
+                "tool.human_handoff_requested",
+                "tool.human_handoff_accepted",
+                "tool.pty_started",
+                "tool.pty_settled",
+                "tool.execution_completed",
+            ]
+            positions = [event_types.index(event_type) for event_type in expected]
+            self.assertEqual(sorted(positions), positions)
+            selected = [events[position] for position in positions]
+            for previous, current in zip(selected, selected[1:]):
+                self.assertEqual(previous.event_id, current.caused_by_event_id)
     def test_deterministic_demo_uses_the_real_loop_for_one_tool_round_trip(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_directory:
             log_path = Path(temporary_directory) / "run.jsonl"

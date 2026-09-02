@@ -1,6 +1,6 @@
 # Workspace Agent Harness
 
-Workspace Agent Harness now targets a Human-usable TypeScript/Pi General Agent Working Stack. WorkOrder #23 is the active tracer bullet; the accepted Python #21 stack, the historical Local Workspace Agent contract, and the earlier General Runtime/Vertical Domain Pack work remain reference implementations and design history until a separately governed #24 cutover decides their long-term classification.
+Workspace Agent Harness targets a Human-usable TypeScript/Pi General Agent Working Stack. The accepted base named by WorkOrder #22 contains the #23 TypeScript/Pi tracer bullet, the Python #21 Live TUI, and the historical Local Workspace Agent contract. The active #22 candidate uses Python only as a behavioral proving ground for an opt-in trusted-local shell and Human-owned PTY handoff; it does not migrate those capabilities to TypeScript or decide a later cutover.
 
 > **Mixed verification state; not a new verified fact (2026-08-25):** Human accepted ADR-0009/0010/0011/0012/0013/0014. Separate same-model Regulator reviews accepted the ordinary Runtime/Campaign/seed/configuration boundary through HF-20260820-022, a sixth review reproduced the ReAct MVP ordinary candidate-Evidence boundary, WorkOrder #4's offline Translation Adapter boundary passed its independent Gate, and WorkOrder #3's design freeze was independently accepted. All 30 ReAct slots executed, with 29 task outcomes and one infrastructure/artifact failure; this is not a SWE-bench Lite score. The 240-slot `protocol-reliability-v1` replay and its 75-call maximum-token sensitivity plus separately identified 25-call 16K extension have completed as Working Agent candidate Evidence; they still require a new independent review. WorkOrder #6's evented Python TUI tracer is only a Working Agent candidate pending its own independent review. Start at `AGENTS.md`; the bounded assignment lives in `docs/agents/current-assignment.md`.
 
@@ -8,11 +8,11 @@ Workspace Agent Harness now targets a Human-usable TypeScript/Pi General Agent W
 
 The project maintains a source-grounded [Learning Wiki](wiki/index.md) recording what building this system teaches: harness engineering, agent tool design, evaluation methodology, and verification practice. Every substantive page is either a **Verified Learning Fact** (with an explicit verification level — `source-located`, `triangulated`, or `experiment-reproduced` — and stated boundaries) or an **Open Learning Question** (with a verification path). The [log](wiki/log.md) is append-only. The Wiki claims no product, benchmark, or resume authority; it is the project's public learning trail.
 
-## TypeScript/Pi General Agent Working Stack candidate
+## TypeScript/Pi General Agent Working Stack
 
 WorkOrder #23 adds a [TypeScript package and Human command](typescript/README.md) backed by the [candidate design](docs/design/typescript-pi-general-agent-working-stack.md). One deep `GeneralAgentSession` Module owns Pi's stateful Context and Agent loop, translates through a real DeepSeek Adapter, exposes typed read/write/edit/bash tools, returns control for successive tasks, renders usage and attributable terminals, and supports cancellation. Its test Adapter is Pi's deterministic Faux Provider; Builder verification makes no paid Provider call.
 
-The shell is explicitly **trusted-local**: it runs as the host user, and the selected workspace is only the default cwd. This candidate claims neither path containment nor an OS/network sandbox. Security isolation belongs to #22; authoritative cutover and Python cleanup belong to #24. The existing Python entry remains unchanged.
+The shell is explicitly **trusted-local**: it runs as the host user, and the selected workspace is only the default cwd. It claims neither path containment nor an OS/network sandbox. WorkOrder #22 prototypes corresponding Python shell/PTY semantics without adding isolation or changing this TypeScript implementation; authoritative cutover and cleanup remain separate work.
 
 ## Current implementation gate
 
@@ -38,7 +38,7 @@ The architecture is Human-accepted. The code and tests below remain a candidate,
 - [`docs/design/deepseek-live-behavioral-eval-stage-a.md`](docs/design/deepseek-live-behavioral-eval-stage-a.md): WorkOrder #11 Stage A's DeepSeek native-tool Translation/Gateway, balance and call/token/cost controls, content-hashed paired 120-slot lock, and zero-call inventory candidate; pending independent Regulator review and containing no live result;
 - [`docs/design/deepseek-live-budgeted-serial-runner.md`](docs/design/deepseek-live-budgeted-serial-runner.md) and [`Stage B terminal Evidence`](docs/evidence/deepseek-live-stage-b-terminal-2026-08-29.md): WorkOrder #11's independently accepted runner later retained one frozen HTTP 400 Provider exchange, mandatory balance settlement, `model_usage_missing` stop, and the complete `1 failed / 119 skipped / 0 missing` denominator; v2 is terminal, with no task result or arm comparison, and any v3 requires a new lock and fresh Human budget authorization;
 - [`docs/design/deepseek-live-v3-adapter-stage-a.md`](docs/design/deepseek-live-v3-adapter-stage-a.md) and [`candidate Evidence`](docs/evidence/deepseek-live-v3-stage-a-candidate-2026-08-29.md): WorkOrder #19's independently accepted zero-call v3 repair retains Thinking/tools/stable endpoint, omits request-level `tool_choice`, accepts one typed tool call or non-empty ordinary final content, versions the lock/runner/entry identity chain, and preserves the 120-slot controls; accepted on 2026-08-29 and authorizing no live call;
-- [`docs/design/deepseek-live-tui.md`](docs/design/deepseek-live-tui.md) and [`historical smoke observation`](docs/evidence/deepseek-live-tui-smoke-candidate-2026-08-31.md): WorkOrder #21's repaired Human-driven DeepSeek workspace TUI candidate, with fresh AgentLoop/Context/Event Log per task, identity-bound admission of non-authoritative text beside valid ToolCalls, one-to-eight domain ToolCalls validated before any effect and executed serially, paired native history, persistent bounded workspace, typed no-shell tools, active event projection, replay, and semantic compaction/overflow recovery. The prior smoke's authorization qualification was rejected; direct Human-operated use of the repaired candidate is permitted, while further Builder Provider calls are forbidden;
+- [`docs/design/deepseek-live-tui.md`](docs/design/deepseek-live-tui.md) and [`historical #21 smoke observation`](docs/evidence/deepseek-live-tui-smoke-candidate-2026-08-31.md): the accepted Python entry plus WorkOrder #22's candidate trusted-local extension. Default no-shell behavior remains; `--trusted-local` adds a typed non-interactive shell and a separate exact-command/cwd Human PTY confirmation, process-group cancellation, lossless artifacts, lifecycle events, and replay. #22 separately authorizes a bounded real snake smoke from exact candidate bytes; it makes no sandbox, benchmark, model-quality, or TypeScript migration claim;
 - [`tests/test_general_runtime_contract.py`](tests/test_general_runtime_contract.py): Runtime/Pack seam, authority, admission, and evaluator-limit contracts;
 - [`tests/test_benchmark_campaign_contract.py`](tests/test_benchmark_campaign_contract.py): suite selection, eligibility, aggregation, and append-only attempt contracts.
 - [`workspace_agent_harness/proof_packs.py`](workspace_agent_harness/proof_packs.py): concrete seed Pack implementation candidate; the Runtime Module does not import it;
@@ -56,20 +56,30 @@ The follow-up [`maximum-token sensitivity candidate Evidence`](docs/evidence/pro
 
 The WorkOrder #4 implementation candidate adds [`translation.py`](workspace_agent_harness/translation.py), the provider-specific [`deepseek_translation.py`](workspace_agent_harness/deepseek_translation.py), and an [offline four-cell dry-run](scripts/dry_run_translation_matrix.py). Its offline candidate passed an independent Regulator Gate on 2026-08-25, while its secret-free fixture contracts prove local mapping and rejection behavior only; no live call, causal result, Verified Project Fact, Wiki entry, or resume claim was produced.
 
-## DeepSeek Live workspace TUI candidate
+## Real TUI entrypoints
 
-WorkOrder #21 adds an explicit reusable terminal session without turning the TUI into another Agent loop. Choose an existing workspace and a new artifact path outside it:
+The Python entry defaults to #21's bounded no-shell tool profile. Choose an existing workspace and a new artifact path outside it; add `--trusted-local` only when you deliberately grant host-user shell and Human PTY authority:
 
 ```bash
 read -s DEEPSEEK_API_KEY
 export DEEPSEEK_API_KEY
 PYTHONPATH=. python3 -m workspace_agent_harness.tui \
   --live-deepseek \
+  --trusted-local \
   --workspace /absolute/path/to/workspace \
   --session-root /absolute/new/path/to/live-session
 ```
 
-The command displays and asks you to confirm the Provider, model, resolved workspace, and no-shell tool boundary before accepting `Task>`. Each task gets a new Run and model Context while the workspace persists. Use `:help`, `:view compact|expanded|trace`, `:runs`, `:replay RUN_ID`, or `:exit`. Starting, cancelling before confirmation, using help/views, or replaying makes no Provider call. Run artifacts contain the append-only Event Log, secret-free Provider exchanges, Context artifacts, public metadata, reported usage, and changed workspace paths. Under the latest Human/Master override, the Human may operate the repaired candidate directly; the Builder is forbidden from making another Provider call or smoke Run.
+The command displays and asks you to confirm the Provider, model, resolved workspace, and selected authority before accepting `Task>`. Each task gets a new Run and model Context while the workspace persists. Use `:help`, `:view compact|expanded|trace`, `:runs`, `:replay RUN_ID`, or `:exit`. Starting, cancelling before confirmation, using help/views, or replaying makes no Provider call. Run artifacts contain the append-only Event Log, secret-free Provider exchanges, Context artifacts, trusted-local stream/PTY identities when enabled, public metadata, reported usage, and changed workspace paths.
+
+The TypeScript/Pi real entry stays separate and directly runnable:
+
+```bash
+npm --prefix typescript run agent -- \
+  --workspace /absolute/path/to/workspace \
+  --model deepseek-v4-flash \
+  --thinking high
+```
 
 PinchBench is pinned as an external compatibility source, not vendored as the Runtime contract. [`workspace_agent_harness/benchmark_configs/`](workspace_agent_harness/benchmark_configs/) holds content locks; `workspace_agent_harness.benchmarks.load_pinchbench_suite(...)` audits a caller-supplied clean checkout without executing embedded graders. All 21/147 upstream cases are currently ineligible because no local translation is frozen. Any later translated local run must be labelled `pinchbench-compatible`; official compatibility requires the unmodified upstream runner. The Composio thread contributes campaign shape and efficiency metrics only, not reusable tasks or results.
 

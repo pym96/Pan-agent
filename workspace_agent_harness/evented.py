@@ -415,6 +415,38 @@ class EventTool(Protocol):
     ) -> str | SemanticToolObservation: ...
 
 
+@dataclass(frozen=True)
+class ToolLifecycleEvent:
+    """One tool-owned lifecycle fact appended by the AgentLoop."""
+
+    event_type: str
+    phase: str
+    payload: Mapping[str, object]
+    visibility: str = "public"
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.event_type, str) or not self.event_type.startswith("tool."):
+            raise ValueError("tool lifecycle event type must use the tool. namespace")
+        if self.phase not in {"candidate", "accepted", "failed"}:
+            raise ValueError("tool lifecycle event phase must be non-terminal")
+        if self.visibility not in {"public", "expanded", "restricted", "secret-ref"}:
+            raise ValueError("tool lifecycle event visibility is invalid")
+        object.__setattr__(self, "payload", MappingProxyType(dict(self.payload)))
+
+
+ToolLifecycleObserver: TypeAlias = Callable[[ToolLifecycleEvent], None]
+
+
+@runtime_checkable
+class ObservedEventTool(EventTool, Protocol):
+    def execute_observed(
+        self,
+        arguments: Mapping[str, object],
+        cancel_signal: Event,
+        observe: ToolLifecycleObserver,
+    ) -> str | SemanticToolObservation: ...
+
+
 @runtime_checkable
 class PreflightEventTool(Protocol):
     """Optional effect-free validation used before a batch starts execution."""
@@ -1609,16 +1641,40 @@ class AgentLoop:
                     },
                 )
                 tool = self._tools[call.tool_name]
+                lifecycle_cause = execution_started
+
+                def observe_tool_lifecycle(update: ToolLifecycleEvent) -> None:
+                    nonlocal lifecycle_cause
+                    lifecycle_cause = self._append(
+                        run_id=run_id,
+                        event_type=update.event_type,
+                        phase=update.phase,
+                        cause=lifecycle_cause,
+                        turn_id=turn_id,
+                        exchange_id=settled.exchange_id,
+                        candidate_id=candidate_id,
+                        tool_call_id=call.call_id,
+                        payload=dict(update.payload),
+                        visibility=update.visibility,
+                    )
+
                 try:
-                    tool_observation = tool.execute(call.arguments, signal)
+                    if isinstance(tool, ObservedEventTool):
+                        tool_observation = tool.execute_observed(
+                            call.arguments,
+                            signal,
+                            observe_tool_lifecycle,
+                        )
+                    else:
+                        tool_observation = tool.execute(call.arguments, signal)
                 except KeyboardInterrupt:
-                    return cancelled(execution_started)
+                    return cancelled(lifecycle_cause)
                 except Exception as error:
                     failed = self._append(
                         run_id=run_id,
                         event_type="tool.execution_failed",
                         phase="failed",
-                        cause=execution_started,
+                        cause=lifecycle_cause,
                         turn_id=turn_id,
                         exchange_id=settled.exchange_id,
                         candidate_id=candidate_id,
@@ -1631,7 +1687,7 @@ class AgentLoop:
                         cause=failed,
                     )
                 if signal.is_set():
-                    return cancelled(execution_started)
+                    return cancelled(lifecycle_cause)
                 if isinstance(tool_observation, SemanticToolObservation):
                     observation = tool_observation.content
                     semantic_facts = tool_observation.facts
@@ -1665,7 +1721,7 @@ class AgentLoop:
                     run_id=run_id,
                     event_type="tool.execution_completed",
                     phase="accepted",
-                    cause=execution_started,
+                    cause=lifecycle_cause,
                     turn_id=turn_id,
                     exchange_id=settled.exchange_id,
                     candidate_id=candidate_id,
@@ -1952,6 +2008,44 @@ def _render_compact_run_events(
                 f" tool={_display_value(projected_payload.get('tool_name'))}"
                 " observation="
                 f"{_display_tool_observation(projected_payload.get('observation'))}"
+            )
+        elif event.event_type == "tool.shell_started":
+            lines.append(
+                "SHELL tool.shell_started"
+                f" command={_display_value(projected_payload.get('command'))}"
+                f" cwd={_display_value(projected_payload.get('cwd'))}"
+            )
+        elif event.event_type == "tool.shell_settled":
+            lines.append(
+                "SHELL tool.shell_settled"
+                f" status={_display_value(projected_payload.get('status'))}"
+                f" exit_code={_display_value(projected_payload.get('exit_code'))}"
+            )
+        elif event.event_type == "tool.human_handoff_requested":
+            lines.append(
+                "HANDOFF tool.human_handoff_requested"
+                f" command={_display_value(projected_payload.get('command'))}"
+                f" cwd={_display_value(projected_payload.get('cwd'))}"
+            )
+        elif event.event_type in {
+            "tool.human_handoff_accepted",
+            "tool.human_handoff_rejected",
+        }:
+            lines.append(
+                f"HANDOFF {event.event_type}"
+                f" decision={_display_value(projected_payload.get('decision'))}"
+            )
+        elif event.event_type == "tool.pty_started":
+            lines.append(
+                "PTY tool.pty_started"
+                f" command={_display_value(projected_payload.get('command'))}"
+                f" cwd={_display_value(projected_payload.get('cwd'))}"
+            )
+        elif event.event_type == "tool.pty_settled":
+            lines.append(
+                "PTY tool.pty_settled"
+                f" status={_display_value(projected_payload.get('status'))}"
+                f" exit_code={_display_value(projected_payload.get('exit_code'))}"
             )
         elif event.event_type == "context.compaction_completed":
             artifact_refs = projected_payload.get("artifact_refs")
@@ -2341,6 +2435,7 @@ __all__ = [
     "JsonlRunEventLog",
     "ModelGateway",
     "MAX_TOOL_CALLS_PER_BATCH",
+    "ObservedEventTool",
     "PreflightEventTool",
     "ProviderDispatchState",
     "PreparedModelTurn",
@@ -2348,6 +2443,8 @@ __all__ = [
     "RunEvent",
     "RunEventLog",
     "RunEventView",
+    "ToolLifecycleEvent",
+    "ToolLifecycleObserver",
     "WaitingDemoGateway",
     "load_run_event_log",
     "render_run_events",

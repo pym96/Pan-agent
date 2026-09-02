@@ -936,15 +936,15 @@ def _validate_closed_object_schema(schema: Mapping[str, object]) -> None:
     required = schema.get("required")
     if not isinstance(properties, Mapping) or not isinstance(required, list):
         raise ValueError("Provider tool properties and required fields are malformed")
-    if set(required) != set(properties) or not all(
+    if not set(required).issubset(set(properties)) or not all(
         isinstance(name, str) and name for name in required
     ):
-        raise ValueError("every Provider tool property must be required")
+        raise ValueError("Provider tool required fields must name declared properties")
     for name, definition in properties.items():
         if not isinstance(name, str) or not name or not isinstance(definition, Mapping):
             raise ValueError("Provider tool property definitions are malformed")
-        if definition.get("type") != "string":
-            raise ValueError("Behavioral Eval v0 Provider tools support string fields")
+        if definition.get("type") not in {"string", "integer"}:
+            raise ValueError("Provider tools support string and integer fields")
 
 
 def _decode_runtime_arguments(
@@ -972,7 +972,9 @@ def _schema_error(schema: object, arguments: Mapping[str, object]) -> bool:
     required = schema.get("required")
     if not isinstance(properties, Mapping) or not isinstance(required, (list, tuple)):
         return True
-    if set(arguments) != set(required) or set(arguments) != set(properties):
+    if not set(required).issubset(set(arguments)) or not set(arguments).issubset(
+        set(properties)
+    ):
         return True
     for name, value in arguments.items():
         definition = properties.get(name)
@@ -980,6 +982,17 @@ def _schema_error(schema: object, arguments: Mapping[str, object]) -> bool:
             return True
         if definition.get("type") == "string" and not isinstance(value, str):
             return True
+        if definition.get("type") == "integer" and (
+            not isinstance(value, int) or isinstance(value, bool)
+        ):
+            return True
+        minimum = definition.get("minimum")
+        maximum = definition.get("maximum")
+        if isinstance(value, int) and not isinstance(value, bool):
+            if isinstance(minimum, int) and value < minimum:
+                return True
+            if isinstance(maximum, int) and value > maximum:
+                return True
         allowed = definition.get("enum")
         if allowed is not None and (
             not isinstance(allowed, (list, tuple)) or value not in allowed

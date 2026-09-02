@@ -1,14 +1,14 @@
-# Current Assignment | TypeScript/Pi General Agent Working Stack
+# Current Assignment | Python trusted-local shell and Human PTY prototype
 
 This document owns the current project lane, constraints, and non-goals. It does not grant a session-specific task or establish implementation facts. A Working session starts only from a Master-published WorkOrder, and that WorkOrder cannot widen this lane or override Human decisions. Read the fact register linked from the root Agent map before making any current-state statement.
 
-## Active mission | WorkOrder #23 supersession
+## Active mission | WorkOrder #22 superseding brief
 
-The latest Human/Master record on GitHub WorkOrder #23 supersedes the stale Bash-only Phase 0 assignment for the bounded #23 implementation. The accepted Python #21 stack is retained as a reference, while the active product direction becomes a Human-usable TypeScript/Pi General Agent Working Stack: Pi-maintained model/session/Context and Provider translation, typed read/write/edit tools, a clearly labelled trusted-local shell, successive tasks, cancellation, usage, response identity, and attributable terminal/failure behavior.
+The latest [Human/Master brief on WorkOrder #22](https://github.com/pym96/workspace-agent-harness/issues/22#issuecomment-5492880264) supersedes the original #22 sandbox contract and its stale routing comment. Start from accepted main `4ebf660b7166724e604263e6c3d60a139bf0db8b`. Python is the behavioral prototype layer; TypeScript/Pi remains the product implementation direction and must stay directly runnable without receiving the #22 capability migration.
 
-WorkOrder #23 is only a tracer bullet. It must use deterministic Faux Provider tests, make no Builder paid Provider call, preserve the Python paths, and produce an immutable candidate for independent review. It does not authorize #22 OS isolation/security claims, #24 cutover/deletion/default cleanup, an evaluation matrix, project-fact promotion, Wiki/resume changes, or any live Builder smoke. The candidate design and Human command live in [`../design/typescript-pi-general-agent-working-stack.md`](../design/typescript-pi-general-agent-working-stack.md) and [`../../typescript/README.md`](../../typescript/README.md).
+WorkOrder #22 adds a default-off trusted-local non-interactive shell and a distinct Human-confirmed interactive PTY handoff to the Python DeepSeek Live TUI. Deterministic checks must precede at least one real `deepseek-v4-flash` Run from exact candidate bytes; the Agent must create/inspect/verify a terminal `snake.py`, reach the confirmation boundary, and let the Human operate and quit it. All attempts remain retained under a combined CNY 2.00 development ceiling. This slice makes no sandbox, containment, network-denial, benchmark, model-quality, project-fact, Wiki, resume, PDF, #25, or TypeScript migration claim. Candidate code, design, tests, live artifacts, and SHA-bound Handoff require a different-session high-risk Regulator review.
 
-## Retained prior mission history | superseded for #23
+## Retained prior mission history | superseded for #22
 
 Human accepted ADR-0009 and ADR-0010 on 2026-08-19. The HF-20260820-022 benchmark-configuration assignment completed its ordinary independent Gate on 2026-08-20. After reading ReAct and SWE-agent, the human then accepted ADR-0011's next bounded learning phase: reproduce a bash-only visible ReAct mechanism first, then use its Bad Cases to choose later SWE-agent-style Agent-Computer Interface changes.
 

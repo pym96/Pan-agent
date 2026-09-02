@@ -41,14 +41,26 @@ from workspace_agent_harness.evented import (
     ModelGateway,
     RunEvent,
     RunEventView,
+    ToolLifecycleEvent,
+    ToolLifecycleObserver,
     load_run_event_log,
     render_run_events,
 )
 from workspace_agent_harness.translation import ActionTool, canonical_json_bytes
+from workspace_agent_harness.trusted_local import (
+    HumanPtyHandoffController,
+    PtyHandoffUpdate,
+    PtyProcessAdapter,
+    TRUSTED_LOCAL_DEFAULT_TIMEOUT_SECONDS,
+    TRUSTED_LOCAL_MAX_COMMAND_BYTES,
+    TRUSTED_LOCAL_MAX_TIMEOUT_SECONDS,
+    TrustedLocalExecutor,
+)
 
 
 LIVE_TUI_AGENT_ID = "deepseek-live-workspace-agent/v1"
 LIVE_TUI_SYSTEM_POLICY_ID = "deepseek-live-workspace-policy/v1"
+LIVE_TUI_TRUSTED_LOCAL_SYSTEM_POLICY_ID = "deepseek-live-trusted-local-policy/v1"
 LIVE_TUI_MAX_FILE_BYTES = 262_144
 LIVE_TUI_MAX_LIST_ENTRIES = 500
 LIVE_TUI_RUN_LIMITS = RunLimits(
@@ -67,6 +79,23 @@ LIVE_TUI_SYSTEM_PROMPT = (
     "changing unfamiliar files. Use write_file for bounded atomic text changes. "
     "Use verify_workspace for supported syntax checks; no host shell is available. "
     "After a write, inspect or verify when the task requires exact content, then "
+    "call complete."
+)
+LIVE_TUI_TRUSTED_LOCAL_SYSTEM_PROMPT = (
+    "Act on the task only through provided functions. One response may contain "
+    f"between 1 and {MAX_TOOL_CALLS_PER_BATCH} independent domain function calls; "
+    "they execute serially in the returned order after the complete batch validates. "
+    "Use complete or abstain only as the single function in a response. Never place "
+    "reasoning, rationale, thought, or analysis in function arguments. Use the "
+    "workspace-relative inspect/read/write/syntax tools for bounded file operations. "
+    "The opt-in trusted_local_shell tool runs one non-interactive command from the "
+    "selected workspace with the current host user's authority. Its cwd is not "
+    "filesystem containment, a sandbox, or a network boundary. Use it to run code, "
+    "tests, and workspace-local environment setup. Shell state does not persist "
+    "between calls. For an interactive terminal program, use human_interactive_pty; "
+    "the Human sees the exact command and cwd and must accept before the terminal "
+    "attaches. Human keyboard input is not model input; only the typed PTY settlement "
+    "returns as an observation. After an effect, inspect or verify the outcome, then "
     "call complete."
 )
 
@@ -444,7 +473,8 @@ class VerifyWorkspaceTool(_WorkspaceTool):
         name="verify_workspace",
         description=(
             "Run one built-in, non-executing workspace syntax check. Supported "
-            "checks are python-syntax and json-syntax; no shell is available."
+            "checks are python-syntax and json-syntax; this tool never executes "
+            "workspace code."
         ),
         argument_name="input",
         argument_description="Canonical JSON containing one supported check name.",
@@ -463,13 +493,198 @@ class VerifyWorkspaceTool(_WorkspaceTool):
         self._boundary.validate_verify(cast(str, payload["check"]))
 
 
-def live_workspace_tools(boundary: WorkspaceBoundary) -> tuple[EventTool, ...]:
-    return (
+class TrustedLocalShellTool:
+    definition = ActionTool(
+        name="trusted_local_shell",
+        description=(
+            "Run one non-interactive command from the selected workspace with the "
+            "current host user's authority. cwd is not containment; there is no "
+            "filesystem or network sandbox. Returns typed exit status and bounded "
+            "stdout/stderr while retaining lossless local artifacts."
+        ),
+        argument_name="input",
+        argument_description=(
+            "Canonical JSON containing command and optional bounded timeout_seconds."
+        ),
+    )
+
+    def __init__(self, executor: TrustedLocalExecutor) -> None:
+        self._executor = executor
+
+    def execute(
+        self,
+        arguments: Mapping[str, object],
+        cancel_signal: Event,
+    ) -> SemanticToolObservation:
+        return self.execute_observed(
+            arguments,
+            cancel_signal,
+            lambda update: None,
+        )
+
+    def execute_observed(
+        self,
+        arguments: Mapping[str, object],
+        cancel_signal: Event,
+        observe: ToolLifecycleObserver,
+    ) -> SemanticToolObservation:
+        command, timeout_seconds = _decode_trusted_local_input(arguments)
+        observe(
+            ToolLifecycleEvent(
+                event_type="tool.shell_started",
+                phase="candidate",
+                payload={
+                    "command": command,
+                    "cwd": str(self._executor.workspace_root),
+                    "timeout_seconds": timeout_seconds,
+                },
+            )
+        )
+        settlement = self._executor.run_noninteractive(
+            command=command,
+            timeout_seconds=timeout_seconds,
+            cancel_signal=cancel_signal,
+        )
+        observe(
+            ToolLifecycleEvent(
+                event_type="tool.shell_settled",
+                phase=(
+                    "accepted" if settlement.status == "completed" else "failed"
+                ),
+                payload={
+                    "status": settlement.status,
+                    "exit_code": settlement.exit_code,
+                    "duration_ms": settlement.duration_ms,
+                    "stdout": {
+                        "locator": settlement.stdout.locator,
+                        "sha256": settlement.stdout.sha256,
+                        "byte_count": settlement.stdout.byte_count,
+                    },
+                    "stderr": {
+                        "locator": settlement.stderr.locator,
+                        "sha256": settlement.stderr.sha256,
+                        "byte_count": settlement.stderr.byte_count,
+                    },
+                },
+            )
+        )
+        failures: tuple[str, ...] = ()
+        if settlement.status != "completed" or settlement.exit_code != 0:
+            failures = (
+                "Trusted-local command settled with "
+                f"status={settlement.status}, exit_code={settlement.exit_code}.",
+            )
+        return SemanticToolObservation(
+            content=settlement.model_observation(),
+            facts=(
+                "Trusted-local command retained stdout "
+                f"{settlement.stdout.sha256} and stderr {settlement.stderr.sha256}.",
+            ),
+            failures=failures,
+        )
+
+    def validate(self, arguments: Mapping[str, object]) -> None:
+        _decode_trusted_local_input(arguments)
+
+
+class HumanInteractivePtyTool:
+    definition = ActionTool(
+        name="human_interactive_pty",
+        description=(
+            "Propose one interactive terminal command. The Human sees the exact "
+            "command and workspace cwd and must explicitly accept before terminal "
+            "ownership transfers. Only a typed settlement returns to the model."
+        ),
+        argument_name="input",
+        argument_description=(
+            "Canonical JSON containing command and optional bounded timeout_seconds."
+        ),
+    )
+
+    def __init__(self, controller: HumanPtyHandoffController) -> None:
+        self._controller = controller
+
+    def execute(
+        self,
+        arguments: Mapping[str, object],
+        cancel_signal: Event,
+    ) -> SemanticToolObservation:
+        return self.execute_observed(
+            arguments,
+            cancel_signal,
+            lambda update: None,
+        )
+
+    def execute_observed(
+        self,
+        arguments: Mapping[str, object],
+        cancel_signal: Event,
+        observe: ToolLifecycleObserver,
+    ) -> SemanticToolObservation:
+        command, timeout_seconds = _decode_trusted_local_input(arguments)
+
+        def retain(update: PtyHandoffUpdate) -> None:
+            phases = {
+                "human_handoff_requested": "candidate",
+                "human_handoff_accepted": "accepted",
+                "human_handoff_rejected": "accepted",
+                "pty_started": "candidate",
+                "pty_settled": (
+                    "accepted"
+                    if update.payload.get("status") == "completed"
+                    else "failed"
+                ),
+            }
+            observe(
+                ToolLifecycleEvent(
+                    event_type=f"tool.{update.kind}",
+                    phase=phases[update.kind],
+                    payload=update.payload,
+                )
+            )
+
+        settlement = self._controller.handoff(
+            command=command,
+            timeout_seconds=timeout_seconds,
+            cancel_signal=cancel_signal,
+            observe=retain,
+        )
+        failures: tuple[str, ...] = ()
+        if settlement.status != "completed" or settlement.exit_code != 0:
+            failures = (
+                "Human PTY handoff settled with "
+                f"status={settlement.status}, exit_code={settlement.exit_code}.",
+            )
+        return SemanticToolObservation(
+            content=settlement.model_observation(),
+            facts=(
+                "Human PTY handoff decision and settlement were retained without "
+                "adding Human keyboard input to model Context.",
+            ),
+            failures=failures,
+        )
+
+    def validate(self, arguments: Mapping[str, object]) -> None:
+        _decode_trusted_local_input(arguments)
+
+
+def live_workspace_tools(
+    boundary: WorkspaceBoundary,
+    *,
+    trusted_local_executor: TrustedLocalExecutor | None = None,
+    pty_controller: HumanPtyHandoffController | None = None,
+) -> tuple[EventTool, ...]:
+    tools: tuple[EventTool, ...] = (
         InspectWorkspaceTool(boundary),
         ReadWorkspaceFileTool(boundary),
         WriteWorkspaceFileTool(boundary),
         VerifyWorkspaceTool(boundary),
     )
+    if trusted_local_executor is not None:
+        tools += (TrustedLocalShellTool(trusted_local_executor),)
+    if pty_controller is not None:
+        tools += (HumanInteractivePtyTool(pty_controller),)
+    return tools
 
 
 def live_workspace_bindings(
@@ -483,6 +698,32 @@ def live_workspace_bindings(
             ("check",),
             enums={"check": ("python-syntax", "json-syntax")},
         ),
+        "trusted_local_shell": {
+            "type": "object",
+            "properties": {
+                "command": {"type": "string"},
+                "timeout_seconds": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": TRUSTED_LOCAL_MAX_TIMEOUT_SECONDS,
+                },
+            },
+            "required": ["command"],
+            "additionalProperties": False,
+        },
+        "human_interactive_pty": {
+            "type": "object",
+            "properties": {
+                "command": {"type": "string"},
+                "timeout_seconds": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": TRUSTED_LOCAL_MAX_TIMEOUT_SECONDS,
+                },
+            },
+            "required": ["command"],
+            "additionalProperties": False,
+        },
     }
     return tuple(
         DeepSeekToolBinding(
@@ -514,6 +755,17 @@ class LiveProgressProjection:
             line = f"PROGRESS {event.event_type} usage_total={total}"
         elif event.event_type in {"tool.execution_started", "tool.execution_completed"}:
             line = f"PROGRESS {event.event_type} tool={event.payload.get('tool_name')}"
+        elif event.event_type in {
+            "tool.shell_started",
+            "tool.shell_settled",
+            "tool.human_handoff_requested",
+            "tool.human_handoff_accepted",
+            "tool.human_handoff_rejected",
+            "tool.pty_started",
+            "tool.pty_settled",
+        }:
+            detail = event.payload.get("status") or event.payload.get("decision")
+            line = f"PROGRESS {event.event_type} detail={detail}"
         elif event.event_type == "run.terminal":
             line = f"PROGRESS run.terminal status={event.payload.get('status')}"
         if line is not None:
@@ -537,6 +789,8 @@ class LiveTuiSession:
         credential_loader: Callable[[], str] | None = None,
         run_id_factory: Callable[[], str] | None = None,
         progress_enabled: bool = True,
+        trusted_local: bool = False,
+        pty_adapter: PtyProcessAdapter | None = None,
     ) -> None:
         self._boundary = WorkspaceBoundary(workspace_root)
         self._session_root = session_root.expanduser().resolve(strict=False)
@@ -552,6 +806,18 @@ class LiveTuiSession:
         self._api_key: str | None = None
         self._run_id_factory = run_id_factory or (lambda: uuid.uuid4().hex)
         self._progress_enabled = progress_enabled
+        self._trusted_local = trusted_local
+        self._pty_adapter = pty_adapter
+        self._system_prompt = (
+            LIVE_TUI_TRUSTED_LOCAL_SYSTEM_PROMPT
+            if trusted_local
+            else LIVE_TUI_SYSTEM_PROMPT
+        )
+        self._system_policy_identity = (
+            LIVE_TUI_TRUSTED_LOCAL_SYSTEM_POLICY_ID
+            if trusted_local
+            else LIVE_TUI_SYSTEM_POLICY_ID
+        )
         self._records: dict[str, LiveRunRecord] = {}
         self._close_status = 0
         self._close_after_active_run = False
@@ -562,7 +828,12 @@ class LiveTuiSession:
 
     def run(self) -> int:
         self._render_banner()
-        confirmation = self._readline("Confirm live provider/workspace [y/N]> ")
+        confirmation_prompt = (
+            "Confirm live provider/workspace/trusted-local authority [y/N]> "
+            if self._trusted_local
+            else "Confirm live provider/workspace [y/N]> "
+        )
+        confirmation = self._readline(confirmation_prompt)
         if confirmation is None:
             return self._close_status
         if confirmation.strip().casefold() not in {"y", "yes"}:
@@ -615,7 +886,30 @@ class LiveTuiSession:
         run_root.mkdir(parents=True, exist_ok=False)
         event_log_path = run_root / "events.jsonl"
         event_log = JsonlRunEventLog(event_log_path)
-        tools = live_workspace_tools(self._boundary)
+        trusted_local_executor = (
+            TrustedLocalExecutor(
+                workspace_root=self._boundary.root,
+                artifact_root=run_root / "tool-artifacts" / "shell",
+            )
+            if self._trusted_local
+            else None
+        )
+        pty_controller = (
+            HumanPtyHandoffController(
+                workspace_root=self._boundary.root,
+                artifact_root=run_root / "tool-artifacts" / "pty",
+                input_stream=self._input,
+                output=self._output,
+                pty_adapter=self._pty_adapter,
+            )
+            if self._trusted_local
+            else None
+        )
+        tools = live_workspace_tools(
+            self._boundary,
+            trusted_local_executor=trusted_local_executor,
+            pty_controller=pty_controller,
+        )
         gateway = (
             self._gateway_factory(run_root, tools)
             if self._gateway_factory is not None
@@ -639,7 +933,7 @@ class LiveTuiSession:
                         context_projector=projector,
                         run_id=run_id,
                         agent_id=LIVE_TUI_AGENT_ID,
-                        system_policy_identity=LIVE_TUI_SYSTEM_POLICY_ID,
+                        system_policy_identity=self._system_policy_identity,
                         loop_policy_id="observation-feedback-v0",
                     ).run(
                         Task(task_id=f"live-tui:{run_id}", prompt=prompt),
@@ -727,7 +1021,7 @@ class LiveTuiSession:
             adapter=DeepSeekLiveTranslationAdapter(
                 profile=locked_deepseek_v3_model_profile(),
                 tool_bindings=live_workspace_bindings(tools),
-                system_prompt=LIVE_TUI_SYSTEM_PROMPT,
+                system_prompt=self._system_prompt,
                 max_tool_calls_per_response=MAX_TOOL_CALLS_PER_BATCH,
                 allow_tool_call_content=True,
             ),
@@ -747,9 +1041,16 @@ class LiveTuiSession:
         self._output.write(f"MODEL {profile.requested_model}\n")
         self._output.write(f"WORKSPACE {self._boundary.root}\n")
         self._output.write(f"SESSION_ROOT {self._session_root}\n")
-        self._output.write(
-            "BOUNDARY no host shell; workspace-relative inspect/read/write/syntax tools only.\n"
-        )
+        if self._trusted_local:
+            self._output.write(
+                "BOUNDARY trusted-local enabled: shell + Human PTY commands run "
+                "with the current host user's authority; workspace cwd is not "
+                "containment, a filesystem sandbox, or a network boundary.\n"
+            )
+        else:
+            self._output.write(
+                "BOUNDARY no host shell; workspace-relative inspect/read/write/syntax tools only.\n"
+            )
 
     def _render_help(self) -> None:
         self._output.write(
@@ -850,6 +1151,7 @@ def run_live_tui(
     output: TextIO = sys.stdout,
     initial_view: RunEventView | str = RunEventView.COMPACT,
     explain_compaction: bool = False,
+    trusted_local: bool = False,
 ) -> int:
     try:
         session = LiveTuiSession(
@@ -859,6 +1161,7 @@ def run_live_tui(
             output=output,
             initial_view=initial_view,
             explain_compaction=explain_compaction,
+            trusted_local=trusted_local,
         )
     except ValueError as error:
         output.write(f"Live TUI validation failed: {error}\n")
@@ -873,9 +1176,22 @@ def _live_context_projector(
 ) -> SemanticContextProjector:
     profile = locked_deepseek_v3_model_profile()
     bindings = live_workspace_bindings(tools)
+    trusted_local = any(
+        tool.definition.name == "trusted_local_shell" for tool in tools
+    )
+    system_prompt = (
+        LIVE_TUI_TRUSTED_LOCAL_SYSTEM_PROMPT
+        if trusted_local
+        else LIVE_TUI_SYSTEM_PROMPT
+    )
+    system_policy_identity = (
+        LIVE_TUI_TRUSTED_LOCAL_SYSTEM_POLICY_ID
+        if trusted_local
+        else LIVE_TUI_SYSTEM_POLICY_ID
+    )
     estimator = CanonicalJsonTokenEstimator()
     overhead_material = {
-        "system_prompt": LIVE_TUI_SYSTEM_PROMPT,
+        "system_prompt": system_prompt,
         "tool_bindings": [binding.identity_material() for binding in bindings],
         "terminal_tools": ("complete", "abstain"),
     }
@@ -896,7 +1212,7 @@ def _live_context_projector(
             overhead_tool_set_identity=action_tool_set_identity(
                 tuple(tool.definition for tool in tools)
             ),
-            system_policy_identity=LIVE_TUI_SYSTEM_POLICY_ID,
+            system_policy_identity=system_policy_identity,
         ),
         estimator=estimator,
         artifact_store=FileArtifactStore(run_root / "context-artifacts"),
@@ -918,6 +1234,40 @@ def _decode_tool_input(
     if not all(isinstance(payload[field], str) for field in expected_fields):
         raise ValueError("workspace tool fields must be strings")
     return cast(dict[str, object], payload)
+
+
+def _decode_trusted_local_input(
+    arguments: Mapping[str, object],
+) -> tuple[str, int]:
+    if set(arguments) != {"input"} or not isinstance(arguments.get("input"), str):
+        raise ValueError("trusted-local tool requires one canonical JSON input string")
+    try:
+        payload = json.loads(cast(str, arguments["input"]))
+    except json.JSONDecodeError as error:
+        raise ValueError("trusted-local tool input must be valid JSON") from error
+    if not isinstance(payload, dict) or not set(payload).issubset(
+        {"command", "timeout_seconds"}
+    ) or "command" not in payload:
+        raise ValueError("trusted-local tool input violates its closed schema")
+    command = payload["command"]
+    timeout_seconds = payload.get(
+        "timeout_seconds",
+        TRUSTED_LOCAL_DEFAULT_TIMEOUT_SECONDS,
+    )
+    if not isinstance(command, str) or not command.strip():
+        raise ValueError("trusted-local command must be non-empty text")
+    if len(command.encode("utf-8")) > TRUSTED_LOCAL_MAX_COMMAND_BYTES:
+        raise ValueError("trusted-local command exceeds the bounded size")
+    if (
+        not isinstance(timeout_seconds, int)
+        or isinstance(timeout_seconds, bool)
+        or not 1 <= timeout_seconds <= TRUSTED_LOCAL_MAX_TIMEOUT_SECONDS
+    ):
+        raise ValueError(
+            "trusted-local timeout_seconds must be an integer from 1 to "
+            f"{TRUSTED_LOCAL_MAX_TIMEOUT_SECONDS}"
+        )
+    return command, timeout_seconds
 
 
 def _closed_string_schema(
@@ -1022,6 +1372,7 @@ def _is_relative_to(candidate: Path, parent: Path) -> bool:
 
 __all__ = [
     "InspectWorkspaceTool",
+    "HumanInteractivePtyTool",
     "LIVE_TUI_AGENT_ID",
     "LIVE_TUI_RUN_LIMITS",
     "LIVE_TUI_SYSTEM_POLICY_ID",
@@ -1033,6 +1384,7 @@ __all__ = [
     "VerifyWorkspaceTool",
     "WorkspaceBoundary",
     "WriteWorkspaceFileTool",
+    "TrustedLocalShellTool",
     "live_workspace_bindings",
     "live_workspace_tools",
     "run_live_tui",

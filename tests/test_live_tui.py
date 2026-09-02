@@ -22,6 +22,7 @@ from workspace_agent_harness.deepseek_live import (
 from workspace_agent_harness.evented import (
     AgentLoop,
     CandidateFinal,
+    CandidateToolBatch,
     CandidateToolCall,
     ExchangeFailed,
     ExchangeSettled,
@@ -44,12 +45,257 @@ from workspace_agent_harness.live_tui import (
     live_workspace_tools,
     run_live_tui,
 )
+from workspace_agent_harness.trusted_local import PtyProcessResult
+from workspace_agent_harness.trusted_local import (
+    HumanPtyHandoffController,
+    TrustedLocalExecutor,
+)
 
 
 LIVE_TUI_FIXTURES = Path(__file__).parent / "fixtures" / "live_tui"
 
 
 class LiveTuiSessionTest(unittest.TestCase):
+    def test_invalid_late_shell_call_rejects_the_batch_before_write_effect(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            workspace = root / "workspace"
+            workspace.mkdir()
+            gateway = _QueueGateway(
+                (
+                    CandidateToolBatch(
+                        calls=(
+                            CandidateToolCall(
+                                "early-write",
+                                "write_file",
+                                {
+                                    "input": _json(
+                                        {"path": "marker.txt", "content": "must not land"}
+                                    )
+                                },
+                            ),
+                            CandidateToolCall(
+                                "late-invalid-shell",
+                                "trusted_local_shell",
+                                {"input": _json({"command": "x" * 32_769})},
+                            ),
+                        )
+                    ),
+                )
+            )
+            session = LiveTuiSession(
+                workspace_root=workspace,
+                session_root=root / "session",
+                input_stream=io.StringIO("yes\nreject invalid batch\n:exit\n"),
+                output=io.StringIO(),
+                gateway_factory=lambda run_root, tools: gateway,
+                credential_loader=_must_not_be_called,
+                run_id_factory=lambda: "invalid-shell-batch",
+                trusted_local=True,
+            )
+
+            self.assertEqual(0, session.run())
+            self.assertFalse((workspace / "marker.txt").exists())
+            self.assertEqual("protocol_error", session.records[0].status.value)
+            events = load_run_event_log(session.records[0].event_log_path)
+            self.assertNotIn("tool.execution_started", [event.event_type for event in events])
+
+    def test_accepted_pty_handoff_records_lifecycle_and_replay_is_inert(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            workspace = root / "workspace"
+            workspace.mkdir()
+            adapter = _CompletedPtyAdapter()
+            gateway = _QueueGateway(
+                (
+                    CandidateToolCall(
+                        "play-snake",
+                        "human_interactive_pty",
+                        {
+                            "input": _json(
+                                {"command": "python3 snake.py", "timeout_seconds": 30}
+                            )
+                        },
+                    ),
+                    CandidateFinal("The Human quit the terminal program cleanly."),
+                )
+            )
+            output = io.StringIO()
+            session = LiveTuiSession(
+                workspace_root=workspace,
+                session_root=root / "session",
+                input_stream=io.StringIO(
+                    "yes\nrun the terminal game\nyes\n:replay pty-run\n:exit\n"
+                ),
+                output=output,
+                gateway_factory=lambda run_root, tools: gateway,
+                credential_loader=_must_not_be_called,
+                run_id_factory=lambda: "pty-run",
+                trusted_local=True,
+                pty_adapter=adapter,
+            )
+
+            self.assertEqual(0, session.run())
+            self.assertEqual(1, adapter.calls)
+            self.assertEqual(2, len(gateway.prepared_turns))
+            observation = gateway.prepared_turns[1].conversation.messages[-1].content
+            self.assertIn('"status":"completed"', observation)
+            self.assertNotIn("Human key bytes", observation)
+            events = load_run_event_log(session.records[0].event_log_path)
+            lifecycle = [
+                event.event_type
+                for event in events
+                if event.event_type.startswith("tool.human_")
+                or event.event_type.startswith("tool.pty_")
+            ]
+            self.assertEqual(
+                [
+                    "tool.human_handoff_requested",
+                    "tool.human_handoff_accepted",
+                    "tool.pty_started",
+                    "tool.pty_settled",
+                ],
+                lifecycle,
+            )
+            self.assertGreaterEqual(output.getvalue().count("VIEW compact"), 2)
+            self.assertEqual(
+                2,
+                output.getvalue().count(
+                    "HANDOFF tool.human_handoff_accepted decision=accepted"
+                ),
+            )
+            self.assertEqual(
+                2,
+                output.getvalue().count(
+                    "PTY tool.pty_settled status=completed exit_code=0"
+                ),
+            )
+
+    def test_pty_rejection_is_an_observation_with_no_child_process(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            workspace = root / "workspace"
+            workspace.mkdir()
+            marker = workspace / "must-not-exist"
+            gateway = _QueueGateway(
+                (
+                    CandidateToolCall(
+                        "propose-pty",
+                        "human_interactive_pty",
+                        {
+                            "input": _json(
+                                {
+                                    "command": f"touch {marker.name}",
+                                    "timeout_seconds": 5,
+                                }
+                            )
+                        },
+                    ),
+                    CandidateFinal("Human rejected the PTY handoff."),
+                )
+            )
+            output = io.StringIO()
+            session = LiveTuiSession(
+                workspace_root=workspace,
+                session_root=root / "session",
+                input_stream=io.StringIO(
+                    "yes\npropose an interactive command\nno\n:exit\n"
+                ),
+                output=output,
+                gateway_factory=lambda run_root, tools: gateway,
+                credential_loader=_must_not_be_called,
+                run_id_factory=lambda: "pty-rejected-run",
+                trusted_local=True,
+            )
+
+            self.assertEqual(0, session.run())
+            self.assertFalse(marker.exists())
+            self.assertIn('"status":"rejected"', gateway.prepared_turns[1].conversation.messages[-1].content)
+            events = load_run_event_log(session.records[0].event_log_path)
+            self.assertEqual(
+                ["tool.human_handoff_requested", "tool.human_handoff_rejected"],
+                [
+                    event.event_type
+                    for event in events
+                    if event.event_type.startswith("tool.human_handoff_")
+                ],
+            )
+            self.assertNotIn("tool.pty_started", [event.event_type for event in events])
+
+    def test_opt_in_fake_model_writes_executes_observes_and_completes(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            workspace = root / "workspace"
+            workspace.mkdir()
+            gateway = _QueueGateway(
+                (
+                    CandidateToolCall(
+                        "write-program",
+                        "write_file",
+                        {
+                            "input": _json(
+                                {
+                                    "path": "hello.py",
+                                    "content": "print('shell-observed')\n",
+                                }
+                            )
+                        },
+                    ),
+                    CandidateToolCall(
+                        "run-program",
+                        "trusted_local_shell",
+                        {
+                            "input": _json(
+                                {"command": "python3 hello.py", "timeout_seconds": 5}
+                            )
+                        },
+                    ),
+                    CandidateFinal("created and executed hello.py"),
+                )
+            )
+            exposed_tool_names: list[str] = []
+
+            def gateway_factory(run_root, tools):
+                exposed_tool_names.extend(tool.definition.name for tool in tools)
+                return gateway
+
+            output = io.StringIO()
+            session = LiveTuiSession(
+                workspace_root=workspace,
+                session_root=root / "session",
+                input_stream=io.StringIO("yes\ncreate and run hello.py\n:exit\n"),
+                output=output,
+                gateway_factory=gateway_factory,
+                credential_loader=_must_not_be_called,
+                run_id_factory=lambda: "trusted-local-run",
+                trusted_local=True,
+            )
+
+            self.assertEqual(0, session.run())
+            self.assertIn("trusted_local_shell", exposed_tool_names)
+            self.assertIn("human_interactive_pty", exposed_tool_names)
+            self.assertIn("shell-observed", gateway.prepared_turns[2].conversation.messages[-1].content)
+            self.assertEqual("completed", session.records[0].status.value)
+            self.assertIn("current host user's authority", output.getvalue())
+            self.assertIn("cwd is not containment", output.getvalue())
+            events = load_run_event_log(session.records[0].event_log_path)
+            shell_lifecycle = [
+                event for event in events if event.event_type.startswith("tool.shell_")
+            ]
+            self.assertEqual(
+                ["tool.shell_started", "tool.shell_settled"],
+                [event.event_type for event in shell_lifecycle],
+            )
+            self.assertEqual("completed", shell_lifecycle[-1].payload["status"])
+            self.assertIn("locator", shell_lifecycle[-1].payload["stdout"])
+            self.assertIn(
+                "SHELL tool.shell_settled status=completed exit_code=0",
+                output.getvalue(),
+            )
+            self.assertTrue(
+                tuple((session.records[0].run_root / "tool-artifacts").rglob("stdout.raw"))
+            )
+
     def test_multi_tool_fixtures_are_hash_bound_and_secret_free(self) -> None:
         manifest = json.loads(
             (LIVE_TUI_FIXTURES / "manifest.json").read_text(encoding="utf-8")
@@ -535,6 +781,53 @@ class LiveTuiSessionTest(unittest.TestCase):
             self.assertNotIn("must-not-be-read-or-used", process.stdout)
             self.assertFalse(session_root.exists())
 
+    def test_real_cli_requires_explicit_trusted_local_opt_in(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            workspace = root / "workspace"
+            workspace.mkdir()
+            session_root = root / "session"
+            environment = os.environ.copy()
+            environment["DEEPSEEK_API_KEY"] = "must-not-be-read-or-used"
+
+            enabled = subprocess.run(
+                [
+                    sys.executable,
+                    "-m",
+                    "workspace_agent_harness.tui",
+                    "--live-deepseek",
+                    "--trusted-local",
+                    "--workspace",
+                    str(workspace),
+                    "--session-root",
+                    str(session_root),
+                ],
+                cwd=Path(__file__).parents[1],
+                input="no\n",
+                text=True,
+                capture_output=True,
+                env=environment,
+                timeout=10,
+                check=False,
+            )
+
+            self.assertEqual(0, enabled.returncode, enabled.stderr)
+            self.assertIn("trusted-local enabled", enabled.stdout)
+            self.assertIn("current host user's authority", enabled.stdout)
+            self.assertNotIn("must-not-be-read-or-used", enabled.stdout)
+            self.assertFalse(session_root.exists())
+
+            invalid = subprocess.run(
+                [sys.executable, "-m", "workspace_agent_harness.tui", "--trusted-local"],
+                cwd=Path(__file__).parents[1],
+                text=True,
+                capture_output=True,
+                timeout=10,
+                check=False,
+            )
+            self.assertEqual(2, invalid.returncode)
+            self.assertIn("--trusted-local requires --live-deepseek", invalid.stderr)
+
     def test_missing_credential_and_invalid_workspace_fail_before_external_call(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_directory:
             root = Path(temporary_directory)
@@ -602,6 +895,47 @@ class LiveTuiSessionTest(unittest.TestCase):
 
 
 class WorkspaceToolBoundaryTest(unittest.TestCase):
+    def test_opt_in_binding_profile_exposes_closed_shell_and_pty_schemas(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            workspace = root / "workspace"
+            workspace.mkdir()
+            boundary = WorkspaceBoundary(workspace)
+            executor = TrustedLocalExecutor(
+                workspace_root=workspace,
+                artifact_root=root / "artifacts" / "shell",
+            )
+            controller = HumanPtyHandoffController(
+                workspace_root=workspace,
+                artifact_root=root / "artifacts" / "pty",
+                input_stream=io.StringIO("no\n"),
+                output=io.StringIO(),
+                pty_adapter=_CompletedPtyAdapter(),
+            )
+            tools = live_workspace_tools(
+                boundary,
+                trusted_local_executor=executor,
+                pty_controller=controller,
+            )
+            bindings = live_workspace_bindings(tools)
+
+            self.assertEqual(
+                [
+                    "inspect_workspace",
+                    "read_file",
+                    "write_file",
+                    "verify_workspace",
+                    "trusted_local_shell",
+                    "human_interactive_pty",
+                ],
+                [binding.runtime_tool.name for binding in bindings],
+            )
+            for binding in bindings[-2:]:
+                self.assertEqual(["command"], binding.provider_parameters["required"])
+                timeout_schema = binding.provider_parameters["properties"]["timeout_seconds"]
+                self.assertEqual("integer", timeout_schema["type"])
+                self.assertEqual(120, timeout_schema["maximum"])
+
     def test_traversal_absolute_path_and_symlink_escape_fail_before_side_effect(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_directory:
             root = Path(temporary_directory)
@@ -839,6 +1173,20 @@ class _IncrementingClock:
     def __call__(self) -> int:
         self._value += 1
         return self._value
+
+
+class _CompletedPtyAdapter:
+    def __init__(self) -> None:
+        self.calls = 0
+
+    def run(self, **kwargs):
+        self.calls += 1
+        return PtyProcessResult(
+            status="completed",
+            exit_code=0,
+            duration_ms=17,
+            transcript=b"Human key bytes stay in the local PTY transcript\n",
+        )
 
 
 def _json(value: object) -> str:
