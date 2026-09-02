@@ -1,11 +1,11 @@
 # DeepSeek Live trusted-local shell + Human PTY smoke candidate Evidence — 2026-09-02
 
-- Status: Working Agent candidate Evidence; requires a different-session **high-risk** independent Regulator review (shell execution, Human authority boundary, credential handling) before any acceptance
+- Status: Working Agent candidate Evidence, repaired after the rejected independent Verdict ([issue #22 comment 5508347506](https://github.com/pym96/workspace-agent-harness/issues/22#issuecomment-5508347506)); still requires a different-session **high-risk** independent Regulator review (shell execution, Human authority boundary, credential handling) before any acceptance
 - Session role: Working Agent (Builder)
 - Base commit: `4ebf660b7166724e604263e6c3d60a139bf0db8b` (accepted `main`)
-- Candidate code bytes for the final smoke: `09ccaa85a303babcec74ab62ebe6a7d963641950` on `workorder/22-candidate`; any later commit on that branch adds only this Evidence document and index references, with zero code/test delta (verifiable via `git diff 09ccaa8 <tip> -- workspace_agent_harness tests typescript`)
+- Candidate code bytes for the final smoke: `09ccaa85a303babcec74ab62ebe6a7d963641950` on `workorder/22-candidate`; later commits on that branch add the four Verdict-mandated offline repairs with their regression tests plus this Evidence update — no Provider, balance, or smoke call was made after `09ccaa8`, and the Handoff states the exact final SHA
 - WorkOrder: [Issue #22](https://github.com/pym96/workspace-agent-harness/issues/22) superseding Agent brief, including its durable live-development authorization: real `deepseek-v4-flash` use, combined `CNY 2.00` ceiling, exact candidate bytes, one pre-run and one post-run balance observation
-- Observed external use across the whole WorkOrder: `2` official balance queries / `51` Provider-model exchanges (`50` with reported usage) / `13` retained Runs
+- Observed external use across the whole WorkOrder, recomputed from all raw retained artifacts after the rejected Verdict: `2` official balance queries; `55` Gateway exchange attempts (`model.exchange_started`) across `13` Run Event Logs (12 valid terminal hash chains plus the documented incomplete abandoned `49ac7d06` log); `53` settled and `2` failed exchange events (`reasoning_content_missing`, `transport_unavailable`); `54` retained model HTTP response bodies (every settled exchange plus the protocol-failed response; the transport failure retained none); all `54` responses carry numeric usage totaling `221,694` input + `37,826` output = `259,520` Tokens; `12` terminal Run summaries plus the abandoned Run account for the full activity. The four responses (15,118 Tokens) of the abandoned Run are included in all totals above — an earlier revision of this document undercounted by summing only terminal summaries (`51`/`50`), which the rejected Verdict established as blocking
 
 ## Final smoke (the acceptance run)
 
@@ -63,7 +63,7 @@ All attempts are retained under `.runs/` and remain distinguishable; nothing was
 
 | Attempt (bytes) | Run | Terminal | Model calls | Reported Tokens | Event Log SHA-256 |
 |---|---|---|---|---|---|
-| `b40df8a` initial candidate | `49ac7d06` | no terminal event — session abandoned at a pending PTY confirmation ("我要继续玩，请求"); this exact hang motivated repair `81ace71` | — | — | `12e1c61877913b70d3b1488fe6e0a4c0bb6e71ec693b406d6ba53636dd81ca13` |
+| `b40df8a` initial candidate | `49ac7d06` | no terminal event — session abandoned at a pending PTY confirmation ("我要继续玩，请求"); this exact hang motivated repair `81ace71` | 4 (per retained responses; no summary exists) | 15,118 | `12e1c61877913b70d3b1488fe6e0a4c0bb6e71ec693b406d6ba53636dd81ca13` |
 | `b40df8a` | `601310cf` | `completed` (snake created; PTY path exercised) | 5 | 23,166 | `d093290636401d4f53b8be3da0450bff826084842ea83014ba3912cfd87a1626` |
 | `b40df8a` | `68a01e3a` | `completed` (snake.py + snake.html) | 7 | 77,831 | `e2f747c11a0b9554c70b5dde9b142bea9d91563d6368743142c019925276c9b4` |
 | `81ace71` | `8d94f3e5` | `step_limit` — legitimate multi-part trusted-local task (pi-mono environment setup + snake) exhausted the then-`12`-step budget during exploration | 8 | 47,585 | `63ac6493efaa62cebe5b71b1e569161ea73eabc7a93ff97b370e24c107965d63` |
@@ -80,25 +80,34 @@ All attempts are retained under `.runs/` and remain distinguishable; nothing was
 Defects exposed by Human-operated attempts and their repairs (each repair is a separate commit on `workorder/22-candidate`; no Provider call was made while repairing):
 
 1. `81ace71` — cancellation while a PTY confirmation was still pending blocked waiting for another input line (the `49ac7d06` hang above); now interrupts the wait, records `human_handoff_cancelled`, and starts no child (red/green deterministic coverage).
-2. `6546aa7` — identity-bound opt-in admission treats absent/null/empty-string Provider `reasoning_content` as canonical `None`; non-text reasoning remains a protocol failure (red/green deterministic coverage; the historical #19/#20 campaign contract stays reasoning-required and unchanged).
-3. `8bdcf66` — interactive Run budget raised from `12` steps / `16` model calls to `100` / `160` after the legitimate `step_limit` above.
-4. `e004d8b` — per-call HTTP transport timeout raised from `60` to `240` seconds (per socket operation, bounded by the Run timeout) after the Thinking-stall `transport_unavailable`; pinned by a regression test.
-5. `09ccaa8` — interactive Run wall clock raised from `300` to `3600` seconds after Human-paced confirmation/PTY time expired the budget mid-flow; per-call transport ceiling and Human cancellation remain the binding inactivity guards.
+2. `6546aa7` — identity-bound opt-in admission treats absent/null/empty-string Provider `reasoning_content` as canonical `None`; non-text reasoning remains a protocol failure (red/green deterministic coverage; the historical #19/#20 campaign contract stays reasoning-required and unchanged). After the rejected Verdict this admission applies only to the trusted-local profile — see repair R1 below.
+3. `8bdcf66` — interactive Run budget raised from `12` steps / `16` model calls to `100` / `160` after the legitimate `step_limit` above; scoped to the trusted-local profile by R1.
+4. `e004d8b` — per-call HTTP transport timeout raised from `60` to `240` seconds after the Thinking-stall `transport_unavailable`; scoped to the trusted-local profile by R1 and pinned by regression tests.
+5. `09ccaa8` — interactive Run wall clock raised from `300` to `3600` seconds after Human-paced confirmation/PTY time expired the budget mid-flow; scoped to the trusted-local profile by R1.
+
+The rejected Verdict ([comment 5508347506](https://github.com/pym96/workspace-agent-harness/issues/22#issuecomment-5508347506)) established four blocking defects; the repair commit carrying this updated Evidence fixes all four offline (exact SHA in the new Handoff), with no new Provider, balance, or smoke call:
+
+- **R1 — default-off drift**: the raised Run/transport limits and optional-reasoning admission previously leaked into the default no-shell profile. The default-off profile is restored to the accepted #21 values (`12`/`16`/`300`, `60`-second transport timeout, reasoning-required admission); the raised values and optional reasoning now apply only after explicit trusted-local opt-in. Regression tests instantiate `trusted_local=False` (constants, transport wiring, `run.started` limits, fail-closed empty-reasoning rejection with zero effects) and `trusted_local=True` (raised values, empty-reasoning admission and replay).
+- **R2 — confirmation display forgery**: the controller printed the model-supplied command raw. It now renders command and cwd as escaped JSON strings (ESC/CR/LF become visible text; no screen clearing or injected display lines), with a negative test carrying `\x1b[2J\x1b[H\nCWD /spoofed\r\n`.
+- **R3 — confirmation/cancel race**: cancellation is now rechecked after the answer line arrives (both the fd and non-fd input paths), between the affirmative answer and the acceptance event, between acceptance and the PTY-start seam, and inside `PosixPtyAdapter.run` before any fd/terminal mutation/spawn. Each crossing settles `human_handoff_cancelled` (`phase` distinguishes `pending-confirmation` / `pre-acceptance` / `pre-spawn`) with `child_started: false`; three deterministic race tests cover the affirmative-answer race, the post-acceptance race, and the adapter pre-spawn path.
+- **R4 — Evidence undercount**: this document's external-activity counts were recomputed from all 13 raw Run Event Logs and all 54 retained response bodies rather than terminal summaries; the layered counts are stated at the top of this document.
 
 ## Verification receipt
 
-On the exact smoke bytes `09ccaa85a303babcec74ab62ebe6a7d963641950`:
+On the exact smoke bytes `09ccaa85a303babcec74ab62ebe6a7d963641950` the checks read: focused 59 PASS, full 236 PASS, TypeScript/Pi 12 PASS, changed-source mypy PASS, compileall PASS, `git diff --check` PASS. The rejected Verdict independently reproduced those results and its own probes.
+
+After the offline R1–R4 repair commit (no new external calls), on the repair-candidate bytes:
 
 ```text
-focused Live TUI/trusted-local/v3-gateway/evented: PASS — 59 tests
-full project suite: PASS — 236 tests
+focused Live TUI/trusted-local/v3-gateway/evented: PASS — 65 tests
+full project suite: PASS — 242 tests
 TypeScript/Pi checks (npm run check: tsc --noEmit + node --test): PASS — 12 tests
 changed-source mypy (trusted_local, live_tui, deepseek_live, evented, tui): PASS
 python3 -m compileall workspace_agent_harness tests: PASS
 git diff --check: PASS
 ```
 
-The pre-existing `tests/test_live_tui.py` mypy annotations debt (12 errors) is unchanged by this candidate and untouched sources remain as accepted. The TypeScript/Pi product side was not migrated or redesigned; its real TUI entry and deterministic checks remain green and directly runnable. The outer top-level career-workspace acceptance gate (`80-监管与验收/自动检查/run_acceptance.sh`) was not rerun by this Builder; its result is reported in the Handoff if executed.
+The pre-existing `tests/test_live_tui.py` mypy annotations debt (12 errors) is unchanged by this candidate and untouched sources remain as accepted. The TypeScript/Pi product side was not migrated or redesigned; its real TUI entry and deterministic checks remain green and directly runnable. The outer top-level career-workspace acceptance gate (`80-监管与验收/自动检查/run_acceptance.sh`) result on the repair candidate is reported in the Builder Handoff.
 
 ## Claim boundary
 

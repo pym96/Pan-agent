@@ -175,32 +175,23 @@ class HumanPtyHandoffController:
         }
         observe(PtyHandoffUpdate("human_handoff_requested", request_payload))
         self._output.write("PTY_HANDOFF_REQUEST\n")
-        self._output.write(f"COMMAND {command}\n")
-        self._output.write(f"CWD {self.workspace_root}\n")
+        # Escape-safe, byte-unambiguous rendering: JSON string escaping turns
+        # control bytes (ESC, CR, LF, …) into visible text, so a crafted
+        # command cannot clear the screen or inject fake display lines.
+        self._output.write(f"COMMAND {_display_escaped(command)}\n")
+        self._output.write(f"CWD {_display_escaped(str(self.workspace_root))}\n")
         self._output.write(
             "AUTHORITY current host user's authority; cwd is not containment.\n"
+        )
+        self._output.write(
+            "Command and cwd above are exact escaped strings; "
+            "control characters cannot alter this display.\n"
         )
         self._output.write("Transfer terminal control [y/N]> ")
         self._output.flush()
         answer = self._read_confirmation(cancel_signal)
-        if answer is None:
-            observe(
-                PtyHandoffUpdate(
-                    "human_handoff_cancelled",
-                    {"decision": "cancelled", "child_started": False},
-                )
-            )
-            self._output.write(
-                "\nPTY handoff cancelled; no child process started.\n"
-            )
-            self._output.flush()
-            return PtyHandoffSettlement(
-                status="cancelled",
-                accepted=False,
-                exit_code=None,
-                duration_ms=0,
-                transcript=None,
-            )
+        if answer is None or cancel_signal.is_set():
+            return self._settle_cancelled(observe, phase="pending-confirmation")
         if answer.strip().casefold() not in {"y", "yes"}:
             observe(
                 PtyHandoffUpdate(
@@ -217,12 +208,16 @@ class HumanPtyHandoffController:
                 duration_ms=0,
                 transcript=None,
             )
+        if cancel_signal.is_set():
+            return self._settle_cancelled(observe, phase="pre-acceptance")
         observe(
             PtyHandoffUpdate(
                 "human_handoff_accepted",
                 {"decision": "accepted", "child_started": False},
             )
         )
+        if cancel_signal.is_set():
+            return self._settle_cancelled(observe, phase="pre-spawn")
         self._handoff_count += 1
         handoff_root = self.artifact_root / f"pty-{self._handoff_count:03d}"
         handoff_root.mkdir(exist_ok=False)
@@ -271,19 +266,51 @@ class HumanPtyHandoffController:
             transcript=transcript,
         )
 
+    def _settle_cancelled(
+        self,
+        observe: Callable[[PtyHandoffUpdate], None],
+        *,
+        phase: str,
+    ) -> PtyHandoffSettlement:
+        observe(
+            PtyHandoffUpdate(
+                "human_handoff_cancelled",
+                {"decision": "cancelled", "child_started": False, "phase": phase},
+            )
+        )
+        self._output.write(
+            "\nPTY handoff cancelled; no child process started.\n"
+        )
+        self._output.flush()
+        return PtyHandoffSettlement(
+            status="cancelled",
+            accepted=False,
+            exit_code=None,
+            duration_ms=0,
+            transcript=None,
+        )
+
     def _read_confirmation(self, cancel_signal: Event) -> str | None:
         if cancel_signal.is_set():
             return None
         try:
             input_fd = self._input.fileno()
         except (AttributeError, OSError):
-            return self._input.readline()
+            answer = self._input.readline()
+            # Recheck after the answer arrives: an affirmative line and a
+            # cancellation can cross, and cancellation must win.
+            if cancel_signal.is_set():
+                return None
+            return answer
         while not cancel_signal.is_set():
             readable, _, _ = select.select([input_fd], [], [], 0.05)
             if readable:
                 if cancel_signal.is_set():
                     return None
-                return self._input.readline()
+                answer = self._input.readline()
+                if cancel_signal.is_set():
+                    return None
+                return answer
         return None
 
     def _retain_transcript(
@@ -321,6 +348,15 @@ class PosixPtyAdapter:
             input_fd = input_stream.fileno()
         except (AttributeError, OSError) as error:
             raise ValueError("interactive PTY handoff requires a real input file descriptor") from error
+        if cancel_signal.is_set():
+            # Fail closed before opening any PTY fd, mutating terminal
+            # attributes, or spawning the child process group.
+            return PtyProcessResult(
+                status="cancelled",
+                exit_code=None,
+                duration_ms=0,
+                transcript=b"",
+            )
         master_fd, slave_fd = pty.openpty()
         saved_terminal: list[int | list[bytes | int]] | None = None
         if os.isatty(input_fd):
@@ -553,6 +589,11 @@ class TrustedLocalExecutor:
                 + body[-edge:]
             )
         return selected.decode("utf-8", errors="replace")
+
+
+def _display_escaped(value: str) -> str:
+    """Render text byte-unambiguously: JSON escaping makes control bytes visible."""
+    return json.dumps(value, ensure_ascii=False)
 
 
 def _validate_command_request(command: str, timeout_seconds: int) -> None:

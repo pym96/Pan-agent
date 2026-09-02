@@ -38,6 +38,8 @@ from workspace_agent_harness.live_tui import (
     LIVE_TUI_RUN_LIMITS,
     LIVE_TUI_SYSTEM_PROMPT,
     LIVE_TUI_TRANSPORT_TIMEOUT_SECONDS,
+    LIVE_TUI_TRUSTED_LOCAL_RUN_LIMITS,
+    LIVE_TUI_TRUSTED_LOCAL_TRANSPORT_TIMEOUT_SECONDS,
     LiveProgressProjection,
     LiveTuiSession,
     ReadWorkspaceFileTool,
@@ -456,7 +458,7 @@ class LiveTuiSessionTest(unittest.TestCase):
                 [message["role"] for message in second_messages],
             )
             self.assertEqual(
-                "",
+                "The retained reasoning proves the plan.",
                 second_messages[2]["reasoning_content"],
             )
             self.assertEqual("", second_messages[2]["content"])
@@ -474,17 +476,14 @@ class LiveTuiSessionTest(unittest.TestCase):
                 output.getvalue(),
             )
 
-    def test_live_transport_timeout_tolerates_thinking_stall(self) -> None:
-        # WorkOrder #22 smoke attempt e926148d: the second real exchange
-        # (server-side Thinking plus a whole-file generation) exceeded the
-        # earlier 60-second HTTP timeout and terminally failed as
-        # transport_unavailable. The per-socket-operation timeout must
-        # tolerate that stall while remaining bounded by the Run timeout.
-        self.assertGreaterEqual(LIVE_TUI_TRANSPORT_TIMEOUT_SECONDS, 120.0)
-        self.assertLessEqual(
-            LIVE_TUI_TRANSPORT_TIMEOUT_SECONDS,
-            LIVE_TUI_RUN_LIMITS.timeout_seconds,
-        )
+    def test_default_profile_preserves_accepted_limits_and_transport_timeout(self) -> None:
+        # Regulator blocker (issue #22 rejected Verdict): the default-off
+        # profile must keep the accepted #21 values — 12 steps / 16 model
+        # calls / 300 seconds and a 60-second transport timeout.
+        self.assertEqual(12, LIVE_TUI_RUN_LIMITS.max_steps)
+        self.assertEqual(16, LIVE_TUI_RUN_LIMITS.max_model_calls)
+        self.assertEqual(300, LIVE_TUI_RUN_LIMITS.timeout_seconds)
+        self.assertEqual(60.0, LIVE_TUI_TRANSPORT_TIMEOUT_SECONDS)
         with tempfile.TemporaryDirectory() as temporary_directory:
             root = Path(temporary_directory)
             workspace = root / "workspace"
@@ -504,7 +503,7 @@ class LiveTuiSessionTest(unittest.TestCase):
                 input_stream=io.StringIO("yes\nsay done\n:exit\n"),
                 output=io.StringIO(),
                 credential_loader=lambda: "test-only-key",
-                run_id_factory=lambda: "deepseek-timeout-run",
+                run_id_factory=lambda: "deepseek-default-profile-run",
             )
             with patch(
                 "workspace_agent_harness.live_tui.DeepSeekHttpTransport",
@@ -512,9 +511,118 @@ class LiveTuiSessionTest(unittest.TestCase):
             ) as transport_factory:
                 self.assertEqual(0, session.run())
             self.assertEqual(
-                LIVE_TUI_TRANSPORT_TIMEOUT_SECONDS,
+                60.0,
                 transport_factory.call_args.kwargs["timeout_seconds"],
             )
+            events = load_run_event_log(session.records[0].event_log_path)
+            started = next(e for e in events if e.event_type == "run.started")
+            self.assertEqual(
+                {"max_model_calls": 16, "max_steps": 12, "timeout_seconds": 300},
+                started.payload["limits"],
+            )
+
+    def test_default_profile_requires_provider_reasoning(self) -> None:
+        # Regulator blocker: without the trusted-local opt-in, the accepted
+        # reasoning-required admission must reject an empty-reasoning ToolCall
+        # before any effect.
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            workspace = root / "workspace"
+            workspace.mkdir()
+            transport = _RetainedTransport(
+                (
+                    _provider_tool_response(
+                        call_id="provider-write-1",
+                        name="write_file",
+                        arguments={"path": "result.txt", "content": "total=5"},
+                        reasoning="",
+                        input_tokens=41,
+                        output_tokens=13,
+                    ),
+                )
+            )
+            session = LiveTuiSession(
+                workspace_root=workspace,
+                session_root=root / "session",
+                input_stream=io.StringIO("yes\nwrite the exact result\n:exit\n"),
+                output=io.StringIO(),
+                credential_loader=lambda: "test-only-key",
+                run_id_factory=lambda: "deepseek-default-reasoning-run",
+            )
+            with patch(
+                "workspace_agent_harness.live_tui.DeepSeekHttpTransport",
+                return_value=transport,
+            ):
+                self.assertEqual(0, session.run())
+            self.assertFalse((workspace / "result.txt").exists())
+            self.assertEqual(1, transport.calls)
+            self.assertEqual("model_error", session.records[0].status.value)
+
+    def test_trusted_local_profile_raises_limits_and_admits_empty_reasoning(self) -> None:
+        # The explicit trusted-local profile carries the raised interactive
+        # budgets and optional-reasoning admission; smoke attempt e926148d
+        # (Thinking stall beyond 60 s) and f6569a3a (Human-paced wait beyond
+        # 300 s) motivated 240 s / 3600 s.
+        self.assertEqual(100, LIVE_TUI_TRUSTED_LOCAL_RUN_LIMITS.max_steps)
+        self.assertEqual(160, LIVE_TUI_TRUSTED_LOCAL_RUN_LIMITS.max_model_calls)
+        self.assertEqual(3600, LIVE_TUI_TRUSTED_LOCAL_RUN_LIMITS.timeout_seconds)
+        self.assertEqual(240.0, LIVE_TUI_TRUSTED_LOCAL_TRANSPORT_TIMEOUT_SECONDS)
+        self.assertLessEqual(
+            LIVE_TUI_TRUSTED_LOCAL_TRANSPORT_TIMEOUT_SECONDS,
+            LIVE_TUI_TRUSTED_LOCAL_RUN_LIMITS.timeout_seconds,
+        )
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            workspace = root / "workspace"
+            workspace.mkdir()
+            transport = _RetainedTransport(
+                (
+                    _provider_tool_response(
+                        call_id="provider-write-1",
+                        name="write_file",
+                        arguments={"path": "result.txt", "content": "total=5"},
+                        reasoning="",
+                        input_tokens=41,
+                        output_tokens=13,
+                    ),
+                    _provider_final_response(
+                        content="Wrote the requested exact result.",
+                        input_tokens=67,
+                        output_tokens=11,
+                    ),
+                )
+            )
+            session = LiveTuiSession(
+                workspace_root=workspace,
+                session_root=root / "session",
+                input_stream=io.StringIO("yes\nwrite the exact result\n:exit\n"),
+                output=io.StringIO(),
+                credential_loader=lambda: "test-only-key",
+                run_id_factory=lambda: "deepseek-trusted-profile-run",
+                trusted_local=True,
+            )
+            with patch(
+                "workspace_agent_harness.live_tui.DeepSeekHttpTransport",
+                return_value=transport,
+            ) as transport_factory:
+                self.assertEqual(0, session.run())
+            self.assertEqual("total=5", (workspace / "result.txt").read_text())
+            self.assertEqual(
+                240.0,
+                transport_factory.call_args.kwargs["timeout_seconds"],
+            )
+            events = load_run_event_log(session.records[0].event_log_path)
+            started = next(e for e in events if e.event_type == "run.started")
+            self.assertEqual(
+                {
+                    "max_model_calls": 160,
+                    "max_steps": 100,
+                    "timeout_seconds": 3600,
+                },
+                started.payload["limits"],
+            )
+            second_messages = transport.requests[1].payload["messages"]
+            self.assertEqual("", second_messages[2]["reasoning_content"])
 
     def test_live_tui_executes_provider_tool_batch_in_order_with_paired_history(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_directory:
@@ -1231,6 +1339,7 @@ def _provider_tool_response(
     name: str,
     arguments: object,
     content: str = "",
+    reasoning: str = "The retained reasoning proves the plan.",
     input_tokens: int,
     output_tokens: int,
 ) -> RetainedDeepSeekResponse:
@@ -1239,7 +1348,7 @@ def _provider_tool_response(
         message={
             "role": "assistant",
             "content": content,
-            "reasoning_content": "",
+            "reasoning_content": reasoning,
             "tool_calls": [
                 {
                     "id": call_id,

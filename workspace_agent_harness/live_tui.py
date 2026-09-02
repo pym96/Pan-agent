@@ -63,17 +63,27 @@ LIVE_TUI_SYSTEM_POLICY_ID = "deepseek-live-workspace-policy/v1"
 LIVE_TUI_TRUSTED_LOCAL_SYSTEM_POLICY_ID = "deepseek-live-trusted-local-policy/v1"
 LIVE_TUI_MAX_FILE_BYTES = 262_144
 LIVE_TUI_MAX_LIST_ENTRIES = 500
+# Accepted default-off profile values; unchanged from the accepted #21 entry.
 LIVE_TUI_RUN_LIMITS = RunLimits(
+    max_steps=12,
+    max_model_calls=16,
+    timeout_seconds=300,
+)
+# The explicit trusted-local profile needs room for shell/PTY work, and its
+# Run clock includes Human confirmation and PTY attach time; a Human-paced
+# pause must not starve the model's remaining exchanges. These raised values
+# apply only after the Human opts in to trusted-local execution.
+LIVE_TUI_TRUSTED_LOCAL_RUN_LIMITS = RunLimits(
     max_steps=100,
     max_model_calls=160,
-    # The Run clock includes Human confirmation and PTY attach time; a
-    # Human-paced pause must not starve the model's remaining exchanges.
     timeout_seconds=3600,
 )
+# Accepted default-off per-call HTTP timeout.
+LIVE_TUI_TRANSPORT_TIMEOUT_SECONDS = 60.0
 # One non-streaming Provider exchange can spend well over a minute in
-# server-side Thinking before the first response byte; the per-socket-operation
-# HTTP timeout must tolerate that stall while still bounding a hung read.
-LIVE_TUI_TRANSPORT_TIMEOUT_SECONDS = 240.0
+# server-side Thinking before the first response byte; the trusted-local
+# profile tolerates that stall while still bounding a hung read.
+LIVE_TUI_TRUSTED_LOCAL_TRANSPORT_TIMEOUT_SECONDS = 240.0
 LIVE_TUI_SYSTEM_PROMPT = (
     "Act on the task only through provided functions. One response may contain "
     f"between 1 and {MAX_TOOL_CALLS_PER_BATCH} independent domain function calls; "
@@ -945,7 +955,11 @@ class LiveTuiSession:
                         loop_policy_id="observation-feedback-v0",
                     ).run(
                         Task(task_id=f"live-tui:{run_id}", prompt=prompt),
-                        LIVE_TUI_RUN_LIMITS,
+                        (
+                            LIVE_TUI_TRUSTED_LOCAL_RUN_LIMITS
+                            if self._trusted_local
+                            else LIVE_TUI_RUN_LIMITS
+                        ),
                         cancel_signal=cancel_signal,
                     )
                 )
@@ -1032,11 +1046,18 @@ class LiveTuiSession:
                 system_prompt=self._system_prompt,
                 max_tool_calls_per_response=MAX_TOOL_CALLS_PER_BATCH,
                 allow_tool_call_content=True,
-                allow_optional_reasoning=True,
+                # Empty/absent Provider reasoning is admitted only in the
+                # explicit trusted-local profile; the default-off profile
+                # keeps the accepted reasoning-required behavior.
+                allow_optional_reasoning=self._trusted_local,
             ),
             transport=DeepSeekHttpTransport(
                 api_key=self._api_key,
-                timeout_seconds=LIVE_TUI_TRANSPORT_TIMEOUT_SECONDS,
+                timeout_seconds=(
+                    LIVE_TUI_TRUSTED_LOCAL_TRANSPORT_TIMEOUT_SECONDS
+                    if self._trusted_local
+                    else LIVE_TUI_TRANSPORT_TIMEOUT_SECONDS
+                ),
             ),
             exchange_store=FileDeepSeekExchangeStore(
                 run_root / "provider-exchanges"
@@ -1386,6 +1407,9 @@ __all__ = [
     "LIVE_TUI_RUN_LIMITS",
     "LIVE_TUI_SYSTEM_POLICY_ID",
     "LIVE_TUI_SYSTEM_PROMPT",
+    "LIVE_TUI_TRANSPORT_TIMEOUT_SECONDS",
+    "LIVE_TUI_TRUSTED_LOCAL_RUN_LIMITS",
+    "LIVE_TUI_TRUSTED_LOCAL_TRANSPORT_TIMEOUT_SECONDS",
     "LiveProgressProjection",
     "LiveRunRecord",
     "LiveTuiSession",

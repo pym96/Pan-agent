@@ -4,6 +4,7 @@ import tempfile
 import time
 import unittest
 import io
+import json
 import os
 import pty
 import sys
@@ -277,6 +278,159 @@ class HumanPtyHandoffControllerTest(unittest.TestCase):
                 [update.kind for update in updates],
             )
 
+    def test_confirmation_display_escapes_control_characters(self) -> None:
+        # Regulator blocker (issue #22 rejected Verdict): a command carrying
+        # ANSI/control bytes and a newline must not be able to clear the
+        # terminal or inject a spoofed CWD line into the confirmation display.
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            workspace = root / "workspace"
+            workspace.mkdir()
+            output = io.StringIO()
+            adapter = _FailIfPtyStarts()
+            controller = HumanPtyHandoffController(
+                workspace_root=workspace,
+                artifact_root=root / "artifacts",
+                input_stream=io.StringIO("n\n"),
+                output=output,
+                pty_adapter=adapter,
+            )
+            hostile = "python3 snake.py\x1b[2J\x1b[H\nCWD /spoofed\r\nAuthority: root"
+
+            settlement = controller.handoff(
+                command=hostile,
+                timeout_seconds=30,
+                cancel_signal=Event(),
+                observe=lambda update: None,
+            )
+
+            self.assertEqual("rejected", settlement.status)
+            self.assertEqual(0, adapter.calls)
+            rendered = output.getvalue()
+            self.assertNotIn("\x1b", rendered)
+            self.assertNotIn("\r", rendered)
+            self.assertNotIn("\nCWD /spoofed\n", rendered)
+            self.assertIn(f"COMMAND {json.dumps(hostile)}", rendered)
+            self.assertIn(f'CWD "{workspace.resolve()}"', rendered)
+            # Exactly one CWD line exists: the real one. (The hostile text is
+            # visible inside the escaped COMMAND line but starts no new line.)
+            self.assertEqual(1, rendered.count("\nCWD "))
+
+    def test_cancellation_wins_over_affirmative_answer_race(self) -> None:
+        # Regulator blocker: an affirmative line and a cancellation can cross;
+        # cancellation must win and no child may start.
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            workspace = root / "workspace"
+            workspace.mkdir()
+            cancel_signal = Event()
+            input_stream = _CancelDuringReadline("yes\n", cancel_signal)
+            updates = []
+            adapter = _FailIfPtyStarts()
+            controller = HumanPtyHandoffController(
+                workspace_root=workspace,
+                artifact_root=root / "artifacts",
+                input_stream=input_stream,
+                output=io.StringIO(),
+                pty_adapter=adapter,
+            )
+
+            settlement = controller.handoff(
+                command="python3 snake.py",
+                timeout_seconds=30,
+                cancel_signal=cancel_signal,
+                observe=updates.append,
+            )
+
+            self.assertEqual("cancelled", settlement.status)
+            self.assertFalse(settlement.accepted)
+            self.assertEqual(0, adapter.calls)
+            kinds = [update.kind for update in updates]
+            self.assertEqual(
+                ["human_handoff_requested", "human_handoff_cancelled"], kinds
+            )
+            self.assertEqual(
+                "pending-confirmation", updates[-1].payload["phase"]
+            )
+            self.assertFalse(updates[-1].payload["child_started"])
+
+    def test_cancellation_after_acceptance_stops_before_spawn(self) -> None:
+        # A cancellation crossing the accepted decision must still fail closed
+        # before the PTY start seam: no artifact dir, no adapter call.
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            workspace = root / "workspace"
+            workspace.mkdir()
+            cancel_signal = Event()
+            updates = []
+            adapter = _FailIfPtyStarts()
+
+            def observe(update) -> None:
+                updates.append(update)
+                if update.kind == "human_handoff_accepted":
+                    cancel_signal.set()
+
+            controller = HumanPtyHandoffController(
+                workspace_root=workspace,
+                artifact_root=root / "artifacts",
+                input_stream=io.StringIO("yes\n"),
+                output=io.StringIO(),
+                pty_adapter=adapter,
+            )
+
+            settlement = controller.handoff(
+                command="python3 snake.py",
+                timeout_seconds=30,
+                cancel_signal=cancel_signal,
+                observe=observe,
+            )
+
+            self.assertEqual("cancelled", settlement.status)
+            self.assertEqual(0, adapter.calls)
+            self.assertEqual(
+                [
+                    "human_handoff_requested",
+                    "human_handoff_accepted",
+                    "human_handoff_cancelled",
+                ],
+                [update.kind for update in updates],
+            )
+            self.assertEqual("pre-spawn", updates[-1].payload["phase"])
+            self.assertFalse(updates[-1].payload["child_started"])
+            self.assertFalse((root / "artifacts" / "pty-001").exists())
+
+    def test_posix_adapter_pre_spawn_cancellation_starts_no_child(self) -> None:
+        # The POSIX adapter keeps the same fail-closed rule: a cancellation
+        # present before spawn returns a typed cancelled settlement without
+        # opening a PTY, mutating the terminal, or creating a process.
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            workspace = root / "workspace"
+            workspace.mkdir()
+            read_fd, write_fd = os.pipe()
+            self.addCleanup(os.close, write_fd)
+            input_stream = os.fdopen(read_fd, "r", encoding="utf-8", buffering=1)
+            self.addCleanup(input_stream.close)
+            cancel_signal = Event()
+            cancel_signal.set()
+            output = io.StringIO()
+
+            result = PosixPtyAdapter().run(
+                command="python3 snake.py",
+                cwd=workspace,
+                environment={},
+                timeout_seconds=30,
+                cancel_signal=cancel_signal,
+                input_stream=input_stream,
+                output=output,
+            )
+
+            self.assertEqual("cancelled", result.status)
+            self.assertIsNone(result.exit_code)
+            self.assertEqual(0, result.duration_ms)
+            self.assertEqual(b"", result.transcript)
+            self.assertEqual("", output.getvalue())
+
     def test_trusted_local_fixture_manifest_is_content_bound(self) -> None:
         import hashlib
         import json
@@ -359,8 +513,8 @@ class HumanPtyHandoffControllerTest(unittest.TestCase):
                 [update.kind for update in updates],
             )
             rendered = output.getvalue()
-            self.assertIn("COMMAND python3 snake.py", rendered)
-            self.assertIn(f"CWD {workspace.resolve()}", rendered)
+            self.assertIn('COMMAND "python3 snake.py"', rendered)
+            self.assertIn(f'CWD "{workspace.resolve()}"', rendered)
             self.assertIn("current host user's authority", rendered)
 
     def test_acceptance_transfers_to_adapter_and_returns_only_typed_settlement(self) -> None:
@@ -513,6 +667,19 @@ class HumanPtyHandoffControllerTest(unittest.TestCase):
             # compare the durable terminal settings rather than that driver bit.
             after[3] &= ~termios.PENDIN
             self.assertEqual(before, after)
+
+
+class _CancelDuringReadline(io.StringIO):
+    """Input fake that sets the cancellation event while returning 'yes'."""
+
+    def __init__(self, text: str, cancel_signal: Event) -> None:
+        super().__init__(text)
+        self._cancel_signal = cancel_signal
+
+    def readline(self, *args, **kwargs):
+        answer = super().readline(*args, **kwargs)
+        self._cancel_signal.set()
+        return answer
 
 
 class _FailIfPtyStarts:
