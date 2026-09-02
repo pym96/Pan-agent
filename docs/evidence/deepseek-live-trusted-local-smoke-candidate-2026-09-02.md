@@ -1,6 +1,6 @@
 # DeepSeek Live trusted-local shell + Human PTY smoke candidate Evidence — 2026-09-02
 
-- Status: Working Agent candidate Evidence, repaired after the rejected independent Verdict ([issue #22 comment 5508347506](https://github.com/pym96/workspace-agent-harness/issues/22#issuecomment-5508347506)); still requires a different-session **high-risk** independent Regulator review (shell execution, Human authority boundary, credential handling) before any acceptance
+- Status: Working Agent candidate Evidence, repaired after two rejected independent Verdicts ([issue #22 comment 5508347506](https://github.com/pym96/workspace-agent-harness/issues/22#issuecomment-5508347506), [issue #22 comment 5509294824](https://github.com/pym96/workspace-agent-harness/issues/22#issuecomment-5509294824)); still requires a different-session **high-risk** independent Regulator review (shell execution, Human authority boundary, credential handling) before any acceptance
 - Session role: Working Agent (Builder)
 - Base commit: `4ebf660b7166724e604263e6c3d60a139bf0db8b` (accepted `main`)
 - Candidate code bytes for the final smoke: `09ccaa85a303babcec74ab62ebe6a7d963641950` on `workorder/22-candidate`; later commits on that branch add the four Verdict-mandated offline repairs with their regression tests plus this Evidence update — no Provider, balance, or smoke call was made after `09ccaa8`, and the Handoff states the exact final SHA
@@ -88,7 +88,7 @@ Defects exposed by Human-operated attempts and their repairs (each repair is a s
 The rejected Verdict ([comment 5508347506](https://github.com/pym96/workspace-agent-harness/issues/22#issuecomment-5508347506)) established four blocking defects; the repair commit carrying this updated Evidence fixes all four offline (exact SHA in the new Handoff), with no new Provider, balance, or smoke call:
 
 - **R1 — default-off drift**: the raised Run/transport limits and optional-reasoning admission previously leaked into the default no-shell profile. The default-off profile is restored to the accepted #21 values (`12`/`16`/`300`, `60`-second transport timeout, reasoning-required admission); the raised values and optional reasoning now apply only after explicit trusted-local opt-in. Regression tests instantiate `trusted_local=False` (constants, transport wiring, `run.started` limits, fail-closed empty-reasoning rejection with zero effects) and `trusted_local=True` (raised values, empty-reasoning admission and replay).
-- **R2 — confirmation display forgery**: the controller printed the model-supplied command raw. It now renders command and cwd as escaped JSON strings (ESC/CR/LF become visible text; no screen clearing or injected display lines), with a negative test carrying `\x1b[2J\x1b[H\nCWD /spoofed\r\n`.
+- **R2 — confirmation display forgery**: the controller printed the model-supplied command raw. The first repair rendered command and cwd as escaped JSON strings; the second rejected Verdict ([comment 5509294824](https://github.com/pym96/workspace-agent-harness/issues/22#issuecomment-5509294824)) showed raw DEL (U+007F), C1 CSI (U+009B), bidi override (U+202E), and Unicode line/paragraph separators (U+2028/U+2029) still reached the display. The final renderer emits printable ASCII `0x20-0x7E` only via `ascii()` — every other code point becomes a visible, deterministic, reversible escape — for both command and cwd, while the request event, adapter invocation, and execution keep the original unmodified strings. Negative tests cover ESC/Tab/CR/LF, DEL, C1, bidi, and Unicode separators, assert no raw code point reaches terminal output, assert display reversibility to the exact string, and assert the adapter receives the unmodified hostile command on acceptance.
 - **R3 — confirmation/cancel race**: cancellation is now rechecked after the answer line arrives (both the fd and non-fd input paths), between the affirmative answer and the acceptance event, between acceptance and the PTY-start seam, and inside `PosixPtyAdapter.run` before any fd/terminal mutation/spawn. Each crossing settles `human_handoff_cancelled` (`phase` distinguishes `pending-confirmation` / `pre-acceptance` / `pre-spawn`) with `child_started: false`; three deterministic race tests cover the affirmative-answer race, the post-acceptance race, and the adapter pre-spawn path.
 - **R4 — Evidence undercount**: this document's external-activity counts were recomputed from all 13 raw Run Event Logs and all 54 retained response bodies rather than terminal summaries; the layered counts are stated at the top of this document.
 
@@ -99,8 +99,8 @@ On the exact smoke bytes `09ccaa85a303babcec74ab62ebe6a7d963641950` the checks r
 After the offline R1–R4 repair commit (no new external calls), on the repair-candidate bytes:
 
 ```text
-focused Live TUI/trusted-local/v3-gateway/evented: PASS — 65 tests
-full project suite: PASS — 242 tests
+focused Live TUI/trusted-local/v3-gateway/evented: PASS — 66 tests
+full project suite: PASS — 243 tests
 TypeScript/Pi checks (npm run check: tsc --noEmit + node --test): PASS — 12 tests
 changed-source mypy (trusted_local, live_tui, deepseek_live, evented, tui): PASS
 python3 -m compileall workspace_agent_harness tests: PASS

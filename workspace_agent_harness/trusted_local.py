@@ -184,8 +184,9 @@ class HumanPtyHandoffController:
             "AUTHORITY current host user's authority; cwd is not containment.\n"
         )
         self._output.write(
-            "Command and cwd above are exact escaped strings; "
-            "control characters cannot alter this display.\n"
+            "Command and cwd above render in printable ASCII only; "
+            "every other code point appears as a visible escape and "
+            "cannot alter this display.\n"
         )
         self._output.write("Transfer terminal control [y/N]> ")
         self._output.flush()
@@ -592,8 +593,15 @@ class TrustedLocalExecutor:
 
 
 def _display_escaped(value: str) -> str:
-    """Render text byte-unambiguously: JSON escaping makes control bytes visible."""
-    return json.dumps(value, ensure_ascii=False)
+    """Render text for Human confirmation with printable ASCII 0x20-0x7E only.
+
+    ``ascii()`` escapes every other code point — C0/C1 controls, DEL, bidi
+    formatting controls, Unicode line/paragraph separators, and all
+    non-ASCII — as a visible, deterministic, reversible ``\\xNN``/``\\uNNNN``/
+    ``\\UNNNNNNNN`` sequence, so no raw display-affecting code point can reach
+    the terminal. Execution always uses the original unmodified string.
+    """
+    return ascii(value)
 
 
 def _validate_command_request(command: str, timeout_seconds: int) -> None:

@@ -3,8 +3,8 @@ from __future__ import annotations
 import tempfile
 import time
 import unittest
+import ast
 import io
-import json
 import os
 import pty
 import sys
@@ -278,44 +278,6 @@ class HumanPtyHandoffControllerTest(unittest.TestCase):
                 [update.kind for update in updates],
             )
 
-    def test_confirmation_display_escapes_control_characters(self) -> None:
-        # Regulator blocker (issue #22 rejected Verdict): a command carrying
-        # ANSI/control bytes and a newline must not be able to clear the
-        # terminal or inject a spoofed CWD line into the confirmation display.
-        with tempfile.TemporaryDirectory() as temporary_directory:
-            root = Path(temporary_directory)
-            workspace = root / "workspace"
-            workspace.mkdir()
-            output = io.StringIO()
-            adapter = _FailIfPtyStarts()
-            controller = HumanPtyHandoffController(
-                workspace_root=workspace,
-                artifact_root=root / "artifacts",
-                input_stream=io.StringIO("n\n"),
-                output=output,
-                pty_adapter=adapter,
-            )
-            hostile = "python3 snake.py\x1b[2J\x1b[H\nCWD /spoofed\r\nAuthority: root"
-
-            settlement = controller.handoff(
-                command=hostile,
-                timeout_seconds=30,
-                cancel_signal=Event(),
-                observe=lambda update: None,
-            )
-
-            self.assertEqual("rejected", settlement.status)
-            self.assertEqual(0, adapter.calls)
-            rendered = output.getvalue()
-            self.assertNotIn("\x1b", rendered)
-            self.assertNotIn("\r", rendered)
-            self.assertNotIn("\nCWD /spoofed\n", rendered)
-            self.assertIn(f"COMMAND {json.dumps(hostile)}", rendered)
-            self.assertIn(f'CWD "{workspace.resolve()}"', rendered)
-            # Exactly one CWD line exists: the real one. (The hostile text is
-            # visible inside the escaped COMMAND line but starts no new line.)
-            self.assertEqual(1, rendered.count("\nCWD "))
-
     def test_cancellation_wins_over_affirmative_answer_race(self) -> None:
         # Regulator blocker: an affirmative line and a cancellation can cross;
         # cancellation must win and no child may start.
@@ -431,6 +393,94 @@ class HumanPtyHandoffControllerTest(unittest.TestCase):
             self.assertEqual(b"", result.transcript)
             self.assertEqual("", output.getvalue())
 
+    def test_confirmation_display_escapes_control_characters(self) -> None:
+        # Regulator blockers (issue #22 rejected Verdicts): the confirmation
+        # display must emit printable ASCII 0x20-0x7E only; every other code
+        # point — ESC, Tab, CR, LF, DEL (U+007F), C1 CSI (U+009B), the
+        # right-to-left override (U+202E), and Unicode line/paragraph
+        # separators (U+2028/U+2029) — must appear only as a visible,
+        # deterministic, reversible escape.
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            workspace = root / "workspace"
+            workspace.mkdir()
+            output = io.StringIO()
+            adapter = _FailIfPtyStarts()
+            controller = HumanPtyHandoffController(
+                workspace_root=workspace,
+                artifact_root=root / "artifacts",
+                input_stream=io.StringIO("n\n"),
+                output=output,
+                pty_adapter=adapter,
+            )
+            hostile = (
+                "python3 snake.py\x1b[2J\x1b[H\nCWD /spoofed\t\r\n"
+                "Authority: root\x7f\x9b‮  "
+            )
+
+            settlement = controller.handoff(
+                command=hostile,
+                timeout_seconds=30,
+                cancel_signal=Event(),
+                observe=lambda update: None,
+            )
+
+            self.assertEqual("rejected", settlement.status)
+            self.assertEqual(0, adapter.calls)
+            rendered = output.getvalue()
+            for code_point in (
+                "\x1b", "\t", "\r", "\nCWD /spoofed\n",
+                "\x7f", "\x9b", "‮", " ", " ",
+            ):
+                self.assertNotIn(code_point, rendered)
+            # Every emitted character is a structural newline or printable
+            # ASCII; no raw display-affecting code point reaches the terminal.
+            self.assertTrue(
+                all(c == "\n" or 0x20 <= ord(c) <= 0x7E for c in rendered),
+                f"non-printable-ASCII output: {ascii(rendered)}",
+            )
+            self.assertIn(f"COMMAND {ascii(hostile)}", rendered)
+            self.assertIn(f"CWD {ascii(str(workspace.resolve()))}", rendered)
+            # Exactly one CWD line exists: the real one.
+            self.assertEqual(1, rendered.count("\nCWD "))
+            # The escaped display is reversible to the exact original string.
+            self.assertEqual(hostile, ast.literal_eval(ascii(hostile)))
+
+    def test_escaped_display_does_not_modify_the_executed_command(self) -> None:
+        # Display escaping is presentation-only: the adapter and the retained
+        # request event must carry the original unmodified command and cwd.
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            workspace = root / "workspace"
+            workspace.mkdir()
+            output = io.StringIO()
+            adapter = _CompletedPtyAdapter()
+            updates = []
+            controller = HumanPtyHandoffController(
+                workspace_root=workspace,
+                artifact_root=root / "artifacts",
+                input_stream=io.StringIO("yes\n"),
+                output=output,
+                pty_adapter=adapter,
+            )
+            hostile = "python3 snake.py\x1b[2J\nCWD /spoofed‮"
+
+            settlement = controller.handoff(
+                command=hostile,
+                timeout_seconds=30,
+                cancel_signal=Event(),
+                observe=updates.append,
+            )
+
+            self.assertEqual("completed", settlement.status)
+            self.assertEqual(1, adapter.calls)
+            self.assertEqual(hostile, adapter.command)
+            self.assertEqual(workspace.resolve(), adapter.cwd)
+            requested = updates[0]
+            self.assertEqual("human_handoff_requested", requested.kind)
+            self.assertEqual(hostile, requested.payload["command"])
+            self.assertNotIn("\x1b", output.getvalue())
+
     def test_trusted_local_fixture_manifest_is_content_bound(self) -> None:
         import hashlib
         import json
@@ -513,8 +563,8 @@ class HumanPtyHandoffControllerTest(unittest.TestCase):
                 [update.kind for update in updates],
             )
             rendered = output.getvalue()
-            self.assertIn('COMMAND "python3 snake.py"', rendered)
-            self.assertIn(f'CWD "{workspace.resolve()}"', rendered)
+            self.assertIn(f"COMMAND {ascii('python3 snake.py')}", rendered)
+            self.assertIn(f"CWD {ascii(str(workspace.resolve()))}", rendered)
             self.assertIn("current host user's authority", rendered)
 
     def test_acceptance_transfers_to_adapter_and_returns_only_typed_settlement(self) -> None:
@@ -695,12 +745,16 @@ class _CompletedPtyAdapter:
     def __init__(self) -> None:
         self.calls = 0
         self.environment = {}
+        self.command = None
+        self.cwd = None
 
     def run(self, **kwargs):
         from workspace_agent_harness.trusted_local import PtyProcessResult
 
         self.calls += 1
         self.environment = dict(kwargs["environment"])
+        self.command = kwargs["command"]
+        self.cwd = kwargs["cwd"]
         return PtyProcessResult(
             status="completed",
             exit_code=0,
