@@ -78,6 +78,7 @@ class PtyHandoffUpdate:
             "human_handoff_requested",
             "human_handoff_accepted",
             "human_handoff_rejected",
+            "human_handoff_cancelled",
             "pty_started",
             "pty_settled",
         }:
@@ -181,7 +182,25 @@ class HumanPtyHandoffController:
         )
         self._output.write("Transfer terminal control [y/N]> ")
         self._output.flush()
-        answer = self._input.readline()
+        answer = self._read_confirmation(cancel_signal)
+        if answer is None:
+            observe(
+                PtyHandoffUpdate(
+                    "human_handoff_cancelled",
+                    {"decision": "cancelled", "child_started": False},
+                )
+            )
+            self._output.write(
+                "\nPTY handoff cancelled; no child process started.\n"
+            )
+            self._output.flush()
+            return PtyHandoffSettlement(
+                status="cancelled",
+                accepted=False,
+                exit_code=None,
+                duration_ms=0,
+                transcript=None,
+            )
         if answer.strip().casefold() not in {"y", "yes"}:
             observe(
                 PtyHandoffUpdate(
@@ -251,6 +270,21 @@ class HumanPtyHandoffController:
             duration_ms=result.duration_ms,
             transcript=transcript,
         )
+
+    def _read_confirmation(self, cancel_signal: Event) -> str | None:
+        if cancel_signal.is_set():
+            return None
+        try:
+            input_fd = self._input.fileno()
+        except (AttributeError, OSError):
+            return self._input.readline()
+        while not cancel_signal.is_set():
+            readable, _, _ = select.select([input_fd], [], [], 0.05)
+            if readable:
+                if cancel_signal.is_set():
+                    return None
+                return self._input.readline()
+        return None
 
     def _retain_transcript(
         self,

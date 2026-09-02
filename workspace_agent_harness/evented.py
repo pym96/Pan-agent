@@ -2030,6 +2030,7 @@ def _render_compact_run_events(
         elif event.event_type in {
             "tool.human_handoff_accepted",
             "tool.human_handoff_rejected",
+            "tool.human_handoff_cancelled",
         }:
             lines.append(
                 f"HANDOFF {event.event_type}"

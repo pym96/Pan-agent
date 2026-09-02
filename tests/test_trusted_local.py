@@ -221,6 +221,62 @@ class TrustedLocalExecutorTest(unittest.TestCase):
 
 
 class HumanPtyHandoffControllerTest(unittest.TestCase):
+    def test_cancellation_interrupts_pending_confirmation_without_input(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            workspace = root / "workspace"
+            workspace.mkdir()
+            read_fd, write_fd = os.pipe()
+            input_stream = os.fdopen(read_fd, "r", encoding="utf-8", buffering=1)
+            cancel_signal = Event()
+            requested = Event()
+            updates = []
+            settlements = []
+            adapter = _FailIfPtyStarts()
+            controller = HumanPtyHandoffController(
+                workspace_root=workspace,
+                artifact_root=root / "artifacts",
+                input_stream=input_stream,
+                output=io.StringIO(),
+                pty_adapter=adapter,
+            )
+
+            def observe(update) -> None:
+                updates.append(update)
+                if update.kind == "human_handoff_requested":
+                    requested.set()
+
+            worker = Thread(
+                target=lambda: settlements.append(
+                    controller.handoff(
+                        command="python3 snake.py",
+                        timeout_seconds=30,
+                        cancel_signal=cancel_signal,
+                        observe=observe,
+                    )
+                )
+            )
+            worker.start()
+            self.assertTrue(requested.wait(timeout=1))
+            cancel_signal.set()
+            worker.join(timeout=0.5)
+            settled_without_input = not worker.is_alive()
+            os.close(write_fd)
+            worker.join(timeout=1)
+            input_stream.close()
+
+            self.assertTrue(
+                settled_without_input,
+                "cancellation must not wait for another Human input line",
+            )
+            self.assertFalse(worker.is_alive())
+            self.assertEqual(0, adapter.calls)
+            self.assertEqual("cancelled", settlements[0].status)
+            self.assertEqual(
+                ["human_handoff_requested", "human_handoff_cancelled"],
+                [update.kind for update in updates],
+            )
+
     def test_trusted_local_fixture_manifest_is_content_bound(self) -> None:
         import hashlib
         import json

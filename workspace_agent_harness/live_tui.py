@@ -628,6 +628,7 @@ class HumanInteractivePtyTool:
                 "human_handoff_requested": "candidate",
                 "human_handoff_accepted": "accepted",
                 "human_handoff_rejected": "accepted",
+                "human_handoff_cancelled": "failed",
                 "pty_started": "candidate",
                 "pty_settled": (
                     "accepted"
@@ -761,6 +762,7 @@ class LiveProgressProjection:
             "tool.human_handoff_requested",
             "tool.human_handoff_accepted",
             "tool.human_handoff_rejected",
+            "tool.human_handoff_cancelled",
             "tool.pty_started",
             "tool.pty_settled",
         }:
