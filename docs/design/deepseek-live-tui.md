@@ -35,11 +35,12 @@ PYTHONPATH=. python3 -m workspace_agent_harness.tui \
 
 The trusted-local banner states that commands run with the current host user's authority and that workspace cwd is not containment, an OS sandbox, or a network boundary. Its confirmation expands to `Confirm live provider/workspace/trusted-local authority [y/N]>`. Without `--trusted-local`, neither trusted-local tool is installed in the AgentLoop or sent in the Provider schema, and the #21 behavior is unchanged.
 
-The separate TypeScript/Pi real TUI remains directly runnable and is not migrated by #22:
+The separate TypeScript/Pi real TUI remains directly runnable and is not migrated by #22 (WorkOrder #25's candidate later added durable three-lane memory to it, requiring `--memory-root`):
 
 ```bash
 npm --prefix typescript run agent -- \
   --workspace /absolute/path/to/workspace \
+  --memory-root /absolute/path/to/memory \
   --model deepseek-v4-flash \
   --thinking high
 ```

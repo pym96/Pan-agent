@@ -32,6 +32,20 @@ _Avoid_: model self-rating, generic success message, Acceptance Gate
 Evidence that two materially different Vertical Domain Packs execute through the same Runtime Interface without Runtime source edits, while preserving Runtime invariants and producing domain-specific verdicts.
 _Avoid_: a general-purpose system prompt, one demo, many tools
 
+## Memory lanes
+
+**Run Archive**:
+The raw-trajectory memory lane owned by the session runtime: one append-only, hash-chained record sequence per run, sealed at settlement and read-only afterwards through application interfaces, with integrity metadata that reveals byte-level tampering; credentials are never stored and restricted fields never enter normal projections. Mutation rule: append-only while active, sealed read-only after settlement.
+_Avoid_: Retrospective Ledger synonym, Runbook synonym, editable log, verified fact register
+
+**Retrospective Ledger**:
+The post-run interpretation memory lane owned by the operator review process: conclusions and corrections that reference a sealed Run Archive identity and integrity hash, stored append-only; a correction is a new entry with an explicit `supersedes` reference and never edits or deletes earlier cognition. A retrospective entry is not raw trajectory and is not automatically a Verified Project Fact.
+_Avoid_: Run Archive synonym, Runbook synonym, auto-promoted fact, mutable notes
+
+**Runbook**:
+The current-guidance memory lane owned by the Human operator: current best operating instructions, intentionally mutable through ordinary version-controlled edits, diffs, and reverts; every Run Archive records the exact Runbook content-hash revision in force at run creation, and neither runs nor retrospectives mutate it implicitly.
+_Avoid_: Run Archive synonym, Retrospective Ledger synonym, immutable specification
+
 ## Historical Local Workspace language
 
 **Local Workspace Agent**:

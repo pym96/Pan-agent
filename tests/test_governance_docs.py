@@ -18,6 +18,46 @@ ISSUE_TRACKER = (REPO_ROOT / "docs" / "agents" / "issue-tracker.md").read_text(
     encoding="utf-8"
 )
 AGENT_MAP = (REPO_ROOT / "AGENTS.md").read_text(encoding="utf-8")
+GLOSSARY = (REPO_ROOT / "CONTEXT.md").read_text(encoding="utf-8")
+
+
+class MemoryLaneGlossaryTest(unittest.TestCase):
+    """C-MEM-10: the three memory lanes keep ownership, mutability, and
+    non-equivalence anchors in the project glossary."""
+
+    def _entry(self, name: str) -> str:
+        marker = f"**{name}**:"
+        self.assertIn(marker, GLOSSARY)
+        start = GLOSSARY.index(marker)
+        following = GLOSSARY.find("\n**", start + len(marker))
+        section = GLOSSARY.find("\n## ", start + len(marker))
+        end_candidates = [index for index in (following, section) if index != -1]
+        end = min(end_candidates) if end_candidates else len(GLOSSARY)
+        return GLOSSARY[start:end]
+
+    def test_run_archive_entry(self) -> None:
+        entry = self._entry("Run Archive")
+        self.assertIn("session runtime", entry)  # ownership
+        self.assertIn("append-only", entry)  # mutability rule
+        self.assertIn("sealed", entry)
+        for non_equivalent in ("Retrospective Ledger", "Runbook"):
+            self.assertIn(f"{non_equivalent} synonym", entry)
+
+    def test_retrospective_ledger_entry(self) -> None:
+        entry = self._entry("Retrospective Ledger")
+        self.assertIn("operator review process", entry)  # ownership
+        self.assertIn("append-only", entry)  # mutability rule
+        self.assertIn("supersedes", entry)
+        for non_equivalent in ("Run Archive", "Runbook"):
+            self.assertIn(f"{non_equivalent} synonym", entry)
+
+    def test_runbook_entry(self) -> None:
+        entry = self._entry("Runbook")
+        self.assertIn("Human operator", entry)  # ownership
+        self.assertIn("mutable", entry)  # mutability rule
+        self.assertIn("revision", entry)
+        for non_equivalent in ("Run Archive synonym", "Retrospective Ledger synonym"):
+            self.assertIn(non_equivalent, entry)
 
 
 class VerificationGovernanceCriteriaContractTest(unittest.TestCase):

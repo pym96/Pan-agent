@@ -1,6 +1,6 @@
 # Tests
 
-The active TypeScript/Pi tracer bullet has its separate deterministic suite at [`../typescript/test/general-agent.test.ts`](../typescript/test/general-agent.test.ts). Run `npm --prefix typescript run check` from the repository root. It uses Pi's Faux Provider and the same `GeneralAgentSession`/tool seams as the real DeepSeek Adapter, with zero network, credential, balance, or paid-model calls.
+The active TypeScript/Pi tracer bullet has its separate deterministic suites at [`../typescript/test/general-agent.test.ts`](../typescript/test/general-agent.test.ts) (session/tools/TUI seam) and [`../typescript/test/memory-lanes.test.ts`](../typescript/test/memory-lanes.test.ts) (WorkOrder #25: archive-first durability, interrupted recovery prefixes, sealed immutability across four states, tamper detection, zero-effect list/inspect/replay, credential-canary and restricted-reasoning exclusion, ledger reference/supersession, Runbook revision binding, CLI memory-root validation). Run `npm --prefix typescript run check` from the repository root. It uses Pi's Faux Provider and the same `GeneralAgentSession`/tool seams as the real DeepSeek Adapter, with zero network, credential, balance, or paid-model calls.
 
 The accepted implementation baseline is split across:
 

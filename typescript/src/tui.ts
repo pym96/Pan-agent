@@ -1,5 +1,6 @@
 import { createInterface } from "node:readline/promises";
 import type { Readable, Writable } from "node:stream";
+import type { RunArchiveStore } from "./run-archive.ts";
 import type { GeneralAgentSession, SessionObservation, TaskRunResult } from "./session.ts";
 
 export interface TuiOptions {
@@ -8,6 +9,7 @@ export interface TuiOptions {
 	readonly model: string;
 	readonly thinking: string;
 	readonly workspace: string;
+	readonly archiveStore?: RunArchiveStore;
 	readonly input?: Readable;
 	readonly output?: Writable;
 }
@@ -47,7 +49,26 @@ export function renderObservation(observation: SessionObservation): string[] {
 }
 
 export function renderRunSummary(result: TaskRunResult): string {
-	return `RUN_SUMMARY run=${result.runId} terminal=${result.status} model_calls=${result.modelCalls} tool_calls=${result.toolCalls} total_tokens=${result.usage.totalTokens} context_retained=true`;
+	return `RUN_SUMMARY run=${result.runId} terminal=${result.status} model_calls=${result.modelCalls} tool_calls=${result.toolCalls} total_tokens=${result.usage.totalTokens} context_retained=true archive_sealed=${result.archiveSealed}`;
+}
+
+/** Render one archived record for zero-effect replay; never executes anything. */
+export function renderArchivedRecord(record: Record<string, unknown>): string[] {
+	if (record.type === "run.settled") {
+		return [`SETTLED state=${String(record.settled_state)} reason=${String(record.reason)}`];
+	}
+	const known = new Set([
+		"run.started",
+		"model.turn_started",
+		"model.turn_settled",
+		"tool.started",
+		"tool.settled",
+		"run.terminal",
+	]);
+	if (known.has(String(record.type))) {
+		return renderObservation(record as unknown as SessionObservation);
+	}
+	return [`RECORD ${json(record)}`];
 }
 
 export async function runTui(options: TuiOptions): Promise<number> {
@@ -94,7 +115,7 @@ export async function runTui(options: TuiOptions): Promise<number> {
 			writeLine("Cancelled before Provider use.");
 			return 0;
 		}
-		writeLine("COMMANDS :help | :context | :exit");
+		writeLine("COMMANDS :help | :context | :runs | :replay RUN_ID | :exit");
 		while (!closing) {
 			let task: string;
 			try {
@@ -110,11 +131,49 @@ export async function runTui(options: TuiOptions): Promise<number> {
 			}
 			if (trimmed === ":exit") break;
 			if (trimmed === ":help") {
-				writeLine("Submit a task, inspect retained Pi context with :context, or exit with :exit.");
+				writeLine("Submit a task, inspect retained Pi context with :context, list sealed Run Archives with :runs, replay one with :replay RUN_ID (zero Provider calls and zero tool effects), or exit with :exit.");
 				continue;
 			}
 			if (trimmed === ":context") {
 				writeLine(`CONTEXT messages=${options.session.contextMessageCount} owner=Pi truncation=none`);
+				continue;
+			}
+			if (trimmed === ":runs") {
+				if (!options.archiveStore) {
+					writeLine("Memory is not configured; no Provider call was made.");
+					continue;
+				}
+				const runs = await options.archiveStore.listRuns();
+				if (runs.length === 0) {
+					writeLine("ARCHIVES none");
+					continue;
+				}
+				for (const run of runs) {
+					writeLine(
+						`ARCHIVE run=${run.runId} sealed=${run.sealed} state=${run.settledState ?? "unsealed"} records=${run.recordCount}`,
+					);
+				}
+				continue;
+			}
+			if (trimmed.startsWith(":replay")) {
+				if (!options.archiveStore) {
+					writeLine("Memory is not configured; no Provider call was made.");
+					continue;
+				}
+				const runId = trimmed.slice(":replay".length).trim();
+				if (!runId) {
+					writeLine("Usage: :replay RUN_ID; no Provider call was made.");
+					continue;
+				}
+				try {
+					const records = await options.archiveStore.readArchive(runId);
+					writeLine(`REPLAY run=${runId} records=${records.length} (archived; zero effects)`);
+					for (const record of records) {
+						for (const line of renderArchivedRecord(record)) writeLine(line);
+					}
+				} catch (error) {
+					writeLine(`ARCHIVE_ERROR ${error instanceof Error ? error.message : String(error)}`);
+				}
 				continue;
 			}
 			if (trimmed.startsWith(":")) {

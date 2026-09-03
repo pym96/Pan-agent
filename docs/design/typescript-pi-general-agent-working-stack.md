@@ -1,6 +1,6 @@
 # TypeScript/Pi General Agent Working Stack tracer bullet
 
-Status: WorkOrder #23 Working Agent candidate, pending independent Regulator review (2026-09-01).
+Status: WorkOrder #23 tracer bullet, independently accepted and landed at `4ebf660` ([Verdict](https://github.com/pym96/Pan-agent/issues/23#issuecomment-5492593755)). WorkOrder #25's candidate adds the three-lane memory contract (ADR-0015) on top; it is pending independent review and is documented in the divergence section below.
 
 ## Decision and scope
 
@@ -90,4 +90,4 @@ These tests establish deterministic candidate behavior only. They do not prove D
 
 ## Deliberate divergence from the Python reference
 
-The Python #21 stack remains unchanged and runnable. It has a bounded workspace/no-shell tool boundary, durable Run Event Logs, replay/views, semantic compaction, and Context-overflow recovery. This TypeScript tracer instead establishes the active Pi working stack and trusted-local shell. It currently has in-memory observations only and lacks durable replay, checkpoint/resume, compaction, overflow recovery, call/cost budgets, domain evaluators, and OS isolation. Those differences are visible product limits, not hidden equivalence claims.
+The Python #21 stack remains unchanged and runnable. It has a bounded workspace/no-shell tool boundary, durable Run Event Logs, replay/views, semantic compaction, and Context-overflow recovery. This TypeScript tracer instead establishes the active Pi working stack and trusted-local shell. WorkOrder #25's candidate adds the three-lane memory contract (ADR-0015): per-run append-only sealed Run Archives with hash-chain integrity and zero-effect `:runs`/`:replay` inspection, an append-only supersedes-only Retrospective Ledger linked to sealed archive identities, and a version-controlled Runbook whose content-hash revision is resolved per run and bound into each archive; durable replay and memory persistence are therefore no longer absent, while checkpoint/resume across processes, compaction, overflow recovery, call/cost budgets, domain evaluators, and OS isolation remain open. Those differences are visible product limits, not hidden equivalence claims.

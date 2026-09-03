@@ -72,11 +72,12 @@ PYTHONPATH=. python3 -m workspace_agent_harness.tui \
 
 The command displays and asks you to confirm the Provider, model, resolved workspace, and selected authority before accepting `Task>`. Each task gets a new Run and model Context while the workspace persists. Use `:help`, `:view compact|expanded|trace`, `:runs`, `:replay RUN_ID`, or `:exit`. Starting, cancelling before confirmation, using help/views, or replaying makes no Provider call. Run artifacts contain the append-only Event Log, secret-free Provider exchanges, Context artifacts, trusted-local stream/PTY identities when enabled, public metadata, reported usage, and changed workspace paths.
 
-The TypeScript/Pi real entry stays separate and directly runnable:
+The TypeScript/Pi real entry stays separate and directly runnable. Every admitted run is durably archived under `--memory-root` (created if missing; must be disjoint from the workspace) and bound to the current [`typescript/RUNBOOK.md`](typescript/RUNBOOK.md) revision; `:runs` and `:replay RUN_ID` inspect sealed archives with zero Provider calls or tool effects:
 
 ```bash
 npm --prefix typescript run agent -- \
   --workspace /absolute/path/to/workspace \
+  --memory-root /absolute/path/to/memory \
   --model deepseek-v4-flash \
   --thinking high
 ```

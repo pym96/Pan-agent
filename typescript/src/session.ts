@@ -8,8 +8,22 @@ import {
 } from "@earendil-works/pi-agent-core";
 import type { AssistantMessage, Model, Usage } from "@earendil-works/pi-ai";
 import type { PiModelAdapter } from "./model-adapter.ts";
+import type { ArchiveSettledState, RunArchiveStore, RunArchiveWriter } from "./run-archive.ts";
+import type { RunbookSnapshot } from "./runbook.ts";
 
 const MAX_TURNS_PER_TASK = 64;
+
+function archiveStateFor(status: TerminalStatus): ArchiveSettledState {
+	switch (status) {
+		case "completed":
+			return "terminal";
+		case "cancelled":
+			return "cancelled";
+		case "model_error":
+		case "incomplete":
+			return "failed";
+	}
+}
 
 export type TerminalStatus = "completed" | "cancelled" | "model_error" | "incomplete";
 
@@ -46,14 +60,23 @@ export interface TaskRunResult {
 	readonly modelCalls: number;
 	readonly toolCalls: number;
 	readonly usage: Usage;
+	readonly archiveSealed: boolean;
 }
 
 export type ObservationSink = (observation: SessionObservation) => Promise<void> | void;
+
+/** Memory-lane binding: every admitted run is durably archived before effects. */
+export interface SessionMemory {
+	readonly archiveStore: RunArchiveStore;
+	/** Resolve the Runbook snapshot in force for each run at its creation. */
+	readonly runbook: () => Promise<RunbookSnapshot>;
+}
 
 export interface GeneralAgentSessionOptions {
 	readonly adapter: PiModelAdapter;
 	readonly tools: AgentTool[];
 	readonly systemPrompt: string;
+	readonly memory: SessionMemory;
 	readonly onObservation?: ObservationSink;
 	readonly cleanup?: () => Promise<void> | void;
 }
@@ -129,7 +152,17 @@ export class GeneralAgentSession {
 	private readonly agent: Agent;
 	private readonly onObservation: ObservationSink;
 	private readonly cleanup?: () => Promise<void> | void;
+	private readonly memory: SessionMemory;
+	private readonly baseSystemPrompt: string;
+	private readonly adapterIdentity: {
+		readonly provider: string;
+		readonly modelId: string;
+		readonly thinkingLevel: string;
+	};
 	private activeRunId?: string;
+	private activeWriter?: RunArchiveWriter;
+	private archiveChain: Promise<void> = Promise.resolve();
+	private archiveError?: unknown;
 	private activeTurn = 0;
 	private activeToolCalls = 0;
 	private activeModelCalls = 0;
@@ -140,6 +173,13 @@ export class GeneralAgentSession {
 	constructor(options: GeneralAgentSessionOptions) {
 		this.onObservation = options.onObservation ?? (() => {});
 		this.cleanup = options.cleanup;
+		this.memory = options.memory;
+		this.baseSystemPrompt = options.systemPrompt;
+		this.adapterIdentity = {
+			provider: options.adapter.providerId,
+			modelId: options.adapter.modelId,
+			thinkingLevel: options.adapter.thinkingLevel,
+		};
 		this.agent = new Agent({
 			streamFn: options.adapter.streamFn,
 			initialState: {
@@ -168,14 +208,47 @@ export class GeneralAgentSession {
 		if (task.trim().length === 0) throw new Error("Task must not be blank");
 		if (this.isRunning) throw new Error("A task is already running");
 
-		this.activeRunId = randomUUID();
+		// Archive-before-side-effect: the durable run.started record is
+		// appended and flushed before any Provider exchange or tool effect.
+		// The Runbook snapshot in force at run creation is resolved per run and
+		// bound into both the archive identity and the model-visible prompt.
+		const runbook = await this.memory.runbook();
+		const writer = await this.memory.archiveStore.beginRun();
+		this.activeRunId = writer.runId;
+		this.activeWriter = writer;
+		this.archiveError = undefined;
 		this.activeTurn = 0;
 		this.activeToolCalls = 0;
 		this.activeModelCalls = 0;
 		this.activeUsage = EMPTY_USAGE;
 		this.cancellationRequested = false;
-		await this.emit({ type: "run.started", runId: this.activeRunId, task });
-		await this.agent.prompt(task);
+		this.agent.state.systemPrompt = `${this.baseSystemPrompt}\n\nRUNBOOK (revision ${runbook.revision}):\n${runbook.content}`;
+		await this.emit(
+			{ type: "run.started", runId: writer.runId, task },
+			{
+				type: "run.started",
+				runId: writer.runId,
+				task,
+				provider: this.adapterIdentity.provider,
+				model: this.adapterIdentity.modelId,
+				thinking: this.adapterIdentity.thinkingLevel,
+				runbook_revision: runbook.revision,
+			},
+		);
+		try {
+			await this.agent.prompt(task);
+		} catch (error) {
+			await this.settleArchive("failed", `prompt_error: ${error instanceof Error ? error.message : String(error)}`);
+			this.activeWriter = undefined;
+			throw error;
+		}
+		if (this.archiveError) {
+			await this.settleArchive("failed", "archive_append_error");
+			this.activeWriter = undefined;
+			throw this.archiveError instanceof Error
+				? this.archiveError
+				: new Error(`archive append failed: ${String(this.archiveError)}`);
+		}
 
 		const final = finalAssistant(this.agent.state.messages);
 		const finalText = final ? publicText(final) : "";
@@ -197,6 +270,8 @@ export class GeneralAgentSession {
 
 		const runId = this.activeRunId;
 		await this.emit({ type: "run.terminal", runId, status, reason });
+		const sealed = await this.settleArchive(archiveStateFor(status), reason);
+		this.activeWriter = undefined;
 		return {
 			runId,
 			status,
@@ -205,6 +280,7 @@ export class GeneralAgentSession {
 			modelCalls: this.activeModelCalls,
 			toolCalls: this.activeToolCalls,
 			usage: this.activeUsage,
+			archiveSealed: sealed !== undefined,
 		};
 	}
 
@@ -224,13 +300,46 @@ export class GeneralAgentSession {
 		this.closed = true;
 	}
 
-	private async emit(observation: SessionObservation): Promise<void> {
+	private async emit(observation: SessionObservation, archiveRecord?: Record<string, unknown>): Promise<void> {
+		if (this.activeWriter) {
+			await this.archiveAppend(archiveRecord ?? (observation as unknown as Record<string, unknown>));
+		}
 		await this.onObservation(observation);
+	}
+
+	/** Serialize archive appends so durable causal order matches emit order. */
+	private archiveAppend(record: Record<string, unknown>): Promise<void> {
+		const writer = this.activeWriter;
+		if (!writer) return Promise.resolve();
+		const appended = this.archiveChain.then(() => writer.append(record));
+		this.archiveChain = appended.catch(() => {});
+		return appended;
+	}
+
+	private async settleArchive(
+		state: ArchiveSettledState,
+		reason: string,
+	): Promise<Awaited<ReturnType<RunArchiveWriter["settle"]>> | undefined> {
+		await this.archiveChain;
+		const writer = this.activeWriter;
+		if (!writer) return undefined;
+		return writer.settle(state, reason);
 	}
 
 	private async observe(event: AgentEvent): Promise<void> {
 		const runId = this.activeRunId;
 		if (!runId) return;
+		try {
+			await this.observeEvent(event, runId);
+		} catch (error) {
+			// An archive failure must not silently drop records: flag it, abort
+			// the model loop, and let runTask settle the run as failed.
+			this.archiveError = error;
+			this.agent.abort();
+		}
+	}
+
+	private async observeEvent(event: AgentEvent, runId: string): Promise<void> {
 		switch (event.type) {
 			case "turn_start":
 				this.activeTurn += 1;

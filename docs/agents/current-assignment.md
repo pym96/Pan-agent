@@ -1,10 +1,18 @@
-# Current Assignment | Python trusted-local shell and Human PTY prototype
+# Current Assignment | Three-lane memory for the TypeScript working stack
 
 This document owns the current project lane, constraints, and non-goals. It does not grant a session-specific task or establish implementation facts. A Working session starts only from a Master-published WorkOrder, and that WorkOrder cannot widen this lane or override Human decisions. Read the fact register linked from the root Agent map before making any current-state statement.
 
-## Active mission | WorkOrder #22 superseding brief
+## Active mission | WorkOrder #25 memory lanes
 
-The latest [Human/Master brief on WorkOrder #22](https://github.com/pym96/workspace-agent-harness/issues/22#issuecomment-5492880264) supersedes the original #22 sandbox contract and its stale routing comment. Start from accepted main `4ebf660b7166724e604263e6c3d60a139bf0db8b`. Python is the behavioral prototype layer; TypeScript/Pi remains the product implementation direction and must stay directly runnable without receiving the #22 capability migration.
+The active lane is [WorkOrder #25](https://github.com/pym96/Pan-agent/issues/25) (Criteria-Version `1.0`, C-MEM-01…13; C-MEM-03/06 high-risk): give the accepted TypeScript/Pi General Agent working stack three memory lanes with three mutation rules — an append-only-then-sealed Run Archive with integrity detection and zero-effect replay, an append-only supersedes-only Retrospective Ledger linked to sealed archives, and a version-controlled mutable Runbook whose content-hash revision is bound into every run. Budget is zero on every external meter (no Provider calls, balance queries, credential reads, or paid execution); deterministic fake adapters only. This lane makes no sandbox, benchmark, model-quality, project-fact, Wiki, resume, or #24-cutover claim.
+
+## Retained prior mission history | WorkOrder #22 (accepted and landed)
+
+WorkOrder #22's Python trusted-local shell and Human-confirmed PTY handoff passed its high-risk independent review and landed at `af28c081f28c74aea8719054406ef60e82ad27b9`. Its earlier brief text follows unchanged for history.
+
+## Retained prior mission history | WorkOrder #22 superseding brief (historical text)
+
+The latest [Human/Master brief on WorkOrder #22](https://github.com/pym96/Pan-agent/issues/22#issuecomment-5492880264) supersedes the original #22 sandbox contract and its stale routing comment. Start from accepted main `4ebf660b7166724e604263e6c3d60a139bf0db8b`. Python is the behavioral prototype layer; TypeScript/Pi remains the product implementation direction and must stay directly runnable without receiving the #22 capability migration.
 
 WorkOrder #22 adds a default-off trusted-local non-interactive shell and a distinct Human-confirmed interactive PTY handoff to the Python DeepSeek Live TUI. Deterministic checks must precede at least one real `deepseek-v4-flash` Run from exact candidate bytes; the Agent must create/inspect/verify a terminal `snake.py`, reach the confirmation boundary, and let the Human operate and quit it. All attempts remain retained under a combined CNY 2.00 development ceiling. This slice makes no sandbox, containment, network-denial, benchmark, model-quality, project-fact, Wiki, resume, PDF, #25, or TypeScript migration claim. Candidate code, design, tests, live artifacts, and SHA-bound Handoff require a different-session high-risk Regulator review.
 

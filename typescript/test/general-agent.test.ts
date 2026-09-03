@@ -15,6 +15,7 @@ import {
 } from "@earendil-works/pi-ai";
 import { runCli } from "../src/cli.ts";
 import { createPiDeepSeekAdapter, type PiModelAdapter } from "../src/model-adapter.ts";
+import { RunArchiveStore } from "../src/run-archive.ts";
 import {
 	GENERAL_AGENT_SYSTEM_PROMPT,
 	GeneralAgentSession,
@@ -22,6 +23,8 @@ import {
 } from "../src/session.ts";
 import { createTrustedLocalTools } from "../src/tools.ts";
 import { renderObservation, runTui } from "../src/tui.ts";
+
+const TEST_RUNBOOK_REVISION = `sha256:${"0".repeat(64)}`;
 
 const temporaryDirectories: string[] = [];
 
@@ -53,12 +56,14 @@ function fauxAdapter(): { adapter: PiModelAdapter; faux: FauxProviderHandle } {
 	};
 }
 
-function harness(directory: string, adapter: PiModelAdapter, observations: SessionObservation[]): GeneralAgentSession {
+async function harness(directory: string, adapter: PiModelAdapter, observations: SessionObservation[]): Promise<GeneralAgentSession> {
 	const trustedLocal = createTrustedLocalTools(directory);
+	const archiveStore = await RunArchiveStore.open(join(directory, "memory"));
 	return new GeneralAgentSession({
 		adapter,
 		tools: trustedLocal.tools,
 		systemPrompt: GENERAL_AGENT_SYSTEM_PROMPT,
+		memory: { archiveStore, runbook: async () => ({ content: "test runbook", revision: TEST_RUNBOOK_REVISION }) },
 		onObservation: (observation) => {
 			observations.push(observation);
 		},
@@ -97,7 +102,7 @@ test("one Pi session performs read/write/edit/trusted-local shell and exposes ty
 		fauxAssistantMessage("Created and verified program.js.", { responseId: "response-final" }),
 	]);
 	const observations: SessionObservation[] = [];
-	const session = harness(directory, adapter, observations);
+	const session = await harness(directory, adapter, observations);
 	try {
 		const result = await session.runTask("Read input.txt, create and edit program.js, then run it.");
 		assert.equal(result.status, "completed");
@@ -132,7 +137,7 @@ test("nonzero trusted-local shell exit remains an attributable tool error instea
 		fauxAssistantMessage("The command failed with exit code 7; no retry was needed."),
 	]);
 	const observations: SessionObservation[] = [];
-	const session = harness(directory, adapter, observations);
+	const session = await harness(directory, adapter, observations);
 	try {
 		const result = await session.runTask("Run the failing command and explain the observation.");
 		assert.equal(result.status, "completed");
@@ -162,7 +167,7 @@ test("malformed and unknown ToolCalls are rejected before filesystem effects", a
 		fauxAssistantMessage("Both invalid calls were rejected."),
 	]);
 	const observations: SessionObservation[] = [];
-	const session = harness(directory, adapter, observations);
+	const session = await harness(directory, adapter, observations);
 	try {
 		const result = await session.runTask("Attempt malformed operations.");
 		assert.equal(result.status, "completed");
@@ -188,7 +193,7 @@ test("successive tasks retain Pi-owned context without application truncation", 
 		},
 	]);
 	const observations: SessionObservation[] = [];
-	const session = harness(directory, adapter, observations);
+	const session = await harness(directory, adapter, observations);
 	try {
 		const first = await session.runTask("Remember cobalt.");
 		const second = await session.runTask("What word did I ask you to remember?");
@@ -208,7 +213,7 @@ test("hidden thinking stays out of observable projections", async () => {
 		fauxAssistantMessage([fauxThinking("PRIVATE_REASONING_CANARY"), fauxText("Public answer")]),
 	]);
 	const observations: SessionObservation[] = [];
-	const session = harness(directory, adapter, observations);
+	const session = await harness(directory, adapter, observations);
 	try {
 		await session.runTask("Answer publicly.");
 		const rendered = observations.flatMap(renderObservation).join("\n");
@@ -242,6 +247,10 @@ test("shell receives an allowlisted environment rather than Provider credentials
 		adapter,
 		tools: trustedLocal.tools,
 		systemPrompt: GENERAL_AGENT_SYSTEM_PROMPT,
+		memory: {
+			archiveStore: await RunArchiveStore.open(join(directory, "memory")),
+			runbook: async () => ({ content: "test runbook", revision: TEST_RUNBOOK_REVISION }),
+		},
 		onObservation(observation) {
 			observations.push(observation);
 		},
@@ -275,6 +284,10 @@ test("cancellation settles an active trusted-local shell task with an explicit t
 		adapter,
 		tools: trustedLocal.tools,
 		systemPrompt: GENERAL_AGENT_SYSTEM_PROMPT,
+		memory: {
+			archiveStore: await RunArchiveStore.open(join(directory, "memory")),
+			runbook: async () => ({ content: "test runbook", revision: TEST_RUNBOOK_REVISION }),
+		},
 		onObservation(observation) {
 			observations.push(observation);
 			if (observation.type === "tool.started" && observation.toolCallId === "slow-shell") {
@@ -304,7 +317,7 @@ test("Provider failure becomes an attributable model_error terminal", async () =
 		fauxAssistantMessage("", { stopReason: "error", errorMessage: "synthetic-provider-failure" }),
 	]);
 	const observations: SessionObservation[] = [];
-	const session = harness(directory, adapter, observations);
+	const session = await harness(directory, adapter, observations);
 	try {
 		const result = await session.runTask("Trigger the deterministic failure.");
 		assert.equal(result.status, "model_error");
@@ -335,7 +348,7 @@ test("TUI returns control for successive tasks in one Pi session", async () => {
 		fauxAssistantMessage("second complete"),
 	]);
 	const observations: SessionObservation[] = [];
-	const session = harness(directory, adapter, observations);
+	const session = await harness(directory, adapter, observations);
 	const input = new PassThrough();
 	const output = new PassThrough();
 	let text = "";
@@ -368,7 +381,7 @@ test("TUI confirmation rejection closes with zero Faux Provider calls", async ()
 	const directory = await workspace();
 	const { adapter, faux } = fauxAdapter();
 	const observations: SessionObservation[] = [];
-	const session = harness(directory, adapter, observations);
+	const session = await harness(directory, adapter, observations);
 	const input = new PassThrough();
 	const output = new PassThrough();
 	let text = "";
