@@ -46,6 +46,51 @@ The human assigns one immutable `SessionRole` at session creation. A missing rol
 
 **Acceptance Gate** is the Regulator's accept/reject decision after comparing an Evidence Bundle with its Criteria. Passing automation supplies Evidence; it never performs automatic acceptance.
 
+## Operational Acceptance Criteria
+
+This section is the canonical contract for blocking Acceptance Criteria, frozen as Criteria-Version `1.0`. [`../agents/issue-tracker.md`](../agents/issue-tracker.md) applies this contract to GitHub WorkOrder promotion and recording; the two documents must not contradict each other.
+
+### Blocking versus exploratory
+
+A condition may block a Verdict only as a versioned blocking Criterion. Qualitative or exploratory goals remain allowed in a WorkOrder, but they are explicitly non-blocking: they inform review and can become blockers only through the `ScopeChallenge` route for unforeseen high-risk discoveries. Before an issue becomes `ready-for-agent`, every blocking Criterion carries a unique Criterion ID, the Criteria-Version, a GateLevel, the fields `Given / Observe / Pass iff / Fail when`, and an oracle type.
+
+### Oracle types
+
+Every blocking Criterion declares exactly one primary oracle type:
+
+1. **Deterministic invariant/test** — a machine-checkable predicate or test with predeclared inputs;
+2. **Measurement** — a numeric observation under a complete measurement contract;
+3. **Protocolized Human observation** — a predeclared Human judgment protocol;
+4. **External contract** — a content-pinned external document, interface, or record.
+
+### Open and finite input domains
+
+A Criterion over an open or impractical-to-enumerate input domain states a domain-level invariant as its pass condition; listed examples define minimum probe coverage and never define completeness. A Criterion over a finite domain may instead enumerate that domain exhaustively.
+
+### Measurement and stochastic Claims
+
+A numeric Criterion predeclares metric, denominator, window, unit, precision, missing-data behavior, comparison boundary (threshold direction and inclusivity), and threshold provenance (where the number comes from). Missing data is never silently converted to zero or pass; the declared missing-data behavior decides between `FAIL` and `NOT_EVALUABLE`. A single live smoke supports only Claims about that retained Run's occurrence and mechanism. Model capability, reliability, or comparative Claims additionally require a frozen sample, denominator, repetitions, metric, threshold, uncertainty treatment, and stop rule.
+
+### Protocolized Human judgment
+
+A Criterion that cannot be decided solely by a machine oracle predeclares the observer, stimulus/task, visible Evidence, response scale or pass condition, and the retained decision record. An unspecified Human or Regulator impression recorded after the candidate exists cannot become a blocker.
+
+### Results and rejection mapping
+
+Each blocking Criterion evaluates to `PASS | FAIL | NOT_EVALUABLE`; acceptance requires every blocking Criterion to PASS. The Verdict remains `accepted | rejected`, and a rejection distinguishes `criterion_failed` (an evaluated blocking Criterion is `FAIL`) from `evidence_incomplete` (a blocking Criterion is `NOT_EVALUABLE` because required Evidence is missing). A rejection maps every blocker to a Criterion ID, probe input, observed value, expected predicate, and Evidence locator. Ordinary discoveries outside the frozen contract become linked Issue Candidates, not new blockers. Unforeseen high-risk discoveries pause the review through `ScopeChallenge` for Human/Master adjudication rather than silently inventing a new blocker. Known global high-risk invariants (security, authority, credential, deletion, production, public-benchmark, attribution, disclosure) apply even when a WorkOrder omits them; a Verdict that ignores them is itself defective.
+
+### Freeze, amendment, and repair semantics
+
+Criteria freeze append-only when the issue becomes `ready-for-agent`. An amendment creates a new append-only Criteria-Version that applies prospectively to new candidates; accepted historical WorkOrders are never reopened. A repair Verdict binds the full new candidate SHA. Unchanged Evidence may be carried forward by exact identity (hash or locator) plus a documented impact analysis of the changed bytes; an old Verdict never transfers to replacement bytes.
+
+### Verification depth
+
+GateLevel follows `exploratory | standard | high-risk`. Clarity requirements are universal; probe depth is proportional to risk and reversibility. The independence rules below are unchanged: standard review uses a different session/process; high-risk review additionally requires a different model family or explicit Human review.
+
+### Criteria Lint v1
+
+Criteria Lint v1 is a manual checklist applied by Master at `ready-for-agent` promotion and by the Regulator as preflight: every blocking condition has the required shape, open domains have invariants, numeric and stochastic fields are complete, Human judgment is protocolized, and the Criteria-Version is named in the WorkOrder, Handoff, and Verdict. It is a manual contract — no parser, bot, GitHub form, or policy engine is added.
+
 ## Fact-promotion ladder
 
 ```text
