@@ -4,7 +4,7 @@ These scripts prepare ignored local state and invoke pinned external tooling. Th
 
 ## WorkOrder #24 cutover checks
 
-After committing the candidate bytes, run `bash scripts/check_typescript_without_python.sh` to archive the exact commit into an isolated directory, physically remove the reference product package, and execute the TypeScript checks. Run `bash scripts/check_workorder_24_scope.sh` to prove that historical Evidence, Wiki, and Python implementation paths still match accepted base `3937dd880fc1314cf69ecd9bf2b4bbefbb78cb34`.
+After committing the candidate bytes, run `bash scripts/check_typescript_without_python.sh` to archive the exact commit into an isolated directory, physically remove the reference product package, and execute the TypeScript checks. Run `bash scripts/check_workorder_24_scope.sh` to prove that historical Evidence, Wiki, and Python implementation paths still match accepted base `c4796f7da173f1717d5c9adb07a9d2e13cc1cf8b`.
 
 ## SWE-bench gold gate
 
