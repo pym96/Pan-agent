@@ -1,0 +1,41 @@
+{
+  "schema": "pan-agent-conformance-manifest/v1",
+  "cases": [
+    {
+      "id": "tool-semantics",
+      "file": "tool-semantics.json",
+      "covers": [
+        "tool.read",
+        "tool.write",
+        "tool.edit",
+        "tool.bash",
+        "terminal.completed"
+      ]
+    },
+    {
+      "id": "terminal-settlements",
+      "file": "terminal-settlements.json",
+      "covers": [
+        "terminal.completed",
+        "terminal.model_error",
+        "terminal.incomplete"
+      ]
+    },
+    {
+      "id": "active-tool-cancellation",
+      "file": "active-tool-cancellation.json",
+      "covers": [
+        "cancellation.active_tool",
+        "terminal.cancelled"
+      ]
+    },
+    {
+      "id": "cross-task-context",
+      "file": "cross-task-context.json",
+      "covers": [
+        "context.cross_task_retention",
+        "context.no_application_truncation"
+      ]
+    }
+  ]
+}

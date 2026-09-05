@@ -1,12 +1,12 @@
-# TypeScript/Pi General Agent Working Stack tracer bullet
+# TypeScript/Pi General Agent Working Stack
 
-Status: WorkOrder #23 tracer bullet, independently accepted and landed at `4ebf660` ([Verdict](https://github.com/pym96/Pan-agent/issues/23#issuecomment-5492593755)). WorkOrder #25's candidate adds the three-lane memory contract (ADR-0015) on top; it is pending independent review and is documented in the divergence section below.
+Status: WorkOrder #23's tracer bullet and WorkOrder #25's three-lane memory implementation are independently accepted and landed. WorkOrder #24 makes this the authoritative product path; the cutover remains a candidate pending Human trial and independent review.
 
 ## Decision and scope
 
-The Human/Master supersession on WorkOrder #23 makes a TypeScript/Pi General Agent Working Stack the active product direction and retains the accepted Python #21 stack as a reference. This candidate delivers the smallest Human-usable vertical slice: one TUI, one persistent Pi session, one real DeepSeek Adapter, one deterministic Faux Adapter for tests, four Pi tools including a clearly labelled trusted-local shell, observable outcomes, and no Builder Provider call.
+The TypeScript/Pi General Agent Working Stack is the authoritative product direction; the accepted Python stack is reference-only. The product supplies one TUI, one persistent Pi session, one real DeepSeek Adapter, one deterministic Faux Adapter for tests, four Pi tools including a clearly labelled trusted-local shell, observable outcomes, and three distinct memory lanes.
 
-This WorkOrder does not implement #22 security isolation or #24 cutover. It does not delete, reorganize, or classify the Python implementation; import LangGraph; execute an evaluation matrix; create Evidence/VPF/Wiki/resume claims; or make a paid model call.
+WorkOrder #24 changes authority, navigation, and conformance ownership without deleting history or porting the reference AgentLoop. It does not import LangGraph, execute an evaluation matrix, change historical Evidence/VPF/Wiki claims, or make a paid model call.
 
 ## Module and Interface
 
@@ -67,11 +67,11 @@ The shell intentionally answers the earlier no-shell product limitation: it can 
 - child environment: explicit ordinary-variable allowlist, with Provider credentials omitted;
 - cancellation: best-effort process-tree termination through Pi's Node Implementation.
 
-The startup display, confirmation prompt, tool label, package README, and system prompt all repeat this boundary. Stronger workspace/path/network/process policy is deferred to #22; changing the authoritative implementation/default and Python classification is deferred to #24.
+The startup display, confirmation prompt, tool label, package README, and system prompt all repeat this boundary. Stronger workspace/path/network/process isolation is not claimed by the authoritative product.
 
 ## Deterministic acceptance surface
 
-`typescript/test/general-agent.test.ts` uses Pi's Faux Provider with no network or credentials and verifies through the public session Interface:
+`typescript/test/general-agent.test.ts` and the language-neutral fixtures in `conformance/` use Pi's Faux Provider with no network or credentials and verify through the public session Interface:
 
 1. a full read -> write -> edit -> shell -> final task;
 2. a nonzero shell exit retained as a typed error Observation;
@@ -90,4 +90,4 @@ These tests establish deterministic candidate behavior only. They do not prove D
 
 ## Deliberate divergence from the Python reference
 
-The Python #21 stack remains unchanged and runnable. It has a bounded workspace/no-shell tool boundary, durable Run Event Logs, replay/views, semantic compaction, and Context-overflow recovery. This TypeScript tracer instead establishes the active Pi working stack and trusted-local shell. WorkOrder #25's candidate adds the three-lane memory contract (ADR-0015): per-run append-only sealed Run Archives with hash-chain integrity and zero-effect `:runs`/`:replay` inspection, an append-only supersedes-only Retrospective Ledger linked to sealed archive identities, and a version-controlled Runbook whose content-hash revision is resolved per run and bound into each archive; durable replay and memory persistence are therefore no longer absent, while checkpoint/resume across processes, compaction, overflow recovery, call/cost budgets, domain evaluators, and OS isolation remain open. Those differences are visible product limits, not hidden equivalence claims.
+The Python stack remains unchanged and runnable as reference-only. It has a bounded workspace/no-shell profile, durable Run Event Logs, replay/views, semantic compaction, and Context-overflow recovery. The authoritative TypeScript product instead uses Pi's Agent loop and trusted-local tools plus the accepted three-lane memory contract (ADR-0015): per-run append-only sealed Run Archives with hash-chain integrity and zero-effect `:runs`/`:replay`, an append-only supersedes-only Retrospective Ledger, and a version-controlled Runbook bound by revision into each run. Checkpoint/resume across processes, compaction, overflow recovery, call/cost budgets, domain evaluators, and OS isolation remain open. Those differences are visible limits, not equivalence claims.

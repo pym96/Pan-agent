@@ -1,0 +1,28 @@
+{
+  "schema": "pan-agent-conformance-case/v1",
+  "id": "active-tool-cancellation",
+  "covers": [
+    "cancellation.active_tool",
+    "terminal.cancelled"
+  ],
+  "task": "Start the delayed command, then accept operator cancellation.",
+  "tool_call": {
+    "kind": "tool_call",
+    "call_id": "cancel-shell-1",
+    "tool": "bash",
+    "arguments": {
+      "command": "sleep 5; printf late > cancellation-leak.txt"
+    }
+  },
+  "cancel_on": {
+    "observation": "tool.started",
+    "call_id": "cancel-shell-1",
+    "delay_ms": 50
+  },
+  "expected": {
+    "terminal": "cancelled",
+    "absent_paths": [
+      "cancellation-leak.txt"
+    ]
+  }
+}

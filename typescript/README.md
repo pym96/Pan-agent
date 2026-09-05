@@ -1,8 +1,8 @@
 # TypeScript/Pi General Agent Working Stack
 
-Status: WorkOrder #23 tracer bullet, independently accepted and landed at `4ebf660`. WorkOrder #25's candidate adds the three-lane memory contract (ADR-0015), pending independent review.
+Status: WorkOrder #23's tracer bullet and WorkOrder #25's three-lane memory implementation are independently accepted and landed. WorkOrder #24 makes this package the authoritative product and default Human route; that cutover remains a candidate pending Human trial and independent review.
 
-This is the active TypeScript/Pi tracer bullet for a Human-operated general coding agent. One `GeneralAgentSession` owns Pi's stateful `Agent`, DeepSeek Provider translation, complete in-memory Context, typed read/write/edit/bash ToolCalls and ToolResults, cancellation, usage, response identity, and explicit terminal outcomes. The existing Python implementation remains available as an accepted reference path; this package does not delete or port it.
+This is the authoritative TypeScript/Pi working stack for a Human-operated general coding agent. One `GeneralAgentSession` owns Pi's stateful `Agent`, DeepSeek Provider translation, complete in-memory Context, typed read/write/edit/bash ToolCalls and ToolResults, cancellation, usage, response identity, explicit terminal outcomes, and durable three-lane memory. The existing Python implementation remains available as reference-only; this package neither imports nor ports its AgentLoop.
 
 ## Install
 
@@ -36,7 +36,7 @@ Each task returns control to `Task>` and the next task continues the same Pi-own
 
 `bash` is labelled **trusted-local**. It runs directly as the current host user. `--workspace` establishes the default cwd; it is not path containment, an OS sandbox, a Docker boundary, or a network boundary. Pi's read/write/edit tools also accept absolute paths. Use this command only against a workspace and task you trust.
 
-The shell child receives a small allowlist of ordinary process variables and does not inherit `DEEPSEEK_API_KEY` or other ambient Provider credentials. This reduces accidental shell leakage; it does not turn trusted-local execution into a security boundary. OS isolation and policy enforcement belong to future WorkOrder #22 and are not claimed here.
+The shell child receives a small allowlist of ordinary process variables and does not inherit `DEEPSEEK_API_KEY` or other ambient Provider credentials. This reduces accidental shell leakage; it does not turn trusted-local execution into a security boundary. OS isolation and enforced path/network policy are not claimed.
 
 ## Observable contract
 
@@ -48,7 +48,7 @@ The TUI renders normalized events for each Run:
 
 Thinking blocks are retained inside Pi's model transcript but never rendered by this projection. No credential is copied into source, CLI arguments, shell child environment, or Run Archive bytes. The stack does not yet implement checkpoint/resume across processes, enforce a paid-call budget, compact Context, or recover from Context overflow. It performs no application-level history truncation.
 
-## Three-lane memory (WorkOrder #25 candidate)
+## Three-lane memory (WorkOrder #25 accepted implementation)
 
 Every admitted run is archived before any Provider exchange or tool effect: one append-only hash-chained `events.jsonl` per run under `<memory-root>/runs/<run-id>/`, sealed at settlement (`terminal | cancelled | failed`), or settled as `interrupted` by recovery after a process crash, with disclosed torn-tail byte counts and no identity reuse. Sealed archives refuse every application-owned write interface and verify integrity byte-exactly; there is no overwrite or delete interface. A present-but-corrupted manifest (invalid JSON or wrong shape) never blocks startup: `open()` leaves it byte-untouched while `readManifest`/`readArchive`/`listRuns` fail typed with `ArchiveIntegrityError`, and `:runs`/`:replay` render that as `ARCHIVE_ERROR`. `:runs` lists sealed archives and `:replay RUN_ID` renders one with zero Provider calls and zero tool effects.
 
@@ -62,4 +62,4 @@ The Runbook ([`RUNBOOK.md`](RUNBOOK.md)) is the current operating guidance, edit
 npm --prefix typescript run check
 ```
 
-The test Adapter uses Pi's Faux Provider and makes no network, credential, balance, or paid-model call. It crosses the same `GeneralAgentSession` and tool seams as the real DeepSeek Adapter.
+The test Adapter uses Pi's Faux Provider and makes no network, credential, balance, or paid-model call. It crosses the same `GeneralAgentSession` and tool seams as the real DeepSeek Adapter. The conformance suite consumes implementation-neutral JSON fixtures and does not require the reference product package.

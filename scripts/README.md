@@ -2,6 +2,10 @@
 
 These scripts prepare ignored local state and invoke pinned external tooling. They do not produce benchmark Claims or update the project fact register.
 
+## WorkOrder #24 cutover checks
+
+After committing the candidate bytes, run `bash scripts/check_typescript_without_python.sh` to archive the exact commit into an isolated directory, physically remove the reference product package, and execute the TypeScript checks. Run `bash scripts/check_workorder_24_scope.sh` to prove that historical Evidence, Wiki, and Python implementation paths still match accepted base `3dc834ef3405564d8eeff802ca54cb5874079df3`.
+
 ## SWE-bench gold gate
 
 Run one frozen `react-mvp-5` case from the repository root:

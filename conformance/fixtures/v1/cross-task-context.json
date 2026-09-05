@@ -1,0 +1,35 @@
+{
+  "schema": "pan-agent-conformance-case/v1",
+  "id": "cross-task-context",
+  "covers": [
+    "context.cross_task_retention",
+    "context.no_application_truncation"
+  ],
+  "tasks": [
+    {
+      "prompt": "Remember cobalt.",
+      "response": {
+        "kind": "final",
+        "text": "I will remember cobalt."
+      }
+    },
+    {
+      "prompt": "What word did I ask you to remember?",
+      "response": {
+        "kind": "context_probe",
+        "contains": "cobalt",
+        "if_present": "The retained word is cobalt.",
+        "if_absent": "Context missing."
+      }
+    }
+  ],
+  "expected": {
+    "terminals": [
+      "completed",
+      "completed"
+    ],
+    "second_final": "The retained word is cobalt.",
+    "minimum_context_messages": 4,
+    "distinct_run_ids": true
+  }
+}
