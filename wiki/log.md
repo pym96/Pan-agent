@@ -316,3 +316,10 @@ Do not edit or delete existing entries. Corrections are new entries that link to
 
 - The full-package acceptance gate flagged `sources/2026-08-29-deepseek-thinking-tool-contract.md` for non-English prose: five Chinese section names used as in-table locators. They were replaced with English equivalents; URLs and quoted provider error text are unchanged. Per the append-only rule this correction is logged, not hidden.
 - Also completed: the issue #18 handoff comment was re-issued in English (content unchanged) to match the repository's artifact language convention.
+
+## 2026-08-29 | Concept admission of ACI as atomic work design
+
+- Admitted `concepts/aci-atomic-work.md` (source-located: SWE-agent paper + v0.6.1 code).
+- Synthesis recorded: ACI = atomic work units sized \(\mathrm{one\ decision\ point,\ bounded\ output,\ attributable\ failure}\); principles only count once compiled into mechanisms (shell function, linter gate, history filter).
+- Evidence anchors: `search.sh` caps matches; `defaults.sh` prints a 100-line window; `edit_linting.sh` runs `flake8` and rejects failing edits; `history_processors.py` collapses old turns.
+- Boundary: cross-layer generalization (MCP, sprint, slot) is synthesis, not proof.

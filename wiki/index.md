@@ -34,6 +34,7 @@ This Wiki contains only Verified Learning Facts and Open Learning Questions. It 
 - [Anthropic: Harness design for long-running applications](sources/2026-08-26-anthropic-long-running-harness.md)
 - [Provider tool-call envelopes: Anthropic blocks vs OpenAI tool_calls](sources/2026-08-28-provider-tool-envelopes.md)
 - [SWE-bench and the 2026 SWE-agent benchmark landscape](sources/2026-08-28-swe-benchmark-landscape.md)
+- [ACI as atomic work design](concepts/aci-atomic-work.md)
 - [DeepSeek thinking-mode tool-call contract](sources/2026-08-29-deepseek-thinking-tool-contract.md)
 - [Andrew Ng: AI Engineering Skills Map and follow-up article](sources/2026-08-25-andrew-ng-skills-map.md)
 
