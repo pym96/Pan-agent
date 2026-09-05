@@ -2,7 +2,7 @@
 set -euo pipefail
 
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-accepted_base="3dc834ef3405564d8eeff802ca54cb5874079df3"
+accepted_base="3937dd880fc1314cf69ecd9bf2b4bbefbb78cb34"
 
 git -C "$repo_root" cat-file -e "$accepted_base^{commit}"
 
