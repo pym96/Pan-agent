@@ -107,7 +107,7 @@ The TypeScript/Pi entry is the default route documented at the top of this file.
 
 PinchBench is pinned as an external compatibility source, not vendored as the Runtime contract. [`workspace_agent_harness/benchmark_configs/`](workspace_agent_harness/benchmark_configs/) holds content locks; `workspace_agent_harness.benchmarks.load_pinchbench_suite(...)` audits a caller-supplied clean checkout without executing embedded graders. All 21/147 upstream cases are currently ineligible because no local translation is frozen. Any later translated local run must be labelled `pinchbench-compatible`; official compatibility requires the unmodified upstream runner. The Composio thread contributes campaign shape and efficiency metrics only, not reusable tasks or results.
 
-## Previous Local Workspace v1 contract｜historical design baseline
+## Previous Local Workspace Agent v1 contract｜historical design baseline
 
 - **Task surface:** Markdown knowledge maintenance, CSV retrieval/cleaning/aggregation, and code modification/test repair.
 - **Agent surface:** an online model adapter, CLI, allowlisted file/command tools, composable Skills and Workflow, explicit budgets, structured Trace, checkpoint/resume, and policy results.
