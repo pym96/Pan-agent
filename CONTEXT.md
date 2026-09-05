@@ -1,20 +1,38 @@
-# General + Vertical Agent System
+# Workspace Agent Harness
 
-This context defines the project-specific language for separating a reusable execution core from domain-owned behavior. Process governance, learning records, and verified implementation state live in the documents linked from `AGENTS.md`, not in this domain glossary.
+This context defines the project-specific product and retained experiment language. Process governance, learning records, and verified implementation state live in the documents linked from `AGENTS.md`, not in this domain glossary.
 
-## Active product language
+## Authoritative product language
 
 **Workspace Agent Harness**:
-The complete project and product boundary: the General Agent Runtime, Vertical Domain Packs, tool and policy surfaces, evaluation, and CLI/release surfaces.
-_Avoid_: implemented full system, Runtime synonym, Learning Wiki, development-agent workflow
+The Human-operated TypeScript/Pi product: one `GeneralAgentSession`, its Provider Adapter, typed trusted-local tools, TUI, attributable outcomes, and three memory lanes. Retained reference and experiment code lives in the same repository but is not part of this product boundary.
+_Avoid_: Python runtime synonym, ReAct experiment, benchmark machinery, Learning Wiki, development-agent workflow
+
+**GeneralAgentSession**:
+The deep TypeScript product Module that owns Pi's Agent loop and Context, one task at a time, while hiding event reduction, ToolCall correlation, cancellation, accounting, terminal classification, and durable archive writes behind `runTask(...)`.
+_Avoid_: copied AgentLoop, Provider SDK wrapper, one-shot prompt helper, whole repository
+
+**Context**:
+Pi-owned message history retained across tasks in one Human session. The application performs no arbitrary slicing or truncation; window management beyond this current behavior remains an explicit product limit.
+_Avoid_: Run Archive, shell output alone, hidden Provider state, reference-runtime projection policy
+
+**Trusted-local tool**:
+A read/write/edit/bash capability executed with the current host user's authority. The selected workspace supplies the default cwd but is not filesystem, process, or network containment.
+_Avoid_: sandboxed tool, workspace-confined tool, least-privilege executor
+
+**Attributable terminal**:
+Exactly one product outcome for an admitted task — `completed`, `cancelled`, `model_error`, or `incomplete` — with correlated observations and archived identity/accounting.
+_Avoid_: evaluator verdict, benchmark score, unqualified success message
+
+## Historical experiment and evaluation language
 
 **AgentLoop**:
-The smallest execution Module behind `AgentLoop.run(Task, RunLimits) -> RunResult`; implementation status belongs in the verified-project-fact register.
-_Avoid_: General Agent Runtime, ReAct framework, complete Harness
+The retained Python experiment/reference Module behind `AgentLoop.run(Task, RunLimits) -> RunResult`; it is not the authoritative product loop.
+_Avoid_: `GeneralAgentSession`, current product Runtime, complete Harness
 
 **General Agent Runtime**:
-The domain-neutral execution Module that owns Run lifecycle, model/tool execution, state, budgets, policy enforcement, Trace, recovery, and exactly one terminal RunResult.
-_Avoid_: general prompt, guidance file, universal chatbot, DeerFlow clone
+The historical domain-neutral experiment architecture that owns Run lifecycle, model/tool execution, state, budgets, policy enforcement, Trace, recovery, and exactly one terminal RunResult.
+_Avoid_: authoritative TypeScript product, general prompt, universal chatbot, DeerFlow clone
 
 **Vertical Domain Pack**:
 A versioned package that supplies domain task contracts, guidance/skills, requested tools and policy defaults, fixtures, and a Domain Evaluator through a stable Runtime seam.

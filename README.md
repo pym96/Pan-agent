@@ -1,20 +1,51 @@
 # Workspace Agent Harness
 
-Workspace Agent Harness targets a Human-usable TypeScript/Pi General Agent Working Stack. The accepted base named by WorkOrder #22 contains the #23 TypeScript/Pi tracer bullet, the Python #21 Live TUI, and the historical Local Workspace Agent contract. The active #22 candidate uses Python only as a behavioral proving ground for an opt-in trusted-local shell and Human-owned PTY handoff; it does not migrate those capabilities to TypeScript or decide a later cutover.
+Workspace Agent Harness now has one authoritative product path: the Human-usable TypeScript/Pi General Agent Working Stack. The Python evented runtime remains runnable as a reference implementation, while prior ReAct, protocol, campaign, proof-pack, and benchmark work remains retained experimental material rather than a product dependency.
 
-> **Mixed verification state; not a new verified fact (2026-08-25):** Human accepted ADR-0009/0010/0011/0012/0013/0014. Separate same-model Regulator reviews accepted the ordinary Runtime/Campaign/seed/configuration boundary through HF-20260820-022, a sixth review reproduced the ReAct MVP ordinary candidate-Evidence boundary, WorkOrder #4's offline Translation Adapter boundary passed its independent Gate, and WorkOrder #3's design freeze was independently accepted. All 30 ReAct slots executed, with 29 task outcomes and one infrastructure/artifact failure; this is not a SWE-bench Lite score. The 240-slot `protocol-reliability-v1` replay and its 75-call maximum-token sensitivity plus separately identified 25-call 16K extension have completed as Working Agent candidate Evidence; they still require a new independent review. WorkOrder #6's evented Python TUI tracer is only a Working Agent candidate pending its own independent review. Start at `AGENTS.md`; the bounded assignment lives in `docs/agents/current-assignment.md`.
+> **Verification boundary:** WorkOrder #24 changes product authority and navigation; it creates no new benchmark, model-quality, security, project-fact, Wiki, or resume claim. Historical Evidence remains governed by its original identity and review status. Start at `AGENTS.md`; the bounded assignment lives in `docs/agents/current-assignment.md`.
+
+## Default product path | TypeScript/Pi
+
+Use Node.js `22.19.0` or newer, choose an existing workspace plus a disjoint memory path, install the locked TypeScript dependencies, enter the Provider credential without putting it in command history, then launch the authoritative TUI:
+
+```bash
+npm --prefix typescript ci --ignore-scripts
+read -s DEEPSEEK_API_KEY
+export DEEPSEEK_API_KEY
+npm --prefix typescript run agent -- \
+  --workspace /absolute/path/to/workspace \
+  --memory-root /absolute/path/to/memory \
+  --model deepseek-v4-flash \
+  --thinking high
+```
+
+The TUI displays the resolved Provider/model/workspace/memory identities and requires confirmation before the first task; submitting that task makes the first Provider call. The selected workspace is the default cwd, not containment. The trusted-local tools run with the current host user's authority. See the [TypeScript operator guide](typescript/README.md), [runbook](typescript/RUNBOOK.md), and [design](docs/design/typescript-pi-general-agent-working-stack.md) before using a real Provider.
+
+## Repository lanes
+
+| Lane | Classification |
+|---|---|
+| TypeScript/Pi working stack | **authoritative product** |
+| Python evented TUI/runtime | **reference-only** |
+| ReAct mechanism | **experiment/reference** |
+| Protocol reliability | **experiment/reference** |
+| DeepSeek campaigns | **experiment/reference** |
+| Proof packs and evaluators | **experiment/reference** |
+| Benchmark machinery | **experiment/reference** |
+
+Language-neutral conformance fixtures under [`conformance/`](conformance/) preserve only cross-implementation semantics: the retained read/write/edit/bash tool meanings, attributable terminal kinds, active-tool cancellation, and cross-task Context behavior. The TypeScript runner consumes them through the public `GeneralAgentSession` Interface without importing or executing the Python package.
 
 ## Learning Wiki
 
 The project maintains a source-grounded [Learning Wiki](wiki/index.md) recording what building this system teaches: harness engineering, agent tool design, evaluation methodology, and verification practice. Every substantive page is either a **Verified Learning Fact** (with an explicit verification level — `source-located`, `triangulated`, or `experiment-reproduced` — and stated boundaries) or an **Open Learning Question** (with a verification path). The [log](wiki/log.md) is append-only. The Wiki claims no product, benchmark, or resume authority; it is the project's public learning trail.
 
-## TypeScript/Pi General Agent Working Stack
+## Authoritative TypeScript/Pi working stack
 
-WorkOrder #23 adds a [TypeScript package and Human command](typescript/README.md) backed by the [candidate design](docs/design/typescript-pi-general-agent-working-stack.md). One deep `GeneralAgentSession` Module owns Pi's stateful Context and Agent loop, translates through a real DeepSeek Adapter, exposes typed read/write/edit/bash tools, returns control for successive tasks, renders usage and attributable terminals, and supports cancellation. Its test Adapter is Pi's deterministic Faux Provider; Builder verification makes no paid Provider call.
+The [TypeScript package and Human command](typescript/README.md) are backed by the [working-stack design](docs/design/typescript-pi-general-agent-working-stack.md). One deep `GeneralAgentSession` Module owns Pi's stateful Context and Agent loop, translates through a real DeepSeek Adapter, exposes typed read/write/edit/bash tools, returns control for successive tasks, renders usage and attributable terminals, and supports cancellation. Its test Adapter is Pi's deterministic Faux Provider; WorkOrder #24 makes no paid Provider call.
 
-The shell is explicitly **trusted-local**: it runs as the host user, and the selected workspace is only the default cwd. It claims neither path containment nor an OS/network sandbox. WorkOrder #22 prototypes corresponding Python shell/PTY semantics without adding isolation or changing this TypeScript implementation; authoritative cutover and cleanup remain separate work.
+The shell is explicitly **trusted-local**: it runs as the host user, and the selected workspace is only the default cwd. It claims neither path containment nor an OS/network sandbox. The Python shell/PTY implementation remains available for comparison, but it is not the default product route.
 
-## Current implementation gate
+## Retained reference and experiment catalog
 
 The architecture is Human-accepted. The code and tests below remain a candidate, but their ordinary operator-trusted implementation boundary has passed a separate same-model Regulator review; high-risk security, public benchmark, fact, and resume gates remain closed:
 
@@ -56,9 +87,9 @@ The follow-up [`maximum-token sensitivity candidate Evidence`](docs/evidence/pro
 
 The WorkOrder #4 implementation candidate adds [`translation.py`](workspace_agent_harness/translation.py), the provider-specific [`deepseek_translation.py`](workspace_agent_harness/deepseek_translation.py), and an [offline four-cell dry-run](scripts/dry_run_translation_matrix.py). Its offline candidate passed an independent Regulator Gate on 2026-08-25, while its secret-free fixture contracts prove local mapping and rejection behavior only; no live call, causal result, Verified Project Fact, Wiki entry, or resume claim was produced.
 
-## Real TUI entrypoints
+## Reference-only Python TUI
 
-The Python entry defaults to #21's bounded no-shell tool profile. Choose an existing workspace and a new artifact path outside it; add `--trusted-local` only when you deliberately grant host-user shell and Human PTY authority:
+This retained reference entry defaults to #21's bounded no-shell tool profile. Choose an existing workspace and a new artifact path outside it; add `--trusted-local` only when you deliberately grant host-user shell and Human PTY authority:
 
 ```bash
 read -s DEEPSEEK_API_KEY
@@ -72,15 +103,7 @@ PYTHONPATH=. python3 -m workspace_agent_harness.tui \
 
 The command displays and asks you to confirm the Provider, model, resolved workspace, and selected authority before accepting `Task>`. Each task gets a new Run and model Context while the workspace persists. Use `:help`, `:view compact|expanded|trace`, `:runs`, `:replay RUN_ID`, or `:exit`. Starting, cancelling before confirmation, using help/views, or replaying makes no Provider call. Run artifacts contain the append-only Event Log, secret-free Provider exchanges, Context artifacts, trusted-local stream/PTY identities when enabled, public metadata, reported usage, and changed workspace paths.
 
-The TypeScript/Pi real entry stays separate and directly runnable. Every admitted run is durably archived under `--memory-root` (created if missing; must be disjoint from the workspace) and bound to the current [`typescript/RUNBOOK.md`](typescript/RUNBOOK.md) revision; `:runs` and `:replay RUN_ID` inspect sealed archives with zero Provider calls or tool effects:
-
-```bash
-npm --prefix typescript run agent -- \
-  --workspace /absolute/path/to/workspace \
-  --memory-root /absolute/path/to/memory \
-  --model deepseek-v4-flash \
-  --thinking high
-```
+The TypeScript/Pi entry is the default route documented at the top of this file. Every admitted run is durably archived under `--memory-root` (created if missing; it must be disjoint from the workspace) and bound to the current [`typescript/RUNBOOK.md`](typescript/RUNBOOK.md) revision; `:runs` and `:replay RUN_ID` inspect sealed archives with zero Provider calls or tool effects.
 
 PinchBench is pinned as an external compatibility source, not vendored as the Runtime contract. [`workspace_agent_harness/benchmark_configs/`](workspace_agent_harness/benchmark_configs/) holds content locks; `workspace_agent_harness.benchmarks.load_pinchbench_suite(...)` audits a caller-supplied clean checkout without executing embedded graders. All 21/147 upstream cases are currently ineligible because no local translation is frozen. Any later translated local run must be labelled `pinchbench-compatible`; official compatibility requires the unmodified upstream runner. The Composio thread contributes campaign shape and efficiency metrics only, not reusable tasks or results.
 
@@ -102,7 +125,13 @@ v1 does not include open-web browsing, GUI/Computer Use, multimodal input/output
 
 [`docs/evidence/verified-project-facts.md`](docs/evidence/verified-project-facts.md) is the only project-level fact register. It records each accepted atomic Claim, Evidence, Criterion, independent acceptance, date, and limitation. README prose, specs, Wiki pages, and passing structure checks are not implementation Evidence by themselves.
 
-Run the complete candidate suite with:
+Run the authoritative TypeScript candidate suite with:
+
+```bash
+npm --prefix typescript run check
+```
+
+The retained reference and experiment regression suite remains available with:
 
 ```bash
 python3 -m unittest discover -s tests -p 'test_*.py' -v

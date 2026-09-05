@@ -1,28 +1,41 @@
 # Design
 
-Design documents are candidate contracts, not implementation facts.
+Design documents record contracts and trade-offs; they do not establish implementation facts.
 
-- [`typescript-pi-general-agent-working-stack.md`](typescript-pi-general-agent-working-stack.md): WorkOrder #23's active-product TypeScript/Pi tracer bullet, deep session Interface, real DeepSeek and deterministic Faux Adapters, typed workspace tools, explicitly trusted-local shell, observable terminals, and #22/#24 boundary; pending independent review and containing no Builder Provider call.
-- [`general-vertical-system.md`](general-vertical-system.md): active General Runtime and Vertical Domain Pack design entry.
+## Authoritative product
+
+- [`typescript-pi-general-agent-working-stack.md`](typescript-pi-general-agent-working-stack.md): the authoritative TypeScript/Pi working stack, deep `GeneralAgentSession` Interface, real DeepSeek and deterministic Faux Adapters, typed workspace tools, trusted-local authority boundary, observable terminals, and three memory lanes.
+- [`../adr/0015-three-lane-memory-contract.md`](../adr/0015-three-lane-memory-contract.md): the accepted archive, retrospective-ledger, and Runbook memory contract landed by WorkOrder #25.
+- [`../adr/0016-authoritative-typescript-product-path.md`](../adr/0016-authoritative-typescript-product-path.md): WorkOrder #24's proposed supersession record making TypeScript/Pi the default product and classifying every retained non-product lane.
+- [`../../conformance/README.md`](../../conformance/README.md): implementation-neutral fixtures for retained tool semantics, terminal outcomes, active-tool cancellation, and cross-task Context behavior.
+
+## Reference-only implementation
+
+- [`evented-tui-tracer.md`](evented-tui-tracer.md): the credential-free Python evented TUI and replay/cancellation reference.
+- [`proactive-semantic-compaction.md`](proactive-semantic-compaction.md): known-window proactive Context projection, exact artifact retention, and fail-closed non-fitting projection.
+- [`provider-context-overflow-recovery.md`](provider-context-overflow-recovery.md): one classified Context-overflow recovery, failed-exchange retention, and explicit retry exhaustion.
+- [`tui-three-view-projections.md`](tui-three-view-projections.md): compact/expanded/trace projections and the shared visibility policy.
+- [`deepseek-live-tui.md`](deepseek-live-tui.md): the retained Python DeepSeek entry with default no-shell behavior and opt-in trusted-local shell/Human PTY semantics.
+
+These documents remain useful comparison material. Their Python AgentLoop, TUI, and task-specific mechanics are not dependencies of the authoritative TypeScript product.
+
+## Historical experiment and evaluation designs
+
+- [`general-vertical-system.md`](general-vertical-system.md): General Runtime and Vertical Domain Pack experiment architecture.
 - [`deerflow-mechanism-map.md`](deerflow-mechanism-map.md): pinned external mechanism inspection and local adopt/defer/reject map.
-- [`proof-domains.md`](proof-domains.md): the two bounded proof domains and deterministic evaluation contracts.
-- [`benchmark-strategy.md`](benchmark-strategy.md): PinchBench compatibility, the configured 30-case vertical catalog, metrics, provenance, and the external campaign seam. Executable locks/catalogs live under [`../../workspace_agent_harness/benchmark_configs/`](../../workspace_agent_harness/benchmark_configs/).
-- [`react-to-swe-mvp.md`](react-to-swe-mvp.md): the Human-accepted Phase 0 Act-only/ReAct mechanism comparison, Docker/gold gate, dual-channel observations, and progression toward a SWE-agent-style ACI.
-- [`protocol-reliability-v1.md`](protocol-reliability-v1.md): the Human-accepted 24-context J0/J1/S0/S1 replay design, repair accounting, L0-L3 metrics, fingerprint stop rule, and claim boundary.
-- [`protocol-reliability-v1.1-max-token-sensitivity.md`](protocol-reliability-v1.1-max-token-sensitivity.md): the Human-authorized five-context, three-cap sensitivity check that isolates whether v1 Strict/ReAct length failures were caused by the requested 2,048-token ceiling or bounded an already runaway response.
-- [`protocol-reliability-v1.2-max-token-16k-extension.md`](protocol-reliability-v1.2-max-token-16k-extension.md): the separately identified post-v1.1 16K arm that tests whether malformed output naturally closes after 8K or continues toward the higher ceiling.
-- [`translation-adapter.md`](translation-adapter.md): the independently accepted WorkOrder #4 offline candidate seam for typed canonical conversation, complete native tool-call/result history, separate reasoning, ModelProfile-owned output limits, fail-closed correlation, and the offline four-cell diagnostic dry-run.
-- [`agent-loop-behavioral-eval-v0.md`](agent-loop-behavioral-eval-v0.md): the independently accepted WorkOrder #3 design contract for one event-sourced AgentLoop, deep ModelGateway, adaptive semantic Context projection, consumer-only TUI, and the frozen 12-case Behavioral Eval v0.
-- [`behavioral-eval-runtime-v0.md`](behavioral-eval-runtime-v0.md): WorkOrder #9's deterministic 12-case Domain Pack, public-AgentLoop campaign, exact oracle/report, zero-call reconstruction, and failure-attribution candidate; pending independent review.
-- [`tui-three-view-projections.md`](tui-three-view-projections.md): WorkOrder #10's compact/expanded/trace projections, candidate/admission distinction, field visibility policy, bounded long-output display, repeated CLI view selection, and zero-call replay candidate; pending independent review.
-- [`evented-tui-tracer.md`](evented-tui-tracer.md): the bounded WorkOrder #6 credential-free Python TUI tracer candidate, manual/replay commands, evented Module boundary, cancellation behavior, and explicit #7–#10 exclusions; pending independent review.
-- [`proactive-semantic-compaction.md`](proactive-semantic-compaction.md): WorkOrder #7's known-window proactive Context projection candidate, exact artifact retention, sourced semantic summary, atomic recent-tail policy, fail-closed terminal, and deterministic long TUI/replay path; pending independent review.
-- [`provider-context-overflow-recovery.md`](provider-context-overflow-recovery.md): WorkOrder #8's one classified Provider Context-overflow recovery candidate, failed-exchange retention, #7 semantic projection reuse, one retry ceiling, separate attempt accounting, explicit exhaustion, and deterministic TUI/replay paths; pending independent review.
-- [`deepseek-live-behavioral-eval-stage-a.md`](deepseek-live-behavioral-eval-stage-a.md): WorkOrder #11 Stage A's frozen DeepSeek native-tool Translation/Gateway, restricted-reasoning boundary, CNY/call/Token/identity stops, paired 120-slot campaign lock, and zero-call dry-run; pending independent review and authorizing no Stage B calls.
-- [`deepseek-live-budgeted-serial-runner.md`](deepseek-live-budgeted-serial-runner.md): WorkOrder #11 Stage A-R's independently accepted repaired v2 lock, sole budgeted serial runner, dispatch-aware exchange ledger, exact live acknowledgement, stop/incomplete denominator behavior, and zero-call reconstruction; it authorizes no Stage B calls.
-- [`deepseek-live-v3-adapter-stage-a.md`](deepseek-live-v3-adapter-stage-a.md): WorkOrder #19's independently accepted, v2-linked, zero-call v3 Profile/Translation repair: omit request-level `tool_choice`, admit one valid tool call or non-empty ordinary final content, replay all assistant reasoning history, preserve the paired 120-slot campaign controls, and require a new exact acknowledgement; accepted on 2026-08-29 and authorizing no live call.
-- [`deepseek-live-tui.md`](deepseek-live-tui.md): WorkOrder #22's Python behavioral-prototype candidate over the accepted #21 entry: default no-shell preservation, explicit trusted-local shell + Human-confirmed PTY opt-in, typed/lossless command settlements, process-group cancellation, terminal restoration, lifecycle events/replay, and the separately authorized real `deepseek-v4-flash` snake smoke, whose candidate Evidence is [`../evidence/deepseek-live-trusted-local-smoke-candidate-2026-09-02.md`](../evidence/deepseek-live-trusted-local-smoke-candidate-2026-09-02.md). It claims no OS/filesystem/network isolation, benchmark result, or TypeScript capability migration and remains pending independent high-risk review.
+- [`proof-domains.md`](proof-domains.md): two bounded proof domains and deterministic evaluation contracts.
+- [`benchmark-strategy.md`](benchmark-strategy.md): PinchBench compatibility, the configured vertical catalog, metrics, provenance, and the external campaign seam.
+- [`react-to-swe-mvp.md`](react-to-swe-mvp.md): the Human-accepted Act-only/ReAct comparison and progression toward an SWE-agent-style ACI.
+- [`protocol-reliability-v1.md`](protocol-reliability-v1.md): the 24-context J0/J1/S0/S1 replay design, repair accounting, L0-L3 metrics, and claim boundary.
+- [`protocol-reliability-v1.1-max-token-sensitivity.md`](protocol-reliability-v1.1-max-token-sensitivity.md): the five-context 2K/4K/8K sensitivity design.
+- [`protocol-reliability-v1.2-max-token-16k-extension.md`](protocol-reliability-v1.2-max-token-16k-extension.md): the separately identified post-v1.1 16K extension.
+- [`translation-adapter.md`](translation-adapter.md): the independently accepted offline typed canonical-history Translation Adapter.
+- [`agent-loop-behavioral-eval-v0.md`](agent-loop-behavioral-eval-v0.md): the independently accepted event-sourced AgentLoop and Behavioral Eval design freeze.
+- [`behavioral-eval-runtime-v0.md`](behavioral-eval-runtime-v0.md): the deterministic 12-case campaign and zero-call reconstruction contract.
+- [`deepseek-live-behavioral-eval-stage-a.md`](deepseek-live-behavioral-eval-stage-a.md): the frozen paired 120-slot DeepSeek campaign and zero-call inventory.
+- [`deepseek-live-budgeted-serial-runner.md`](deepseek-live-budgeted-serial-runner.md): the accepted budgeted v2 runner and terminal denominator behavior.
+- [`deepseek-live-v3-adapter-stage-a.md`](deepseek-live-v3-adapter-stage-a.md): the accepted zero-call v3 Translation repair and new lock identity.
 
-The Human-accepted architecture decisions are [`../adr/0009-general-runtime-and-vertical-domain-packs.md`](../adr/0009-general-runtime-and-vertical-domain-packs.md), [`../adr/0010-external-and-vertical-evaluation-lanes.md`](../adr/0010-external-and-vertical-evaluation-lanes.md), [`../adr/0011-react-mvp-before-swe-aci.md`](../adr/0011-react-mvp-before-swe-aci.md), [`../adr/0012-freeze-protocol-reliability-v1.md`](../adr/0012-freeze-protocol-reliability-v1.md), and [`../adr/0013-typed-native-history-translation-adapter.md`](../adr/0013-typed-native-history-translation-adapter.md). WorkOrder #4's offline candidate passed its independent Gate on 2026-08-25; its implementation status and verification boundary remain explicit in the design and ADR. Current verified implementation facts remain exclusively in [`../evidence/verified-project-facts.md`](../evidence/verified-project-facts.md).
+All historical experiment Evidence, locks, reports, and Wiki material retain their original identities and review boundaries. Current verified implementation facts remain exclusively in [`../evidence/verified-project-facts.md`](../evidence/verified-project-facts.md).
 
-[`../adr/0014-evented-agent-loop-and-behavioral-eval.md`](../adr/0014-evented-agent-loop-and-behavioral-eval.md) is Human-accepted after WorkOrder #3's design-freeze candidate passed its independent Gate on 2026-08-25. It authorizes no downstream implementation or Provider execution by itself.
+The Human-accepted architecture history remains indexed in [`../adr/README.md`](../adr/README.md). WorkOrder #24 changes the product route; it does not retroactively change the acceptance status or claims of any retained design.

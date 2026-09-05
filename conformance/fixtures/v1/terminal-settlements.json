@@ -1,0 +1,47 @@
+{
+  "schema": "pan-agent-conformance-case/v1",
+  "id": "terminal-settlements",
+  "covers": [
+    "terminal.completed",
+    "terminal.model_error",
+    "terminal.incomplete"
+  ],
+  "cases": [
+    {
+      "id": "completed",
+      "task": "Return a normal final response.",
+      "response": {
+        "kind": "final",
+        "text": "done"
+      },
+      "expected": {
+        "terminal": "completed",
+        "reason": "assistant_completed"
+      }
+    },
+    {
+      "id": "model-error",
+      "task": "Surface the deterministic Provider failure.",
+      "response": {
+        "kind": "error",
+        "error": "synthetic-provider-failure"
+      },
+      "expected": {
+        "terminal": "model_error",
+        "reason": "synthetic-provider-failure"
+      }
+    },
+    {
+      "id": "incomplete-length",
+      "task": "Surface output-length termination.",
+      "response": {
+        "kind": "length",
+        "text": "partial"
+      },
+      "expected": {
+        "terminal": "incomplete",
+        "reason": "model_output_length"
+      }
+    }
+  ]
+}

@@ -1,10 +1,16 @@
-# Current Assignment | Three-lane memory for the TypeScript working stack
+# Current Assignment | Authoritative TypeScript/Pi product cutover
 
 This document owns the current project lane, constraints, and non-goals. It does not grant a session-specific task or establish implementation facts. A Working session starts only from a Master-published WorkOrder, and that WorkOrder cannot widen this lane or override Human decisions. Read the fact register linked from the root Agent map before making any current-state statement.
 
-## Active mission | WorkOrder #25 memory lanes
+## Active mission | WorkOrder #24 authoritative TypeScript cutover
 
-The active lane is [WorkOrder #25](https://github.com/pym96/Pan-agent/issues/25) (Criteria-Version `1.0`, C-MEM-01…13; C-MEM-03/06 high-risk): give the accepted TypeScript/Pi General Agent working stack three memory lanes with three mutation rules — an append-only-then-sealed Run Archive with integrity detection and zero-effect replay, an append-only supersedes-only Retrospective Ledger linked to sealed archives, and a version-controlled mutable Runbook whose content-hash revision is bound into every run. Budget is zero on every external meter (no Provider calls, balance queries, credential reads, or paid execution); deterministic fake adapters only. This lane makes no sandbox, benchmark, model-quality, project-fact, Wiki, resume, or #24-cutover claim.
+The active lane is [WorkOrder #24](https://github.com/pym96/Pan-agent/issues/24) (Criteria-Version `1.0`, C-CUT-01…10; C-CUT-07 high-risk) on exact base `3dc834ef3405564d8eeff802ca54cb5874079df3`. It makes the existing TypeScript/Pi `GeneralAgentSession` the authoritative product and default Human route, retains the Python implementation as reference-only, and retains prior mechanism/evaluation work as experiment/reference. Language-neutral fixtures preserve canonical tool semantics, terminal outcomes, cancellation, and Context behavior without making the Python product package a TypeScript test or runtime dependency.
+
+The Bash-only ReAct lane is retired as an active mission; its raw artifacts, locks, reports, Evidence, and learning record remain historical experiment material. WorkOrder #24 must not edit those identities, make a Provider call, read a credential, query a balance, incur paid cost, claim security/benchmark/model quality, promote a fact, or begin #17. Its candidate requires deterministic TypeScript conformance, full regression, candidate-mode outer acceptance, immutable push, Human C-CUT-02 trial, and a different-session Regulator Verdict.
+
+## Retained prior mission history | WorkOrder #25 (accepted and landed)
+
+WorkOrder #25 added the three memory lanes to the TypeScript/Pi working stack and passed independent review before landing at `3dc834ef3405564d8eeff802ca54cb5874079df3`: an append-only-then-sealed Run Archive, an append-only supersedes-only Retrospective Ledger linked to sealed archives, and a version-controlled mutable Runbook whose content-hash revision is bound into every run. Its acceptance does not establish the separate #24 product cutover.
 
 ## Retained prior mission history | WorkOrder #22 (accepted and landed)
 
