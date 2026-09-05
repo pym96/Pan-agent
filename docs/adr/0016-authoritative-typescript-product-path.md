@@ -3,7 +3,7 @@
 - Status: Proposed
 - Date: 2026-09-05
 - Decision owner: Human/Master promotion of WorkOrder #24 (Criteria-Version `1.0`, C-CUT-01…10)
-- Base: accepted main `3dc834ef3405564d8eeff802ca54cb5874079df3`
+- Base: accepted main `3937dd880fc1314cf69ecd9bf2b4bbefbb78cb34`
 
 ## Context
 
