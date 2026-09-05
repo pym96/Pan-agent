@@ -1,8 +1,8 @@
-# Workspace Agent Harness
+# General + Vertical Agent System | TypeScript/Pi authoritative product glossary
 
 This context defines the project-specific product and retained experiment language. Process governance, learning records, and verified implementation state live in the documents linked from `AGENTS.md`, not in this domain glossary.
 
-## Authoritative product language
+## Active product language | authoritative TypeScript/Pi
 
 **Workspace Agent Harness**:
 The Human-operated TypeScript/Pi product: one `GeneralAgentSession`, its Provider Adapter, typed trusted-local tools, TUI, attributable outcomes, and three memory lanes. Retained reference and experiment code lives in the same repository but is not part of this product boundary.
@@ -27,7 +27,7 @@ _Avoid_: evaluator verdict, benchmark score, unqualified success message
 ## Historical experiment and evaluation language
 
 **AgentLoop**:
-The retained Python experiment/reference Module behind `AgentLoop.run(Task, RunLimits) -> RunResult`; it is not the authoritative product loop.
+The retained Python experiment/reference Module behind `AgentLoop.run(Task, RunLimits) -> RunResult`; it is not the authoritative product loop, and its implementation status belongs in the verified-project-fact register.
 _Avoid_: `GeneralAgentSession`, current product Runtime, complete Harness
 
 **General Agent Runtime**:
