@@ -1,0 +1,77 @@
+{
+  "schema": "pan-agent-conformance-case/v1",
+  "id": "tool-semantics",
+  "covers": [
+    "tool.read",
+    "tool.write",
+    "tool.edit",
+    "tool.bash",
+    "terminal.completed"
+  ],
+  "workspace": {
+    "input.txt": "alpha\n"
+  },
+  "task": {
+    "prompt": "Read input.txt, create and edit result.txt, then inspect it with bash.",
+    "model_script": [
+      {
+        "kind": "tool_call",
+        "call_id": "read-1",
+        "tool": "read",
+        "arguments": {
+          "path": "input.txt"
+        }
+      },
+      {
+        "kind": "tool_call",
+        "call_id": "write-1",
+        "tool": "write",
+        "arguments": {
+          "path": "result.txt",
+          "content": "one\n"
+        }
+      },
+      {
+        "kind": "tool_call",
+        "call_id": "edit-1",
+        "tool": "edit",
+        "arguments": {
+          "path": "result.txt",
+          "edits": [
+            {
+              "oldText": "one",
+              "newText": "two"
+            }
+          ]
+        }
+      },
+      {
+        "kind": "tool_call",
+        "call_id": "bash-1",
+        "tool": "bash",
+        "arguments": {
+          "command": "test \"$(cat result.txt)\" = two && printf 'two\\n'"
+        }
+      },
+      {
+        "kind": "final",
+        "text": "Created and verified result.txt."
+      }
+    ],
+    "expected": {
+      "terminal": "completed",
+      "tool_sequence": [
+        "read",
+        "write",
+        "edit",
+        "bash"
+      ],
+      "files": {
+        "result.txt": "two\n"
+      },
+      "observation_contains": [
+        "two"
+      ]
+    }
+  }
+}

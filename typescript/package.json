@@ -9,6 +9,7 @@
   "scripts": {
     "agent": "node --experimental-strip-types src/cli.ts",
     "test": "node --experimental-strip-types --test test/*.test.ts",
+    "conformance": "node --experimental-strip-types --test test/conformance.test.ts test/cutover-contract.test.ts",
     "typecheck": "tsc --noEmit",
     "check": "npm run typecheck && npm run test"
   },
