@@ -323,3 +323,9 @@ Do not edit or delete existing entries. Corrections are new entries that link to
 - Synthesis recorded: ACI = atomic work units sized \(\mathrm{one\ decision\ point,\ bounded\ output,\ attributable\ failure}\); principles only count once compiled into mechanisms (shell function, linter gate, history filter).
 - Evidence anchors: `search.sh` caps matches; `defaults.sh` prints a 100-line window; `edit_linting.sh` runs `flake8` and rejects failing edits; `history_processors.py` collapses old turns.
 - Boundary: cross-layer generalization (MCP, sprint, slot) is synthesis, not proof.
+
+## 2026-08-29 | Correction: ACI page never landed; now rewritten to schema and offered as candidate
+
+- Process failure owned: the earlier commit `3937dd8` ("admit ACI...") carried only `wiki/index.md` and `wiki/log.md`; the page file itself was written to the main checkout directly (bypassing the worktree) and remained untracked, leaving main with a dangling index link. This was found when the user asked to legalize the page.
+- The page is rewritten to the Schema contract (Type/Verification/Source/Updated + Verified facts/Boundaries/Links) and committed on candidate branch `learning/aci-atomic-work-candidate` for independent Regulator review — not merged to main by this session.
+- The earlier log entry for that admission stays untouched per the append-only rule; this entry is the correction.
