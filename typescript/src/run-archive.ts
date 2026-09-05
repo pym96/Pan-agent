@@ -266,9 +266,13 @@ export class RunArchiveStore {
 				await store.readManifest(entry.name);
 			} catch (error) {
 				// Only a missing manifest means the run was interrupted before
-				// sealing; an existing but unreadable manifest belongs to a
-				// settled archive and is left for integrity verification.
+				// sealing. A present-but-corrupted manifest belongs to a settled
+				// archive: it is left byte-untouched here so one corrupted
+				// archive never blocks startup, and every read path
+				// (readManifest/readArchive/listRuns) reports it as a typed
+				// ArchiveIntegrityError instead.
 				if (error instanceof ArchiveNotFoundError) await store.recoverRun(entry.name);
+				else if (error instanceof ArchiveIntegrityError) continue;
 				else throw error;
 			}
 		}
@@ -380,7 +384,27 @@ export class RunArchiveStore {
 		} catch {
 			throw new ArchiveNotFoundError(`no sealed archive for run ${runId}`);
 		}
-		return JSON.parse(body) as RunArchiveManifest;
+		let manifest: unknown;
+		try {
+			manifest = JSON.parse(body);
+		} catch {
+			throw new ArchiveIntegrityError(`archive ${runId} manifest is not valid JSON`);
+		}
+		const candidate = manifest as Partial<RunArchiveManifest>;
+		if (
+			candidate === null ||
+			typeof candidate !== "object" ||
+			candidate.schema !== RUN_ARCHIVE_MANIFEST_SCHEMA ||
+			typeof candidate.run_id !== "string" ||
+			typeof candidate.record_count !== "number" ||
+			!("head_hash" in candidate) ||
+			typeof candidate.events_sha256 !== "string" ||
+			typeof candidate.settled_state !== "string" ||
+			typeof candidate.settled_reason !== "string"
+		) {
+			throw new ArchiveIntegrityError(`archive ${runId} manifest is not a ${RUN_ARCHIVE_MANIFEST_SCHEMA} record`);
+		}
+		return candidate as RunArchiveManifest;
 	}
 
 	/** Read and verify a sealed archive; any byte deviation fails typed. */

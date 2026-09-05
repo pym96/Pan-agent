@@ -722,3 +722,99 @@ test("CLI requires a disjoint --memory-root before any Adapter construction", as
 	assert.equal(adapterConstructions, 0);
 });
 
+
+// C-MEM-05 repair (Verdict #25 rejection): a sealed archive whose manifest is
+// corrupted to invalid JSON — or is otherwise unreadable as a manifest — must
+// produce typed ArchiveIntegrityError at readArchive/listRuns, must not make
+// the memory root fail at startup, and must never receive recovery writes.
+test("corrupted sealed manifest fails typed at read surfaces without blocking startup", async () => {
+	const directory = await workspace();
+	const root = join(directory, "memory");
+	const store = await RunArchiveStore.open(root);
+
+	const healthy = await store.beginRun("run-healthy");
+	await healthy.append({ type: "run.started", runId: healthy.runId, task: "healthy" });
+	await healthy.settle("terminal", "done");
+	const corrupted = await store.beginRun("run-corrupted-manifest");
+	await corrupted.append({ type: "run.started", runId: corrupted.runId, task: "will be corrupted" });
+	await corrupted.settle("terminal", "done");
+	await writeFile(
+		join(root, "runs", corrupted.runId, "manifest.json"),
+		"{ not json !!!",
+		"utf8",
+	);
+
+	// Startup tolerates the corruption: open succeeds and recovers nothing.
+	const reopened = await RunArchiveStore.open(root);
+	// Read surfaces fail typed.
+	await assert.rejects(reopened.readManifest(corrupted.runId), ArchiveIntegrityError);
+	await assert.rejects(reopened.readArchive(corrupted.runId), ArchiveIntegrityError);
+	await assert.rejects(reopened.listRuns(), ArchiveIntegrityError);
+	// The corrupted archive remains sealed to writers.
+	await assert.rejects(reopened.recoverRun(corrupted.runId), ArchiveSealedError);
+	// Healthy archives are unaffected.
+	const records = await reopened.readArchive(healthy.runId);
+	assert.ok(records.length > 0);
+
+	// A valid-JSON but wrong-shape manifest is also a typed failure.
+	const writer = await reopened.beginRun("run-wrong-schema-manifest");
+	await writer.append({ type: "run.started", runId: writer.runId, task: "shape" });
+	await writer.settle("terminal", "done");
+	await writeFile(
+		join(root, "runs", writer.runId, "manifest.json"),
+		'{"schema":"something-else","run_id":"run-wrong-schema-manifest"}\n',
+		"utf8",
+	);
+	await assert.rejects(reopened.readManifest(writer.runId), ArchiveIntegrityError);
+	await assert.rejects(reopened.readArchive(writer.runId), ArchiveIntegrityError);
+});
+
+// IC-2: :runs renders typed archive failures like :replay does.
+test("TUI :runs renders a typed ARCHIVE_ERROR for a corrupted manifest with zero Provider calls", async () => {
+	const directory = await workspace();
+	const root = join(directory, "memory");
+	const store = await RunArchiveStore.open(root);
+	const writer = await store.beginRun("run-corrupt-for-tui");
+	await writer.append({ type: "run.started", runId: writer.runId, task: "x" });
+	await writer.settle("terminal", "done");
+	await writeFile(join(root, "runs", writer.runId, "manifest.json"), "not json at all", "utf8");
+
+	const { adapter, faux } = fauxAdapter();
+	const archiveStore = await RunArchiveStore.open(root);
+	const trustedLocal = createTrustedLocalTools(directory);
+	const session = new GeneralAgentSession({
+		adapter,
+		tools: trustedLocal.tools,
+		systemPrompt: GENERAL_AGENT_SYSTEM_PROMPT,
+		memory: {
+			archiveStore,
+			runbook: async () => ({ content: "test runbook", revision: TEST_RUNBOOK_REVISION }),
+		},
+		onObservation: () => {},
+		cleanup: () => trustedLocal.environment.cleanup(),
+	});
+	const input = new PassThrough();
+	const output = new PassThrough();
+	let text = "";
+	output.setEncoding("utf8");
+	output.on("data", (chunk: string) => {
+		text += chunk;
+		if (chunk.includes("[y/N]> ")) setImmediate(() => input.write("y\n"));
+		else if (chunk.endsWith("Task> ")) {
+			setImmediate(() => input.write(text.includes("ARCHIVE_ERROR") ? ":exit\n" : ":runs\n"));
+		}
+	});
+	const exitCode = await runTui({
+		session,
+		provider: adapter.providerId,
+		model: adapter.modelId,
+		thinking: adapter.thinkingLevel,
+		workspace: directory,
+		archiveStore,
+		input,
+		output,
+	});
+	assert.equal(exitCode, 0);
+	assert.equal(faux.state.callCount, 0);
+	assert.match(text, /ARCHIVE_ERROR .*manifest is not valid JSON/);
+});

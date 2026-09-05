@@ -143,15 +143,19 @@ export async function runTui(options: TuiOptions): Promise<number> {
 					writeLine("Memory is not configured; no Provider call was made.");
 					continue;
 				}
-				const runs = await options.archiveStore.listRuns();
-				if (runs.length === 0) {
-					writeLine("ARCHIVES none");
-					continue;
-				}
-				for (const run of runs) {
-					writeLine(
-						`ARCHIVE run=${run.runId} sealed=${run.sealed} state=${run.settledState ?? "unsealed"} records=${run.recordCount}`,
-					);
+				try {
+					const runs = await options.archiveStore.listRuns();
+					if (runs.length === 0) {
+						writeLine("ARCHIVES none");
+						continue;
+					}
+					for (const run of runs) {
+						writeLine(
+							`ARCHIVE run=${run.runId} sealed=${run.sealed} state=${run.settledState ?? "unsealed"} records=${run.recordCount}`,
+						);
+					}
+				} catch (error) {
+					writeLine(`ARCHIVE_ERROR ${error instanceof Error ? error.message : String(error)}`);
 				}
 				continue;
 			}

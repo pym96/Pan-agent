@@ -31,3 +31,4 @@ Rejected alternatives:
 - The real entry command requires `--memory-root`, disjoint from the workspace.
 - The three lane names and boundaries live in `CONTEXT.md`; `tests/test_governance_docs.py` anchors them.
 - A run interrupted mid-write keeps a verifiable causal prefix and a disclosed torn-tail count; its identity is never reused.
+- A present-but-corrupted sealed manifest never blocks startup: `open()` leaves it byte-untouched, and every read surface (`readManifest`, `readArchive`, `listRuns`) reports it as a typed `ArchiveIntegrityError`; TUI `:runs` and `:replay` render that failure as `ARCHIVE_ERROR`.
