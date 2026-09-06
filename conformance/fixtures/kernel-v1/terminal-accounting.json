@@ -1,0 +1,18 @@
+{
+  "schema": "pan-agent-kernel-conformance-case/v1",
+  "id": "terminal-accounting",
+  "covers": ["C-KER-08"],
+  "cases": [
+    { "id": "final", "response": "final", "expected_terminal": "completed", "expected_reason": "assistant_completed" },
+    { "id": "provider-error", "response": "error", "expected_terminal": "model_error", "expected_reason": "fixture_provider_error" },
+    { "id": "output-length", "response": "length", "expected_terminal": "incomplete", "expected_reason": "model_output_length" }
+  ],
+  "invariants": [
+    "one_run_started",
+    "one_run_terminal",
+    "no_observation_after_terminal",
+    "counts_recompute_from_observations",
+    "usage_recomputes_from_model_settlements",
+    "result_event_archive_terminal_agree"
+  ]
+}

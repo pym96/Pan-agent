@@ -59,8 +59,9 @@ test("C-CUT-06 assignment and ADR record architectural supersession", async () =
 	const assignment = await text("docs/agents/current-assignment.md");
 	assert.match(
 		assignment,
-		/## Active mission \| WorkOrder #24 authoritative TypeScript cutover/,
+		/## Active mission \| WorkOrder #28 Native Agent Kernel v0/,
 	);
+	assert.match(assignment, /## Retained prior mission history \| WorkOrder #24 \(accepted and landed\)/);
 	assert.match(assignment, /Bash-only ReAct lane is retired as an active mission/);
 
 	const adr = await text(

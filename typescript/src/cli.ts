@@ -2,6 +2,7 @@ import { stat } from "node:fs/promises";
 import { pathToFileURL, fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
 import type { Writable } from "node:stream";
+import { isKernelSelector, type KernelSelector } from "./kernels/agent-kernel.ts";
 import {
 	createPiDeepSeekAdapter,
 	DEFAULT_DEEPSEEK_PROFILE,
@@ -16,9 +17,9 @@ import { createTrustedLocalTools, TRUSTED_LOCAL_SHELL_LABEL } from "./tools.ts";
 import { renderObservation, runTui } from "./tui.ts";
 
 export const CLI_USAGE = `Usage:
-  npm run agent -- --workspace /absolute/path --memory-root /absolute/path [--model deepseek-v4-flash|deepseek-v4-pro] [--thinking low|high|max]
+  npm run agent -- --workspace /absolute/path --memory-root /absolute/path [--kernel pi|native] [--model deepseek-v4-flash|deepseek-v4-pro] [--thinking low|high|max]
 
-The General Agent uses Pi-maintained context and typed read/write/edit/bash tools.
+The General Agent defaults to PiKernel and accepts explicit --kernel native; both use the same typed read/write/edit/bash tools and product interfaces.
 The bash tool is trusted-local: it has host-user authority; --workspace sets cwd but is not containment or an OS sandbox.
 Every admitted run is durably archived under --memory-root (must be disjoint from the workspace) with the current Runbook revision; :runs and :replay inspect sealed archives with zero Provider calls or tool effects.
 No Provider call occurs for --help, startup, cancellation before confirmation, or TUI commands.`;
@@ -29,31 +30,35 @@ export interface CliConfiguration {
 	readonly help: boolean;
 	readonly workspace?: string;
 	readonly memoryRoot?: string;
+	readonly kernel: KernelSelector;
 	readonly profile: DeepSeekProfile;
 }
 
 export function parseCliArgs(args: readonly string[]): CliConfiguration {
 	let workspace: string | undefined;
 	let memoryRoot: string | undefined;
+	let kernel: string = "pi";
 	let modelId: string = DEFAULT_DEEPSEEK_PROFILE.modelId;
 	let thinkingLevel: string = DEFAULT_DEEPSEEK_PROFILE.thinkingLevel;
 	for (let index = 0; index < args.length; index += 1) {
 		const argument = args[index];
 		if (argument === "--help" || argument === "-h") {
-			return { help: true, profile: DEFAULT_DEEPSEEK_PROFILE };
+			return { help: true, kernel: "pi", profile: DEFAULT_DEEPSEEK_PROFILE };
 		}
 		const value = args[index + 1];
-		if (argument === "--workspace" || argument === "--memory-root" || argument === "--model" || argument === "--thinking") {
+		if (argument === "--workspace" || argument === "--memory-root" || argument === "--kernel" || argument === "--model" || argument === "--thinking") {
 			if (!value || value.startsWith("--")) throw new Error(`${argument} requires a value`);
 			index += 1;
 			if (argument === "--workspace") workspace = value;
 			if (argument === "--memory-root") memoryRoot = value;
+			if (argument === "--kernel") kernel = value;
 			if (argument === "--model") modelId = value;
 			if (argument === "--thinking") thinkingLevel = value;
 			continue;
 		}
 		throw new Error(`Unknown argument: ${argument}`);
 	}
+	if (!isKernelSelector(kernel)) throw new Error(`Unsupported kernel: ${kernel}`);
 	if (!isDeepSeekModelId(modelId)) throw new Error(`Unsupported DeepSeek model: ${modelId}`);
 	if (thinkingLevel !== "low" && thinkingLevel !== "high" && thinkingLevel !== "max") {
 		throw new Error(`Unsupported thinking level: ${thinkingLevel}`);
@@ -62,6 +67,7 @@ export function parseCliArgs(args: readonly string[]): CliConfiguration {
 		help: false,
 		workspace,
 		memoryRoot,
+		kernel,
 		profile: { modelId, thinkingLevel },
 	};
 }
@@ -131,6 +137,7 @@ export async function runCli(args: readonly string[], dependencies: CliDependenc
 		tools: trustedLocal.tools,
 		systemPrompt: GENERAL_AGENT_SYSTEM_PROMPT,
 		memory: { archiveStore, runbook: () => loadRunbook(RUNBOOK_PATH) },
+		kernel: configuration.kernel,
 		onObservation(observation) {
 			for (const line of renderObservation(observation)) writeLine(line);
 		},

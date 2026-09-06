@@ -2,7 +2,7 @@
 
 Status: WorkOrder #23's tracer bullet and WorkOrder #25's three-lane memory implementation are independently accepted and landed. WorkOrder #24 makes this package the authoritative product and default Human route; that cutover remains a candidate pending Human trial and independent review.
 
-This is the authoritative TypeScript/Pi working stack for a Human-operated general coding agent. One `GeneralAgentSession` owns Pi's stateful `Agent`, DeepSeek Provider translation, complete in-memory Context, typed read/write/edit/bash ToolCalls and ToolResults, cancellation, usage, response identity, explicit terminal outcomes, and durable three-lane memory. The existing Python implementation remains available as reference-only; this package neither imports nor ports its AgentLoop.
+This is the authoritative TypeScript working stack for a Human-operated general coding agent. One `GeneralAgentSession` owns admission and durable memory, then delegates Context and iterative semantics through `AgentKernel`. `PiKernel` remains the default and wraps Pi's stateful `Agent`; explicit `NativeKernel` is a repository-owned second loop using the same DeepSeek Provider Adapter, typed read/write/edit/bash tools, observations, outcomes, and memory. The existing Python implementation remains available as reference-only; this package neither imports nor ports its AgentLoop.
 
 ## Install
 
@@ -24,13 +24,14 @@ export DEEPSEEK_API_KEY
 npm --prefix typescript run agent -- \
   --workspace /absolute/path/to/workspace \
   --memory-root /absolute/path/to/memory \
+	--kernel pi \
   --model deepseek-v4-flash \
   --thinking high
 ```
 
-The initial profile is `deepseek-v4-flash` with `high` thinking. `deepseek-v4-pro` and the listed thinking levels are explicit alternatives; switching them does not change the session or tool Interface. `--memory-root` is required and must be disjoint from the workspace; it holds the durable three-lane memory (below). Construction, `--help`, confirmation rejection, blank input, `:help`, `:context`, `:runs`, `:replay RUN_ID`, and `:exit` make no Provider call. The first non-empty task submitted after confirmation is the first Provider call.
+The initial profile is `deepseek-v4-flash` with `high` thinking. Omitting `--kernel` is identical to explicit `--kernel pi`; `--kernel native` selects the second implementation without changing TUI, tools, Adapter, or archive interfaces. WorkOrder #28 validates Native only with the deterministic Faux Adapter, so live Human use remains deferred. `deepseek-v4-pro` and the listed thinking levels are explicit alternatives. `--memory-root` is required and must be disjoint from the workspace; it holds the durable three-lane memory (below). Construction, `--help`, confirmation rejection, blank input, `:help`, `:context`, `:runs`, `:replay RUN_ID`, and `:exit` make no Provider call. The first non-empty task submitted after confirmation is the first Provider call.
 
-Each task returns control to `Task>` and the next task continues the same Pi-owned transcript. `:context` reports the retained message count. Ctrl-C during a task requests Pi cancellation; Ctrl-C at the prompt closes the TUI.
+Each task returns control to `Task>` and the next task continues the selected Kernel's typed transcript. `:context` reports the retained message count and owner. Ctrl-C during a task requests Kernel cancellation; Ctrl-C at the prompt closes the TUI.
 
 ## Trust boundary
 
@@ -62,4 +63,4 @@ The Runbook ([`RUNBOOK.md`](RUNBOOK.md)) is the current operating guidance, edit
 npm --prefix typescript run check
 ```
 
-The test Adapter uses Pi's Faux Provider and makes no network, credential, balance, or paid-model call. It crosses the same `GeneralAgentSession` and tool seams as the real DeepSeek Adapter. The conformance suite consumes implementation-neutral JSON fixtures and does not require the reference product package.
+The test Adapter uses Pi's Faux Provider and makes no network, credential, balance, or paid-model call. It crosses the same `GeneralAgentSession` and tool seams as the real DeepSeek Adapter. The Kernel conformance suite consumes one versioned implementation-neutral manifest against both implementations and does not require the reference Python package.

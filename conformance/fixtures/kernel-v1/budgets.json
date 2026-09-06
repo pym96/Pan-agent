@@ -1,0 +1,8 @@
+{
+  "schema": "pan-agent-kernel-conformance-case/v1",
+  "id": "budgets",
+  "covers": ["C-KER-07", "C-KER-08"],
+  "turn_limit": { "maximum": 2, "scripted_turns": 3, "expected_reason": "turn_limit" },
+  "step_limit": { "maximum": 2, "batch_size": 3, "expected_reason": "step_limit" },
+  "invalid_values": [true, 1.5, 0, -1]
+}

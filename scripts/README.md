@@ -2,6 +2,18 @@
 
 These scripts prepare ignored local state and invoke pinned external tooling. They do not produce benchmark Claims or update the project fact register.
 
+## WorkOrder #28 Native Agent Kernel checks
+
+Run the versioned language-neutral Kernel contract against both `pi` and `native`, verify that the TypeScript product remains runnable with the historical Python package physically absent, and confirm WorkOrder #28 did not change protected Python, Evidence, Wiki, benchmark-lock, or accepted v1 conformance paths:
+
+```bash
+npm --prefix typescript run kernel-conformance
+bash scripts/check_typescript_without_python.sh
+bash scripts/check_workorder_28_scope.sh
+```
+
+These checks use deterministic Faux model responses. Provider calls, credential reads, balance queries, and paid cost are `0 / 0 / 0 / CNY 0`; they do not accept the candidate or authorize Native default cutover.
+
 ## WorkOrder #24 cutover checks
 
 After committing the candidate bytes, run `bash scripts/check_typescript_without_python.sh` to archive the exact commit into an isolated directory, physically remove the reference product package, and execute the TypeScript checks. Run `bash scripts/check_workorder_24_scope.sh` to prove that historical Evidence, Wiki, and Python implementation paths still match accepted base `c4796f7da173f1717d5c9adb07a9d2e13cc1cf8b`.

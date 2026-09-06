@@ -85,7 +85,7 @@ export async function runTui(options: TuiOptions): Promise<number> {
 	};
 	const onInterrupt = (): void => {
 		if (running) {
-			writeLine("CANCEL requested; waiting for Pi and the active tool to settle.");
+			writeLine("CANCEL requested; waiting for the selected Kernel and active tool to settle.");
 			options.session.cancel();
 			return;
 		}
@@ -98,6 +98,7 @@ export async function runTui(options: TuiOptions): Promise<number> {
 	writeLine(`PROVIDER ${options.provider}`);
 	writeLine(`MODEL ${options.model}`);
 	writeLine(`THINKING ${options.thinking}`);
+	writeLine(`KERNEL ${options.session.kernelKind}`);
 	writeLine(`WORKSPACE ${options.workspace}`);
 	writeLine("SHELL trusted-local: host-user authority; workspace is cwd, not containment or an OS sandbox.");
 
@@ -135,7 +136,7 @@ export async function runTui(options: TuiOptions): Promise<number> {
 				continue;
 			}
 			if (trimmed === ":context") {
-				writeLine(`CONTEXT messages=${options.session.contextMessageCount} owner=Pi truncation=none`);
+				writeLine(`CONTEXT messages=${options.session.contextMessageCount} owner=${options.session.kernelKind} truncation=none`);
 				continue;
 			}
 			if (trimmed === ":runs") {

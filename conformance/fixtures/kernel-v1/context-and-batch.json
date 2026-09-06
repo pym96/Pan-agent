@@ -1,0 +1,19 @@
+{
+  "schema": "pan-agent-kernel-conformance-case/v1",
+  "id": "context-and-batch",
+  "covers": ["C-KER-03", "C-KER-04"],
+  "first_task": "record two ordered values",
+  "calls": [
+    { "id": "ordered-1", "name": "record", "arguments": { "value": "first" }, "settlement": "success" },
+    { "id": "ordered-2", "name": "record", "arguments": { "value": "second" }, "settlement": "error" }
+  ],
+  "first_final": "ordered batch complete",
+  "second_task": "use the retained typed history",
+  "second_final": "typed history retained",
+  "expected": {
+    "execution_order": ["ordered-1:first", "ordered-2:second"],
+    "result_errors": [false, true],
+    "roles_before_first_final": ["user", "assistant", "toolResult", "toolResult"],
+    "terminals": ["completed", "completed"]
+  }
+}

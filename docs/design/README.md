@@ -5,6 +5,7 @@ Design documents record contracts and trade-offs; they do not establish implemen
 ## Authoritative product
 
 - [`typescript-pi-general-agent-working-stack.md`](typescript-pi-general-agent-working-stack.md): the authoritative TypeScript/Pi working stack, deep `GeneralAgentSession` Interface, real DeepSeek and deterministic Faux Adapters, typed workspace tools, trusted-local authority boundary, observable terminals, and three memory lanes.
+- [`native-agent-kernel-v0.md`](native-agent-kernel-v0.md): WorkOrder #28's pending-review `AgentKernel` seam, default Pi compatibility implementation, explicit repository-owned Native implementation, shared Context/tool/cancellation/budget semantics, and dual-Kernel conformance boundary.
 - [`../adr/0015-three-lane-memory-contract.md`](../adr/0015-three-lane-memory-contract.md): the accepted archive, retrospective-ledger, and Runbook memory contract landed by WorkOrder #25.
 - [`../adr/0016-authoritative-typescript-product-path.md`](../adr/0016-authoritative-typescript-product-path.md): WorkOrder #24's proposed supersession record making TypeScript/Pi the default product and classifying every retained non-product lane.
 - [`../../conformance/README.md`](../../conformance/README.md): implementation-neutral fixtures for retained tool semantics, terminal outcomes, active-tool cancellation, and cross-task Context behavior.

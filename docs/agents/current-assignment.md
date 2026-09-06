@@ -2,11 +2,15 @@
 
 This document owns the current project lane, constraints, and non-goals. It does not grant a session-specific task or establish implementation facts. A Working session starts only from a Master-published WorkOrder, and that WorkOrder cannot widen this lane or override Human decisions. Read the fact register linked from the root Agent map before making any current-state statement.
 
-## Active mission | WorkOrder #24 authoritative TypeScript cutover
+## Active mission | WorkOrder #28 Native Agent Kernel v0
 
-The active lane is [WorkOrder #24](https://github.com/pym96/Pan-agent/issues/24) (Criteria-Version `1.0`, C-CUT-01…10; C-CUT-07 high-risk) on exact base `c4796f7da173f1717d5c9adb07a9d2e13cc1cf8b`. It makes the existing TypeScript/Pi `GeneralAgentSession` the authoritative product and default Human route, retains the Python implementation as reference-only, and retains prior mechanism/evaluation work as experiment/reference. Language-neutral fixtures preserve canonical tool semantics, terminal outcomes, cancellation, and Context behavior without making the Python product package a TypeScript test or runtime dependency.
+The active lane is [WorkOrder #28](https://github.com/pym96/Pan-agent/issues/28) (Criteria-Version `1.0`, C-KER-01…10; C-KER-05, C-KER-06, and C-KER-10 high-risk) on exact base `255da3c043bdddde28b5f94d549725edddee2ff6`. It places a stable `AgentKernel` seam below the authoritative TypeScript `GeneralAgentSession`, keeps `PiKernel` as the unchanged default, and adds a repository-owned `NativeKernel` as an explicitly selected second implementation. Versioned language-neutral fixtures must run the same Context, ToolCall correlation, sequential batch, cancellation, budget, terminal, Event, and Archive contracts against both Kernels.
 
-The Bash-only ReAct lane is retired as an active mission; its raw artifacts, locks, reports, Evidence, and learning record remain historical experiment material. WorkOrder #24 must not edit those identities, make a Provider call, read a credential, query a balance, incur paid cost, claim security/benchmark/model quality, promote a fact, or begin #17. Its candidate requires deterministic TypeScript conformance, full regression, candidate-mode outer acceptance, immutable push, Human C-CUT-02 trial, and a different-session Regulator Verdict.
+WorkOrder #28 is deterministic and Faux-only. It must make no Provider call, read no Provider credential, query no balance, incur no cost, change no default Kernel, and edit no historical Python, Evidence, Wiki, benchmark, resume, or website material. The candidate requires full TypeScript, shared conformance, historical Python, protected-scope, TypeScript-without-Python, and outer acceptance checks, followed by an immutable candidate push and a different-session Regulator Verdict. Human Native use and any default cutover belong to later WorkOrder #29, not this lane.
+
+## Retained prior mission history | WorkOrder #24 (accepted and landed)
+
+WorkOrder #24 made TypeScript/Pi the authoritative product, retained Python as reference-only, and classified older mechanism/evaluation lanes as experiment/reference. The Bash-only ReAct lane is retired as an active mission. Its accepted candidate landed at `255da3c043bdddde28b5f94d549725edddee2ff6`; WorkOrder #28 does not reopen that decision or modify its historical Evidence.
 
 ## Retained prior mission history | WorkOrder #25 (accepted and landed)
 

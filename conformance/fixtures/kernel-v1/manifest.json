@@ -1,0 +1,11 @@
+{
+  "schema": "pan-agent-kernel-conformance-manifest/v1",
+  "cases": [
+    { "id": "selection", "file": "selection.json", "covers": ["C-KER-02"] },
+    { "id": "context-and-batch", "file": "context-and-batch.json", "covers": ["C-KER-03", "C-KER-04"] },
+    { "id": "invalid-correlation", "file": "invalid-correlation.json", "covers": ["C-KER-05"] },
+    { "id": "active-cancellation", "file": "active-cancellation.json", "covers": ["C-KER-06", "C-KER-08"] },
+    { "id": "budgets", "file": "budgets.json", "covers": ["C-KER-07", "C-KER-08"] },
+    { "id": "terminal-accounting", "file": "terminal-accounting.json", "covers": ["C-KER-08"] }
+  ]
+}

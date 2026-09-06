@@ -32,7 +32,8 @@ ln -s "$dependency_root" "$temporary_root/typescript/node_modules"
 
 if rg -n "workspace_agent_harness|from .*\.py|import .*\.py" \
   "$temporary_root/typescript/src" \
-  "$temporary_root/typescript/test/conformance.test.ts"; then
+  "$temporary_root/typescript/test/conformance.test.ts" \
+  "$temporary_root/typescript/test/kernel-conformance.test.ts"; then
   echo "TypeScript product or conformance runner references the removed implementation package" >&2
   exit 1
 fi

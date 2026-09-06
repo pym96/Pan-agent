@@ -9,11 +9,23 @@ The Human-operated TypeScript/Pi product: one `GeneralAgentSession`, its Provide
 _Avoid_: Python runtime synonym, ReAct experiment, benchmark machinery, Learning Wiki, development-agent workflow
 
 **GeneralAgentSession**:
-The deep TypeScript product Module that owns Pi's Agent loop and Context, one task at a time, while hiding event reduction, ToolCall correlation, cancellation, accounting, terminal classification, and durable archive writes behind `runTask(...)`.
-_Avoid_: copied AgentLoop, Provider SDK wrapper, one-shot prompt helper, whole repository
+The deep TypeScript product Module that admits one task at a time, binds Runbook and durable archive identity, and delegates iterative model/tool semantics through one selected AgentKernel behind `runTask(...)`.
+_Avoid_: Agent loop implementation, Provider SDK wrapper, one-shot prompt helper, whole repository
+
+**AgentKernel**:
+The stable TypeScript orchestration Interface below `GeneralAgentSession`. A Kernel owns retained Context, iterative model/tool exchange, ToolCall/ToolResult correlation, cancellation, turn/step budgets, terminal classification, and canonical model/tool Events while leaving Provider wire translation, concrete tools, durable memory, TUI, evaluation, and composition outside.
+_Avoid_: Provider Adapter, tool implementation, Archive store, TUI controller, whole product
+
+**PiKernel**:
+The default AgentKernel implementation that wraps the pinned Pi Agent orchestration and preserves the accepted product behavior.
+_Avoid_: synonym for AgentKernel, NativeKernel, Provider Adapter
+
+**NativeKernel**:
+The repository-owned AgentKernel implementation selected only through explicit `native`; it drives the existing Adapter and tools without instantiating or invoking Pi Agent orchestration.
+_Avoid_: default Kernel, Python AgentLoop, Provider wire Adapter, Pi fork
 
 **Context**:
-Pi-owned message history retained across tasks in one Human session. The application performs no arbitrary slicing or truncation; window management beyond this current behavior remains an explicit product limit.
+Kernel-owned typed message history retained across tasks in one Human session. The application performs no arbitrary slicing or truncation; window management beyond this current behavior remains an explicit product limit.
 _Avoid_: Run Archive, shell output alone, hidden Provider state, reference-runtime projection policy
 
 **Trusted-local tool**:

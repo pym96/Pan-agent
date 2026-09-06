@@ -1,0 +1,8 @@
+{
+  "schema": "pan-agent-kernel-conformance-case/v1",
+  "id": "selection",
+  "covers": ["C-KER-02"],
+  "task": "return the selected implementation result",
+  "response": "selected implementation completed",
+  "expected": { "terminal": "completed", "reason": "assistant_completed" }
+}

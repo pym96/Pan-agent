@@ -1,0 +1,10 @@
+{
+  "schema": "pan-agent-kernel-conformance-case/v1",
+  "id": "active-cancellation",
+  "covers": ["C-KER-06", "C-KER-08"],
+  "task": "start the delayed effect",
+  "call": { "id": "cancel-1", "name": "delayed_effect", "arguments": {} },
+  "cancel_after_start_ms": 10,
+  "effect_after_ms": 120,
+  "expected": { "terminal": "cancelled", "terminal_events": 1, "late_effect": false }
+}

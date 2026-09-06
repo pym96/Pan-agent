@@ -1,0 +1,21 @@
+{
+  "schema": "pan-agent-kernel-conformance-case/v1",
+  "id": "invalid-correlation",
+  "covers": ["C-KER-05"],
+  "recoverable_calls": [
+    { "id": "unknown-1", "name": "missing", "arguments": {} },
+    { "id": "invalid-1", "name": "record", "arguments": {} }
+  ],
+  "duplicate_calls": [
+    { "id": "duplicate-1", "name": "record", "arguments": { "value": "one" } },
+    { "id": "duplicate-1", "name": "record", "arguments": { "value": "two" } }
+  ],
+  "orphan_result": { "call_id": "orphan-1", "tool": "record", "text": "orphan" },
+  "expected": {
+    "recoverable_terminal": "completed",
+    "recoverable_error_ids": ["unknown-1", "invalid-1"],
+    "duplicate_terminal": "model_error",
+    "duplicate_reason": "duplicate_tool_call_id:duplicate-1",
+    "orphan_error": "orphan_tool_result:orphan-1"
+  }
+}

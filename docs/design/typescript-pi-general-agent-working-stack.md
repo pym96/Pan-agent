@@ -1,10 +1,10 @@
 # TypeScript/Pi General Agent Working Stack
 
-Status: WorkOrder #23's tracer bullet and WorkOrder #25's three-lane memory implementation are independently accepted and landed. WorkOrder #24 makes this the authoritative product path; the cutover remains a candidate pending Human trial and independent review.
+Status: WorkOrder #23's tracer bullet, WorkOrder #25's three-lane memory implementation, and WorkOrder #24's authoritative cutover are independently accepted and landed. WorkOrder #28 adds a pending-review Native Agent Kernel v0 while preserving PiKernel as default.
 
 ## Decision and scope
 
-The TypeScript/Pi General Agent Working Stack is the authoritative product direction; the accepted Python stack is reference-only. The product supplies one TUI, one persistent Pi session, one real DeepSeek Adapter, one deterministic Faux Adapter for tests, four Pi tools including a clearly labelled trusted-local shell, observable outcomes, and three distinct memory lanes.
+The TypeScript General Agent Working Stack is the authoritative product direction; the accepted Python stack is reference-only. The product supplies one TUI, one `GeneralAgentSession`, a default PiKernel and explicitly selected NativeKernel behind one AgentKernel seam, one real DeepSeek Adapter, one deterministic Faux Adapter for tests, four Pi-maintained tools including a clearly labelled trusted-local shell, observable outcomes, and three distinct memory lanes.
 
 WorkOrder #24 changes authority, navigation, and conformance ownership without deleting history or porting the reference AgentLoop. It does not import LangGraph, execute an evaluation matrix, change historical Evidence/VPF/Wiki claims, or make a paid model call.
 
@@ -16,18 +16,23 @@ Human TUI
     | task / cancellation / normalized observations
     v
 GeneralAgentSession Module
-    |-- Pi Agent: loop + maintained full transcript + typed validation
-    |-- PiModelAdapter Seam
-    |      |-- DeepSeek Adapter (real, construction is offline)
-    |      `-- Faux Adapter (deterministic tests)
-    `-- AgentTool Seam
-           |-- read / write / edit
-           `-- trusted-local bash
-                    |
-                    `-- Pi NodeExecutionEnv Implementation
+    |-- admission + Runbook binding + durable archive settlement
+    `-- AgentKernel Seam (default pi | explicit native)
+          |-- PiKernel: Pi Agent loop + full transcript
+          |-- NativeKernel: repository loop + typed Context
+          |-- PiModelAdapter Seam
+          |     |-- DeepSeek Adapter (real, construction is offline)
+          |     `-- Faux Adapter (deterministic tests)
+          `-- AgentTool Seam
+                |-- read / write / edit
+                `-- trusted-local bash
+                            |
+                            `-- Pi NodeExecutionEnv Implementation
 ```
 
-`GeneralAgentSession.runTask(task)` is the deep Module's primary Interface. The Module hides Pi event reduction, transcript ownership, tool correlation, cancellation, per-task accounting, and terminal classification. `cancel()`, `close()`, `isRunning`, and the retained Context message count complete the Human-session needs without exposing a second Agent loop.
+`GeneralAgentSession.runTask(task)` is the product Module's primary Interface. It hides Kernel selection, event reduction, transcript ownership, tool correlation, cancellation, per-task accounting, terminal classification, and archive settlement. `cancel()`, `close()`, `isRunning`, the selected Kernel identity, and retained Context message count complete the Human-session needs. The narrower AgentKernel Interface beneath it owns iterative semantics without absorbing Provider translation, tools, memory formats, TUI, or evaluation.
+
+PiKernel remains the default and is the only implementation allowed to construct Pi's `Agent`. NativeKernel directly drives the existing model Adapter and AgentTool contracts while preserving typed `user`, `assistant`, and `toolResult` history; it never instantiates Pi Agent orchestration or invokes Python. The detailed contract is in [`native-agent-kernel-v0.md`](native-agent-kernel-v0.md).
 
 The `PiModelAdapter` Seam has two real consumers: the production DeepSeek Adapter and a Faux Provider Adapter in deterministic tests. Both cross the same Pi `streamFn` and model contract. The tool-binding Adapter supplies one `NodeExecutionEnv` context to Pi's exported harness-tool Implementations; it does not fork or copy those Implementations.
 
@@ -50,11 +55,11 @@ The experimental `AgentHarness.prompt()` path was deliberately not selected beca
 
 ## Runtime behavior
 
-One TUI process creates one `GeneralAgentSession`. Successive task prompts call the same Pi `Agent`; Pi retains the full user/assistant/ToolResult transcript and supplies it to the next exchange. The application installs no arbitrary message slicing, character cutoff, semantic compressor, or transcript rewrite. A 64-turn task ceiling stops runaway orchestration without deleting Context.
+One TUI process creates one `GeneralAgentSession`. Successive task prompts use the same selected Kernel, which retains the full user/assistant/ToolResult transcript and supplies it to the next exchange. The application installs no arbitrary message slicing, character cutoff, semantic compressor, or transcript rewrite. A 64-turn task ceiling stops runaway orchestration without deleting Context; explicit positive tool-step limits are preflighted atomically.
 
 Every assistant message contributes a distinct model-settled observation containing public text, Provider/model/response identity when reported, stop reason, and usage. Thinking blocks are intentionally excluded from the display projection. Every ToolCall emits a start observation and every result emits a correlated settlement with `isError`; a nonzero shell exit therefore becomes an attributable error Observation that the Agent can react to, not a Harness crash.
 
-Malformed parameters and unknown tool names are rejected by Pi before the selected Implementation can execute. Tools run sequentially. Ctrl-C delegates to `Agent.abort()`; Pi propagates the AbortSignal into `NodeExecutionEnv`, which terminates the active shell process tree and produces an explicit `cancelled` Run terminal.
+Malformed parameters and unknown tool names become correlated typed error results before the selected Implementation can execute. Tools run sequentially. Ctrl-C delegates to the selected Kernel's cancellation control; both propagate the AbortSignal into the active tool, and `NodeExecutionEnv` terminates an active shell process tree before the session produces an explicit `cancelled` Run terminal.
 
 ## Trusted-local shell boundary
 
@@ -71,7 +76,7 @@ The startup display, confirmation prompt, tool label, package README, and system
 
 ## Deterministic acceptance surface
 
-`typescript/test/general-agent.test.ts` and the language-neutral fixtures in `conformance/` use Pi's Faux Provider with no network or credentials and verify through the public session Interface:
+`typescript/test/general-agent.test.ts`, `typescript/test/kernel-conformance.test.ts`, and the language-neutral fixtures in `conformance/` use Pi's Faux Provider with no network or credentials and verify through the public session Interface. The prior v1 cases preserve the accepted product contract, while `fixtures/kernel-v1` runs C-KER-02…08 against both Kernels and pins every prior fixture byte.
 
 1. a full read -> write -> edit -> shell -> final task;
 2. a nonzero shell exit retained as a typed error Observation;
@@ -86,8 +91,8 @@ The startup display, confirmation prompt, tool label, package README, and system
 11. TUI confirmation rejection closing with zero Provider calls;
 12. `--help` returning before Adapter construction with zero Provider calls.
 
-These tests establish deterministic candidate behavior only. They do not prove DeepSeek live quality, shell security, Context-window reliability, budget enforcement, benchmark performance, or independent acceptance.
+These tests establish deterministic candidate behavior only. They do not prove DeepSeek live quality, shell security, Context-window reliability, Native default-cutover readiness, benchmark performance, or independent acceptance.
 
 ## Deliberate divergence from the Python reference
 
-The Python stack remains unchanged and runnable as reference-only. It has a bounded workspace/no-shell profile, durable Run Event Logs, replay/views, semantic compaction, and Context-overflow recovery. The authoritative TypeScript product instead uses Pi's Agent loop and trusted-local tools plus the accepted three-lane memory contract (ADR-0015): per-run append-only sealed Run Archives with hash-chain integrity and zero-effect `:runs`/`:replay`, an append-only supersedes-only Retrospective Ledger, and a version-controlled Runbook bound by revision into each run. Checkpoint/resume across processes, compaction, overflow recovery, call/cost budgets, domain evaluators, and OS isolation remain open. Those differences are visible limits, not equivalence claims.
+The Python stack remains unchanged and runnable as reference-only. It has a bounded workspace/no-shell profile, durable Run Event Logs, replay/views, semantic compaction, and Context-overflow recovery. The authoritative TypeScript product instead uses the selected TypeScript Kernel and trusted-local tools plus the accepted three-lane memory contract (ADR-0015): per-run append-only sealed Run Archives with hash-chain integrity and zero-effect `:runs`/`:replay`, an append-only supersedes-only Retrospective Ledger, and a version-controlled Runbook bound by revision into each run. Checkpoint/resume across processes, compaction, overflow recovery, paid call/cost budgets, domain evaluators, and OS isolation remain open. Those differences are visible limits, not equivalence claims.
