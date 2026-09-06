@@ -1,19 +1,30 @@
 import { randomUUID } from "node:crypto";
-import type { AgentTool } from "@earendil-works/pi-agent-core";
 import {
-	validateToolCall,
+	describeAgentTool,
+	validateAgentTools,
+	type AgentTool,
+} from "../agent-tool.ts";
+import {
+	CanonicalProtocolError,
+	UNAVAILABLE,
+	addUsage,
+	assertJsonObject,
+	assistantPublicText,
+	validateCanonicalContext,
+	validateModelOutcome,
+	validateToolResult,
 	type AssistantMessage,
-	type Context,
+	type Availability,
 	type Message,
+	type ModelFailure,
+	type ModelOutcome,
+	type ResponseIdentity,
 	type ToolCall,
 	type ToolResultMessage,
-} from "@earendil-works/pi-ai";
-import type { PiModelAdapter } from "../model-adapter.ts";
+} from "../canonical-protocol.ts";
+import type { ModelAdapter } from "../model-adapter-contract.ts";
 import {
-	addUsage,
-	assistantPublicText,
 	EMPTY_USAGE,
-	validateSeededMessages,
 	type AgentKernel,
 	type KernelLimits,
 	type KernelRunRequest,
@@ -29,20 +40,24 @@ function errorText(error: unknown): string {
 }
 
 function toolCalls(message: AssistantMessage): ToolCall[] {
-	return message.content.filter((block): block is ToolCall => block.type === "toolCall");
+	return message.content.filter((block): block is ToolCall => block.type === "tool_call");
+}
+
+function reportedValue(value: Availability<string>): string | undefined {
+	return value.status === "reported" ? value.value : undefined;
 }
 
 export interface NativeKernelOptions {
-	readonly adapter: PiModelAdapter;
-	readonly tools: AgentTool[];
+	readonly adapter: ModelAdapter;
+	readonly tools: readonly AgentTool[];
 	readonly limits: KernelLimits;
 	readonly initialMessages?: readonly Message[];
 }
 
-/** Repository-owned loop. It uses the Adapter and AgentTool contracts, never Pi Agent orchestration. */
+/** Repository-owned loop. Its only model/tool dependencies are Pan-owned semantic contracts. */
 export class NativeKernel implements AgentKernel {
 	readonly kind = "native" as const;
-	private readonly adapter: PiModelAdapter;
+	private readonly adapter: ModelAdapter;
 	private readonly tools: AgentTool[];
 	private readonly limits: KernelLimits;
 	private readonly messages: Message[];
@@ -55,8 +70,9 @@ export class NativeKernel implements AgentKernel {
 	private closed = false;
 
 	constructor(options: NativeKernelOptions) {
+		validateAgentTools(options.tools);
 		try {
-			validateSeededMessages(options.initialMessages ?? []);
+			validateCanonicalContext(options.initialMessages ?? []);
 		} catch (error) {
 			this.seededContextError = errorText(error);
 		}
@@ -80,11 +96,6 @@ export class NativeKernel implements AgentKernel {
 		let admittedToolCalls = 0;
 		let usage = EMPTY_USAGE;
 		let finalText = "";
-		const seenToolCallIds = new Set(
-			this.messages
-				.filter((message): message is AssistantMessage => message.role === "assistant")
-				.flatMap((message) => toolCalls(message).map((call) => call.id)),
-		);
 		const terminal = (status: KernelRunResult["status"], reason: string): KernelRunResult => ({
 			status, reason, finalText, modelCalls, toolCalls: admittedToolCalls, usage,
 		});
@@ -95,93 +106,98 @@ export class NativeKernel implements AgentKernel {
 			while (true) {
 				if (controller.signal.aborted) return terminal("cancelled", "operator_cancelled");
 				if (modelCalls >= this.limits.maxModelTurns) return terminal("incomplete", "turn_limit");
+				validateCanonicalContext(this.messages);
 
 				const turn = modelCalls + 1;
 				await request.onObservation({ type: "model.turn_started", runId: request.runId, turn });
-				const context: Context = { systemPrompt: request.systemPrompt, messages: [...this.messages], tools: this.tools };
-				const source = await this.adapter.streamFn(this.adapter.model, context, {
-					sessionId: this.sessionId,
-					signal: controller.signal,
-					reasoning: this.adapter.thinkingLevel === "off" ? undefined : this.adapter.thinkingLevel,
-				});
-				const assistant = await source.result();
+				if (controller.signal.aborted) return terminal("cancelled", "operator_cancelled");
 				modelCalls += 1;
-				usage = addUsage(usage, assistant.usage);
-				finalText = assistantPublicText(assistant);
-				this.messages.push(assistant);
-				await request.onObservation({
-					type: "model.turn_settled",
-					runId: request.runId,
-					turn,
-					provider: assistant.provider,
-					model: assistant.responseModel ?? assistant.model,
-					responseId: assistant.responseId,
-					stopReason: assistant.stopReason,
-					usage: assistant.usage,
-					text: finalText,
-				});
-
-				if (controller.signal.aborted || assistant.stopReason === "aborted") {
-					return terminal("cancelled", assistant.errorMessage ?? "operator_cancelled");
-				}
-				if (assistant.stopReason === "error") {
-					return terminal("model_error", assistant.errorMessage ?? "provider_error");
-				}
-				if (assistant.stopReason === "length") return terminal("incomplete", "model_output_length");
-
-				const calls = toolCalls(assistant);
-				if (calls.length === 0) return terminal("completed", "assistant_completed");
-				const ids = new Set<string>();
-				for (const call of calls) {
-					if (ids.has(call.id) || seenToolCallIds.has(call.id)) {
-						this.messages[this.messages.length - 1] = {
-							...assistant,
-							content: assistant.content.filter((block) => block.type !== "toolCall"),
-							stopReason: "error",
-							errorMessage: `duplicate_tool_call_id:${call.id}`,
-						};
-						return terminal("model_error", `duplicate_tool_call_id:${call.id}`);
-					}
-					ids.add(call.id);
-				}
-				if (admittedToolCalls + calls.length > this.limits.maxToolSteps) {
-					this.messages[this.messages.length - 1] = {
-						...assistant,
-						content: assistant.content.filter((block) => block.type !== "toolCall"),
-						stopReason: "stop",
+				let outcome: ModelOutcome;
+				try {
+					outcome = await this.adapter.exchange({
+						sessionId: this.sessionId,
+						context: {
+							systemPrompt: request.systemPrompt,
+							messages: [...this.messages],
+							tools: this.tools.map(describeAgentTool),
+						},
+						signal: controller.signal,
+					});
+				} catch (error) {
+					const cancelled = controller.signal.aborted;
+					const failure: ModelFailure = {
+						kind: "failure",
+						category: cancelled ? "cancelled" : "unknown",
+						detail: cancelled ? "operator_cancelled" : `adapter_exception:${errorText(error)}`,
+						retryable: false,
+						usage: UNAVAILABLE,
+						identity: {
+							provider: { status: "reported", value: this.adapter.providerId },
+							model: { status: "reported", value: this.adapter.modelId },
+							responseId: UNAVAILABLE,
+						},
 					};
+					usage = addUsage(usage, failure.usage);
+					await this.observeModelSettlement(request, turn, failure, cancelled ? "aborted" : "error", "");
+					return terminal(cancelled ? "cancelled" : "model_error", failure.detail);
+				}
+				usage = addUsage(usage, outcome.usage);
+
+				try {
+					validateModelOutcome(outcome, this.messages);
+				} catch (error) {
+					const failure = this.protocolFailure(error, outcome.identity, outcome.usage);
+					await this.observeModelSettlement(request, turn, failure, "error", "");
+					return terminal("model_error", failure.detail);
+				}
+
+				if (outcome.kind === "failure") {
+					await this.observeModelSettlement(
+						request,
+						turn,
+						outcome,
+						outcome.category === "cancelled" ? "aborted" : "error",
+						"",
+					);
+					return terminal(
+						outcome.category === "cancelled" || controller.signal.aborted ? "cancelled" : "model_error",
+						outcome.detail,
+					);
+				}
+
+				finalText = assistantPublicText(outcome.message);
+				this.messages.push(outcome.message);
+				await this.observeModelSettlement(request, turn, outcome, outcome.stopReason, finalText);
+				if (controller.signal.aborted) return terminal("cancelled", "operator_cancelled");
+				if (outcome.stopReason === "length") return terminal("incomplete", "model_output_length");
+
+				const calls = toolCalls(outcome.message);
+				if (calls.length === 0) return terminal("completed", "assistant_completed");
+				if (admittedToolCalls + calls.length > this.limits.maxToolSteps) {
+					this.messages.pop();
 					return terminal("incomplete", "step_limit");
 				}
 				admittedToolCalls += calls.length;
-				for (const call of calls) seenToolCallIds.add(call.id);
 
 				for (const call of calls) {
 					if (controller.signal.aborted) return terminal("cancelled", "operator_cancelled");
-					await request.onObservation({ type: "tool.started", runId: request.runId, toolCallId: call.id, toolName: call.name, arguments: call.arguments });
-					let result: ToolResultMessage;
-					const tool = this.tools.find((candidate) => candidate.name === call.name);
-					if (!tool) {
-						result = this.errorResult(call, `Tool ${call.name} not found`);
-					} else {
-						try {
-							const prepared: ToolCall = tool.prepareArguments
-								? { ...call, arguments: tool.prepareArguments(call.arguments) as Record<string, unknown> }
-								: call;
-							const parameters = validateToolCall([tool], prepared);
-							const executed = await tool.execute(call.id, parameters, controller.signal);
-							result = {
-								role: "toolResult", toolCallId: call.id, toolName: call.name,
-								content: executed.content, details: executed.details, usage: executed.usage,
-								addedToolNames: executed.addedToolNames, isError: false, timestamp: Date.now(),
-							};
-						} catch (error) {
-							result = this.errorResult(call, errorText(error));
-						}
-					}
+					await request.onObservation({
+						type: "tool.started",
+						runId: request.runId,
+						toolCallId: call.id,
+						toolName: call.name,
+						arguments: call.arguments,
+					});
+					if (controller.signal.aborted) return terminal("cancelled", "operator_cancelled");
+					const result = await this.executeTool(call, controller.signal);
 					this.messages.push(result);
 					await request.onObservation({
-						type: "tool.settled", runId: request.runId, toolCallId: call.id,
-						toolName: call.name, isError: result.isError, text: resultText(result.content),
+						type: "tool.settled",
+						runId: request.runId,
+						toolCallId: call.id,
+						toolName: call.name,
+						isError: result.isError,
+						text: resultText(result.content),
 					});
 					if (controller.signal.aborted) return terminal("cancelled", "operator_cancelled");
 				}
@@ -208,10 +224,70 @@ export class NativeKernel implements AgentKernel {
 		this.closed = true;
 	}
 
+	private async executeTool(call: ToolCall, signal: AbortSignal): Promise<ToolResultMessage> {
+		const tool = this.tools.find((candidate) => candidate.name === call.name);
+		if (!tool) return this.errorResult(call, `Tool ${call.name} not found`);
+		try {
+			const validation = tool.validate(call.arguments);
+			if (!validation.ok) return this.errorResult(call, validation.error);
+			assertJsonObject(validation.value, `validated_arguments:${call.name}`);
+			if (signal.aborted) throw new Error("Operation aborted before Tool effect");
+			const executed = await tool.execute({ toolCallId: call.id, arguments: validation.value, signal });
+			const result: ToolResultMessage = {
+				role: "tool_result",
+				toolCallId: call.id,
+				toolName: call.name,
+				content: executed.content,
+				...(executed.details === undefined ? {} : { details: executed.details }),
+				isError: false,
+				timestamp: Date.now(),
+			};
+			validateToolResult(result);
+			return result;
+		} catch (error) {
+			return this.errorResult(call, errorText(error));
+		}
+	}
+
 	private errorResult(call: ToolCall, message: string): ToolResultMessage {
 		return {
-			role: "toolResult", toolCallId: call.id, toolName: call.name,
-			content: [{ type: "text", text: message }], isError: true, timestamp: Date.now(),
+			role: "tool_result",
+			toolCallId: call.id,
+			toolName: call.name,
+			content: [{ type: "text", text: message }],
+			isError: true,
+			timestamp: Date.now(),
 		};
+	}
+
+	private protocolFailure(error: unknown, identity: ResponseIdentity, failureUsage: ModelOutcome["usage"]): ModelFailure {
+		const detail = error instanceof CanonicalProtocolError ? error.code : errorText(error);
+		return { kind: "failure", category: "protocol", detail, retryable: false, usage: failureUsage, identity };
+	}
+
+	private async observeModelSettlement(
+		request: KernelRunRequest,
+		turn: number,
+		outcome: ModelOutcome,
+		stopReason: string,
+		text: string,
+	): Promise<void> {
+		const identity = outcome.identity;
+		const provider = reportedValue(identity.provider);
+		const model = reportedValue(identity.model);
+		const responseId = reportedValue(identity.responseId);
+		await request.onObservation({
+			type: "model.turn_settled",
+			runId: request.runId,
+			turn,
+			...(provider === undefined ? {} : { provider }),
+			...(model === undefined ? {} : { model }),
+			...(responseId === undefined ? {} : { responseId }),
+			identity,
+			stopReason,
+			usage: outcome.usage,
+			text,
+			...(outcome.kind === "failure" ? { failure: outcome } : {}),
+		});
 	}
 }

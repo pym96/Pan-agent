@@ -30,8 +30,10 @@ export function renderObservation(observation: SessionObservation): string[] {
 			return [`MODEL turn=${observation.turn} started`];
 		case "model.turn_settled":
 			return [
-				`MODEL turn=${observation.turn} settled provider=${observation.provider} model=${observation.model} response_id=${observation.responseId ?? "unknown"} stop=${observation.stopReason}`,
-				`USAGE input=${observation.usage.input} output=${observation.usage.output} cache_read=${observation.usage.cacheRead} cache_write=${observation.usage.cacheWrite} total=${observation.usage.totalTokens}`,
+				`MODEL turn=${observation.turn} settled provider=${observation.provider ?? "unknown"} model=${observation.model ?? "unknown"} response_id=${observation.responseId ?? "unknown"} stop=${observation.stopReason}`,
+				...(observation.usage.status === "reported"
+					? [`USAGE input=${observation.usage.value.input} output=${observation.usage.value.output} cache_read=${observation.usage.value.cacheRead} cache_write=${observation.usage.value.cacheWrite} total=${observation.usage.value.totalTokens}`]
+					: ["USAGE unavailable"]),
 				...(observation.text ? [`ASSISTANT ${observation.text}`] : []),
 			];
 		case "tool.started":
@@ -49,7 +51,8 @@ export function renderObservation(observation: SessionObservation): string[] {
 }
 
 export function renderRunSummary(result: TaskRunResult): string {
-	return `RUN_SUMMARY run=${result.runId} terminal=${result.status} model_calls=${result.modelCalls} tool_calls=${result.toolCalls} total_tokens=${result.usage.totalTokens} context_retained=true archive_sealed=${result.archiveSealed}`;
+	const totalTokens = result.usage.status === "reported" ? result.usage.value.totalTokens : "unknown";
+	return `RUN_SUMMARY run=${result.runId} terminal=${result.status} model_calls=${result.modelCalls} tool_calls=${result.toolCalls} total_tokens=${totalTokens} context_retained=true archive_sealed=${result.archiveSealed}`;
 }
 
 /** Render one archived record for zero-effect replay; never executes anything. */

@@ -13,9 +13,11 @@ import {
 	fauxProvider,
 	fauxToolCall,
 	type FauxProviderHandle,
-	type Usage,
+	type Message as PiMessage,
 } from "@earendil-works/pi-ai";
+import { addUsage, ZERO_REPORTED_USAGE, type Usage } from "../src/canonical-protocol.ts";
 import type { PiModelAdapter } from "../src/model-adapter.ts";
+import { adaptPiAgentTools, adaptPiModelAdapter, piMessagesToPan } from "../src/pi-compatibility.ts";
 import { RunArchiveStore } from "../src/run-archive.ts";
 import {
 	GeneralAgentSession,
@@ -74,23 +76,26 @@ async function session(
 	options: { limits?: Partial<KernelLimits>; onObservation?: (observation: SessionObservation) => void } = {},
 ): Promise<{ session: GeneralAgentSession; archiveStore: RunArchiveStore }> {
 	const archiveStore = await RunArchiveStore.open(join(root, "memory"));
+	const shared = {
+		systemPrompt: "kernel conformance",
+		limits: options.limits,
+		memory: {
+			archiveStore,
+			runbook: async () => ({ content: "conformance", revision: TEST_RUNBOOK_REVISION }),
+		},
+		onObservation(observation: SessionObservation) {
+			observations.push(observation);
+			options.onObservation?.(observation);
+		},
+	};
 	return {
 		archiveStore,
-		session: new GeneralAgentSession({
-			adapter: modelAdapter,
-			tools,
-			systemPrompt: "kernel conformance",
-			kernel,
-			limits: options.limits,
-			memory: {
-				archiveStore,
-				runbook: async () => ({ content: "conformance", revision: TEST_RUNBOOK_REVISION }),
-			},
-			onObservation(observation) {
-				observations.push(observation);
-				options.onObservation?.(observation);
-			},
-		}),
+		session: kernel === "native"
+			? new GeneralAgentSession({
+				...shared, kernel: "native",
+				adapter: adaptPiModelAdapter(modelAdapter), tools: adaptPiAgentTools(tools),
+			})
+			: new GeneralAgentSession({ ...shared, kernel: "pi", adapter: modelAdapter, tools }),
 	};
 }
 
@@ -112,24 +117,8 @@ function recordTool(effect: (id: string, value: string, signal?: AbortSignal) =>
 function sumUsage(events: readonly SessionObservation[]): Usage {
 	return events.reduce<Usage>((total, event) => {
 		if (event.type !== "model.turn_settled") return total;
-		return {
-			input: total.input + event.usage.input,
-			output: total.output + event.usage.output,
-			cacheRead: total.cacheRead + event.usage.cacheRead,
-			cacheWrite: total.cacheWrite + event.usage.cacheWrite,
-			totalTokens: total.totalTokens + event.usage.totalTokens,
-			cost: {
-				input: total.cost.input + event.usage.cost.input,
-				output: total.cost.output + event.usage.cost.output,
-				cacheRead: total.cost.cacheRead + event.usage.cost.cacheRead,
-				cacheWrite: total.cost.cacheWrite + event.usage.cost.cacheWrite,
-				total: total.cost.total + event.usage.cost.total,
-			},
-		};
-	}, {
-		input: 0, output: 0, cacheRead: 0, cacheWrite: 0, totalTokens: 0,
-		cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, total: 0 },
-	});
+		return addUsage(total, event.usage);
+	}, ZERO_REPORTED_USAGE);
 }
 
 async function assertTerminalAccounting(
@@ -298,12 +287,21 @@ test("C-KER-05 invalid-correlation fixture runs unchanged against both Kernels",
 		const orphanModel = adapter();
 		const orphanObservations: SessionObservation[] = [];
 		const orphanStore = await RunArchiveStore.open(join(orphanRoot, "memory"));
-		const orphanSession = new GeneralAgentSession({
-			adapter: orphanModel.adapter, tools: [], systemPrompt: "test", kernel,
-			initialMessages: [{ role: "toolResult", toolCallId: orphan.call_id, toolName: orphan.tool, content: [{ type: "text", text: orphan.text }], isError: true, timestamp: 1 }],
+		const initialMessages: PiMessage[] = [{
+			role: "toolResult", toolCallId: orphan.call_id, toolName: orphan.tool,
+			content: [{ type: "text", text: orphan.text }], isError: true, timestamp: 1,
+		}];
+		const shared = {
+			systemPrompt: "test",
 			memory: { archiveStore: orphanStore, runbook: async () => ({ content: "", revision: TEST_RUNBOOK_REVISION }) },
-			onObservation(observation) { orphanObservations.push(observation); },
-		});
+			onObservation(observation: SessionObservation) { orphanObservations.push(observation); },
+		};
+		const orphanSession = kernel === "native"
+			? new GeneralAgentSession({
+				...shared, kernel: "native", adapter: adaptPiModelAdapter(orphanModel.adapter), tools: [],
+				initialMessages: piMessagesToPan(initialMessages),
+			})
+			: new GeneralAgentSession({ ...shared, kernel: "pi", adapter: orphanModel.adapter, tools: [], initialMessages });
 		try {
 			const result = await orphanSession.runTask("reject orphan result");
 			assert.equal(result.status, "model_error", kernel);

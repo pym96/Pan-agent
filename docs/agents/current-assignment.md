@@ -2,11 +2,15 @@
 
 This document owns the current project lane, constraints, and non-goals. It does not grant a session-specific task or establish implementation facts. A Working session starts only from a Master-published WorkOrder, and that WorkOrder cannot widen this lane or override Human decisions. Read the fact register linked from the root Agent map before making any current-state statement.
 
-## Active mission | WorkOrder #28 Native Agent Kernel v0
+## Active mission | WorkOrder #31 Pan-owned canonical protocol and seams
 
-The active lane is [WorkOrder #28](https://github.com/pym96/Pan-agent/issues/28) (Criteria-Version `1.0`, C-KER-01…10; C-KER-05, C-KER-06, and C-KER-10 high-risk) on exact base `255da3c043bdddde28b5f94d549725edddee2ff6`. It places a stable `AgentKernel` seam below the authoritative TypeScript `GeneralAgentSession`, keeps `PiKernel` as the unchanged default, and adds a repository-owned `NativeKernel` as an explicitly selected second implementation. Versioned language-neutral fixtures must run the same Context, ToolCall correlation, sequential batch, cancellation, budget, terminal, Event, and Archive contracts against both Kernels.
+The active lane is [WorkOrder #31](https://github.com/pym96/Pan-agent/issues/31) (Criteria-Version `1.0`, C-PFREE-A01…A07; C-PFREE-A04 high-risk) on exact accepted base `895aa65654405cf7f96cf4ec31dbb5f1031b13e2`. It establishes repository-owned canonical Message/ToolCall/ToolResult/Usage/ModelResponse/identity/failure semantics plus `ModelAdapter` and `AgentTool` Interfaces, then migrates NativeKernel to those seams. `PiKernel` remains the default through an explicitly named transitional compatibility Module.
 
-WorkOrder #28 is deterministic and Faux-only. It must make no Provider call, read no Provider credential, query no balance, incur no cost, change no default Kernel, and edit no historical Python, Evidence, Wiki, benchmark, resume, or website material. The candidate requires full TypeScript, shared conformance, historical Python, protected-scope, TypeScript-without-Python, and outer acceptance checks, followed by an immutable candidate push and a different-session Regulator Verdict. Human Native use and any default cutover belong to later WorkOrder #29, not this lane.
+WorkOrder #31 is deterministic and test-local only. It makes no Provider call, reads no Provider credential, queries no balance, starts no paid/formal Run, and changes no historical Python, Evidence, Wiki, benchmark, resume, website, dependency identity, or outer HEAD anchor. It does not begin the reusable Faux/Tool work in #32, direct DeepSeek work in #33, dependency removal in #34, packed-consumer verification in #35, live work in #36, or default cutover in #29.
+
+## Accepted foundation | WorkOrder #28 Native Agent Kernel v0
+
+WorkOrder #28 passed its independent Regulator Gate, received the required Human high-risk review, and landed unchanged at `895aa65654405cf7f96cf4ec31dbb5f1031b13e2`. It established the `AgentKernel` seam, default `PiKernel`, explicit repository-owned `NativeKernel`, and shared Context/correlation/scheduling/cancellation/budget/terminal/Event/Archive behavior. #31 may replace NativeKernel's temporary Pi-shaped semantic dependencies but must preserve that accepted public behavior and default selection.
 
 ## Retained prior mission history | WorkOrder #24 (accepted and landed)
 

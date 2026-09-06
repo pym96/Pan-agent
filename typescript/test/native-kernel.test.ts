@@ -13,6 +13,7 @@ import {
 	type Message,
 } from "@earendil-works/pi-ai";
 import type { PiModelAdapter } from "../src/model-adapter.ts";
+import { adaptPiAgentTools, adaptPiModelAdapter, piMessagesToPan } from "../src/pi-compatibility.ts";
 import { RunArchiveStore } from "../src/run-archive.ts";
 import { GeneralAgentSession, type SessionObservation } from "../src/session.ts";
 import type { KernelSelector } from "../src/session.ts";
@@ -57,6 +58,22 @@ function semanticHistory(messages: readonly Message[]): unknown[] {
 	});
 }
 
+function kernelDependencies(
+	kernel: KernelSelector,
+	adapter: PiModelAdapter,
+	tools: AgentTool[],
+	initialMessages: readonly Message[] = [],
+) {
+	return kernel === "native"
+		? {
+			kernel: "native" as const,
+			adapter: adaptPiModelAdapter(adapter),
+			tools: adaptPiAgentTools(tools),
+			initialMessages: piMessagesToPan(initialMessages),
+		}
+		: { kernel: "pi" as const, adapter, tools, initialMessages };
+}
+
 test("C-KER-03/04 NativeKernel retains typed Context and settles a ToolCall batch sequentially", async () => {
 	const directory = await root();
 	const { faux, adapter } = fauxAdapter();
@@ -90,10 +107,8 @@ test("C-KER-03/04 NativeKernel retains typed Context and settles a ToolCall batc
 	]);
 	const observations: SessionObservation[] = [];
 	const session = new GeneralAgentSession({
-		adapter,
-		tools: [tool],
+		...kernelDependencies("native", adapter, [tool]),
 		systemPrompt: "test",
-		kernel: "native",
 		memory: {
 			archiveStore: await RunArchiveStore.open(join(directory, "memory")),
 			runbook: async () => ({ content: "test", revision: TEST_RUNBOOK_REVISION }),
@@ -212,15 +227,13 @@ test("C-KER-05 orphan seeded ToolResults settle model_error before model or tool
 		const directory = await root();
 		const { faux, adapter } = fauxAdapter();
 		const observations: SessionObservation[] = [];
+		const initialMessages: Message[] = [{
+			role: "toolResult", toolCallId: "orphan", toolName: "missing",
+			content: [{ type: "text", text: "orphan" }], isError: true, timestamp: 1,
+		}];
 		const session = new GeneralAgentSession({
-			adapter,
-			tools: [],
+			...kernelDependencies(kernel, adapter, [], initialMessages),
 			systemPrompt: "test",
-			kernel,
-			initialMessages: [{
-				role: "toolResult", toolCallId: "orphan", toolName: "missing",
-				content: [{ type: "text", text: "orphan" }], isError: true, timestamp: 1,
-			}],
 			memory: {
 				archiveStore: await RunArchiveStore.open(join(directory, "memory")),
 				runbook: async () => ({ content: "test", revision: TEST_RUNBOOK_REVISION }),
@@ -247,10 +260,8 @@ async function kernelSession(
 	observations: SessionObservation[],
 ): Promise<GeneralAgentSession> {
 	return new GeneralAgentSession({
-		adapter,
-		tools,
+		...kernelDependencies(kernel, adapter, tools),
 		systemPrompt: "test",
-		kernel,
 		memory: {
 			archiveStore: await RunArchiveStore.open(join(directory, "memory")),
 			runbook: async () => ({ content: "test", revision: TEST_RUNBOOK_REVISION }),
@@ -294,7 +305,7 @@ test("C-KER-06 both Kernels cancel the active tool with no late effect and one f
 		observations.length = 0;
 		const archiveStore = await RunArchiveStore.open(join(directory, "memory-2"));
 		session = new GeneralAgentSession({
-			adapter, tools: [tool], systemPrompt: "test", kernel,
+			...kernelDependencies(kernel, adapter, [tool]), systemPrompt: "test",
 			memory: { archiveStore, runbook: async () => ({ content: "test", revision: TEST_RUNBOOK_REVISION }) },
 			onObservation(observation) { observations.push(observation); cancelOnStart(observation); },
 		});
@@ -405,7 +416,7 @@ async function limitedSession(
 	limits: { maxModelTurns?: number; maxToolSteps?: number },
 ): Promise<GeneralAgentSession> {
 	return new GeneralAgentSession({
-		adapter, tools, systemPrompt: "test", kernel, limits,
+		...kernelDependencies(kernel, adapter, tools), systemPrompt: "test", limits,
 		memory: {
 			archiveStore: await RunArchiveStore.open(join(directory, "memory")),
 			runbook: async () => ({ content: "test", revision: TEST_RUNBOOK_REVISION }),

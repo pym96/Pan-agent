@@ -33,7 +33,7 @@ The TUI displays the resolved Provider/model/workspace/memory identities and req
 | Proof packs and evaluators | **experiment/reference** |
 | Benchmark machinery | **experiment/reference** |
 
-Language-neutral conformance fixtures under [`conformance/`](conformance/) preserve only cross-implementation semantics: the retained read/write/edit/bash tool meanings, attributable terminal kinds, active-tool cancellation, cross-task Context behavior, and the pending WorkOrder #28 Kernel contract. The TypeScript runners consume them through the public `GeneralAgentSession` Interface without importing or executing the Python package; the new Kernel manifest runs unchanged against default `pi` and explicit `native`.
+Language-neutral conformance fixtures under [`conformance/`](conformance/) preserve only cross-implementation semantics: the retained read/write/edit/bash tool meanings, attributable terminal kinds, active-tool cancellation, cross-task Context behavior, and the accepted WorkOrder #28 Kernel contract. The TypeScript runners consume them through the public `GeneralAgentSession` Interface without importing or executing the Python package; the Kernel manifest runs unchanged against default `pi` and explicit `native`.
 
 ## Learning Wiki
 
@@ -41,7 +41,7 @@ The project maintains a source-grounded [Learning Wiki](wiki/index.md) recording
 
 ## Authoritative TypeScript/Pi working stack
 
-The [TypeScript package and Human command](typescript/README.md) are backed by the [working-stack design](docs/design/typescript-pi-general-agent-working-stack.md). One deep `GeneralAgentSession` Module delegates iterative semantics through an [AgentKernel seam](docs/design/native-agent-kernel-v0.md): PiKernel remains default, while NativeKernel is an explicit pending-review second implementation. Both reuse the real DeepSeek Adapter, typed read/write/edit/bash tools, TUI, attributable outcomes, and memory lanes. All WorkOrder #28 tests use the deterministic Faux Adapter and make no Provider call.
+The [TypeScript package and Human command](typescript/README.md) are backed by the [working-stack design](docs/design/typescript-pi-general-agent-working-stack.md). One deep `GeneralAgentSession` Module delegates iterative semantics through the accepted [AgentKernel seam](docs/design/native-agent-kernel-v0.md): PiKernel remains default, while NativeKernel is an explicit repository-owned implementation. WorkOrder #31's pending-review [canonical protocol design](docs/design/pan-owned-canonical-protocol.md) moves NativeKernel onto Pan-owned ModelAdapter and AgentTool Interfaces; the production Pi bridges remain transitional until #32/#33. All #31 tests are deterministic and make no Provider call.
 
 The shell is explicitly **trusted-local**: it runs as the host user, and the selected workspace is only the default cwd. It claims neither path containment nor an OS/network sandbox. The Python shell/PTY implementation remains available for comparison, but it is not the default product route.
 

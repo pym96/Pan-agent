@@ -2,6 +2,17 @@
 
 These scripts prepare ignored local state and invoke pinned external tooling. They do not produce benchmark Claims or update the project fact register.
 
+## WorkOrder #31 Pan-owned contract checks
+
+Run the focused Pan protocol/Adapter/Tool suite and verify the frozen write scope, protected bytes, NativeKernel import boundary, and unchanged Pi dependency declarations:
+
+```bash
+npm --prefix typescript run pan-contracts
+bash scripts/check_workorder_31_scope.sh
+```
+
+The checks use only test-local scripted adapters/tools. Provider calls, credential reads, balance queries, paid/formal runs, and cost are `0 / 0 / 0 / 0 / CNY 0`. Passing them does not remove Pi from the package, switch the default Kernel, accept #31, or authorize downstream #32–#36 work.
+
 ## WorkOrder #28 Native Agent Kernel checks
 
 Run the versioned language-neutral Kernel contract against both `pi` and `native`, verify that the TypeScript product remains runnable with the historical Python package physically absent, and confirm WorkOrder #28 did not change protected Python, Evidence, Wiki, benchmark-lock, or accepted v1 conformance paths:

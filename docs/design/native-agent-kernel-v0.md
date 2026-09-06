@@ -1,6 +1,6 @@
 # Native Agent Kernel v0
 
-Status: WorkOrder #28 Builder candidate on accepted base `255da3c043bdddde28b5f94d549725edddee2ff6`; pending independent Regulator Verdict.
+Status: WorkOrder #28 accepted and landed at `895aa65654405cf7f96cf4ec31dbb5f1031b13e2`. WorkOrder #31's follow-up Pan-owned contract migration is a Builder candidate pending independent Verdict.
 
 Criteria-Version: `1.0` (`C-KER-01`…`C-KER-10`).
 
@@ -30,7 +30,7 @@ TUI / CLI composition (`--kernel pi|native`, default pi)
 
 `PiKernel` is the compatibility implementation and the only source module that constructs Pi's `Agent`. Omission of `--kernel` and explicit `--kernel pi` select the same implementation. Its accepted 64-model-turn default remains, and the tool-step default is effectively unbounded for compatibility; an explicit smaller positive budget activates the shared atomic preflight.
 
-`NativeKernel` directly invokes the existing `PiModelAdapter.streamFn` contract and existing `AgentTool` implementations. It does not instantiate Pi `Agent`, call Pi's agent loop, or invoke Python. Provider-neutral Pi AI message/tool types and validation utilities remain the translation/tool contracts rather than orchestration. The Native loop retains ordered `user`, `assistant`, and `toolResult` messages without flattening them into synthetic user JSON.
+On the #31 candidate, `NativeKernel` invokes only the Pan-owned [`ModelAdapter`](pan-owned-canonical-protocol.md#modeladapter-seam) and [`AgentTool`](pan-owned-canonical-protocol.md#agenttool-admission) Interfaces. It imports neither Pi semantic types nor Pi validation/orchestration. The Native loop retains ordered canonical `user`, `assistant`, and `tool_result` messages without flattening them into synthetic user JSON. Until downstream replacements land, production Pi Provider/Tool implementations cross the explicitly named transitional compatibility Module outside NativeKernel; PiKernel remains the default.
 
 ## Native turn semantics
 

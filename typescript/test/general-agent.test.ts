@@ -120,7 +120,8 @@ test("one Pi session performs read/write/edit/trusted-local shell and exposes ty
 					observation.type === "model.turn_settled" && observation.responseId === "response-final",
 			),
 		);
-		assert.ok(result.usage.totalTokens > 0);
+		assert.equal(result.usage.status, "reported");
+		assert.ok(result.usage.status === "reported" && result.usage.value.totalTokens > 0);
 	} finally {
 		await session.close();
 	}

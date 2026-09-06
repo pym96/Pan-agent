@@ -6,10 +6,12 @@ import { afterEach, test } from "node:test";
 import { createModels, fauxAssistantMessage, fauxProvider } from "@earendil-works/pi-ai";
 import { parseCliArgs } from "../src/cli.ts";
 import type { PiModelAdapter } from "../src/model-adapter.ts";
+import { adaptPiAgentTools, adaptPiModelAdapter } from "../src/pi-compatibility.ts";
 import { RunArchiveStore } from "../src/run-archive.ts";
 import {
 	GENERAL_AGENT_SYSTEM_PROMPT,
 	GeneralAgentSession,
+	type GeneralAgentSessionOptions,
 	type KernelSelector,
 	type SessionObservation,
 } from "../src/session.ts";
@@ -43,20 +45,28 @@ async function runPiSelection(kernel?: KernelSelector): Promise<{
 	faux.setResponses([fauxAssistantMessage("same public answer", { responseId: "same-response" })]);
 	const trustedLocal = createTrustedLocalTools(directory);
 	const observations: SessionObservation[] = [];
-	const session = new GeneralAgentSession({
-		adapter,
-		tools: trustedLocal.tools,
+	const shared = {
 		systemPrompt: GENERAL_AGENT_SYSTEM_PROMPT,
 		memory: {
 			archiveStore: await RunArchiveStore.open(join(directory, "memory")),
 			runbook: async () => ({ content: "test", revision: TEST_RUNBOOK_REVISION }),
 		},
-		...(kernel === undefined ? {} : { kernel }),
-		onObservation: (observation) => {
+		onObservation: (observation: SessionObservation) => {
 			observations.push(observation);
 		},
 		cleanup: () => trustedLocal.environment.cleanup(),
-	});
+	};
+	const session = kernel === "native"
+		? new GeneralAgentSession({
+			...shared, kernel: "native",
+			adapter: adaptPiModelAdapter(adapter), tools: adaptPiAgentTools(trustedLocal.tools),
+		})
+		: new GeneralAgentSession({
+			...shared,
+			...(kernel === undefined ? {} : { kernel: "pi" as const }),
+			adapter,
+			tools: trustedLocal.tools,
+		});
 	try {
 		return { result: await session.runTask("same task"), observations };
 	} finally {
@@ -98,7 +108,7 @@ test("C-KER-02 CLI defaults to pi, accepts native, and rejects unknown selectors
 				archiveStore: {} as never,
 				runbook: async () => ({ content: "", revision: TEST_RUNBOOK_REVISION }),
 			},
-		}),
+		} as unknown as GeneralAgentSessionOptions),
 		/Unsupported kernel: other/,
 	);
 });

@@ -12,6 +12,7 @@ import {
 } from "./model-adapter.ts";
 import { RunArchiveStore } from "./run-archive.ts";
 import { loadRunbook } from "./runbook.ts";
+import { adaptPiAgentTools, adaptPiModelAdapter } from "./pi-compatibility.ts";
 import { GENERAL_AGENT_SYSTEM_PROMPT, GeneralAgentSession } from "./session.ts";
 import { createTrustedLocalTools, TRUSTED_LOCAL_SHELL_LABEL } from "./tools.ts";
 import { renderObservation, runTui } from "./tui.ts";
@@ -132,17 +133,27 @@ export async function runCli(args: readonly string[], dependencies: CliDependenc
 	const adapterFactory = dependencies.createAdapter ?? createPiDeepSeekAdapter;
 	const adapter = adapterFactory(configuration.profile);
 	const trustedLocal = createTrustedLocalTools(workspace);
-	const session = new GeneralAgentSession({
-		adapter,
-		tools: trustedLocal.tools,
+	const shared = {
 		systemPrompt: GENERAL_AGENT_SYSTEM_PROMPT,
 		memory: { archiveStore, runbook: () => loadRunbook(RUNBOOK_PATH) },
-		kernel: configuration.kernel,
-		onObservation(observation) {
+		onObservation(observation: Parameters<typeof renderObservation>[0]) {
 			for (const line of renderObservation(observation)) writeLine(line);
 		},
 		cleanup: () => trustedLocal.environment.cleanup(),
-	});
+	};
+	const session = configuration.kernel === "native"
+		? new GeneralAgentSession({
+			...shared,
+			kernel: "native",
+			adapter: adaptPiModelAdapter(adapter),
+			tools: adaptPiAgentTools(trustedLocal.tools),
+		})
+		: new GeneralAgentSession({
+			...shared,
+			kernel: "pi",
+			adapter,
+			tools: trustedLocal.tools,
+		});
 	writeLine(`BOUNDARY ${TRUSTED_LOCAL_SHELL_LABEL}`);
 	writeLine(`MEMORY ${memoryRoot}`);
 	return (dependencies.startTui ?? runTui)({

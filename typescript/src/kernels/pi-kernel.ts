@@ -12,14 +12,19 @@ import {
 	type AssistantMessage,
 	type Message,
 	type Model,
-	type Usage,
 } from "@earendil-works/pi-ai";
 import type { PiModelAdapter } from "../model-adapter.ts";
+import type { Usage } from "../canonical-protocol.ts";
+import {
+	piAssistantIdentity,
+	piAssistantPublicText,
+	piMessagesToPan,
+	piUsageToPan,
+} from "../pi-compatibility.ts";
+import { validateCanonicalContext } from "../canonical-protocol.ts";
 import {
 	addUsage,
-	assistantPublicText,
 	EMPTY_USAGE,
-	validateSeededMessages,
 	type AgentKernel,
 	type KernelLimits,
 	type KernelRunRequest,
@@ -70,7 +75,7 @@ export class PiKernel implements AgentKernel {
 
 	constructor(options: PiKernelOptions) {
 		try {
-			validateSeededMessages(options.initialMessages ?? []);
+			validateCanonicalContext(piMessagesToPan(options.initialMessages ?? []));
 		} catch (error) {
 			this.seededContextError = error instanceof Error ? error.message : String(error);
 		}
@@ -141,7 +146,7 @@ export class PiKernel implements AgentKernel {
 		}
 		await this.agent.prompt(request.task);
 		const final = finalAssistant(this.agent.state.messages);
-		const finalText = final ? assistantPublicText(final) : "";
+		const finalText = final ? piAssistantPublicText(final) : "";
 		let status: KernelRunResult["status"];
 		let reason: string;
 		if (this.cancellationRequested || final?.stopReason === "aborted") {
@@ -220,12 +225,15 @@ export class PiKernel implements AgentKernel {
 			case "message_end":
 				if (event.message.role === "assistant") {
 					this.activeModelCalls += 1;
-					this.activeUsage = addUsage(this.activeUsage, event.message.usage);
+					const eventUsage = piUsageToPan(event.message.usage);
+					const identity = piAssistantIdentity(event.message);
+					this.activeUsage = addUsage(this.activeUsage, eventUsage);
 					await onObservation({
 						type: "model.turn_settled", runId, turn: this.activeTurn,
 						provider: event.message.provider, model: event.message.responseModel ?? event.message.model,
 						responseId: event.message.responseId, stopReason: event.message.stopReason,
-						usage: event.message.usage, text: assistantPublicText(event.message),
+						identity,
+						usage: eventUsage, text: piAssistantPublicText(event.message),
 					});
 				}
 				break;
