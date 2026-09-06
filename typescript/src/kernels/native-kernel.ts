@@ -198,6 +198,7 @@ export class NativeKernel implements AgentKernel {
 						toolName: call.name,
 						isError: result.isError,
 						text: resultText(result.content),
+						...(result.details === undefined ? {} : { details: result.details }),
 					});
 					if (controller.signal.aborted) return terminal("cancelled", "operator_cancelled");
 				}
@@ -239,7 +240,7 @@ export class NativeKernel implements AgentKernel {
 				toolName: call.name,
 				content: executed.content,
 				...(executed.details === undefined ? {} : { details: executed.details }),
-				isError: false,
+				isError: executed.isError ?? false,
 				timestamp: Date.now(),
 			};
 			validateToolResult(result);

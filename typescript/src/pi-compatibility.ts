@@ -1,8 +1,8 @@
 /**
  * Transitional Pan↔Pi compatibility boundary.
  *
- * PiKernel remains the default during #31, and the production Provider/Tool
- * implementations are replaced only by downstream WorkOrders. All Pi shapes
+ * PiKernel remains the default during #31–#32, and the production Provider
+ * implementation is replaced only by a downstream WorkOrder. All Pi shapes
  * and conversion decisions are confined here (plus PiKernel orchestration);
  * NativeKernel and the Pan contracts never import Pi.
  */
@@ -239,7 +239,7 @@ function jsonDetails(value: unknown): JsonValue | undefined {
 	}
 }
 
-/** Temporary Tool implementation bridge; #32 replaces it with Pan-owned product Tools. */
+/** Legacy test/reference bridge; explicit Native product composition no longer uses it after #32. */
 export function adaptPiAgentTool(tool: PiAgentTool): AgentTool {
 	return {
 		name: tool.name,

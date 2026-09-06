@@ -12,7 +12,8 @@ import {
 } from "./model-adapter.ts";
 import { RunArchiveStore } from "./run-archive.ts";
 import { loadRunbook } from "./runbook.ts";
-import { adaptPiAgentTools, adaptPiModelAdapter } from "./pi-compatibility.ts";
+import { adaptPiModelAdapter } from "./pi-compatibility.ts";
+import { createPanTrustedLocalTools, PAN_TRUSTED_LOCAL_LABEL } from "./pan-trusted-local-tools.ts";
 import { GENERAL_AGENT_SYSTEM_PROMPT, GeneralAgentSession } from "./session.ts";
 import { createTrustedLocalTools, TRUSTED_LOCAL_SHELL_LABEL } from "./tools.ts";
 import { renderObservation, runTui } from "./tui.ts";
@@ -20,7 +21,7 @@ import { renderObservation, runTui } from "./tui.ts";
 export const CLI_USAGE = `Usage:
   npm run agent -- --workspace /absolute/path --memory-root /absolute/path [--kernel pi|native] [--model deepseek-v4-flash|deepseek-v4-pro] [--thinking low|high|max]
 
-The General Agent defaults to PiKernel and accepts explicit --kernel native; both use the same typed read/write/edit/bash tools and product interfaces.
+The General Agent defaults to PiKernel and accepts explicit --kernel native; NativeKernel receives Pan-owned typed read/write/edit/bash implementations directly.
 The bash tool is trusted-local: it has host-user authority; --workspace sets cwd but is not containment or an OS sandbox.
 Every admitted run is durably archived under --memory-root (must be disjoint from the workspace) with the current Runbook revision; :runs and :replay inspect sealed archives with zero Provider calls or tool effects.
 No Provider call occurs for --help, startup, cancellation before confirmation, or TUI commands.`;
@@ -132,29 +133,36 @@ export async function runCli(args: readonly string[], dependencies: CliDependenc
 
 	const adapterFactory = dependencies.createAdapter ?? createPiDeepSeekAdapter;
 	const adapter = adapterFactory(configuration.profile);
-	const trustedLocal = createTrustedLocalTools(workspace);
 	const shared = {
 		systemPrompt: GENERAL_AGENT_SYSTEM_PROMPT,
 		memory: { archiveStore, runbook: () => loadRunbook(RUNBOOK_PATH) },
 		onObservation(observation: Parameters<typeof renderObservation>[0]) {
 			for (const line of renderObservation(observation)) writeLine(line);
 		},
-		cleanup: () => trustedLocal.environment.cleanup(),
 	};
-	const session = configuration.kernel === "native"
-		? new GeneralAgentSession({
+	let session: GeneralAgentSession;
+	let boundaryLabel: string;
+	if (configuration.kernel === "native") {
+		const trustedLocal = createPanTrustedLocalTools(workspace);
+		session = new GeneralAgentSession({
 			...shared,
 			kernel: "native",
 			adapter: adaptPiModelAdapter(adapter),
-			tools: adaptPiAgentTools(trustedLocal.tools),
-		})
-		: new GeneralAgentSession({
+			tools: trustedLocal.tools,
+		});
+		boundaryLabel = PAN_TRUSTED_LOCAL_LABEL;
+	} else {
+		const trustedLocal = createTrustedLocalTools(workspace);
+		session = new GeneralAgentSession({
 			...shared,
 			kernel: "pi",
 			adapter,
 			tools: trustedLocal.tools,
+			cleanup: () => trustedLocal.environment.cleanup(),
 		});
-	writeLine(`BOUNDARY ${TRUSTED_LOCAL_SHELL_LABEL}`);
+		boundaryLabel = TRUSTED_LOCAL_SHELL_LABEL;
+	}
+	writeLine(`BOUNDARY ${boundaryLabel}`);
 	writeLine(`MEMORY ${memoryRoot}`);
 	return (dependencies.startTui ?? runTui)({
 		session,

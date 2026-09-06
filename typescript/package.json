@@ -12,6 +12,7 @@
     "conformance": "node --experimental-strip-types --test test/conformance.test.ts test/kernel-conformance.test.ts test/cutover-contract.test.ts",
     "kernel-conformance": "node --experimental-strip-types --test test/kernel-conformance.test.ts",
     "pan-contracts": "node --experimental-strip-types --test test/pan-contracts.test.ts",
+    "pan-faux-tools": "node --experimental-strip-types --test test/pan-faux-tools.test.ts",
     "typecheck": "tsc --noEmit",
     "check": "npm run typecheck && npm run test"
   },

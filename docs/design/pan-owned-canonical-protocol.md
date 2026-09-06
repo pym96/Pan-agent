@@ -1,6 +1,6 @@
 # Pan-owned canonical protocol and model/tool seams
 
-Status: WorkOrder #31 Builder candidate on accepted base `895aa65654405cf7f96cf4ec31dbb5f1031b13e2`; pending independent Regulator Verdict.
+Status: WorkOrder #31 accepted after independent Verdict and Human high-risk review; landed unchanged at `72de8e5866196d7a55d7d1cd8ce02c60d1cf8122` on 2026-09-06. WorkOrder #32's concrete Faux/Tool follow-up is a separate Builder candidate.
 
 Criteria-Version: `1.0` (`C-PFREE-A01`…`C-PFREE-A07`).
 
@@ -49,7 +49,7 @@ This is a real seam even before production migration completes: `NativeKernel` u
 
 An `AgentTool` exposes one schema, one pure admission method, and one effectful method. NativeKernel resolves the Tool name, runs `validate(arguments)`, checks cancellation, and only then calls `execute({ toolCallId, arguments, signal })`. Unknown Tools, schema-invalid arguments, and cancellation effective before execution produce zero implementation calls. Successful and failed executions produce one correlated canonical ToolResult for the next model exchange.
 
-The deterministic #31 Tools live only in test code. Current production Pi Tool implementations cross the explicitly named transitional compatibility module; #32 owns their replacement and the reusable Faux Adapter.
+The deterministic #31 Tools live only in test code at the accepted commit. WorkOrder #32 separately supplies the reusable Faux Adapter and direct Pan-owned Tool implementations for explicit Native composition; default Pi compatibility remains until its later migration.
 
 ## Transitional Pi compatibility
 
@@ -62,7 +62,7 @@ GeneralAgentSession
        ├─ Pan ModelAdapter Interface ─ scripted test Adapter
        │                              transitional Pi transport bridge (#33 replaces)
        └─ Pan AgentTool Interface ─── scripted test Tool
-                                      transitional Pi Tool bridge (#32 replaces)
+                                      direct Pan product Tools (#32 candidate)
 ```
 
 The current package keeps its pinned Pi dependencies. #31 neither removes those dependencies nor claims a Pi-free install/runtime graph.
@@ -71,4 +71,4 @@ The current package keeps its pinned Pi dependencies. #31 neither removes those 
 
 [`pan-contracts.test.ts`](../../typescript/test/pan-contracts.test.ts) exercises structural round-trip, malformed JSON/correlation, missing versus zero usage, missing response identity, typed failure, final completion, ToolCall→ToolResult→final, cancellation reaching an active Adapter, and zero-effect Tool rejection through the public `GeneralAgentSession`/NativeKernel/Event/Archive path. Existing shared conformance continues to run against both Kernels.
 
-All #31 execution uses deterministic local adapters and tools. Provider calls, credential reads, balance queries, paid/formal runs, and cost are `0 / 0 / 0 / 0 / CNY 0`. This candidate does not deliver reusable Faux infrastructure, Pan-owned production Tools, direct DeepSeek transport, dependency removal, a packed consumer, a live Run, default cutover, Verified Project Facts, Wiki facts, or resume facts.
+All #31 execution used deterministic local adapters and tools. Provider calls, credential reads, balance queries, paid/formal runs, and cost were `0 / 0 / 0 / 0 / CNY 0`. Its accepted scope did not deliver reusable Faux infrastructure, Pan-owned production Tools, direct DeepSeek transport, dependency removal, a packed consumer, a live Run, default cutover, Verified Project Facts, Wiki facts, or resume facts; those remain separately governed follow-ups.

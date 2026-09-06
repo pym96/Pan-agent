@@ -1,6 +1,7 @@
 import {
 	addUsage,
 	ZERO_REPORTED_USAGE,
+	type JsonValue,
 	type ModelFailure,
 	type ResponseIdentity,
 	type Usage,
@@ -33,6 +34,7 @@ export type SessionObservation =
 			toolName: string;
 			isError: boolean;
 			text: string;
+			details?: JsonValue;
 	  }
 	| { type: "run.terminal"; runId: string; status: TerminalStatus; reason: string };
 

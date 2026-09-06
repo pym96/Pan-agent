@@ -21,6 +21,7 @@ export interface AgentToolExecutionResult<TDetails extends JsonValue | undefined
 		| { readonly type: "text"; readonly text: string }
 		| { readonly type: "image"; readonly data: string; readonly mediaType: string }
 	)[];
+	readonly isError?: boolean;
 	readonly details?: TDetails;
 }
 
@@ -34,6 +35,14 @@ export interface AgentTool<
 }
 
 export function validateAgentTools(tools: readonly AgentTool[]): void {
+	validateAgentToolDefinitions(tools);
+	for (const tool of tools) {
+		if (typeof tool.validate !== "function") throw new CanonicalProtocolError(`tool_validator_missing:${tool.name}`);
+		if (typeof tool.execute !== "function") throw new CanonicalProtocolError(`tool_execute_missing:${tool.name}`);
+	}
+}
+
+export function validateAgentToolDefinitions(tools: readonly AgentToolDefinition[]): void {
 	const names = new Set<string>();
 	for (const tool of tools) {
 		if (typeof tool.name !== "string" || tool.name.trim().length === 0) {
@@ -43,8 +52,6 @@ export function validateAgentTools(tools: readonly AgentTool[]): void {
 		names.add(tool.name);
 		if (typeof tool.description !== "string") throw new CanonicalProtocolError(`tool_description_invalid:${tool.name}`);
 		assertJsonObject(tool.parameters, `tool_schema:${tool.name}`);
-		if (typeof tool.validate !== "function") throw new CanonicalProtocolError(`tool_validator_missing:${tool.name}`);
-		if (typeof tool.execute !== "function") throw new CanonicalProtocolError(`tool_execute_missing:${tool.name}`);
 	}
 }
 

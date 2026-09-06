@@ -2,6 +2,17 @@
 
 These scripts prepare ignored local state and invoke pinned external tooling. They do not produce benchmark Claims or update the project fact register.
 
+## WorkOrder #32 Pan Faux and trusted-local Tool checks
+
+Run the focused reusable Faux/product Tool tracer and verify the frozen write scope, protected bytes, Pan-only import graph, direct Native Tool composition, unchanged Provider Adapter, and unchanged Pi dependency declarations:
+
+```bash
+npm --prefix typescript run pan-faux-tools
+bash scripts/check_workorder_32_scope.sh
+```
+
+The checks are deterministic and temporary-workspace-only. Provider calls, credential reads, balance queries, paid/formal Runs, and cost are `0 / 0 / 0 / 0 / CNY 0`. Passing them does not accept #32, replace the production Provider bridge, remove Pi, switch the default Kernel, or authorize #33–#36, #29, or #17.
+
 ## WorkOrder #31 Pan-owned contract checks
 
 Run the focused Pan protocol/Adapter/Tool suite and verify the frozen write scope, protected bytes, NativeKernel import boundary, and unchanged Pi dependency declarations:
@@ -11,7 +22,7 @@ npm --prefix typescript run pan-contracts
 bash scripts/check_workorder_31_scope.sh
 ```
 
-The checks use only test-local scripted adapters/tools. Provider calls, credential reads, balance queries, paid/formal runs, and cost are `0 / 0 / 0 / 0 / CNY 0`. Passing them does not remove Pi from the package, switch the default Kernel, accept #31, or authorize downstream #32–#36 work.
+The checks use only test-local scripted adapters/tools. Provider calls, credential reads, balance queries, paid/formal runs, and cost are `0 / 0 / 0 / 0 / CNY 0`. #31 is independently accepted and landed; these historical commands do not accept a downstream candidate or authorize #32–#36 work.
 
 ## WorkOrder #28 Native Agent Kernel checks
 

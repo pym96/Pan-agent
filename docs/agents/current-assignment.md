@@ -2,11 +2,15 @@
 
 This document owns the current project lane, constraints, and non-goals. It does not grant a session-specific task or establish implementation facts. A Working session starts only from a Master-published WorkOrder, and that WorkOrder cannot widen this lane or override Human decisions. Read the fact register linked from the root Agent map before making any current-state statement.
 
-## Active mission | WorkOrder #31 Pan-owned canonical protocol and seams
+## Active mission | WorkOrder #32 Pan-owned deterministic Faux Adapter and product Tools
 
-The active lane is [WorkOrder #31](https://github.com/pym96/Pan-agent/issues/31) (Criteria-Version `1.0`, C-PFREE-A01…A07; C-PFREE-A04 high-risk) on exact accepted base `895aa65654405cf7f96cf4ec31dbb5f1031b13e2`. It establishes repository-owned canonical Message/ToolCall/ToolResult/Usage/ModelResponse/identity/failure semantics plus `ModelAdapter` and `AgentTool` Interfaces, then migrates NativeKernel to those seams. `PiKernel` remains the default through an explicitly named transitional compatibility Module.
+The active lane is [WorkOrder #32](https://github.com/pym96/Pan-agent/issues/32) (Criteria-Version `1.0`, C-PFREE-B101…B107; C-PFREE-B104 high-risk) on exact accepted base `72de8e5866196d7a55d7d1cd8ce02c60d1cf8122`. It adds a reusable deterministic Pan `FauxModelAdapter` and Pan-owned trusted-local `read`/`write`/`edit`/`bash` implementations, then composes those Tools directly into the explicit Native path. `PiKernel` remains the default.
 
-WorkOrder #31 is deterministic and test-local only. It makes no Provider call, reads no Provider credential, queries no balance, starts no paid/formal Run, and changes no historical Python, Evidence, Wiki, benchmark, resume, website, dependency identity, or outer HEAD anchor. It does not begin the reusable Faux/Tool work in #32, direct DeepSeek work in #33, dependency removal in #34, packed-consumer verification in #35, live work in #36, or default cutover in #29.
+WorkOrder #32 is deterministic and offline. It makes no Provider call, reads no Provider credential, queries no balance, starts no paid/formal Run, and changes no historical Python, Evidence, Wiki, benchmark, resume, website, dependency identity, or outer HEAD anchor. It does not begin the direct DeepSeek work in #33, dependency removal in #34, packed-consumer verification in #35, live work in #36, or default cutover in #29.
+
+## Accepted foundation | WorkOrder #31 Pan-owned canonical protocol and seams
+
+WorkOrder #31 passed independent review plus the required Human C-PFREE-A04/P4 review and landed unchanged at `72de8e5866196d7a55d7d1cd8ce02c60d1cf8122`. It established Pan-owned canonical Message/ToolCall/ToolResult/Usage/identity/failure semantics plus `ModelAdapter` and `AgentTool` Interfaces, and migrated NativeKernel to those seams. #32 supplies concrete offline/product implementations without reopening those meanings.
 
 ## Accepted foundation | WorkOrder #28 Native Agent Kernel v0
 

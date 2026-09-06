@@ -59,12 +59,13 @@ test("C-CUT-06 assignment and ADR record architectural supersession", async () =
 	const assignment = await text("docs/agents/current-assignment.md");
 	assert.match(
 		assignment,
-		/## Active mission \| WorkOrder #31 Pan-owned canonical protocol and seams/,
+		/## Active mission \| WorkOrder #32 Pan-owned deterministic Faux Adapter and product Tools/,
 	);
 	assert.match(
 		assignment,
-		/## Accepted foundation \| WorkOrder #28 Native Agent Kernel v0/,
+		/## Accepted foundation \| WorkOrder #31 Pan-owned canonical protocol and seams/,
 	);
+	assert.match(assignment, /## Accepted foundation \| WorkOrder #28 Native Agent Kernel v0/);
 	assert.match(assignment, /## Retained prior mission history \| WorkOrder #24 \(accepted and landed\)/);
 	assert.match(assignment, /Bash-only ReAct lane is retired as an active mission/);
 
@@ -113,6 +114,7 @@ test("C-CUT-09 cutover documentation has no broken local links", async () => {
 		"docs/adr/0016-authoritative-typescript-product-path.md",
 		"docs/agents/current-assignment.md",
 		"docs/design/README.md",
+		"docs/design/pan-faux-and-trusted-local-tools.md",
 		"docs/design/pan-owned-canonical-protocol.md",
 		"docs/design/typescript-pi-general-agent-working-stack.md",
 		"scripts/README.md",

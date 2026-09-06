@@ -1,6 +1,6 @@
 # Native Agent Kernel v0
 
-Status: WorkOrder #28 accepted and landed at `895aa65654405cf7f96cf4ec31dbb5f1031b13e2`. WorkOrder #31's follow-up Pan-owned contract migration is a Builder candidate pending independent Verdict.
+Status: WorkOrder #28 accepted and landed at `895aa65654405cf7f96cf4ec31dbb5f1031b13e2`; WorkOrder #31's Pan-owned contract migration accepted and landed at `72de8e5866196d7a55d7d1cd8ce02c60d1cf8122`. WorkOrder #32's concrete Faux/Tool follow-up is a Builder candidate pending independent Verdict.
 
 Criteria-Version: `1.0` (`C-KER-01`…`C-KER-10`).
 
@@ -30,7 +30,7 @@ TUI / CLI composition (`--kernel pi|native`, default pi)
 
 `PiKernel` is the compatibility implementation and the only source module that constructs Pi's `Agent`. Omission of `--kernel` and explicit `--kernel pi` select the same implementation. Its accepted 64-model-turn default remains, and the tool-step default is effectively unbounded for compatibility; an explicit smaller positive budget activates the shared atomic preflight.
 
-On the #31 candidate, `NativeKernel` invokes only the Pan-owned [`ModelAdapter`](pan-owned-canonical-protocol.md#modeladapter-seam) and [`AgentTool`](pan-owned-canonical-protocol.md#agenttool-admission) Interfaces. It imports neither Pi semantic types nor Pi validation/orchestration. The Native loop retains ordered canonical `user`, `assistant`, and `tool_result` messages without flattening them into synthetic user JSON. Until downstream replacements land, production Pi Provider/Tool implementations cross the explicitly named transitional compatibility Module outside NativeKernel; PiKernel remains the default.
+`NativeKernel` invokes only the Pan-owned [`ModelAdapter`](pan-owned-canonical-protocol.md#modeladapter-seam) and [`AgentTool`](pan-owned-canonical-protocol.md#agenttool-admission) Interfaces. It imports neither Pi semantic types nor Pi validation/orchestration. The Native loop retains ordered canonical `user`, `assistant`, and `tool_result` messages without flattening them into synthetic user JSON. On the #32 candidate, explicit Native composition receives Pan-owned Tools directly while the production Provider still crosses the named transitional bridge pending #33; PiKernel remains the default.
 
 ## Native turn semantics
 
