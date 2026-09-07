@@ -5,12 +5,19 @@ import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterEach, test } from "node:test";
-import type { AgentTool } from "../src/agent-tool.ts";
-import { response as panResponse, call as panCall, scriptedAdapter, stringParameters, emptyParameters, validateFixtureArguments } from "./pan-fixture.ts";
-import type { Message } from "../src/canonical-protocol.ts";
-import { addUsage, ZERO_REPORTED_USAGE, type Usage } from "../src/canonical-protocol.ts";
-import type { ModelAdapter } from "../src/model-adapter-contract.ts";
-import { RunArchiveStore } from "../src/run-archive.ts";
+import type { AgentTool } from "@earendil-works/pi-agent-core";
+import {
+	Type,
+	createModels,
+	fauxAssistantMessage,
+	fauxProvider,
+	fauxToolCall,
+	type FauxProviderHandle,
+	type Message as PiMessage,
+} from "@earendil-works/pi-ai";
+import { addUsage, ZERO_REPORTED_USAGE, type Usage } from "../../../typescript/src/canonical-protocol.ts";
+import type { PiModelAdapter } from "../src/model-adapter.ts";
+import { RunArchiveStore } from "../../../typescript/src/run-archive.ts";
 import {
 	GeneralAgentSession,
 	type KernelLimits,
@@ -19,11 +26,11 @@ import {
 	type TaskRunResult,
 } from "../src/session.ts";
 
-const REPOSITORY_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
+const REPOSITORY_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "../../..");
 const FIXTURE_ROOT = join(REPOSITORY_ROOT, "conformance", "fixtures", "kernel-v1");
 const TEST_RUNBOOK_REVISION = `sha256:${"0".repeat(64)}`;
 const temporaryDirectories: string[] = [];
-const kernels = ["native"] as const;
+const kernels = ["pi"] as const;
 
 type JsonObject = Record<string, any>;
 
@@ -41,12 +48,28 @@ async function temporaryRoot(): Promise<string> {
 	return path;
 }
 
-function adapter() { return scriptedAdapter(); }
+function adapter(): { adapter: PiModelAdapter; faux: FauxProviderHandle } {
+	const faux = fauxProvider({ models: [{ id: "faux-kernel-conformance", reasoning: true }] });
+	const models = createModels();
+	models.setProvider(faux.provider);
+	const model = faux.getModel("faux-kernel-conformance");
+	assert.ok(model);
+	return {
+		faux,
+		adapter: {
+			providerId: faux.provider.id,
+			modelId: model.id,
+			model,
+			streamFn: models.streamSimple.bind(models),
+			thinkingLevel: "high",
+		},
+	};
+}
 
 async function session(
 	root: string,
 	kernel: KernelSelector,
-	modelAdapter: ModelAdapter,
+	modelAdapter: PiModelAdapter,
 	tools: AgentTool[],
 	observations: SessionObservation[],
 	options: { limits?: Partial<KernelLimits>; onObservation?: (observation: SessionObservation) => void } = {},
@@ -66,24 +89,20 @@ async function session(
 	};
 	return {
 		archiveStore,
-		session: new GeneralAgentSession({
-		...shared, kernel: "native",
-				adapter: modelAdapter, tools: tools,
-			}),
+		session: new GeneralAgentSession({ ...shared, kernel: "pi", adapter: modelAdapter, tools }),
 	};
 }
 
-const recordParameters = stringParameters;
+const recordParameters = Type.Object({ value: Type.String() }, { additionalProperties: false });
 
-function recordTool(effect: (id: string, value: string, signal?: AbortSignal) => Promise<void> | void): AgentTool {
+function recordTool(effect: (id: string, value: string, signal?: AbortSignal) => Promise<void> | void): AgentTool<typeof recordParameters> {
 	return {
 		name: "record",
-
+		label: "record",
 		description: "record a value",
 		parameters: recordParameters,
-		validate: validateFixtureArguments,
-		async execute({ toolCallId: id, arguments: parameters, signal }) {
-			await effect(id, String(parameters.value), signal);
+		async execute(id, parameters, signal) {
+			await effect(id, parameters.value, signal);
 			return { content: [{ type: "text", text: `recorded:${parameters.value}` }], details: {} };
 		},
 	};
@@ -128,8 +147,9 @@ async function assertTerminalAccounting(
 }
 
 test("C-KER-01 AgentKernel is the sole Session orchestration seam and only PiKernel invokes Pi orchestration", async () => {
-	const [sessionSource, nativeSource, tuiSource, archiveSource] = await Promise.all([
+	const [sessionSource, piSource, nativeSource, tuiSource, archiveSource] = await Promise.all([
 		readFile(join(REPOSITORY_ROOT, "typescript/src/session.ts"), "utf8"),
+		readFile(join(REPOSITORY_ROOT, "references/pi/src/kernels/pi-kernel.ts"), "utf8"),
 		readFile(join(REPOSITORY_ROOT, "typescript/src/kernels/native-kernel.ts"), "utf8"),
 		readFile(join(REPOSITORY_ROOT, "typescript/src/tui.ts"), "utf8"),
 		readFile(join(REPOSITORY_ROOT, "typescript/src/run-archive.ts"), "utf8"),
@@ -137,7 +157,7 @@ test("C-KER-01 AgentKernel is the sole Session orchestration seam and only PiKer
 	assert.match(sessionSource, /private readonly kernel: AgentKernel/);
 	assert.match(sessionSource, /this\.kernel\.runTask/);
 	assert.doesNotMatch(sessionSource, /new Agent\b|runAgentLoop/);
-	assert.doesNotMatch(sessionSource, /from .*references|from .*pi-kernel/);
+	assert.match(piSource, /new Agent\b/);
 	const legacyPythonPackage = ["workspace", "agent", "harness"].join("_");
 	assert.doesNotMatch(nativeSource, new RegExp(`new Agent\\b|runAgentLoop|${legacyPythonPackage}|\\.py\\b`));
 	assert.doesNotMatch(tuiSource, /new PiKernel|new NativeKernel/);
@@ -175,7 +195,7 @@ test("C-KER-02 selection fixture runs through the same public Session interface 
 	for (const kernel of kernels) {
 		const root = await temporaryRoot();
 		const model = adapter();
-		model.faux.setResponses([panResponse(selected.response)]);
+		model.faux.setResponses([fauxAssistantMessage(selected.response)]);
 		const harness = await session(root, kernel, model.adapter, [], []);
 		try {
 			const result = await harness.session.runTask(selected.task);
@@ -194,15 +214,15 @@ test("C-KER-03/04 context-and-batch fixture runs unchanged against both Kernels"
 		let roles: string[] = [];
 		let resultErrors: boolean[] = [];
 		model.faux.setResponses([
-			panResponse(selected.calls.map((call: JsonObject) => panCall(call.name, call.arguments, { id: call.id })), { stopReason: "tool_calls" }),
+			fauxAssistantMessage(selected.calls.map((call: JsonObject) => fauxToolCall(call.name, call.arguments, { id: call.id })), { stopReason: "toolUse" }),
 			(context) => {
 				roles = context.messages.map((message) => message.role);
 				resultErrors = context.messages
-					.filter((message) => message.role === "tool_result")
+					.filter((message) => message.role === "toolResult")
 					.map((message) => message.isError);
-				return panResponse(selected.first_final);
+				return fauxAssistantMessage(selected.first_final);
 			},
-			panResponse(selected.second_final),
+			fauxAssistantMessage(selected.second_final),
 		]);
 		const harness = await session(root, kernel, model.adapter, [recordTool((id, value) => {
 			order.push(`${id}:${value}`);
@@ -215,7 +235,7 @@ test("C-KER-03/04 context-and-batch fixture runs unchanged against both Kernels"
 			assert.deepEqual([first.status, second.status], selected.expected.terminals, kernel);
 			assert.deepEqual(order, selected.expected.execution_order, kernel);
 			assert.deepEqual(resultErrors, selected.expected.result_errors, kernel);
-			assert.deepEqual(roles.map((role) => role === "tool_result" ? "toolResult" : role), selected.expected.roles_before_first_final, kernel);
+			assert.deepEqual(roles, selected.expected.roles_before_first_final, kernel);
 			assert.equal(second.finalText, selected.second_final, kernel);
 		} finally { await harness.session.close(); }
 	}
@@ -229,10 +249,10 @@ test("C-KER-05 invalid-correlation fixture runs unchanged against both Kernels",
 		let effects = 0;
 		let errors: string[] = [];
 		recoverModel.faux.setResponses([
-			panResponse(selected.recoverable_calls.map((call: JsonObject) => panCall(call.name, call.arguments, { id: call.id })), { stopReason: "tool_calls" }),
+			fauxAssistantMessage(selected.recoverable_calls.map((call: JsonObject) => fauxToolCall(call.name, call.arguments, { id: call.id })), { stopReason: "toolUse" }),
 			(context) => {
-				errors = context.messages.flatMap((message) => message.role === "tool_result" && message.isError ? [message.toolCallId] : []);
-				return panResponse("invalid calls observed");
+				errors = context.messages.flatMap((message) => message.role === "toolResult" && message.isError ? [message.toolCallId] : []);
+				return fauxAssistantMessage("invalid calls observed");
 			},
 		]);
 		const recover = await session(recoverRoot, kernel, recoverModel.adapter, [recordTool(() => { effects += 1; })], []);
@@ -245,8 +265,8 @@ test("C-KER-05 invalid-correlation fixture runs unchanged against both Kernels",
 
 		const duplicateRoot = await temporaryRoot();
 		const duplicateModel = adapter();
-		duplicateModel.faux.setUncheckedResponses([
-			panResponse(selected.duplicate_calls.map((call: JsonObject) => panCall(call.name, call.arguments, { id: call.id })), { stopReason: "tool_calls" }),
+		duplicateModel.faux.setResponses([
+			fauxAssistantMessage(selected.duplicate_calls.map((call: JsonObject) => fauxToolCall(call.name, call.arguments, { id: call.id })), { stopReason: "toolUse" }),
 		]);
 		const duplicate = await session(duplicateRoot, kernel, duplicateModel.adapter, [recordTool(() => { effects += 1; })], []);
 		try {
@@ -261,8 +281,8 @@ test("C-KER-05 invalid-correlation fixture runs unchanged against both Kernels",
 		const orphanModel = adapter();
 		const orphanObservations: SessionObservation[] = [];
 		const orphanStore = await RunArchiveStore.open(join(orphanRoot, "memory"));
-		const initialMessages: Message[] = [{
-			role: "tool_result", toolCallId: orphan.call_id, toolName: orphan.tool,
+		const initialMessages: PiMessage[] = [{
+			role: "toolResult", toolCallId: orphan.call_id, toolName: orphan.tool,
 			content: [{ type: "text", text: orphan.text }], isError: true, timestamp: 1,
 		}];
 		const shared = {
@@ -270,12 +290,7 @@ test("C-KER-05 invalid-correlation fixture runs unchanged against both Kernels",
 			memory: { archiveStore: orphanStore, runbook: async () => ({ content: "", revision: TEST_RUNBOOK_REVISION }) },
 			onObservation(observation: SessionObservation) { orphanObservations.push(observation); },
 		};
-		const orphanSession = kernel === "native"
-			? new GeneralAgentSession({
-		...shared, kernel: "native", adapter: orphanModel.adapter, tools: [],
-				initialMessages: initialMessages,
-			})
-			: new GeneralAgentSession({ ...shared, kernel: "native", adapter: orphanModel.adapter, tools: [], initialMessages });
+		const orphanSession = new GeneralAgentSession({ ...shared, kernel: "pi", adapter: orphanModel.adapter, tools: [], initialMessages });
 		try {
 			const result = await orphanSession.runTask("reject orphan result");
 			assert.equal(result.status, "model_error", kernel);
@@ -292,11 +307,10 @@ test("C-KER-06 active-cancellation fixture runs unchanged against both Kernels",
 		const root = await temporaryRoot();
 		const model = adapter();
 		let lateEffect = false;
-		const parameters = emptyParameters;
-		const tool: AgentTool = {
-			name: selected.call.name, description: "delayed effect", parameters,
-			validate(value) { return { ok: true, value }; },
-			async execute({ signal }) {
+		const parameters = Type.Object({}, { additionalProperties: false });
+		const tool: AgentTool<typeof parameters> = {
+			name: selected.call.name, label: selected.call.name, description: "delayed effect", parameters,
+			async execute(_id, _arguments, signal) {
 				await new Promise<void>((resolve, reject) => {
 					const timer = setTimeout(() => { lateEffect = true; resolve(); }, selected.effect_after_ms);
 					signal?.addEventListener("abort", () => { clearTimeout(timer); reject(new Error("Operation aborted")); }, { once: true });
@@ -304,7 +318,7 @@ test("C-KER-06 active-cancellation fixture runs unchanged against both Kernels",
 				return { content: [{ type: "text", text: "late" }], details: {} };
 			},
 		};
-		model.faux.setResponses([panResponse(panCall(selected.call.name, selected.call.arguments, { id: selected.call.id }), { stopReason: "tool_calls" })]);
+		model.faux.setResponses([fauxAssistantMessage(fauxToolCall(selected.call.name, selected.call.arguments, { id: selected.call.id }), { stopReason: "toolUse" })]);
 		const observations: SessionObservation[] = [];
 		let active: GeneralAgentSession;
 		const harness = await session(root, kernel, model.adapter, [tool], observations, {
@@ -333,7 +347,7 @@ test("C-KER-07 budget fixture runs unchanged against both Kernels", async () => 
 		let effects = 0;
 		const turnObservations: SessionObservation[] = [];
 		turnModel.faux.setResponses(Array.from({ length: selected.turn_limit.scripted_turns }, (_, index) =>
-			panResponse(panCall("record", { value: String(index) }, { id: `turn-${index}` }), { stopReason: "tool_calls" })));
+			fauxAssistantMessage(fauxToolCall("record", { value: String(index) }, { id: `turn-${index}` }), { stopReason: "toolUse" })));
 		const turn = await session(turnRoot, kernel, turnModel.adapter, [recordTool(() => { effects += 1; })], turnObservations, { limits: { maxModelTurns: selected.turn_limit.maximum } });
 		try {
 			const result = await turn.session.runTask("turn limit");
@@ -346,8 +360,8 @@ test("C-KER-07 budget fixture runs unchanged against both Kernels", async () => 
 		const stepRoot = await temporaryRoot();
 		const stepModel = adapter();
 		const stepObservations: SessionObservation[] = [];
-		stepModel.faux.setResponses([panResponse(Array.from({ length: selected.step_limit.batch_size }, (_, index) =>
-			panCall("record", { value: String(index) }, { id: `step-${index}` })), { stopReason: "tool_calls" })]);
+		stepModel.faux.setResponses([fauxAssistantMessage(Array.from({ length: selected.step_limit.batch_size }, (_, index) =>
+			fauxToolCall("record", { value: String(index) }, { id: `step-${index}` })), { stopReason: "toolUse" })]);
 		const step = await session(stepRoot, kernel, stepModel.adapter, [recordTool(() => { effects += 1; })], stepObservations, { limits: { maxToolSteps: selected.step_limit.maximum } });
 		try {
 			const before = effects;
@@ -360,7 +374,6 @@ test("C-KER-07 budget fixture runs unchanged against both Kernels", async () => 
 	}
 	for (const value of selected.invalid_values) {
 		assert.throws(() => new GeneralAgentSession({
-		kernel: "native",
 			adapter: adapter().adapter, tools: [], systemPrompt: "test", limits: { maxToolSteps: value },
 			memory: { archiveStore: {} as never, runbook: async () => ({ content: "", revision: TEST_RUNBOOK_REVISION }) },
 		}), /positive integer/);
@@ -375,8 +388,8 @@ test("C-KER-08 terminal-accounting fixture runs unchanged against both Kernels",
 			const model = adapter();
 			model.faux.setResponses([
 				terminalCase.response === "error"
-					? panResponse("", { stopReason: "error", errorMessage: terminalCase.expected_reason })
-					: panResponse(terminalCase.id, terminalCase.response === "length" ? { stopReason: "length" } : {}),
+					? fauxAssistantMessage("", { stopReason: "error", errorMessage: terminalCase.expected_reason })
+					: fauxAssistantMessage(terminalCase.id, terminalCase.response === "length" ? { stopReason: "length" } : {}),
 			]);
 			const observations: SessionObservation[] = [];
 			const harness = await session(root, kernel, model.adapter, [], observations);

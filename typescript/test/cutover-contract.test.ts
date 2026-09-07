@@ -22,12 +22,13 @@ test("C-CUT-01 default README route installs and launches only the TypeScript pr
 	const readme = await text("README.md");
 	const defaultRoute = markdownSection(
 		readme,
-		"## Default product path | TypeScript/Pi",
+		"## Default product path | TypeScript Native",
 	);
 	assert.match(defaultRoute, /npm --prefix typescript ci --ignore-scripts/);
 	assert.match(defaultRoute, /read -s DEEPSEEK_API_KEY/);
 	assert.match(defaultRoute, /export DEEPSEEK_API_KEY/);
 	assert.match(defaultRoute, /npm --prefix typescript run agent --/);
+	assert.match(defaultRoute, /--kernel native/);
 	assert.match(defaultRoute, /--workspace \/absolute\/path\/to\/workspace/);
 	assert.match(defaultRoute, /--memory-root \/absolute\/path\/to\/memory/);
 	assert.doesNotMatch(defaultRoute, /python3|PYTHONPATH|pip install/i);
@@ -36,7 +37,7 @@ test("C-CUT-01 default README route installs and launches only the TypeScript pr
 test("C-CUT-04 and C-CUT-08 classify every retained non-product lane", async () => {
 	const readme = await text("README.md");
 	for (const row of [
-		"| TypeScript/Pi working stack | **authoritative product** |",
+		"| TypeScript Native working stack | **Product** |",
 		"| Python evented TUI/runtime | **reference-only** |",
 		"| ReAct mechanism | **experiment/reference** |",
 		"| Protocol reliability | **experiment/reference** |",
@@ -59,7 +60,7 @@ test("C-CUT-06 assignment and ADR record architectural supersession", async () =
 	const assignment = await text("docs/agents/current-assignment.md");
 	assert.match(
 		assignment,
-		/## Active mission \| WorkOrder #33 direct Pan-owned DeepSeek ModelAdapter/,
+		/## Active mission \| WorkOrder #34 Product isolation and Frozen Reference/,
 	);
 	assert.match(assignment, /## Accepted foundation \| WorkOrder #32 Pan Faux Adapter and product Tools/);
 	assert.match(

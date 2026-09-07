@@ -1,5 +1,8 @@
 # Pan-owned canonical protocol and model/tool seams
 
+Current #34 transition: `typescript/` is Product with required explicit `--kernel native`; omission fails before setup. Pi integration is independently installed Frozen Reference under `references/pi/`. Prior default-Pi descriptions below record the accepted #28–#33 baseline, prospectively superseded for selection/package placement by [ADR-0017](../adr/0017-product-isolation-and-frozen-pi.md). Core behavior and historical Evidence are unchanged. #29/#35/#36 remain separate.
+
+
 Status: WorkOrder #31 accepted after independent Verdict and Human high-risk review; landed unchanged at `72de8e5866196d7a55d7d1cd8ce02c60d1cf8122` on 2026-09-06. WorkOrder #32's concrete Faux/Tool follow-up is accepted at `2ed4cee780e36f1e33845d66b9065381f775d6d2`; WorkOrder #33's direct DeepSeek implementation is a separate Builder candidate.
 
 Criteria-Version: `1.0` (`C-PFREE-A01`…`C-PFREE-A07`).
@@ -53,7 +56,7 @@ The deterministic #31 Tools live only in test code at the accepted commit. WorkO
 
 ## Transitional Pi compatibility
 
-[`pi-compatibility.ts`](../../typescript/src/pi-compatibility.ts) isolates temporary Pan↔Pi conversion used by the default Pi reference path and deterministic cross-Kernel tests. The #33 candidate removes it from explicit Native product composition, while `PiKernel` remains the unchanged default and sole Pi orchestration implementation.
+[`pi-compatibility.ts`](https://github.com/pym96/Pan-agent/blob/workorder/34-candidate/references/pi/src/pi-compatibility.ts) isolates temporary Pan↔Pi conversion used by the default Pi reference path and deterministic cross-Kernel tests. The #33 candidate removes it from explicit Native product composition, while `PiKernel` remains the unchanged default and sole Pi orchestration implementation.
 
 ```text
 GeneralAgentSession

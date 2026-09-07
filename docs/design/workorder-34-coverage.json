@@ -1,0 +1,940 @@
+{
+  "criteria_version": "1.0",
+  "base": "55afc93deff70035810666f0efbf583357ad12fc",
+  "cases": [
+    {
+      "baseline_file": "typescript/test/conformance.test.ts",
+      "baseline_title": "conformance manifest freezes the language-neutral case set and retained semantics",
+      "destinations": [
+        {
+          "file": "typescript/test/conformance.test.ts",
+          "title": "conformance manifest freezes the language-neutral case set and retained semantics"
+        },
+        {
+          "file": "references/pi/test/conformance.test.ts",
+          "title": "conformance manifest freezes the language-neutral case set and retained semantics"
+        }
+      ],
+      "mapping": "Assertions retained; composition migrated to Pan canonical Faux/fixtures and AgentTool on Product. The common obligations execute on Pi in Reference and on Native through Pan inputs in Product; there is no Native-to-Pi test conversion."
+    },
+    {
+      "baseline_file": "typescript/test/conformance.test.ts",
+      "baseline_title": "language-neutral tool semantics fixture passes through the TypeScript product",
+      "destinations": [
+        {
+          "file": "typescript/test/conformance.test.ts",
+          "title": "language-neutral tool semantics fixture passes through the TypeScript product"
+        },
+        {
+          "file": "references/pi/test/conformance.test.ts",
+          "title": "language-neutral tool semantics fixture passes through the TypeScript product"
+        }
+      ],
+      "mapping": "Assertions retained; composition migrated to Pan canonical Faux/fixtures and AgentTool on Product. The common obligations execute on Pi in Reference and on Native through Pan inputs in Product; there is no Native-to-Pi test conversion."
+    },
+    {
+      "baseline_file": "typescript/test/conformance.test.ts",
+      "baseline_title": "language-neutral terminal fixtures cover completed, model-error, and incomplete settlements",
+      "destinations": [
+        {
+          "file": "typescript/test/conformance.test.ts",
+          "title": "language-neutral terminal fixtures cover completed, model-error, and incomplete settlements"
+        },
+        {
+          "file": "references/pi/test/conformance.test.ts",
+          "title": "language-neutral terminal fixtures cover completed, model-error, and incomplete settlements"
+        }
+      ],
+      "mapping": "Assertions retained; composition migrated to Pan canonical Faux/fixtures and AgentTool on Product. The common obligations execute on Pi in Reference and on Native through Pan inputs in Product; there is no Native-to-Pi test conversion."
+    },
+    {
+      "baseline_file": "typescript/test/conformance.test.ts",
+      "baseline_title": "language-neutral cancellation fixture settles the active tool and prevents its late effect",
+      "destinations": [
+        {
+          "file": "typescript/test/conformance.test.ts",
+          "title": "language-neutral cancellation fixture settles the active tool and prevents its late effect"
+        },
+        {
+          "file": "references/pi/test/conformance.test.ts",
+          "title": "language-neutral cancellation fixture settles the active tool and prevents its late effect"
+        }
+      ],
+      "mapping": "Assertions retained; composition migrated to Pan canonical Faux/fixtures and AgentTool on Product. The common obligations execute on Pi in Reference and on Native through Pan inputs in Product; there is no Native-to-Pi test conversion."
+    },
+    {
+      "baseline_file": "typescript/test/conformance.test.ts",
+      "baseline_title": "language-neutral Context fixture remains visible across successive tasks",
+      "destinations": [
+        {
+          "file": "typescript/test/conformance.test.ts",
+          "title": "language-neutral Context fixture remains visible across successive tasks"
+        },
+        {
+          "file": "references/pi/test/conformance.test.ts",
+          "title": "language-neutral Context fixture remains visible across successive tasks"
+        }
+      ],
+      "mapping": "Assertions retained; composition migrated to Pan canonical Faux/fixtures and AgentTool on Product. The common obligations execute on Pi in Reference and on Native through Pan inputs in Product; there is no Native-to-Pi test conversion."
+    },
+    {
+      "baseline_file": "typescript/test/cutover-contract.test.ts",
+      "baseline_title": "C-CUT-01 default README route installs and launches only the TypeScript product",
+      "destinations": [
+        {
+          "file": "typescript/test/cutover-contract.test.ts",
+          "title": "C-CUT-01 default README route installs and launches only the TypeScript product"
+        }
+      ],
+      "mapping": "Assertions retained; composition migrated to Pan canonical Faux/fixtures and AgentTool on Product."
+    },
+    {
+      "baseline_file": "typescript/test/cutover-contract.test.ts",
+      "baseline_title": "C-CUT-04 and C-CUT-08 classify every retained non-product lane",
+      "destinations": [
+        {
+          "file": "typescript/test/cutover-contract.test.ts",
+          "title": "C-CUT-04 and C-CUT-08 classify every retained non-product lane"
+        }
+      ],
+      "mapping": "Assertions retained; composition migrated to Pan canonical Faux/fixtures and AgentTool on Product."
+    },
+    {
+      "baseline_file": "typescript/test/cutover-contract.test.ts",
+      "baseline_title": "C-CUT-06 assignment and ADR record architectural supersession",
+      "destinations": [
+        {
+          "file": "typescript/test/cutover-contract.test.ts",
+          "title": "C-CUT-06 assignment and ADR record architectural supersession"
+        }
+      ],
+      "mapping": "Assertions retained; composition migrated to Pan canonical Faux/fixtures and AgentTool on Product."
+    },
+    {
+      "baseline_file": "typescript/test/cutover-contract.test.ts",
+      "baseline_title": "C-CUT-03 and C-CUT-05 conformance artifacts are language-neutral and the TypeScript specification is readable",
+      "destinations": [
+        {
+          "file": "typescript/test/cutover-contract.test.ts",
+          "title": "C-CUT-03 and C-CUT-05 conformance artifacts are language-neutral and the TypeScript specification is readable"
+        }
+      ],
+      "mapping": "Assertions retained; composition migrated to Pan canonical Faux/fixtures and AgentTool on Product."
+    },
+    {
+      "baseline_file": "typescript/test/cutover-contract.test.ts",
+      "baseline_title": "C-CUT-09 cutover documentation has no broken local links",
+      "destinations": [
+        {
+          "file": "typescript/test/cutover-contract.test.ts",
+          "title": "C-CUT-09 cutover documentation has no broken local links"
+        }
+      ],
+      "mapping": "Assertions retained; composition migrated to Pan canonical Faux/fixtures and AgentTool on Product."
+    },
+    {
+      "baseline_file": "typescript/test/general-agent.test.ts",
+      "baseline_title": "one Pi session performs read/write/edit/trusted-local shell and exposes typed observations",
+      "destinations": [
+        {
+          "file": "references/pi/test/general-agent.test.ts",
+          "title": "one Pi session performs read/write/edit/trusted-local shell and exposes typed observations"
+        }
+      ],
+      "mapping": "Pi-specific/default-selection behavior retained in independently installed Frozen Reference."
+    },
+    {
+      "baseline_file": "typescript/test/general-agent.test.ts",
+      "baseline_title": "nonzero trusted-local shell exit remains an attributable tool error instead of crashing the harness",
+      "destinations": [
+        {
+          "file": "references/pi/test/general-agent.test.ts",
+          "title": "nonzero trusted-local shell exit remains an attributable tool error instead of crashing the harness"
+        }
+      ],
+      "mapping": "Pi-specific/default-selection behavior retained in independently installed Frozen Reference."
+    },
+    {
+      "baseline_file": "typescript/test/general-agent.test.ts",
+      "baseline_title": "malformed and unknown ToolCalls are rejected before filesystem effects",
+      "destinations": [
+        {
+          "file": "references/pi/test/general-agent.test.ts",
+          "title": "malformed and unknown ToolCalls are rejected before filesystem effects"
+        }
+      ],
+      "mapping": "Pi-specific/default-selection behavior retained in independently installed Frozen Reference."
+    },
+    {
+      "baseline_file": "typescript/test/general-agent.test.ts",
+      "baseline_title": "successive tasks retain Pi-owned context without application truncation",
+      "destinations": [
+        {
+          "file": "references/pi/test/general-agent.test.ts",
+          "title": "successive tasks retain Pi-owned context without application truncation"
+        }
+      ],
+      "mapping": "Pi-specific/default-selection behavior retained in independently installed Frozen Reference."
+    },
+    {
+      "baseline_file": "typescript/test/general-agent.test.ts",
+      "baseline_title": "hidden thinking stays out of observable projections",
+      "destinations": [
+        {
+          "file": "references/pi/test/general-agent.test.ts",
+          "title": "hidden thinking stays out of observable projections"
+        }
+      ],
+      "mapping": "Pi-specific/default-selection behavior retained in independently installed Frozen Reference."
+    },
+    {
+      "baseline_file": "typescript/test/general-agent.test.ts",
+      "baseline_title": "shell receives an allowlisted environment rather than Provider credentials",
+      "destinations": [
+        {
+          "file": "references/pi/test/general-agent.test.ts",
+          "title": "shell receives an allowlisted environment rather than Provider credentials"
+        }
+      ],
+      "mapping": "Pi-specific/default-selection behavior retained in independently installed Frozen Reference."
+    },
+    {
+      "baseline_file": "typescript/test/general-agent.test.ts",
+      "baseline_title": "cancellation settles an active trusted-local shell task with an explicit terminal",
+      "destinations": [
+        {
+          "file": "references/pi/test/general-agent.test.ts",
+          "title": "cancellation settles an active trusted-local shell task with an explicit terminal"
+        }
+      ],
+      "mapping": "Pi-specific/default-selection behavior retained in independently installed Frozen Reference."
+    },
+    {
+      "baseline_file": "typescript/test/general-agent.test.ts",
+      "baseline_title": "Provider failure becomes an attributable model_error terminal",
+      "destinations": [
+        {
+          "file": "references/pi/test/general-agent.test.ts",
+          "title": "Provider failure becomes an attributable model_error terminal"
+        }
+      ],
+      "mapping": "Pi-specific/default-selection behavior retained in independently installed Frozen Reference."
+    },
+    {
+      "baseline_file": "typescript/test/general-agent.test.ts",
+      "baseline_title": "real DeepSeek Adapter construction selects Pi model/profile with zero network calls",
+      "destinations": [
+        {
+          "file": "references/pi/test/general-agent.test.ts",
+          "title": "real DeepSeek Adapter construction selects Pi model/profile with zero network calls"
+        }
+      ],
+      "mapping": "Pi-specific/default-selection behavior retained in independently installed Frozen Reference."
+    },
+    {
+      "baseline_file": "typescript/test/general-agent.test.ts",
+      "baseline_title": "TUI returns control for successive tasks in one Pi session",
+      "destinations": [
+        {
+          "file": "references/pi/test/general-agent.test.ts",
+          "title": "TUI returns control for successive tasks in one Pi session"
+        }
+      ],
+      "mapping": "Pi-specific/default-selection behavior retained in independently installed Frozen Reference."
+    },
+    {
+      "baseline_file": "typescript/test/general-agent.test.ts",
+      "baseline_title": "TUI confirmation rejection closes with zero Faux Provider calls",
+      "destinations": [
+        {
+          "file": "references/pi/test/general-agent.test.ts",
+          "title": "TUI confirmation rejection closes with zero Faux Provider calls"
+        }
+      ],
+      "mapping": "Pi-specific/default-selection behavior retained in independently installed Frozen Reference."
+    },
+    {
+      "baseline_file": "typescript/test/general-agent.test.ts",
+      "baseline_title": "CLI help returns before Adapter construction and therefore makes zero calls",
+      "destinations": [
+        {
+          "file": "references/pi/test/general-agent.test.ts",
+          "title": "CLI help returns before Adapter construction and therefore makes zero calls"
+        }
+      ],
+      "mapping": "Pi-specific/default-selection behavior retained in independently installed Frozen Reference."
+    },
+    {
+      "baseline_file": "typescript/test/kernel-conformance.test.ts",
+      "baseline_title": "C-KER-01 AgentKernel is the sole Session orchestration seam and only PiKernel invokes Pi orchestration",
+      "destinations": [
+        {
+          "file": "typescript/test/kernel-conformance.test.ts",
+          "title": "C-KER-01 AgentKernel is the sole Session orchestration seam and only PiKernel invokes Pi orchestration"
+        },
+        {
+          "file": "references/pi/test/kernel-conformance.test.ts",
+          "title": "C-KER-01 AgentKernel is the sole Session orchestration seam and only PiKernel invokes Pi orchestration"
+        }
+      ],
+      "mapping": "Assertions retained; composition migrated to Pan canonical Faux/fixtures and AgentTool on Product. The common obligations execute on Pi in Reference and on Native through Pan inputs in Product; there is no Native-to-Pi test conversion."
+    },
+    {
+      "baseline_file": "typescript/test/kernel-conformance.test.ts",
+      "baseline_title": "C-KER-09 kernel manifest is versioned, language-neutral, complete, and preserves v1 fixture bytes",
+      "destinations": [
+        {
+          "file": "typescript/test/kernel-conformance.test.ts",
+          "title": "C-KER-09 kernel manifest is versioned, language-neutral, complete, and preserves v1 fixture bytes"
+        },
+        {
+          "file": "references/pi/test/kernel-conformance.test.ts",
+          "title": "C-KER-09 kernel manifest is versioned, language-neutral, complete, and preserves v1 fixture bytes"
+        }
+      ],
+      "mapping": "Assertions retained; composition migrated to Pan canonical Faux/fixtures and AgentTool on Product. The common obligations execute on Pi in Reference and on Native through Pan inputs in Product; there is no Native-to-Pi test conversion."
+    },
+    {
+      "baseline_file": "typescript/test/kernel-conformance.test.ts",
+      "baseline_title": "C-KER-02 selection fixture runs through the same public Session interface for both Kernels",
+      "destinations": [
+        {
+          "file": "typescript/test/kernel-conformance.test.ts",
+          "title": "C-KER-02 selection fixture runs through the same public Session interface for both Kernels"
+        },
+        {
+          "file": "references/pi/test/kernel-conformance.test.ts",
+          "title": "C-KER-02 selection fixture runs through the same public Session interface for both Kernels"
+        }
+      ],
+      "mapping": "Assertions retained; composition migrated to Pan canonical Faux/fixtures and AgentTool on Product. The common obligations execute on Pi in Reference and on Native through Pan inputs in Product; there is no Native-to-Pi test conversion."
+    },
+    {
+      "baseline_file": "typescript/test/kernel-conformance.test.ts",
+      "baseline_title": "C-KER-03/04 context-and-batch fixture runs unchanged against both Kernels",
+      "destinations": [
+        {
+          "file": "typescript/test/kernel-conformance.test.ts",
+          "title": "C-KER-03/04 context-and-batch fixture runs unchanged against both Kernels"
+        },
+        {
+          "file": "references/pi/test/kernel-conformance.test.ts",
+          "title": "C-KER-03/04 context-and-batch fixture runs unchanged against both Kernels"
+        }
+      ],
+      "mapping": "Assertions retained; composition migrated to Pan canonical Faux/fixtures and AgentTool on Product. The common obligations execute on Pi in Reference and on Native through Pan inputs in Product; there is no Native-to-Pi test conversion."
+    },
+    {
+      "baseline_file": "typescript/test/kernel-conformance.test.ts",
+      "baseline_title": "C-KER-05 invalid-correlation fixture runs unchanged against both Kernels",
+      "destinations": [
+        {
+          "file": "typescript/test/kernel-conformance.test.ts",
+          "title": "C-KER-05 invalid-correlation fixture runs unchanged against both Kernels"
+        },
+        {
+          "file": "references/pi/test/kernel-conformance.test.ts",
+          "title": "C-KER-05 invalid-correlation fixture runs unchanged against both Kernels"
+        }
+      ],
+      "mapping": "Assertions retained; composition migrated to Pan canonical Faux/fixtures and AgentTool on Product. The common obligations execute on Pi in Reference and on Native through Pan inputs in Product; there is no Native-to-Pi test conversion."
+    },
+    {
+      "baseline_file": "typescript/test/kernel-conformance.test.ts",
+      "baseline_title": "C-KER-06 active-cancellation fixture runs unchanged against both Kernels",
+      "destinations": [
+        {
+          "file": "typescript/test/kernel-conformance.test.ts",
+          "title": "C-KER-06 active-cancellation fixture runs unchanged against both Kernels"
+        },
+        {
+          "file": "references/pi/test/kernel-conformance.test.ts",
+          "title": "C-KER-06 active-cancellation fixture runs unchanged against both Kernels"
+        }
+      ],
+      "mapping": "Assertions retained; composition migrated to Pan canonical Faux/fixtures and AgentTool on Product. The common obligations execute on Pi in Reference and on Native through Pan inputs in Product; there is no Native-to-Pi test conversion."
+    },
+    {
+      "baseline_file": "typescript/test/kernel-conformance.test.ts",
+      "baseline_title": "C-KER-07 budget fixture runs unchanged against both Kernels",
+      "destinations": [
+        {
+          "file": "typescript/test/kernel-conformance.test.ts",
+          "title": "C-KER-07 budget fixture runs unchanged against both Kernels"
+        },
+        {
+          "file": "references/pi/test/kernel-conformance.test.ts",
+          "title": "C-KER-07 budget fixture runs unchanged against both Kernels"
+        }
+      ],
+      "mapping": "Assertions retained; composition migrated to Pan canonical Faux/fixtures and AgentTool on Product. The common obligations execute on Pi in Reference and on Native through Pan inputs in Product; there is no Native-to-Pi test conversion."
+    },
+    {
+      "baseline_file": "typescript/test/kernel-conformance.test.ts",
+      "baseline_title": "C-KER-08 terminal-accounting fixture runs unchanged against both Kernels",
+      "destinations": [
+        {
+          "file": "typescript/test/kernel-conformance.test.ts",
+          "title": "C-KER-08 terminal-accounting fixture runs unchanged against both Kernels"
+        },
+        {
+          "file": "references/pi/test/kernel-conformance.test.ts",
+          "title": "C-KER-08 terminal-accounting fixture runs unchanged against both Kernels"
+        }
+      ],
+      "mapping": "Assertions retained; composition migrated to Pan canonical Faux/fixtures and AgentTool on Product. The common obligations execute on Pi in Reference and on Native through Pan inputs in Product; there is no Native-to-Pi test conversion."
+    },
+    {
+      "baseline_file": "typescript/test/kernel-selection.test.ts",
+      "baseline_title": "C-KER-02 omitted kernel and explicit pi have identical public behavior",
+      "destinations": [
+        {
+          "file": "references/pi/test/kernel-selection.test.ts",
+          "title": "C-KER-02 omitted kernel and explicit pi have identical public behavior"
+        }
+      ],
+      "mapping": "Pi-specific/default-selection behavior retained in independently installed Frozen Reference. New Product behavior is paired with C-PFREE-D103 in general-agent.test.ts per ADR-0017."
+    },
+    {
+      "baseline_file": "typescript/test/kernel-selection.test.ts",
+      "baseline_title": "C-KER-02 CLI defaults to pi, accepts native, and rejects unknown selectors",
+      "destinations": [
+        {
+          "file": "references/pi/test/kernel-selection.test.ts",
+          "title": "C-KER-02 CLI defaults to pi, accepts native, and rejects unknown selectors"
+        }
+      ],
+      "mapping": "Pi-specific/default-selection behavior retained in independently installed Frozen Reference. New Product behavior is paired with C-PFREE-D103 in general-agent.test.ts per ADR-0017."
+    },
+    {
+      "baseline_file": "typescript/test/memory-lanes.test.ts",
+      "baseline_title": "run.started is durable before the first Provider exchange (normal, provider-failure, tool-failure, cancelled)",
+      "destinations": [
+        {
+          "file": "typescript/test/memory-lanes.test.ts",
+          "title": "run.started is durable before the first Provider exchange (normal, provider-failure, tool-failure, cancelled)"
+        }
+      ],
+      "mapping": "Assertions retained; composition migrated to Pan canonical Faux/fixtures and AgentTool on Product."
+    },
+    {
+      "baseline_file": "typescript/test/memory-lanes.test.ts",
+      "baseline_title": "cancelled and tool-failure runs are durably archived and sealed",
+      "destinations": [
+        {
+          "file": "typescript/test/memory-lanes.test.ts",
+          "title": "cancelled and tool-failure runs are durably archived and sealed"
+        }
+      ],
+      "mapping": "Assertions retained; composition migrated to Pan canonical Faux/fixtures and AgentTool on Product."
+    },
+    {
+      "baseline_file": "typescript/test/memory-lanes.test.ts",
+      "baseline_title": "interruption between appends, mid-write, and after cancellation settles as interrupted with a causal prefix",
+      "destinations": [
+        {
+          "file": "typescript/test/memory-lanes.test.ts",
+          "title": "interruption between appends, mid-write, and after cancellation settles as interrupted with a causal prefix"
+        }
+      ],
+      "mapping": "Assertions retained; composition migrated to Pan canonical Faux/fixtures and AgentTool on Product."
+    },
+    {
+      "baseline_file": "typescript/test/memory-lanes.test.ts",
+      "baseline_title": "sealed archives refuse append, re-settle, identity reuse, and recovery writes in all four states",
+      "destinations": [
+        {
+          "file": "typescript/test/memory-lanes.test.ts",
+          "title": "sealed archives refuse append, re-settle, identity reuse, and recovery writes in all four states"
+        }
+      ],
+      "mapping": "Assertions retained; composition migrated to Pan canonical Faux/fixtures and AgentTool on Product."
+    },
+    {
+      "baseline_file": "typescript/test/memory-lanes.test.ts",
+      "baseline_title": "integrity verification detects modified, deleted, reordered, and injected records",
+      "destinations": [
+        {
+          "file": "typescript/test/memory-lanes.test.ts",
+          "title": "integrity verification detects modified, deleted, reordered, and injected records"
+        }
+      ],
+      "mapping": "Assertions retained; composition migrated to Pan canonical Faux/fixtures and AgentTool on Product."
+    },
+    {
+      "baseline_file": "typescript/test/memory-lanes.test.ts",
+      "baseline_title": "list, inspect, and replay are zero-effect; corrupted input fails typed",
+      "destinations": [
+        {
+          "file": "typescript/test/memory-lanes.test.ts",
+          "title": "list, inspect, and replay are zero-effect; corrupted input fails typed"
+        }
+      ],
+      "mapping": "Assertions retained; composition migrated to Pan canonical Faux/fixtures and AgentTool on Product."
+    },
+    {
+      "baseline_file": "typescript/test/memory-lanes.test.ts",
+      "baseline_title": "TUI :runs and :replay render archives with zero Provider calls and typed corruption errors",
+      "destinations": [
+        {
+          "file": "typescript/test/memory-lanes.test.ts",
+          "title": "TUI :runs and :replay render archives with zero Provider calls and typed corruption errors"
+        }
+      ],
+      "mapping": "Assertions retained; composition migrated to Pan canonical Faux/fixtures and AgentTool on Product."
+    },
+    {
+      "baseline_file": "typescript/test/memory-lanes.test.ts",
+      "baseline_title": "archive preserves every declared event kind and excludes credential canaries and restricted reasoning",
+      "destinations": [
+        {
+          "file": "typescript/test/memory-lanes.test.ts",
+          "title": "archive preserves every declared event kind and excludes credential canaries and restricted reasoning"
+        }
+      ],
+      "mapping": "Assertions retained; composition migrated to Pan canonical Faux/fixtures and AgentTool on Product."
+    },
+    {
+      "baseline_file": "typescript/test/memory-lanes.test.ts",
+      "baseline_title": "retrospective ledger enforces sealed reference integrity and supersession-only mutation",
+      "destinations": [
+        {
+          "file": "typescript/test/memory-lanes.test.ts",
+          "title": "retrospective ledger enforces sealed reference integrity and supersession-only mutation"
+        }
+      ],
+      "mapping": "Assertions retained; composition migrated to Pan canonical Faux/fixtures and AgentTool on Product."
+    },
+    {
+      "baseline_file": "typescript/test/memory-lanes.test.ts",
+      "baseline_title": "ledger entries are rejected as archive trajectory and the fact register is untouched",
+      "destinations": [
+        {
+          "file": "typescript/test/memory-lanes.test.ts",
+          "title": "ledger entries are rejected as archive trajectory and the fact register is untouched"
+        }
+      ],
+      "mapping": "Assertions retained; composition migrated to Pan canonical Faux/fixtures and AgentTool on Product."
+    },
+    {
+      "baseline_file": "typescript/test/memory-lanes.test.ts",
+      "baseline_title": "runbook revision binding survives later edits and reverts",
+      "destinations": [
+        {
+          "file": "typescript/test/memory-lanes.test.ts",
+          "title": "runbook revision binding survives later edits and reverts"
+        }
+      ],
+      "mapping": "Assertions retained; composition migrated to Pan canonical Faux/fixtures and AgentTool on Product."
+    },
+    {
+      "baseline_file": "typescript/test/memory-lanes.test.ts",
+      "baseline_title": "CLI requires a disjoint --memory-root before any Adapter construction",
+      "destinations": [
+        {
+          "file": "typescript/test/memory-lanes.test.ts",
+          "title": "CLI requires a disjoint --memory-root before any Adapter construction"
+        }
+      ],
+      "mapping": "Assertions retained; composition migrated to Pan canonical Faux/fixtures and AgentTool on Product."
+    },
+    {
+      "baseline_file": "typescript/test/memory-lanes.test.ts",
+      "baseline_title": "corrupted sealed manifest fails typed at read surfaces without blocking startup",
+      "destinations": [
+        {
+          "file": "typescript/test/memory-lanes.test.ts",
+          "title": "corrupted sealed manifest fails typed at read surfaces without blocking startup"
+        }
+      ],
+      "mapping": "Assertions retained; composition migrated to Pan canonical Faux/fixtures and AgentTool on Product."
+    },
+    {
+      "baseline_file": "typescript/test/memory-lanes.test.ts",
+      "baseline_title": "TUI :runs renders a typed ARCHIVE_ERROR for a corrupted manifest with zero Provider calls",
+      "destinations": [
+        {
+          "file": "typescript/test/memory-lanes.test.ts",
+          "title": "TUI :runs renders a typed ARCHIVE_ERROR for a corrupted manifest with zero Provider calls"
+        }
+      ],
+      "mapping": "Assertions retained; composition migrated to Pan canonical Faux/fixtures and AgentTool on Product."
+    },
+    {
+      "baseline_file": "typescript/test/native-kernel.test.ts",
+      "baseline_title": "C-KER-03/04 NativeKernel retains typed Context and settles a ToolCall batch sequentially",
+      "destinations": [
+        {
+          "file": "typescript/test/native-kernel.test.ts",
+          "title": "C-KER-03/04 NativeKernel retains typed Context and settles a ToolCall batch sequentially"
+        }
+      ],
+      "mapping": "Assertions retained; composition migrated to Pan canonical Faux/fixtures and AgentTool on Product. The common obligations execute on Pi in Reference and on Native through Pan inputs in Product; there is no Native-to-Pi test conversion."
+    },
+    {
+      "baseline_file": "typescript/test/native-kernel.test.ts",
+      "baseline_title": "C-KER-05 both Kernels return one correlated typed error per unknown or schema-invalid call",
+      "destinations": [
+        {
+          "file": "typescript/test/native-kernel.test.ts",
+          "title": "C-KER-05 both Kernels return one correlated typed error per unknown or schema-invalid call"
+        },
+        {
+          "file": "references/pi/test/native-kernel.test.ts",
+          "title": "C-KER-05 both Kernels return one correlated typed error per unknown or schema-invalid call"
+        }
+      ],
+      "mapping": "Assertions retained; composition migrated to Pan canonical Faux/fixtures and AgentTool on Product. The common obligations execute on Pi in Reference and on Native through Pan inputs in Product; there is no Native-to-Pi test conversion."
+    },
+    {
+      "baseline_file": "typescript/test/native-kernel.test.ts",
+      "baseline_title": "C-KER-05 both Kernels reject duplicate ToolCall ids before tool effects",
+      "destinations": [
+        {
+          "file": "typescript/test/native-kernel.test.ts",
+          "title": "C-KER-05 both Kernels reject duplicate ToolCall ids before tool effects"
+        },
+        {
+          "file": "references/pi/test/native-kernel.test.ts",
+          "title": "C-KER-05 both Kernels reject duplicate ToolCall ids before tool effects"
+        }
+      ],
+      "mapping": "Assertions retained; composition migrated to Pan canonical Faux/fixtures and AgentTool on Product. The common obligations execute on Pi in Reference and on Native through Pan inputs in Product; there is no Native-to-Pi test conversion."
+    },
+    {
+      "baseline_file": "typescript/test/native-kernel.test.ts",
+      "baseline_title": "C-KER-05 orphan seeded ToolResults settle model_error before model or tool effects",
+      "destinations": [
+        {
+          "file": "typescript/test/native-kernel.test.ts",
+          "title": "C-KER-05 orphan seeded ToolResults settle model_error before model or tool effects"
+        },
+        {
+          "file": "references/pi/test/native-kernel.test.ts",
+          "title": "C-KER-05 orphan seeded ToolResults settle model_error before model or tool effects"
+        }
+      ],
+      "mapping": "Assertions retained; composition migrated to Pan canonical Faux/fixtures and AgentTool on Product. The common obligations execute on Pi in Reference and on Native through Pan inputs in Product; there is no Native-to-Pi test conversion."
+    },
+    {
+      "baseline_file": "typescript/test/native-kernel.test.ts",
+      "baseline_title": "C-KER-06 both Kernels cancel the active tool with no late effect and one final archived terminal",
+      "destinations": [
+        {
+          "file": "typescript/test/native-kernel.test.ts",
+          "title": "C-KER-06 both Kernels cancel the active tool with no late effect and one final archived terminal"
+        },
+        {
+          "file": "references/pi/test/native-kernel.test.ts",
+          "title": "C-KER-06 both Kernels cancel the active tool with no late effect and one final archived terminal"
+        }
+      ],
+      "mapping": "Assertions retained; composition migrated to Pan canonical Faux/fixtures and AgentTool on Product. The common obligations execute on Pi in Reference and on Native through Pan inputs in Product; there is no Native-to-Pi test conversion."
+    },
+    {
+      "baseline_file": "typescript/test/native-kernel.test.ts",
+      "baseline_title": "C-KER-07 both Kernels enforce exact model-turn and atomic tool-step budgets",
+      "destinations": [
+        {
+          "file": "typescript/test/native-kernel.test.ts",
+          "title": "C-KER-07 both Kernels enforce exact model-turn and atomic tool-step budgets"
+        },
+        {
+          "file": "references/pi/test/native-kernel.test.ts",
+          "title": "C-KER-07 both Kernels enforce exact model-turn and atomic tool-step budgets"
+        }
+      ],
+      "mapping": "Assertions retained; composition migrated to Pan canonical Faux/fixtures and AgentTool on Product. The common obligations execute on Pi in Reference and on Native through Pan inputs in Product; there is no Native-to-Pi test conversion."
+    },
+    {
+      "baseline_file": "typescript/test/native-kernel.test.ts",
+      "baseline_title": "C-KER-07 invalid budgets fail before model, tool, or archive effects",
+      "destinations": [
+        {
+          "file": "typescript/test/native-kernel.test.ts",
+          "title": "C-KER-07 invalid budgets fail before model, tool, or archive effects"
+        },
+        {
+          "file": "references/pi/test/native-kernel.test.ts",
+          "title": "C-KER-07 invalid budgets fail before model, tool, or archive effects"
+        }
+      ],
+      "mapping": "Assertions retained; composition migrated to Pan canonical Faux/fixtures and AgentTool on Product. The common obligations execute on Pi in Reference and on Native through Pan inputs in Product; there is no Native-to-Pi test conversion."
+    },
+    {
+      "baseline_file": "typescript/test/pan-contracts.test.ts",
+      "baseline_title": "C-PFREE-A01 canonical values stay structural and reject invalid correlation/arguments",
+      "destinations": [
+        {
+          "file": "typescript/test/pan-contracts.test.ts",
+          "title": "C-PFREE-A01 canonical values stay structural and reject invalid correlation/arguments"
+        }
+      ],
+      "mapping": "Assertions retained; composition migrated to Pan canonical Faux/fixtures and AgentTool on Product."
+    },
+    {
+      "baseline_file": "typescript/test/pan-contracts.test.ts",
+      "baseline_title": "C-PFREE-A02 unavailable usage/identity stay distinct from reported zero and failures are not assistant content",
+      "destinations": [
+        {
+          "file": "typescript/test/pan-contracts.test.ts",
+          "title": "C-PFREE-A02 unavailable usage/identity stay distinct from reported zero and failures are not assistant content"
+        }
+      ],
+      "mapping": "Assertions retained; composition migrated to Pan canonical Faux/fixtures and AgentTool on Product."
+    },
+    {
+      "baseline_file": "typescript/test/pan-contracts.test.ts",
+      "baseline_title": "C-PFREE-A03/A05 Native session uses one Pan ModelAdapter seam for final and ToolResult feedback",
+      "destinations": [
+        {
+          "file": "typescript/test/pan-contracts.test.ts",
+          "title": "C-PFREE-A03/A05 Native session uses one Pan ModelAdapter seam for final and ToolResult feedback"
+        }
+      ],
+      "mapping": "Assertions retained; composition migrated to Pan canonical Faux/fixtures and AgentTool on Product."
+    },
+    {
+      "baseline_file": "typescript/test/pan-contracts.test.ts",
+      "baseline_title": "C-PFREE-A03 cancellation reaches the active adapter and admits no later exchange",
+      "destinations": [
+        {
+          "file": "typescript/test/pan-contracts.test.ts",
+          "title": "C-PFREE-A03 cancellation reaches the active adapter and admits no later exchange"
+        }
+      ],
+      "mapping": "Assertions retained; composition migrated to Pan canonical Faux/fixtures and AgentTool on Product."
+    },
+    {
+      "baseline_file": "typescript/test/pan-contracts.test.ts",
+      "baseline_title": "C-PFREE-A04 unknown/schema-invalid/cancelled ToolCalls have zero implementation effects",
+      "destinations": [
+        {
+          "file": "typescript/test/pan-contracts.test.ts",
+          "title": "C-PFREE-A04 unknown/schema-invalid/cancelled ToolCalls have zero implementation effects"
+        }
+      ],
+      "mapping": "Assertions retained; composition migrated to Pan canonical Faux/fixtures and AgentTool on Product."
+    },
+    {
+      "baseline_file": "typescript/test/pan-contracts.test.ts",
+      "baseline_title": "C-PFREE-A03/A06 Pan seams and NativeKernel have no Pi import or hidden Pi model/tool decision",
+      "destinations": [
+        {
+          "file": "typescript/test/pan-contracts.test.ts",
+          "title": "C-PFREE-A03/A06 Pan seams and NativeKernel have no Pi import or hidden Pi model/tool decision"
+        }
+      ],
+      "mapping": "Assertions retained; composition migrated to Pan canonical Faux/fixtures and AgentTool on Product. Three compatibility-source assertions additionally move to references/pi/test/compatibility.test.ts."
+    },
+    {
+      "baseline_file": "typescript/test/pan-deepseek-adapter.test.ts",
+      "baseline_title": "C-PFREE-C101 direct Pan Adapter construction and explicit Native CLI composition are inert and Pi-free",
+      "destinations": [
+        {
+          "file": "typescript/test/pan-deepseek-adapter.test.ts",
+          "title": "C-PFREE-C101 direct Pan Adapter construction and explicit Native CLI composition are inert and Pi-free"
+        }
+      ],
+      "mapping": "Assertions retained; composition migrated to Pan canonical Faux/fixtures and AgentTool on Product."
+    },
+    {
+      "baseline_file": "typescript/test/pan-deepseek-adapter.test.ts",
+      "baseline_title": "C-PFREE-C101 Fetch transport resolves synthetic auth only at send and preserves the one-request envelope",
+      "destinations": [
+        {
+          "file": "typescript/test/pan-deepseek-adapter.test.ts",
+          "title": "C-PFREE-C101 Fetch transport resolves synthetic auth only at send and preserves the one-request envelope"
+        }
+      ],
+      "mapping": "Assertions retained; composition migrated to Pan canonical Faux/fixtures and AgentTool on Product."
+    },
+    {
+      "baseline_file": "typescript/test/pan-deepseek-adapter.test.ts",
+      "baseline_title": "C-PFREE-C102 exact Context encoding, private reasoning replay and session isolation",
+      "destinations": [
+        {
+          "file": "typescript/test/pan-deepseek-adapter.test.ts",
+          "title": "C-PFREE-C102 exact Context encoding, private reasoning replay and session isolation"
+        }
+      ],
+      "mapping": "Assertions retained; composition migrated to Pan canonical Faux/fixtures and AgentTool on Product."
+    },
+    {
+      "baseline_file": "typescript/test/pan-deepseek-adapter.test.ts",
+      "baseline_title": "C-PFREE-C103 every valid SSE fixture is byte-split invariant",
+      "destinations": [
+        {
+          "file": "typescript/test/pan-deepseek-adapter.test.ts",
+          "title": "C-PFREE-C103 every valid SSE fixture is byte-split invariant"
+        }
+      ],
+      "mapping": "Assertions retained; composition migrated to Pan canonical Faux/fixtures and AgentTool on Product."
+    },
+    {
+      "baseline_file": "typescript/test/pan-deepseek-adapter.test.ts",
+      "baseline_title": "C-PFREE-C103 malformed stream table settles typed without partial response",
+      "destinations": [
+        {
+          "file": "typescript/test/pan-deepseek-adapter.test.ts",
+          "title": "C-PFREE-C103 malformed stream table settles typed without partial response"
+        }
+      ],
+      "mapping": "Assertions retained; composition migrated to Pan canonical Faux/fixtures and AgentTool on Product."
+    },
+    {
+      "baseline_file": "typescript/test/pan-deepseek-adapter.test.ts",
+      "baseline_title": "C-PFREE-C104 usage and response identity preserve reported, absent and malformed meanings",
+      "destinations": [
+        {
+          "file": "typescript/test/pan-deepseek-adapter.test.ts",
+          "title": "C-PFREE-C104 usage and response identity preserve reported, absent and malformed meanings"
+        }
+      ],
+      "mapping": "Assertions retained; composition migrated to Pan canonical Faux/fixtures and AgentTool on Product."
+    },
+    {
+      "baseline_file": "typescript/test/pan-deepseek-adapter.test.ts",
+      "baseline_title": "C-PFREE-C105 cancellation, transport and exact HTTP failures settle once without retry or canary leakage",
+      "destinations": [
+        {
+          "file": "typescript/test/pan-deepseek-adapter.test.ts",
+          "title": "C-PFREE-C105 cancellation, transport and exact HTTP failures settle once without retry or canary leakage"
+        }
+      ],
+      "mapping": "Assertions retained; composition migrated to Pan canonical Faux/fixtures and AgentTool on Product."
+    },
+    {
+      "baseline_file": "typescript/test/pan-deepseek-adapter.test.ts",
+      "baseline_title": "C-PFREE-C106 public Native Session traverses direct final, Tool, batch, length and failure fixtures",
+      "destinations": [
+        {
+          "file": "typescript/test/pan-deepseek-adapter.test.ts",
+          "title": "C-PFREE-C106 public Native Session traverses direct final, Tool, batch, length and failure fixtures"
+        }
+      ],
+      "mapping": "Assertions retained; composition migrated to Pan canonical Faux/fixtures and AgentTool on Product."
+    },
+    {
+      "baseline_file": "typescript/test/pan-deepseek-adapter.test.ts",
+      "baseline_title": "C-PFREE-C106 public active cancellation reaches transport, seals once and executes no Tool",
+      "destinations": [
+        {
+          "file": "typescript/test/pan-deepseek-adapter.test.ts",
+          "title": "C-PFREE-C106 public active cancellation reaches transport, seals once and executes no Tool"
+        }
+      ],
+      "mapping": "Assertions retained; composition migrated to Pan canonical Faux/fixtures and AgentTool on Product."
+    },
+    {
+      "baseline_file": "typescript/test/pan-deepseek-adapter.test.ts",
+      "baseline_title": "C-PFREE-C108 fixture and official-contract identities are content-pinned and secret-free",
+      "destinations": [
+        {
+          "file": "typescript/test/pan-deepseek-adapter.test.ts",
+          "title": "C-PFREE-C108 fixture and official-contract identities are content-pinned and secret-free"
+        }
+      ],
+      "mapping": "Assertions retained; composition migrated to Pan canonical Faux/fixtures and AgentTool on Product."
+    },
+    {
+      "baseline_file": "typescript/test/pan-faux-tools.test.ts",
+      "baseline_title": "C-PFREE-B101 Faux consumes deterministic canonical scripts and fails typed on exhaustion",
+      "destinations": [
+        {
+          "file": "typescript/test/pan-faux-tools.test.ts",
+          "title": "C-PFREE-B101 Faux consumes deterministic canonical scripts and fails typed on exhaustion"
+        }
+      ],
+      "mapping": "Assertions retained; composition migrated to Pan canonical Faux/fixtures and AgentTool on Product."
+    },
+    {
+      "baseline_file": "typescript/test/pan-faux-tools.test.ts",
+      "baseline_title": "C-PFREE-B101 pending and pre-aborted Faux exchanges consume no later script entry",
+      "destinations": [
+        {
+          "file": "typescript/test/pan-faux-tools.test.ts",
+          "title": "C-PFREE-B101 pending and pre-aborted Faux exchanges consume no later script entry"
+        }
+      ],
+      "mapping": "Assertions retained; composition migrated to Pan canonical Faux/fixtures and AgentTool on Product."
+    },
+    {
+      "baseline_file": "typescript/test/pan-faux-tools.test.ts",
+      "baseline_title": "C-PFREE-B101 Faux rejects noncanonical requests before admission and types invalid script outcomes",
+      "destinations": [
+        {
+          "file": "typescript/test/pan-faux-tools.test.ts",
+          "title": "C-PFREE-B101 Faux rejects noncanonical requests before admission and types invalid script outcomes"
+        }
+      ],
+      "mapping": "Assertions retained; composition migrated to Pan canonical Faux/fixtures and AgentTool on Product."
+    },
+    {
+      "baseline_file": "typescript/test/pan-faux-tools.test.ts",
+      "baseline_title": "C-PFREE-B101/B102 Faux and Pan Tool graphs contain no Pi or Provider transport delegation",
+      "destinations": [
+        {
+          "file": "typescript/test/pan-faux-tools.test.ts",
+          "title": "C-PFREE-B101/B102 Faux and Pan Tool graphs contain no Pi or Provider transport delegation"
+        }
+      ],
+      "mapping": "Assertions retained; composition migrated to Pan canonical Faux/fixtures and AgentTool on Product."
+    },
+    {
+      "baseline_file": "typescript/test/pan-faux-tools.test.ts",
+      "baseline_title": "C-PFREE-B102/B103 Pan read-write-edit-bash complete through Native Events and Archive",
+      "destinations": [
+        {
+          "file": "typescript/test/pan-faux-tools.test.ts",
+          "title": "C-PFREE-B102/B103 Pan read-write-edit-bash complete through Native Events and Archive"
+        }
+      ],
+      "mapping": "Assertions retained; composition migrated to Pan canonical Faux/fixtures and AgentTool on Product."
+    },
+    {
+      "baseline_file": "typescript/test/pan-faux-tools.test.ts",
+      "baseline_title": "C-PFREE-B103 nonzero Bash and missing edit remain attributable without Harness crash or partial edit",
+      "destinations": [
+        {
+          "file": "typescript/test/pan-faux-tools.test.ts",
+          "title": "C-PFREE-B103 nonzero Bash and missing edit remain attributable without Harness crash or partial edit"
+        }
+      ],
+      "mapping": "Assertions retained; composition migrated to Pan canonical Faux/fixtures and AgentTool on Product."
+    },
+    {
+      "baseline_file": "typescript/test/pan-faux-tools.test.ts",
+      "baseline_title": "C-PFREE-B104 malformed and cancel-before-effect calls have zero implementations and effects",
+      "destinations": [
+        {
+          "file": "typescript/test/pan-faux-tools.test.ts",
+          "title": "C-PFREE-B104 malformed and cancel-before-effect calls have zero implementations and effects"
+        }
+      ],
+      "mapping": "Assertions retained; composition migrated to Pan canonical Faux/fixtures and AgentTool on Product."
+    },
+    {
+      "baseline_file": "typescript/test/pan-faux-tools.test.ts",
+      "baseline_title": "C-PFREE-B104 Bash excludes Provider secrets and kills descendants before settlement",
+      "destinations": [
+        {
+          "file": "typescript/test/pan-faux-tools.test.ts",
+          "title": "C-PFREE-B104 Bash excludes Provider secrets and kills descendants before settlement"
+        }
+      ],
+      "mapping": "Assertions retained; composition migrated to Pan canonical Faux/fixtures and AgentTool on Product."
+    },
+    {
+      "baseline_file": "typescript/test/pan-faux-tools.test.ts",
+      "baseline_title": "C-PFREE-B105 Pan Faux/Tools preserve multi-call order, typed failure, cancellation, and budgets",
+      "destinations": [
+        {
+          "file": "typescript/test/pan-faux-tools.test.ts",
+          "title": "C-PFREE-B105 Pan Faux/Tools preserve multi-call order, typed failure, cancellation, and budgets"
+        }
+      ],
+      "mapping": "Assertions retained; composition migrated to Pan canonical Faux/fixtures and AgentTool on Product."
+    }
+  ]
+}

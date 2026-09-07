@@ -1,5 +1,8 @@
 # Direct Pan-owned DeepSeek ModelAdapter
 
+Current #34 transition: `typescript/` is Product with required explicit `--kernel native`; omission fails before setup. Pi integration is independently installed Frozen Reference under `references/pi/`. Prior default-Pi descriptions below record the accepted #28–#33 baseline, prospectively superseded for selection/package placement by [ADR-0017](../adr/0017-product-isolation-and-frozen-pi.md). Core behavior and historical Evidence are unchanged. #29/#35/#36 remain separate.
+
+
 Status: WorkOrder #33 Builder candidate on accepted base `2ed4cee780e36f1e33845d66b9065381f775d6d2`; pending independent Regulator Verdict.
 
 Criteria-Version: `1.0` (`C-PFREE-C101`…`C-PFREE-C108`).

@@ -227,13 +227,13 @@ test("C-PFREE-C101 direct Pan Adapter construction and explicit Native CLI compo
 	const workspace = join(root, "workspace");
 	await mkdir(workspace);
 	let nativeConstructions = 0;
-	let piConstructions = 0;
+	const forbiddenFactory = () => { throw new Error("removed factory must not run"); };
 	const exitCode = await runCli([
 		"--workspace", workspace,
 		"--memory-root", join(root, "memory"),
 		"--kernel", "native",
 	], {
-		createAdapter() { piConstructions += 1; throw new Error("Pi factory must not run"); },
+		...{ createAdapter: forbiddenFactory },
 		createNativeAdapter(profile) {
 			nativeConstructions += 1;
 			return new PanDeepSeekModelAdapter(profile, { transport });
@@ -245,7 +245,7 @@ test("C-PFREE-C101 direct Pan Adapter construction and explicit Native CLI compo
 	});
 	assert.equal(exitCode, 0);
 	assert.equal(nativeConstructions, 1);
-	assert.equal(piConstructions, 0);
+	assert.doesNotMatch(await readFile(join(REPOSITORY_ROOT, "typescript/src/cli.ts"), "utf8"), /dependencies\.createAdapter/);
 	assert.equal(credentialReads, 0);
 	assert.equal(fetchCalls, 0);
 
@@ -255,8 +255,7 @@ test("C-PFREE-C101 direct Pan Adapter construction and explicit Native CLI compo
 	}
 	const cli = await readFile(join(REPOSITORY_ROOT, "typescript/src/cli.ts"), "utf8");
 	assert.match(cli, /createPanDeepSeekAdapter/);
-	const nativeBranch = cli.slice(cli.indexOf('configuration.kernel === "native"'), cli.indexOf("} else {", cli.indexOf('configuration.kernel === "native"')));
-	assert.doesNotMatch(nativeBranch, /adaptPiModelAdapter|createPiDeepSeekAdapter/);
+	assert.doesNotMatch(cli, /adaptPiModelAdapter|createPiDeepSeekAdapter/);
 });
 
 test("C-PFREE-C101 Fetch transport resolves synthetic auth only at send and preserves the one-request envelope", async () => {

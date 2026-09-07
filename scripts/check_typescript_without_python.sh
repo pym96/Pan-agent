@@ -4,6 +4,8 @@ set -euo pipefail
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 dependency_root="$repo_root/typescript/node_modules"
 
+command -v rg >/dev/null 2>&1 || { echo "rg is required; refusing a vacuous scan" >&2; exit 1; }
+
 if [[ ! -d "$dependency_root" ]]; then
   echo "typescript/node_modules is required; run npm --prefix typescript ci --ignore-scripts first" >&2
   exit 1

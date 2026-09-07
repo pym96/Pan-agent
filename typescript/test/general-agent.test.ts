@@ -1,428 +1,167 @@
+import cp from "node:child_process";
+import { syncBuiltinESMExports } from "node:module";
 import assert from "node:assert/strict";
-import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { access, mkdir, mkdtemp, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { PassThrough } from "node:stream";
 import { afterEach, test } from "node:test";
-import {
-	createModels,
-	fauxAssistantMessage,
-	fauxProvider,
-	fauxText,
-	fauxThinking,
-	fauxToolCall,
-	type FauxProviderHandle,
-} from "@earendil-works/pi-ai";
 import { runCli } from "../src/cli.ts";
-import { createPiDeepSeekAdapter, type PiModelAdapter } from "../src/model-adapter.ts";
+import { GeneralAgentSession, type GeneralAgentSessionOptions, type SessionObservation } from "../src/session.ts";
+import { NativeKernel } from "../src/kernels/native-kernel.ts";
 import { RunArchiveStore } from "../src/run-archive.ts";
-import {
-	GENERAL_AGENT_SYSTEM_PROMPT,
-	GeneralAgentSession,
-	type SessionObservation,
-} from "../src/session.ts";
-import { createTrustedLocalTools } from "../src/tools.ts";
-import { renderObservation, runTui } from "../src/tui.ts";
+import { runTui } from "../src/tui.ts";
+import { FauxModelAdapter } from "../src/faux-model-adapter.ts";
+import { createPanTrustedLocalTools } from "../src/pan-trusted-local-tools.ts";
+import { PanDeepSeekModelAdapter } from "../src/pan-deepseek-model-adapter.ts";
+import type { ModelAdapter } from "../src/model-adapter-contract.ts";
+import type { AgentTool } from "../src/agent-tool.ts";
+import { response, call } from "./pan-fixture.ts";
+const revision = `sha256:${"0".repeat(64)}`;
+const roots: string[] = [];
+afterEach(async () => { await Promise.all(roots.splice(0).map((root) => rm(root, { recursive: true, force: true }))); });
+async function root() { const dir = await mkdtemp(join(tmpdir(), "wo34-product-")); roots.push(dir); await mkdir(join(dir, "workspace")); return dir; }
+function capture() { const output = new PassThrough(); let text = ""; output.setEncoding("utf8"); output.on("data", (chunk) => { text += chunk; }); return { output, text: () => text }; }
 
-const TEST_RUNBOOK_REVISION = `sha256:${"0".repeat(64)}`;
-
-const temporaryDirectories: string[] = [];
-
-afterEach(async () => {
-	await Promise.all(temporaryDirectories.splice(0).map((directory) => rm(directory, { recursive: true, force: true })));
+test("C-PFREE-D103 Product help and invalid selectors fail before setup; explicit injection keeps one lifecycle", async () => {
+ const dir = await root();
+ const effects = { adapters: 0, tools: 0, credentials: 0, transport: 0, archive: 0, tui: 0 };
+ const originalOpen = RunArchiveStore.open;
+ RunArchiveStore.open = async () => { effects.archive++; throw new Error("archive factory forbidden"); };
+ try {
+  for (const [selector, code, diagnostic] of [
+   [[], 2, "kernel_selection_required"], [["--kernel", "pi"], 2, "kernel_not_in_product"],
+   [["--kernel", "unknown"], 2, "Unsupported kernel"], [["--help"], 0, "Usage:"],
+  ] as const) {
+   const out = capture();
+   const exit = await runCli([...selector, "--workspace", join(dir, "workspace"), "--memory-root", join(dir, "memory")], {
+    output: out.output,
+    createNativeAdapter() { effects.adapters++; throw new Error("adapter factory forbidden"); },
+    createTools() { effects.tools++; throw new Error("tool factory forbidden"); },
+    startTui: async () => { effects.tui++; return 0; },
+   });
+   assert.equal(exit, code); assert.ok(out.text().includes(diagnostic));
+  }
+  for (const selector of [undefined, "pi", "other", null, 12, {}, {kind: "native"}]) {
+   const options = {
+    kernel: selector,
+    get adapter() { effects.adapters++; throw new Error("adapter access forbidden"); },
+    get tools() { effects.tools++; throw new Error("tools access forbidden"); },
+    get memory() { effects.archive++; throw new Error("memory access forbidden"); },
+   } as unknown as GeneralAgentSessionOptions;
+   assert.throws(() => new GeneralAgentSession(options), /kernel_selection_required|kernel_not_in_product|Unsupported kernel/);
+  }
+ } finally { RunArchiveStore.open = originalOpen; }
+ assert.deepEqual(effects, { adapters: 0, tools: 0, credentials: 0, transport: 0, archive: 0, tui: 0 });
+ await assert.rejects(access(join(dir, "memory")), /ENOENT/);
+ const adapter = new FauxModelAdapter([response("injected")]);
+ const kernel = new NativeKernel({ adapter, tools: [], limits: { maxModelTurns: 2, maxToolSteps: 2 } });
+ const store = await RunArchiveStore.open(join(dir, "injected-memory"));
+ const session = new GeneralAgentSession({ kernel, adapterIdentity: {provider: adapter.providerId, modelId: adapter.modelId, thinkingLevel: adapter.reasoningLevel}, systemPrompt: "injected", memory: { archiveStore: store, runbook: async () => ({content: "test", revision}) } });
+ try { const result = await session.runTask("injected lifecycle"); assert.equal(result.finalText, "injected"); assert.equal(result.archiveSealed, true); } finally { await session.close(); }
+ console.log("D103 observed", JSON.stringify(effects));
 });
 
-async function workspace(): Promise<string> {
-	const directory = await mkdtemp(join(tmpdir(), "wah-pi-test-"));
-	temporaryDirectories.push(directory);
-	return directory;
+test("C-PFREE-D102 explicit Native CLI and real TUI complete write/read/verify with sealed public archive", async () => {
+ const dir = await root(); const input = new PassThrough(); const out = capture();
+ const adapter = new FauxModelAdapter([
+  response(call("write", {path: "proof.txt", content: "product-isolated\n"}, {id: "write-1"}), {stopReason: "tool_calls"}),
+  response(call("read", {path: "proof.txt"}, {id: "read-1"}), {stopReason: "tool_calls"}),
+  response(call("bash", {command: "test \"$(cat proof.txt)\" = product-isolated && printf verified"}, {id: "verify-1"}), {stopReason: "tool_calls"}),
+  response("verified product-isolated"),
+ ]);
+ let tasks = 0;
+ out.output.on("data", (chunk: string) => {
+  if (chunk.includes("[y/N]> ")) setImmediate(() => input.write("y\n"));
+  else if (chunk.endsWith("Task> ")) setImmediate(() => input.write(tasks++ === 0 ? "write/read/verify proof.txt\n" : ":exit\n"));
+ });
+ const code = await runCli(["--kernel", "native", "--workspace", join(dir,"workspace"), "--memory-root", join(dir,"memory")], {
+  output: out.output, createNativeAdapter: () => adapter,
+  startTui: (options) => runTui({...options, input}),
+ });
+ assert.equal(code, 0); assert.equal(await readFile(join(dir, "workspace/proof.txt"), "utf8"), "product-isolated\n");
+ assert.equal(adapter.state.exchangeCount, 4);
+ const store = await RunArchiveStore.open(join(dir, "memory")); const runs = await store.listRuns(); assert.equal(runs.length, 1);
+ const records = await store.readArchive(runs[0]!.runId);
+ assert.deepEqual(records.filter((r) => r.type === "tool.started").map((r) => r.toolName), ["write", "read", "bash"]);
+ assert.equal(records.filter((r) => r.type === "run.terminal").length, 1);
+ assert.equal(records.find((r) => r.type === "run.terminal")?.status, "completed");
+ assert.equal(records.at(-1)?.type, "run.settled");
+ assert.match(out.text(), /completed/); assert.match(out.text(), /verified/);
+ console.log("D102 observed", JSON.stringify({cli_exit: code, synthetic_exchanges: adapter.state.exchangeCount, admitted_tools: 3, terminals: 1, sealed: true, file: "product-isolated\\n"}));
+});
+
+async function harness(adapter: ModelAdapter, configure?: (tools: readonly AgentTool[]) => readonly AgentTool[], observe?: (event: SessionObservation, session: GeneralAgentSession) => void) {
+ const dir = await root(); const store = await RunArchiveStore.open(join(dir,"memory")); const events: SessionObservation[] = [];
+ const tools = createPanTrustedLocalTools(join(dir,"workspace"), {HOME: "/tmp/pan-safe-home", PATH: process.env.PATH, DEEPSEEK_API_KEY: "PROVIDER_SECRET_CANARY", ANTHROPIC_API_KEY: "SECOND_PROVIDER_SECRET_CANARY"}).tools;
+ const session = new GeneralAgentSession({kernel: "native", adapter, tools: configure?.(tools) ?? tools, systemPrompt: "offline P-D6", memory: { archiveStore: store, runbook: async () => ({content: "test", revision}) }, onObservation(event) { events.push(event); observe?.(event, session); } });
+ return {dir, store, events, session};
 }
 
-function fauxAdapter(): { adapter: PiModelAdapter; faux: FauxProviderHandle } {
-	const faux = fauxProvider({ models: [{ id: "faux-general", reasoning: true }] });
-	const models = createModels();
-	models.setProvider(faux.provider);
-	const model = faux.getModel("faux-general");
-	assert.ok(model);
-	return {
-		faux,
-		adapter: {
-			providerId: faux.provider.id,
-			modelId: model.id,
-			model,
-			streamFn: models.streamSimple.bind(models),
-			thinkingLevel: "high",
-		},
-	};
-}
-
-async function harness(directory: string, adapter: PiModelAdapter, observations: SessionObservation[]): Promise<GeneralAgentSession> {
-	const trustedLocal = createTrustedLocalTools(directory);
-	const archiveStore = await RunArchiveStore.open(join(directory, "memory"));
-	return new GeneralAgentSession({
-		adapter,
-		tools: trustedLocal.tools,
-		systemPrompt: GENERAL_AGENT_SYSTEM_PROMPT,
-		memory: { archiveStore, runbook: async () => ({ content: "test runbook", revision: TEST_RUNBOOK_REVISION }) },
-		onObservation: (observation) => {
-			observations.push(observation);
-		},
-		cleanup: () => trustedLocal.environment.cleanup(),
-	});
-}
-
-test("one Pi session performs read/write/edit/trusted-local shell and exposes typed observations", async () => {
-	const directory = await workspace();
-	await writeFile(join(directory, "input.txt"), "alpha\n", "utf8");
-	const { adapter, faux } = fauxAdapter();
-	faux.setResponses([
-		fauxAssistantMessage(fauxToolCall("read", { path: "input.txt" }, { id: "read-1" }), {
-			stopReason: "toolUse",
-			responseId: "response-read",
-		}),
-		fauxAssistantMessage(
-			fauxToolCall("write", { path: "program.js", content: 'console.log("one");\n' }, { id: "write-1" }),
-			{ stopReason: "toolUse", responseId: "response-write" },
-		),
-		fauxAssistantMessage(
-			fauxToolCall(
-				"edit",
-				{
-					path: "program.js",
-					edits: [{ oldText: 'console.log("one");', newText: 'console.log("two");' }],
-				},
-				{ id: "edit-1" },
-			),
-			{ stopReason: "toolUse", responseId: "response-edit" },
-		),
-		fauxAssistantMessage(
-			fauxToolCall("bash", { command: "node --check program.js && node program.js" }, { id: "bash-1" }),
-			{ stopReason: "toolUse", responseId: "response-bash" },
-		),
-		fauxAssistantMessage("Created and verified program.js.", { responseId: "response-final" }),
-	]);
-	const observations: SessionObservation[] = [];
-	const session = await harness(directory, adapter, observations);
-	try {
-		const result = await session.runTask("Read input.txt, create and edit program.js, then run it.");
-		assert.equal(result.status, "completed");
-		assert.equal(result.modelCalls, 5);
-		assert.equal(result.toolCalls, 4);
-		assert.equal(await readFile(join(directory, "program.js"), "utf8"), 'console.log("two");\n');
-		assert.ok(
-			observations.some(
-				(observation) => observation.type === "tool.settled" && observation.toolName === "bash" && observation.text.includes("two"),
-			),
-		);
-		assert.ok(
-			observations.some(
-				(observation) =>
-					observation.type === "model.turn_settled" && observation.responseId === "response-final",
-			),
-		);
-		assert.equal(result.usage.status, "reported");
-		assert.ok(result.usage.status === "reported" && result.usage.value.totalTokens > 0);
-	} finally {
-		await session.close();
-	}
-});
-
-test("nonzero trusted-local shell exit remains an attributable tool error instead of crashing the harness", async () => {
-	const directory = await workspace();
-	const { adapter, faux } = fauxAdapter();
-	faux.setResponses([
-		fauxAssistantMessage(
-			fauxToolCall("bash", { command: "printf 'failure-output\\n'; exit 7" }, { id: "bash-fail" }),
-			{ stopReason: "toolUse" },
-		),
-		fauxAssistantMessage("The command failed with exit code 7; no retry was needed."),
-	]);
-	const observations: SessionObservation[] = [];
-	const session = await harness(directory, adapter, observations);
-	try {
-		const result = await session.runTask("Run the failing command and explain the observation.");
-		assert.equal(result.status, "completed");
-		const failure = observations.find(
-			(observation) => observation.type === "tool.settled" && observation.toolCallId === "bash-fail",
-		);
-		assert.ok(failure?.type === "tool.settled");
-		assert.equal(failure.isError, true);
-		assert.match(failure.text, /failure-output/);
-		assert.match(failure.text, /code 7/);
-	} finally {
-		await session.close();
-	}
-});
-
-test("malformed and unknown ToolCalls are rejected before filesystem effects", async () => {
-	const directory = await workspace();
-	const { adapter, faux } = fauxAdapter();
-	faux.setResponses([
-		fauxAssistantMessage(
-			[
-				fauxToolCall("write", { path: "forbidden.txt" }, { id: "malformed-write" }),
-				fauxToolCall("host_magic", { path: "also-forbidden.txt" }, { id: "unknown-tool" }),
-			],
-			{ stopReason: "toolUse" },
-		),
-		fauxAssistantMessage("Both invalid calls were rejected."),
-	]);
-	const observations: SessionObservation[] = [];
-	const session = await harness(directory, adapter, observations);
-	try {
-		const result = await session.runTask("Attempt malformed operations.");
-		assert.equal(result.status, "completed");
-		await assert.rejects(readFile(join(directory, "forbidden.txt"), "utf8"), /ENOENT/);
-		await assert.rejects(readFile(join(directory, "also-forbidden.txt"), "utf8"), /ENOENT/);
-		const failures = observations.filter(
-			(observation) => observation.type === "tool.settled" && observation.isError,
-		);
-		assert.equal(failures.length, 2);
-	} finally {
-		await session.close();
-	}
-});
-
-test("successive tasks retain Pi-owned context without application truncation", async () => {
-	const directory = await workspace();
-	const { adapter, faux } = fauxAdapter();
-	faux.setResponses([
-		fauxAssistantMessage("I will remember cobalt."),
-		(context) => {
-			const serialized = JSON.stringify(context.messages);
-			return fauxAssistantMessage(serialized.includes("cobalt") ? "The retained word is cobalt." : "Context missing.");
-		},
-	]);
-	const observations: SessionObservation[] = [];
-	const session = await harness(directory, adapter, observations);
-	try {
-		const first = await session.runTask("Remember cobalt.");
-		const second = await session.runTask("What word did I ask you to remember?");
-		assert.equal(first.status, "completed");
-		assert.equal(second.finalText, "The retained word is cobalt.");
-		assert.notEqual(first.runId, second.runId);
-		assert.equal(session.contextMessageCount, 4);
-	} finally {
-		await session.close();
-	}
-});
-
-test("hidden thinking stays out of observable projections", async () => {
-	const directory = await workspace();
-	const { adapter, faux } = fauxAdapter();
-	faux.setResponses([
-		fauxAssistantMessage([fauxThinking("PRIVATE_REASONING_CANARY"), fauxText("Public answer")]),
-	]);
-	const observations: SessionObservation[] = [];
-	const session = await harness(directory, adapter, observations);
-	try {
-		await session.runTask("Answer publicly.");
-		const rendered = observations.flatMap(renderObservation).join("\n");
-		assert.match(rendered, /Public answer/);
-		assert.doesNotMatch(rendered, /PRIVATE_REASONING_CANARY/);
-	} finally {
-		await session.close();
-	}
-});
-
-test("shell receives an allowlisted environment rather than Provider credentials", async () => {
-	const directory = await workspace();
-	const { adapter, faux } = fauxAdapter();
-	faux.setResponses([
-		fauxAssistantMessage(
-			fauxToolCall(
-				"bash",
-				{ command: "if test -z \"${DEEPSEEK_API_KEY:-}\"; then printf credential-absent; else printf credential-leaked; fi" },
-				{ id: "env-check" },
-			),
-			{ stopReason: "toolUse" },
-		),
-		fauxAssistantMessage("Environment checked."),
-	]);
-	const observations: SessionObservation[] = [];
-	const trustedLocal = createTrustedLocalTools(directory, {
-		PATH: process.env.PATH,
-		DEEPSEEK_API_KEY: "TEST_PROVIDER_SECRET_CANARY",
-	});
-	const session = new GeneralAgentSession({
-		adapter,
-		tools: trustedLocal.tools,
-		systemPrompt: GENERAL_AGENT_SYSTEM_PROMPT,
-		memory: {
-			archiveStore: await RunArchiveStore.open(join(directory, "memory")),
-			runbook: async () => ({ content: "test runbook", revision: TEST_RUNBOOK_REVISION }),
-		},
-		onObservation(observation) {
-			observations.push(observation);
-		},
-		cleanup: () => trustedLocal.environment.cleanup(),
-	});
-	try {
-		await session.runTask("Check shell credential inheritance.");
-		const settled = observations.find(
-			(observation) => observation.type === "tool.settled" && observation.toolCallId === "env-check",
-		);
-		assert.ok(settled?.type === "tool.settled");
-		assert.equal(settled.text, "credential-absent");
-	} finally {
-		await session.close();
-	}
-});
-
-test("cancellation settles an active trusted-local shell task with an explicit terminal", async () => {
-	const directory = await workspace();
-	const { adapter, faux } = fauxAdapter();
-	faux.setResponses([
-		fauxAssistantMessage(
-			fauxToolCall("bash", { command: "sleep 5; printf late > cancelled.txt" }, { id: "slow-shell" }),
-			{ stopReason: "toolUse" },
-		),
-	]);
-	const observations: SessionObservation[] = [];
-	let session: GeneralAgentSession;
-	const trustedLocal = createTrustedLocalTools(directory);
-	session = new GeneralAgentSession({
-		adapter,
-		tools: trustedLocal.tools,
-		systemPrompt: GENERAL_AGENT_SYSTEM_PROMPT,
-		memory: {
-			archiveStore: await RunArchiveStore.open(join(directory, "memory")),
-			runbook: async () => ({ content: "test runbook", revision: TEST_RUNBOOK_REVISION }),
-		},
-		onObservation(observation) {
-			observations.push(observation);
-			if (observation.type === "tool.started" && observation.toolCallId === "slow-shell") {
-				setTimeout(() => session.cancel(), 50);
-			}
-		},
-		cleanup: () => trustedLocal.environment.cleanup(),
-	});
-	try {
-		const result = await session.runTask("Start the slow command.");
-		assert.equal(result.status, "cancelled");
-		assert.ok(
-			observations.some(
-				(observation) => observation.type === "run.terminal" && observation.status === "cancelled",
-			),
-		);
-		await assert.rejects(readFile(join(directory, "cancelled.txt"), "utf8"), /ENOENT/);
-	} finally {
-		await session.close();
-	}
-});
-
-test("Provider failure becomes an attributable model_error terminal", async () => {
-	const directory = await workspace();
-	const { adapter, faux } = fauxAdapter();
-	faux.setResponses([
-		fauxAssistantMessage("", { stopReason: "error", errorMessage: "synthetic-provider-failure" }),
-	]);
-	const observations: SessionObservation[] = [];
-	const session = await harness(directory, adapter, observations);
-	try {
-		const result = await session.runTask("Trigger the deterministic failure.");
-		assert.equal(result.status, "model_error");
-		assert.equal(result.reason, "synthetic-provider-failure");
-		assert.ok(
-			observations.some(
-				(observation) => observation.type === "run.terminal" && observation.status === "model_error",
-			),
-		);
-	} finally {
-		await session.close();
-	}
-});
-
-test("real DeepSeek Adapter construction selects Pi model/profile with zero network calls", () => {
-	const adapter = createPiDeepSeekAdapter();
-	assert.equal(adapter.providerId, "deepseek");
-	assert.equal(adapter.modelId, "deepseek-v4-flash");
-	assert.equal(adapter.thinkingLevel, "high");
-	assert.equal(adapter.model.api, "openai-completions");
-});
-
-test("TUI returns control for successive tasks in one Pi session", async () => {
-	const directory = await workspace();
-	const { adapter, faux } = fauxAdapter();
-	faux.setResponses([
-		fauxAssistantMessage("first complete"),
-		fauxAssistantMessage("second complete"),
-	]);
-	const observations: SessionObservation[] = [];
-	const session = await harness(directory, adapter, observations);
-	const input = new PassThrough();
-	const output = new PassThrough();
-	let text = "";
-	const scriptedInput = ["y\n", "first task\n", "second task\n", ":exit\n"];
-	output.setEncoding("utf8");
-	output.on("data", (chunk: string) => {
-		text += chunk;
-		if (chunk.includes("[y/N]> ") || chunk.includes("Task> ")) {
-			const line = scriptedInput.shift();
-			if (line) setImmediate(() => input.write(line));
-		}
-	});
-	const exitCode = await runTui({
-		session,
-		provider: adapter.providerId,
-		model: adapter.modelId,
-		thinking: adapter.thinkingLevel,
-		workspace: directory,
-		input,
-		output,
-	});
-	assert.equal(exitCode, 0);
-	assert.equal(faux.state.callCount, 2);
-	assert.equal(observations.filter((observation) => observation.type === "run.terminal").length, 2);
-	assert.equal(text.match(/Task> /g)?.length, 3);
-	assert.match(text, /General Agent TUI closed/);
-});
-
-test("TUI confirmation rejection closes with zero Faux Provider calls", async () => {
-	const directory = await workspace();
-	const { adapter, faux } = fauxAdapter();
-	const observations: SessionObservation[] = [];
-	const session = await harness(directory, adapter, observations);
-	const input = new PassThrough();
-	const output = new PassThrough();
-	let text = "";
-	output.setEncoding("utf8");
-	output.on("data", (chunk: string) => {
-		text += chunk;
-		if (chunk.includes("[y/N]> ")) setImmediate(() => input.write("n\n"));
-	});
-	const exitCode = await runTui({
-		session,
-		provider: adapter.providerId,
-		model: adapter.modelId,
-		thinking: adapter.thinkingLevel,
-		workspace: directory,
-		input,
-		output,
-	});
-	assert.equal(exitCode, 0);
-	assert.equal(faux.state.callCount, 0);
-	assert.equal(observations.length, 0);
-	assert.match(text, /Cancelled before Provider use/);
-});
-
-test("CLI help returns before Adapter construction and therefore makes zero calls", async () => {
-	const output = new PassThrough();
-	let text = "";
-	output.setEncoding("utf8");
-	output.on("data", (chunk: string) => {
-		text += chunk;
-	});
-	let adapterConstructions = 0;
-	const exitCode = await runCli(["--help"], {
-		output,
-		createAdapter() {
-			adapterConstructions += 1;
-			throw new Error("Adapter must not be constructed for help");
-		},
-	});
-	assert.equal(exitCode, 0);
-	assert.equal(adapterConstructions, 0);
-	assert.match(text, /trusted-local/);
-	assert.match(text, /No Provider call/);
+test("C-PFREE-D106 P-D6 admission, secret exclusion, process cancellation and malformed offline transport observations", async () => {
+ const report: Record<string, unknown> = {};
+ const originalSpawn = cp.spawn; const originalKill = process.kill;
+ const spawns: Array<{pid?: number; detached: boolean; childCanary: boolean}> = [];
+ const kills: Array<{pid: number; signal: unknown}> = [];
+ cp.spawn = ((...args: Parameters<typeof cp.spawn>) => {
+  const child = originalSpawn(...args);
+  const options = args[2] as import("node:child_process").SpawnOptions | undefined;
+  spawns.push({pid: child.pid, detached: options?.detached === true, childCanary: JSON.stringify(options?.env).includes("PROVIDER_SECRET_CANARY")});
+  return child;
+ }) as typeof cp.spawn;
+ process.kill = ((pid: number, signal?: NodeJS.Signals | number) => { kills.push({pid,signal}); return originalKill(pid,signal); }) as typeof process.kill;
+ syncBuiltinESMExports();
+ try {
+ for (const scenario of ["valid", "schema-invalid", "unknown", "pre-cancel"] as const) {
+  let implementations = 0; const spawnBefore = spawns.length;
+  const name = scenario === "unknown" ? "missing" : "bash";
+  const args: import("../src/canonical-protocol.ts").JsonObject = scenario === "schema-invalid" ? {} : {command: "printf once > admitted.txt"};
+  const adapter = new FauxModelAdapter([response(call(name, args, {id: "admit-1"}), {stopReason: "tool_calls"}), response("done")]);
+  const h = await harness(adapter, (tools) => tools.map((tool) => ({...tool, async execute(invocation) { implementations++; return tool.execute(invocation); }})),
+   (event, session) => { if (scenario === "pre-cancel" && event.type === "tool.started") session.cancel(); });
+  try {
+   const result = await h.session.runTask(scenario); const expected = scenario === "valid" ? 1 : 0;
+   assert.equal(implementations, expected); assert.equal(spawns.length - spawnBefore, expected);
+   const markerPresent = await access(join(h.dir, "workspace/admitted.txt")).then(() => true, () => false);
+   assert.equal(markerPresent, scenario === "valid");
+   const records = await h.store.readArchive(result.runId);
+   assert.equal(records.filter((r) => r.type === "run.terminal").length, 1);
+   report[scenario] = {admitted_implementations: implementations, process_starts: spawns.length - spawnBefore, marker_present: markerPresent, status: result.status, terminal_count: 1};
+  } finally { await h.session.close(); }
+ }
+ const envAdapter = new FauxModelAdapter([
+  response(call("bash", {command: "printf 'home=%s deepseek=%s anthropic=%s' \"$HOME\" \"${DEEPSEEK_API_KEY:-absent}\" \"${ANTHROPIC_API_KEY:-absent}\""}, {id: "environment"}), {stopReason: "tool_calls"}), response("environment observed"),
+ ]);
+ const env = await harness(envAdapter);
+ try {
+  const result = await env.session.runTask("environment"); const settled = env.events.find((e) => e.type === "tool.settled");
+  assert.ok(settled?.type === "tool.settled"); assert.match(settled.text, /home=\/tmp\/pan-safe-home deepseek=absent anthropic=absent/);
+  const records = await env.store.readArchive(result.runId);
+  const publicBytes = JSON.stringify({result, events: env.events, records}); assert.doesNotMatch(publicBytes, /PROVIDER_SECRET_CANARY/);
+  report.environment = {child_output: settled.text, child_canary_present: false, public_canary_present: false, terminal_count: records.filter((r) => r.type === "run.terminal").length};
+ } finally { await env.session.close(); }
+ const active = await harness(new FauxModelAdapter([response(call("bash", {command: "(sleep 0.30; printf late > late-marker.txt) & wait"}, {id:"slow-bash"}), {stopReason:"tool_calls"})]), undefined,
+  (event, session) => { if (event.type === "tool.started") setTimeout(() => session.cancel(), 30); });
+ try {
+  const result = await active.session.runTask("cancel shell and descendant"); assert.equal(result.status,"cancelled");
+  const settled = active.events.find((e) => e.type === "tool.settled"); assert.ok(settled?.type === "tool.settled"); assert.equal((settled.details as {status: string}).status,"cancelled");
+  await new Promise((resolve) => setTimeout(resolve,1000));
+  await assert.rejects(access(join(active.dir,"workspace/late-marker.txt")),/ENOENT/);
+  const records = await active.store.readArchive(result.runId); assert.equal(records.filter((r) => r.type === "run.terminal").length,1); assert.equal(records.at(-1)?.type,"run.settled");
+  const spawned = spawns.at(-1)!;
+  assert.equal(spawned.detached, true); assert.ok(kills.some((k) => k.pid === -spawned.pid!));
+  report.active_cancel = {detached_process: spawned.detached, negative_group_signal_observed: kills.some((k) => k.pid === -spawned.pid!), status: result.status, tool_status: (settled.details as {status:string}).status, process_group_probe: "(sleep 0.30; printf late > late-marker.txt) & wait", observation_ms:1000, delayed_marker_present:false, terminal_count:1};
+ } finally { await active.session.close(); }
+ let syntheticSends = 0;
+ const malformed = await harness(new PanDeepSeekModelAdapter(undefined, {transport: {async send() {syntheticSends++; return { status:200, headers:{}, body:(async function*() {yield new TextEncoder().encode('data: {"PROVIDER_SECRET_CANARY":\n\ndata: [DONE]\n\n');})() }; }}}));
+ try {
+  const result = await malformed.session.runTask("malformed offline DeepSeek"); assert.equal(result.status,"model_error"); assert.equal(result.toolCalls,0);
+  const records = await malformed.store.readArchive(result.runId); assert.equal(records.filter((r) => r.type === "run.terminal").length,1);
+  assert.doesNotMatch(JSON.stringify({result,events:malformed.events,records}),/PROVIDER_SECRET_CANARY/);
+  report.malformed = {synthetic_sends:syntheticSends, status:result.status, tool_calls:result.toolCalls, public_canary_present:false, terminal_count:1};
+ } finally { await malformed.session.close(); }
+ assert.equal(spawns.some((spawn) => spawn.childCanary), false);
+ report.spawn_summary = {process_starts: spawns.length, child_environment_canary_present: spawns.some((spawn) => spawn.childCanary)};
+ console.log("P-D6 actual observations", JSON.stringify(report, null, 2));
+ } finally { cp.spawn = originalSpawn; process.kill = originalKill; syncBuiltinESMExports(); }
 });

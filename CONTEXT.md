@@ -1,11 +1,11 @@
-# General + Vertical Agent System | TypeScript/Pi authoritative product glossary
+# General + Vertical Agent System | TypeScript Native authoritative product glossary
 
 This context defines the project-specific product and retained experiment language. Process governance, learning records, and verified implementation state live in the documents linked from `AGENTS.md`, not in this domain glossary.
 
-## Active product language | authoritative TypeScript/Pi
+## Active product language | authoritative TypeScript Native
 
 **Workspace Agent Harness**:
-The Human-operated TypeScript/Pi product: one `GeneralAgentSession`, its Provider Adapter, typed trusted-local tools, TUI, attributable outcomes, and three memory lanes. Retained reference and experiment code lives in the same repository but is not part of this product boundary.
+The Human-operated TypeScript Native product: one `GeneralAgentSession`, its Provider Adapter, typed trusted-local tools, TUI, attributable outcomes, and three memory lanes. Retained reference and experiment code lives in the same repository but is not part of this product boundary.
 _Avoid_: Python runtime synonym, ReAct experiment, benchmark machinery, Learning Wiki, development-agent workflow
 
 **GeneralAgentSession**:
@@ -17,11 +17,11 @@ The stable TypeScript orchestration Interface below `GeneralAgentSession`. A Ker
 _Avoid_: Provider Adapter, tool implementation, Archive store, TUI controller, whole product
 
 **PiKernel**:
-The default AgentKernel implementation that wraps the pinned Pi Agent orchestration and preserves the accepted product behavior.
+The Frozen Reference AgentKernel implementation, independently installed under `references/pi/`, wrapping pinned Pi Agent orchestration. Its own entry retains default Pi selection; Product never loads it.
 _Avoid_: synonym for AgentKernel, NativeKernel, Provider Adapter
 
 **NativeKernel**:
-The repository-owned AgentKernel implementation selected only through explicit `native`; it drives Pan-owned ModelAdapter and AgentTool contracts without importing Pi protocol/tool types or invoking Pi Agent orchestration. Explicit Native composition receives accepted Pan-owned trusted-local Tool implementations directly and, on the WorkOrder #33 candidate, a direct Pan-owned DeepSeek ModelAdapter.
+The repository-owned AgentKernel implementation selected only through explicit `native`; it drives Pan-owned ModelAdapter and AgentTool contracts without importing Pi protocol/tool types or invoking Pi Agent orchestration. Explicit Native composition receives accepted Pan-owned trusted-local Tool implementations directly and, since accepted WorkOrder #33, a direct Pan-owned DeepSeek ModelAdapter.
 _Avoid_: default Kernel, Python AgentLoop, Provider wire Adapter, Pi fork
 
 **Canonical Protocol**:
@@ -49,7 +49,7 @@ Kernel-owned typed message history retained across tasks in one Human session. T
 _Avoid_: Run Archive, shell output alone, hidden Provider state, reference-runtime projection policy
 
 **Trusted-local tool**:
-A read/write/edit/bash capability executed with the current host user's authority. The selected workspace supplies the default cwd and relative-path base but is not filesystem, process, or network containment. The explicit Native path receives accepted Pan-owned implementations while default Pi retains its compatibility implementation.
+A read/write/edit/bash capability executed with the current host user's authority. The selected workspace supplies the default cwd and relative-path base but is not filesystem, process, or network containment. The explicit Native path receives accepted Pan-owned implementations while independently launched Pi Frozen Reference retains its compatibility implementation.
 _Avoid_: sandboxed tool, workspace-confined tool, least-privilege executor
 
 **Attributable terminal**:

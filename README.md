@@ -1,10 +1,10 @@
 # Workspace Agent Harness
 
-Workspace Agent Harness now has one authoritative product path: the Human-usable TypeScript/Pi General Agent Working Stack. The Python evented runtime remains runnable as a reference implementation, while prior ReAct, protocol, campaign, proof-pack, and benchmark work remains retained experimental material rather than a product dependency.
+Workspace Agent Harness now has one authoritative product path: the Human-usable TypeScript Native General Agent Product. The Python evented runtime remains runnable as a reference implementation, while prior ReAct, protocol, campaign, proof-pack, and benchmark work remains retained experimental material rather than a product dependency.
 
 > **Verification boundary:** WorkOrder #24 changes product authority and navigation; it creates no new benchmark, model-quality, security, project-fact, Wiki, or resume claim. Historical Evidence remains governed by its original identity and review status. Start at `AGENTS.md`; the bounded assignment lives in `docs/agents/current-assignment.md`.
 
-## Default product path | TypeScript/Pi
+## Default product path | TypeScript Native
 
 Use Node.js `22.19.0` or newer, choose an existing workspace plus a disjoint memory path, install the locked TypeScript dependencies, enter the Provider credential without putting it in command history, then launch the authoritative TUI:
 
@@ -13,6 +13,7 @@ npm --prefix typescript ci --ignore-scripts
 read -s DEEPSEEK_API_KEY
 export DEEPSEEK_API_KEY
 npm --prefix typescript run agent -- \
+  --kernel native \
   --workspace /absolute/path/to/workspace \
   --memory-root /absolute/path/to/memory \
   --model deepseek-v4-flash \
@@ -25,7 +26,8 @@ The TUI displays the resolved Provider/model/workspace/memory identities and req
 
 | Lane | Classification |
 |---|---|
-| TypeScript/Pi working stack | **authoritative product** |
+| TypeScript Native working stack | **Product** |
+| Pi integration (`references/pi/`) | **Frozen Reference** |
 | Python evented TUI/runtime | **reference-only** |
 | ReAct mechanism | **experiment/reference** |
 | Protocol reliability | **experiment/reference** |
@@ -33,15 +35,15 @@ The TUI displays the resolved Provider/model/workspace/memory identities and req
 | Proof packs and evaluators | **experiment/reference** |
 | Benchmark machinery | **experiment/reference** |
 
-Language-neutral conformance fixtures under [`conformance/`](conformance/) preserve only cross-implementation semantics: the retained read/write/edit/bash tool meanings, attributable terminal kinds, active-tool cancellation, cross-task Context behavior, and the accepted WorkOrder #28 Kernel contract. The TypeScript runners consume them through the public `GeneralAgentSession` Interface without importing or executing the Python package; the Kernel manifest runs unchanged against default `pi` and explicit `native`.
+Language-neutral conformance fixtures under [`conformance/`](conformance/) preserve only cross-implementation semantics: the retained read/write/edit/bash tool meanings, attributable terminal kinds, active-tool cancellation, cross-task Context behavior, and the accepted WorkOrder #28 Kernel contract. The TypeScript runners consume them through the public `GeneralAgentSession` Interface without importing or executing the Python package; the Kernel manifest runs unchanged against explicit Native in Product and Pi in the independently installed Frozen Reference.
 
 ## Learning Wiki
 
 The project maintains a source-grounded [Learning Wiki](wiki/index.md) recording what building this system teaches: harness engineering, agent tool design, evaluation methodology, and verification practice. Every substantive page is either a **Verified Learning Fact** (with an explicit verification level — `source-located`, `triangulated`, or `experiment-reproduced` — and stated boundaries) or an **Open Learning Question** (with a verification path). The [log](wiki/log.md) is append-only. The Wiki claims no product, benchmark, or resume authority; it is the project's public learning trail.
 
-## Authoritative TypeScript/Pi working stack
+## Authoritative TypeScript Native working stack
 
-The [TypeScript package and Human command](typescript/README.md) are backed by the [working-stack design](docs/design/typescript-pi-general-agent-working-stack.md). One deep `GeneralAgentSession` Module delegates iterative semantics through the accepted [AgentKernel seam](docs/design/native-agent-kernel-v0.md): PiKernel remains default, while NativeKernel is an explicit repository-owned implementation. WorkOrder #31's accepted [canonical protocol design](docs/design/pan-owned-canonical-protocol.md) moves NativeKernel onto Pan-owned ModelAdapter and AgentTool Interfaces; accepted WorkOrder #32 gives it direct Pan-owned trusted-local Tools and reusable deterministic Faux infrastructure. WorkOrder #33's [direct DeepSeek design](docs/design/pan-deepseek-model-adapter.md) is a Builder candidate that replaces only explicit Native's temporary Pi Provider bridge with Pan-owned transport and SSE assembly. All #33 checks are offline and make no Provider call.
+The [TypeScript package and Human command](typescript/README.md) use one `GeneralAgentSession` lifecycle with explicit Native selection, the accepted Pan DeepSeek Adapter and Pan trusted-local Tools. WorkOrder #34 removes Pi from Product dependency, type and runtime composition. Missing selection fails before setup; `--kernel pi` points to the [separate Frozen Reference instructions](https://github.com/pym96/Pan-agent/blob/workorder/34-candidate/references/pi/README.md). Pi is installed and launched only there. The [transition decision](docs/adr/0017-product-isolation-and-frozen-pi.md) and [relocation/coverage inventory](docs/design/product-isolation.md) describe this candidate, pending independent review. #29's future default, #35 packed-consumer proof and #36 live validation are not complete.
 
 The shell is explicitly **trusted-local**: it runs as the host user, and the selected workspace is only the default cwd. It claims neither path containment nor an OS/network sandbox. The Python shell/PTY implementation remains available for comparison, but it is not the default product route.
 
@@ -97,13 +99,14 @@ export DEEPSEEK_API_KEY
 PYTHONPATH=. python3 -m workspace_agent_harness.tui \
   --live-deepseek \
   --trusted-local \
+  --kernel native \
   --workspace /absolute/path/to/workspace \
   --session-root /absolute/new/path/to/live-session
 ```
 
 The command displays and asks you to confirm the Provider, model, resolved workspace, and selected authority before accepting `Task>`. Each task gets a new Run and model Context while the workspace persists. Use `:help`, `:view compact|expanded|trace`, `:runs`, `:replay RUN_ID`, or `:exit`. Starting, cancelling before confirmation, using help/views, or replaying makes no Provider call. Run artifacts contain the append-only Event Log, secret-free Provider exchanges, Context artifacts, trusted-local stream/PTY identities when enabled, public metadata, reported usage, and changed workspace paths.
 
-The TypeScript/Pi entry is the default route documented at the top of this file. Every admitted run is durably archived under `--memory-root` (created if missing; it must be disjoint from the workspace) and bound to the current [`typescript/RUNBOOK.md`](typescript/RUNBOOK.md) revision; `:runs` and `:replay RUN_ID` inspect sealed archives with zero Provider calls or tool effects.
+The explicit Native TypeScript entry is the default route documented at the top of this file. Every admitted run is durably archived under `--memory-root` (created if missing; it must be disjoint from the workspace) and bound to the current [`typescript/RUNBOOK.md`](typescript/RUNBOOK.md) revision; `:runs` and `:replay RUN_ID` inspect sealed archives with zero Provider calls or tool effects.
 
 PinchBench is pinned as an external compatibility source, not vendored as the Runtime contract. [`workspace_agent_harness/benchmark_configs/`](workspace_agent_harness/benchmark_configs/) holds content locks; `workspace_agent_harness.benchmarks.load_pinchbench_suite(...)` audits a caller-supplied clean checkout without executing embedded graders. All 21/147 upstream cases are currently ineligible because no local translation is frozen. Any later translated local run must be labelled `pinchbench-compatible`; official compatibility requires the unmodified upstream runner. The Composio thread contributes campaign shape and efficiency metrics only, not reusable tasks or results.
 

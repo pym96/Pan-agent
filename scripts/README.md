@@ -210,3 +210,8 @@ PYTHONPATH=. python3 scripts/run_deepseek_live_behavioral_eval_v3.py \
 ```
 
 The preview deterministically enumerates the unchanged 120-slot denominator and prints the new exact v3 lock + runner + entry acknowledgement while reporting `formal_runs_started=0`, `balance_queries=0`, `live_model_calls=0`, and `cost=CNY 0`. The v2 acknowledgement is rejected before credential access. WorkOrder #19 did not enter `--live`; the candidate acknowledgement is not paid-execution authority.
+
+
+## WorkOrder #34 isolation checks
+
+`check_workorder_34_scope.py` validates protected bytes, relocation and baseline test coverage. `check_product_isolation.py` installs a disposable Product checkout with reference physically absent, audits installed/type/runtime graphs and runs the full suite. `wo34-runtime-guard.mjs` blocks forbidden resolution and real transport/credential access in offline checks, recording attempts even when caught. Temporary evidence and host fixture instructions are in `docs/design/product-isolation.md` from repository root.

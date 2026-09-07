@@ -1,5 +1,8 @@
 # Native Agent Kernel v0
 
+Current #34 transition: `typescript/` is Product with required explicit `--kernel native`; omission fails before setup. Pi integration is independently installed Frozen Reference under `references/pi/`. Prior default-Pi descriptions below record the accepted #28–#33 baseline, prospectively superseded for selection/package placement by [ADR-0017](../adr/0017-product-isolation-and-frozen-pi.md). Core behavior and historical Evidence are unchanged. #29/#35/#36 remain separate.
+
+
 Status: WorkOrder #28 accepted and landed at `895aa65654405cf7f96cf4ec31dbb5f1031b13e2`; WorkOrder #31's Pan-owned contract migration accepted and landed at `72de8e5866196d7a55d7d1cd8ce02c60d1cf8122`; WorkOrder #32's concrete Faux/Tool follow-up accepted and landed at `2ed4cee780e36f1e33845d66b9065381f775d6d2`. WorkOrder #33 changes only external model composition, not this accepted Kernel.
 
 Criteria-Version: `1.0` (`C-KER-01`…`C-KER-10`).

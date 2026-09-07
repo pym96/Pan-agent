@@ -8,17 +8,10 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { PassThrough } from "node:stream";
 import { afterEach, test } from "node:test";
-import {
-	createModels,
-	fauxAssistantMessage,
-	fauxProvider,
-	fauxText,
-	fauxThinking,
-	fauxToolCall,
-	type FauxProviderHandle,
-} from "@earendil-works/pi-ai";
+import { response as panResponse, call as panCall, scriptedAdapter, stringParameters, emptyParameters, validateFixtureArguments } from "./pan-fixture.ts";
+import type { Message } from "../src/canonical-protocol.ts";
 import { runCli } from "../src/cli.ts";
-import type { PiModelAdapter } from "../src/model-adapter.ts";
+import type { ModelAdapter } from "../src/model-adapter-contract.ts";
 import {
 	ArchiveIdentityError,
 	ArchiveIntegrityError,
@@ -33,7 +26,7 @@ import {
 	GeneralAgentSession,
 	type SessionObservation,
 } from "../src/session.ts";
-import { createTrustedLocalTools } from "../src/tools.ts";
+import { createPanTrustedLocalTools } from "../src/pan-trusted-local-tools.ts";
 import { runTui } from "../src/tui.ts";
 
 const TEST_RUNBOOK_REVISION = `sha256:${"0".repeat(64)}`;
@@ -49,33 +42,18 @@ async function workspace(): Promise<string> {
 	return directory;
 }
 
-function fauxAdapter(): { adapter: PiModelAdapter; faux: FauxProviderHandle } {
-	const faux = fauxProvider({ models: [{ id: "faux-general", reasoning: true }] });
-	const models = createModels();
-	models.setProvider(faux.provider);
-	const model = faux.getModel("faux-general");
-	assert.ok(model);
-	return {
-		faux,
-		adapter: {
-			providerId: faux.provider.id,
-			modelId: model.id,
-			model,
-			streamFn: models.streamSimple.bind(models),
-			thinkingLevel: "high",
-		},
-	};
-}
+function fauxAdapter() { return scriptedAdapter(); }
 
 async function sessionWithMemory(
 	directory: string,
-	adapter: PiModelAdapter,
+	adapter: ModelAdapter,
 	observations: SessionObservation[],
 	runbookRevision: string = TEST_RUNBOOK_REVISION,
 ): Promise<GeneralAgentSession> {
-	const trustedLocal = createTrustedLocalTools(directory);
+	const trustedLocal = createPanTrustedLocalTools(directory);
 	const archiveStore = await RunArchiveStore.open(join(directory, "memory"));
 	return new GeneralAgentSession({
+		kernel: "native",
 		adapter,
 		tools: trustedLocal.tools,
 		systemPrompt: GENERAL_AGENT_SYSTEM_PROMPT,
@@ -86,7 +64,7 @@ async function sessionWithMemory(
 		onObservation: (observation) => {
 			observations.push(observation);
 		},
-		cleanup: () => trustedLocal.environment.cleanup(),
+
 	});
 }
 
@@ -122,11 +100,11 @@ test("run.started is durable before the first Provider exchange (normal, provide
 			const firstLine = body.split("\n")[0] ?? "";
 			seenFirstRecords.push(firstLine);
 			assert.match(firstLine, /"run\.started"/);
-			return fauxAssistantMessage(fauxToolCall("bash", { command: "printf ok" }, { id: "b1" }), {
-				stopReason: "toolUse",
+			return panResponse(panCall("bash", { command: "printf ok" }, { id: "b1" }), {
+				stopReason: "tool_calls",
 			});
 		},
-		fauxAssistantMessage("done"),
+		panResponse("done"),
 	]);
 	const observations: SessionObservation[] = [];
 	const session = await sessionWithMemory(directory, adapter, observations);
@@ -150,7 +128,7 @@ test("run.started is durable before the first Provider exchange (normal, provide
 	const directory2 = await workspace();
 	const failing = fauxAdapter();
 	failing.faux.setResponses([
-		fauxAssistantMessage("", { stopReason: "error", errorMessage: "synthetic-provider-failure" }),
+		panResponse("", { stopReason: "error", errorMessage: "synthetic-provider-failure" }),
 	]);
 	const session2 = await sessionWithMemory(directory2, failing.adapter, []);
 	try {
@@ -169,11 +147,11 @@ test("cancelled and tool-failure runs are durably archived and sealed", async ()
 	const directory = await workspace();
 	const { adapter, faux } = fauxAdapter();
 	faux.setResponses([
-		fauxAssistantMessage(
-			fauxToolCall("bash", { command: "printf 'boom'; exit 3" }, { id: "tool-fail" }),
-			{ stopReason: "toolUse" },
+		panResponse(
+			panCall("bash", { command: "printf 'boom'; exit 3" }, { id: "tool-fail" }),
+			{ stopReason: "tool_calls" },
 		),
-		fauxAssistantMessage("the command failed"),
+		panResponse("the command failed"),
 	]);
 	const observations: SessionObservation[] = [];
 	const session = await sessionWithMemory(directory, adapter, observations);
@@ -190,15 +168,16 @@ test("cancelled and tool-failure runs are durably archived and sealed", async ()
 	const directory2 = await workspace();
 	const cancelling = fauxAdapter();
 	cancelling.faux.setResponses([
-		fauxAssistantMessage(
-			fauxToolCall("bash", { command: "sleep 5" }, { id: "slow" }),
-			{ stopReason: "toolUse" },
+		panResponse(
+			panCall("bash", { command: "sleep 5" }, { id: "slow" }),
+			{ stopReason: "tool_calls" },
 		),
 	]);
 	const observations2: SessionObservation[] = [];
-	const trustedLocal = createTrustedLocalTools(directory2);
+	const trustedLocal = createPanTrustedLocalTools(directory2);
 	let session2: GeneralAgentSession;
 	session2 = new GeneralAgentSession({
+		kernel: "native",
 		adapter: cancelling.adapter,
 		tools: trustedLocal.tools,
 		systemPrompt: GENERAL_AGENT_SYSTEM_PROMPT,
@@ -210,7 +189,7 @@ test("cancelled and tool-failure runs are durably archived and sealed", async ()
 			observations2.push(observation);
 			if (observation.type === "tool.started") setTimeout(() => session2.cancel(), 50);
 		},
-		cleanup: () => trustedLocal.environment.cleanup(),
+
 	});
 	try {
 		const result = await session2.runTask("start then cancel");
@@ -366,7 +345,7 @@ test("list, inspect, and replay are zero-effect; corrupted input fails typed", a
 	const directory = await workspace();
 	await writeFile(join(directory, "sentinel.txt"), "keep\n", "utf8");
 	const { adapter, faux } = fauxAdapter();
-	faux.setResponses([fauxAssistantMessage("archived answer")]);
+	faux.setResponses([panResponse("archived answer")]);
 	const observations: SessionObservation[] = [];
 	const session = await sessionWithMemory(directory, adapter, observations);
 	let runId = "";
@@ -402,11 +381,12 @@ test("list, inspect, and replay are zero-effect; corrupted input fails typed", a
 test("TUI :runs and :replay render archives with zero Provider calls and typed corruption errors", async () => {
 	const directory = await workspace();
 	const { adapter, faux } = fauxAdapter();
-	faux.setResponses([fauxAssistantMessage("replayable answer")]);
+	faux.setResponses([panResponse("replayable answer")]);
 	const observations: SessionObservation[] = [];
 	const archiveStore = await RunArchiveStore.open(join(directory, "memory"));
-	const trustedLocal = createTrustedLocalTools(directory);
+	const trustedLocal = createPanTrustedLocalTools(directory);
 	const session = new GeneralAgentSession({
+		kernel: "native",
 		adapter,
 		tools: trustedLocal.tools,
 		systemPrompt: GENERAL_AGENT_SYSTEM_PROMPT,
@@ -414,7 +394,7 @@ test("TUI :runs and :replay render archives with zero Provider calls and typed c
 		onObservation: (observation) => {
 			observations.push(observation);
 		},
-		cleanup: () => trustedLocal.environment.cleanup(),
+
 	});
 	const input = new PassThrough();
 	const output = new PassThrough();
@@ -440,7 +420,7 @@ test("TUI :runs and :replay render archives with zero Provider calls and typed c
 		session,
 		provider: adapter.providerId,
 		model: adapter.modelId,
-		thinking: adapter.thinkingLevel,
+		thinking: adapter.reasoningLevel,
 		workspace: directory,
 		archiveStore,
 		input,
@@ -461,12 +441,12 @@ test("archive preserves every declared event kind and excludes credential canari
 	const directory = await workspace();
 	const { adapter, faux } = fauxAdapter();
 	faux.setResponses([
-		fauxAssistantMessage(fauxToolCall("bash", { command: "printf probe" }, { id: "tool-1" }), {
-			stopReason: "toolUse",
+		panResponse(panCall("bash", { command: "printf probe" }, { id: "tool-1" }), {
+			stopReason: "tool_calls",
 			responseId: "response-tool",
 		}),
-		fauxAssistantMessage(
-			[fauxThinking("RESTRICTED_REASONING_CANARY"), fauxText("final public answer")],
+		panResponse(
+			[{ type: "text", text: "final public answer", privateReasoning: "RESTRICTED_REASONING_CANARY" } as never],
 			{ stopReason: "stop" },
 		),
 	]);
@@ -650,17 +630,18 @@ test("runbook revision binding survives later edits and reverts", async () => {
 	const runbookPath = join(directory, "RUNBOOK.md");
 	const v0 = await editRunbook(runbookPath, "Runbook v0 guidance.\n");
 	const { adapter, faux } = fauxAdapter();
-	faux.setResponses([fauxAssistantMessage("one"), fauxAssistantMessage("two"), fauxAssistantMessage("three")]);
+	faux.setResponses([panResponse("one"), panResponse("two"), panResponse("three")]);
 
 	const store = await RunArchiveStore.open(join(directory, "memory"));
-	const trustedLocal = createTrustedLocalTools(directory);
+	const trustedLocal = createPanTrustedLocalTools(directory);
 	const session = new GeneralAgentSession({
+		kernel: "native",
 		adapter,
 		tools: trustedLocal.tools,
 		systemPrompt: GENERAL_AGENT_SYSTEM_PROMPT,
 		memory: { archiveStore: store, runbook: () => loadRunbook(runbookPath) },
 		onObservation: () => {},
-		cleanup: () => trustedLocal.environment.cleanup(),
+
 	});
 	let runV0 = "";
 	let runV1 = "";
@@ -704,18 +685,18 @@ test("CLI requires a disjoint --memory-root before any Adapter construction", as
 		text += chunk;
 	});
 	let adapterConstructions = 0;
-	const createAdapter = (): never => {
+	const createNativeAdapter = (): never => {
 		adapterConstructions += 1;
 		throw new Error("Adapter must not be constructed for invalid CLI input");
 	};
-	const missing = await runCli(["--workspace", "/tmp"], { output, createAdapter });
+	const missing = await runCli(["--kernel", "native", "--workspace", "/tmp"], { output, createNativeAdapter });
 	assert.equal(missing, 2);
 	assert.match(text, /--memory-root is required/);
 
 	const directory = await workspace();
-	const nested = await runCli(["--workspace", directory, "--memory-root", join(directory, "memory")], {
+	const nested = await runCli(["--kernel", "native", "--workspace", directory, "--memory-root", join(directory, "memory")], {
 		output,
-		createAdapter,
+		createNativeAdapter,
 	});
 	assert.equal(nested, 2);
 	assert.match(text, /disjoint/);
@@ -781,8 +762,9 @@ test("TUI :runs renders a typed ARCHIVE_ERROR for a corrupted manifest with zero
 
 	const { adapter, faux } = fauxAdapter();
 	const archiveStore = await RunArchiveStore.open(root);
-	const trustedLocal = createTrustedLocalTools(directory);
+	const trustedLocal = createPanTrustedLocalTools(directory);
 	const session = new GeneralAgentSession({
+		kernel: "native",
 		adapter,
 		tools: trustedLocal.tools,
 		systemPrompt: GENERAL_AGENT_SYSTEM_PROMPT,
@@ -791,7 +773,7 @@ test("TUI :runs renders a typed ARCHIVE_ERROR for a corrupted manifest with zero
 			runbook: async () => ({ content: "test runbook", revision: TEST_RUNBOOK_REVISION }),
 		},
 		onObservation: () => {},
-		cleanup: () => trustedLocal.environment.cleanup(),
+
 	});
 	const input = new PassThrough();
 	const output = new PassThrough();
@@ -808,7 +790,7 @@ test("TUI :runs renders a typed ARCHIVE_ERROR for a corrupted manifest with zero
 		session,
 		provider: adapter.providerId,
 		model: adapter.modelId,
-		thinking: adapter.thinkingLevel,
+		thinking: adapter.reasoningLevel,
 		workspace: directory,
 		archiveStore,
 		input,

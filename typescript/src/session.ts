@@ -1,20 +1,15 @@
-import type { AgentTool as PiAgentTool } from "@earendil-works/pi-agent-core";
-import type { Message as PiMessage } from "@earendil-works/pi-ai";
 import type { AgentTool as PanAgentTool } from "./agent-tool.ts";
 import type { Message as PanMessage, Usage } from "./canonical-protocol.ts";
 import type { ModelAdapter } from "./model-adapter-contract.ts";
-import type { PiModelAdapter } from "./model-adapter.ts";
 import {
 	type AgentKernel,
 	type KernelLimits,
 	type KernelSelector,
 	type ObservationSink,
-	isKernelSelector,
 	resolveKernelLimits,
 	type SessionObservation,
 	type TerminalStatus,
 } from "./kernels/agent-kernel.ts";
-import { PiKernel } from "./kernels/pi-kernel.ts";
 import { NativeKernel } from "./kernels/native-kernel.ts";
 import type { ArchiveSettledState, RunArchiveStore, RunArchiveWriter } from "./run-archive.ts";
 import type { RunbookSnapshot } from "./runbook.ts";
@@ -62,11 +57,10 @@ interface GeneralAgentSessionOptionsBase {
 	readonly cleanup?: () => Promise<void> | void;
 }
 
-export interface PiGeneralAgentSessionOptions extends GeneralAgentSessionOptionsBase {
-	readonly kernel?: "pi";
-	readonly adapter: PiModelAdapter;
-	readonly tools: readonly PiAgentTool[];
-	readonly initialMessages?: readonly PiMessage[];
+/** An independently composed implementation enters only through the existing kernel seam. */
+export interface InjectedGeneralAgentSessionOptions extends GeneralAgentSessionOptionsBase {
+	readonly kernel: AgentKernel;
+	readonly adapterIdentity: { readonly provider: string; readonly modelId: string; readonly thinkingLevel: string };
 }
 
 export interface NativeGeneralAgentSessionOptions extends GeneralAgentSessionOptionsBase {
@@ -76,7 +70,7 @@ export interface NativeGeneralAgentSessionOptions extends GeneralAgentSessionOpt
 	readonly initialMessages?: readonly PanMessage[];
 }
 
-export type GeneralAgentSessionOptions = PiGeneralAgentSessionOptions | NativeGeneralAgentSessionOptions;
+export type GeneralAgentSessionOptions = InjectedGeneralAgentSessionOptions | NativeGeneralAgentSessionOptions;
 
 /** Product boundary for admission, Runbook binding and durable Run Archive settlement. */
 export class GeneralAgentSession {
@@ -92,8 +86,14 @@ export class GeneralAgentSession {
 	private closed = false;
 
 	constructor(options: GeneralAgentSessionOptions) {
-		const selector = (options as { readonly kernel?: unknown }).kernel ?? "pi";
-		if (typeof selector !== "string" || !isKernelSelector(selector)) {
+		const selector = (options as { readonly kernel?: unknown }).kernel;
+		if (selector === undefined) throw new Error("kernel_selection_required: select kernel native explicitly");
+		if (selector === "pi") throw new Error("kernel_not_in_product: see references/pi/README.md");
+		if (selector !== "native" && !(selector !== null && typeof selector === "object"
+			&& ((selector as AgentKernel).kind === "pi" || (selector as AgentKernel).kind === "native")
+			&& typeof (selector as AgentKernel).runTask === "function"
+			&& typeof (selector as AgentKernel).cancel === "function"
+			&& typeof (selector as AgentKernel).close === "function")) {
 			throw new Error(`Unsupported kernel: ${String(selector)}`);
 		}
 		const limits = resolveKernelLimits(options.limits);
@@ -106,14 +106,7 @@ export class GeneralAgentSession {
 				initialMessages: nativeOptions.initialMessages,
 			});
 		} else {
-			const piOptions = options as PiGeneralAgentSessionOptions;
-			this.kernel = new PiKernel({
-				adapter: piOptions.adapter,
-				tools: [...piOptions.tools],
-				systemPrompt: piOptions.systemPrompt,
-				limits,
-				initialMessages: piOptions.initialMessages,
-			});
+			this.kernel = selector as AgentKernel;
 		}
 		this.onObservation = options.onObservation ?? (() => {});
 		this.cleanup = options.cleanup;
@@ -125,11 +118,7 @@ export class GeneralAgentSession {
 				modelId: (options as NativeGeneralAgentSessionOptions).adapter.modelId,
 				thinkingLevel: (options as NativeGeneralAgentSessionOptions).adapter.reasoningLevel,
 			}
-			: {
-				provider: (options as PiGeneralAgentSessionOptions).adapter.providerId,
-				modelId: (options as PiGeneralAgentSessionOptions).adapter.modelId,
-				thinkingLevel: (options as PiGeneralAgentSessionOptions).adapter.thinkingLevel,
-			};
+			: (options as InjectedGeneralAgentSessionOptions).adapterIdentity;
 	}
 
 	get isRunning(): boolean { return this.kernel.isRunning; }

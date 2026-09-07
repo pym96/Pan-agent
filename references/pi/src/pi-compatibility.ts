@@ -15,7 +15,7 @@ import {
 	type Usage as PiUsage,
 } from "@earendil-works/pi-ai";
 import type { PiModelAdapter } from "./model-adapter.ts";
-import type { AgentTool, AgentToolDefinition } from "./agent-tool.ts";
+import type { AgentTool, AgentToolDefinition } from "../../../typescript/src/agent-tool.ts";
 import {
 	assertJsonValue,
 	type AssistantMessage,
@@ -32,8 +32,8 @@ import {
 	type ToolCall,
 	type ToolResultMessage,
 	type Usage,
-} from "./canonical-protocol.ts";
-import type { ModelAdapter } from "./model-adapter-contract.ts";
+} from "../../../typescript/src/canonical-protocol.ts";
+import type { ModelAdapter } from "../../../typescript/src/model-adapter-contract.ts";
 
 function reported(value: string | undefined): Availability<string> {
 	return value === undefined || value.length === 0

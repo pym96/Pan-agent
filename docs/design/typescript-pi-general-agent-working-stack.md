@@ -1,5 +1,8 @@
 # TypeScript/Pi General Agent Working Stack
 
+Current #34 transition: `typescript/` is Product with required explicit `--kernel native`; omission fails before setup. Pi integration is independently installed Frozen Reference under `references/pi/`. Prior default-Pi descriptions below record the accepted #28–#33 baseline, prospectively superseded for selection/package placement by [ADR-0017](../adr/0017-product-isolation-and-frozen-pi.md). Core behavior and historical Evidence are unchanged. #29/#35/#36 remain separate.
+
+
 Status: WorkOrder #23's tracer bullet, WorkOrder #25's three-lane memory implementation, and WorkOrder #24's authoritative cutover are independently accepted and landed. WorkOrder #28 adds a pending-review Native Agent Kernel v0 while preserving PiKernel as default.
 
 ## Decision and scope

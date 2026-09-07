@@ -2,11 +2,15 @@
 
 This document owns the current project lane, constraints, and non-goals. It does not grant a session-specific task or establish implementation facts. A Working session starts only from a Master-published WorkOrder, and that WorkOrder cannot widen this lane or override Human decisions. Read the fact register linked from the root Agent map before making any current-state statement.
 
-## Active mission | WorkOrder #33 direct Pan-owned DeepSeek ModelAdapter
+## Active mission | WorkOrder #34 Product isolation and Frozen Reference
 
-The active lane is [WorkOrder #33](https://github.com/pym96/Pan-agent/issues/33) (Criteria-Version `1.0`, `C-PFREE-C101`…`C-PFREE-C108`) on exact accepted base `2ed4cee780e36f1e33845d66b9065381f775d6d2`. It replaces the explicit Native product path's temporary Pi Provider bridge with a direct Pan-owned DeepSeek `ModelAdapter`, transport boundary, request codec, SSE assembler, cancellation path, and typed failure map. `PiKernel` remains installed and default.
+[WorkOrder #34 activation](https://github.com/pym96/Pan-agent/issues/34#issuecomment-5565979659) freezes Criteria-Version `1.0` (C-PFREE-D101…D108) on accepted base `55afc93deff70035810666f0efbf583357ad12fc`. The candidate splits package/composition/test dependencies: `typescript/` is **Product**, `references/pi/` is independently installed **Frozen Reference**. Product tasks require explicit `--kernel native`; omission is `kernel_selection_required`, explicit Pi is `kernel_not_in_product`. An explicitly supplied AgentKernel enters the same Session lifecycle. The Pi reference retains omitted/explicit Pi behavior.
 
-WorkOrder #33 is implemented and checked only through secret-free content-hashed fixtures and deterministic injectable transports. It makes no Provider call, reads no Provider credential, queries no balance, starts no paid/formal Run, and changes no Kernel, TUI, Tool, Archive, historical Python, Evidence, Wiki, benchmark, resume, website, dependency identity, or outer HEAD anchor. It does not begin dependency removal in #34, packed-consumer verification in #35, live work in #36, or default cutover in #29.
+The [prospective transition decision](../adr/0017-product-isolation-and-frozen-pi.md) implements Master's #34 selection decision only. #29 alone owns a future default. #35 packed-consumer proof, #36 live compatibility, Qwen, fact promotion and live execution remain outside this slice. NativeKernel, canonical contracts, Pan Adapter/Tools, TUI, Archive, Ledger and Runbook behavior are unchanged. The [split inventory](../design/product-isolation.md) binds relocations and baseline coverage. Candidate checks are offline, with zero real Provider calls, credential reads, balance queries or paid/formal runs and CNY 0; package registry traffic is reported separately. Independent Regulator review and Human/different-family P-D6 review remain required.
+
+## Accepted foundation | WorkOrder #33 direct Pan-owned DeepSeek ModelAdapter
+
+WorkOrder #33 was independently accepted, received Human P-C5 review and landed unchanged at `55afc93deff70035810666f0efbf583357ad12fc`. It supplies the direct Pan-owned DeepSeek ModelAdapter, transport, request codec, SSE assembler and finite failure mapping. That accepted evidence is offline; it is not a live compatibility or package-isolation claim.
 
 ## Accepted foundation | WorkOrder #32 Pan Faux Adapter and product Tools
 

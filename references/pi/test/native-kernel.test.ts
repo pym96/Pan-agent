@@ -3,11 +3,17 @@ import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, test } from "node:test";
-import type { AgentTool } from "../src/agent-tool.ts";
-import { response as panResponse, call as panCall, scriptedAdapter, stringParameters, emptyParameters, validateFixtureArguments } from "./pan-fixture.ts";
-import type { Message } from "../src/canonical-protocol.ts";
-import type { ModelAdapter } from "../src/model-adapter-contract.ts";
-import { RunArchiveStore } from "../src/run-archive.ts";
+import type { AgentTool } from "@earendil-works/pi-agent-core";
+import {
+	Type,
+	createModels,
+	fauxAssistantMessage,
+	fauxProvider,
+	fauxToolCall,
+	type Message,
+} from "@earendil-works/pi-ai";
+import type { PiModelAdapter } from "../src/model-adapter.ts";
+import { RunArchiveStore } from "../../../typescript/src/run-archive.ts";
 import { GeneralAgentSession, type SessionObservation } from "../src/session.ts";
 import type { KernelSelector } from "../src/session.ts";
 
@@ -24,101 +30,50 @@ async function root(): Promise<string> {
 	return path;
 }
 
-function fauxAdapter() { return scriptedAdapter(); }
+function fauxAdapter() {
+	const faux = fauxProvider({ models: [{ id: "faux-native", reasoning: true }] });
+	const models = createModels();
+	models.setProvider(faux.provider);
+	const model = faux.getModel("faux-native");
+	assert.ok(model);
+	const adapter: PiModelAdapter = {
+		providerId: faux.provider.id,
+		modelId: model.id,
+		model,
+		streamFn: models.streamSimple.bind(models),
+		thinkingLevel: "high",
+	};
+	return { faux, adapter };
+}
 
 function semanticHistory(messages: readonly Message[]): unknown[] {
 	return messages.map((message) => {
 		if (message.role === "user") return { role: "user", text: typeof message.content === "string" ? message.content : message.content[0]?.type === "text" ? message.content[0].text : "" };
 		if (message.role === "assistant") return {
 			role: "assistant",
-			calls: message.content.filter((block) => block.type === "tool_call").map((block) => ({ id: block.id, name: block.name })),
+			calls: message.content.filter((block) => block.type === "toolCall").map((block) => ({ id: block.id, name: block.name })),
 		};
-		return { role: "tool_result", id: message.toolCallId, name: message.toolName, error: message.isError };
+		return { role: "toolResult", id: message.toolCallId, name: message.toolName, error: message.isError };
 	});
 }
 
-function kernelDependencies(kernel: KernelSelector, adapter: ModelAdapter, tools: AgentTool[], initialMessages: readonly Message[] = []) {
- return { kernel: "native" as const, adapter, tools, initialMessages };
+function kernelDependencies(
+	kernel: KernelSelector,
+	adapter: PiModelAdapter,
+	tools: AgentTool[],
+	initialMessages: readonly Message[] = [],
+) {
+	return { kernel: "pi" as const, adapter, tools, initialMessages };
 }
-
-test("C-KER-03/04 NativeKernel retains typed Context and settles a ToolCall batch sequentially", async () => {
-	const directory = await root();
-	const { faux, adapter } = fauxAdapter();
-	const executionOrder: string[] = [];
-	const parameters = stringParameters;
-	const tool: AgentTool = {
-		name: "record",
-
-		description: "record a deterministic value",
-		parameters,
-		validate: validateFixtureArguments,
-		async execute({ toolCallId, arguments: args }) {
-			executionOrder.push(`${toolCallId}:${args.value}`);
-			if (args.value === "second") throw new Error("fixture execution error");
-			return { content: [{ type: "text", text: `recorded:${args.value}` }], details: {} };
-		},
-	};
-	const providerHistories: unknown[][] = [];
-	faux.setResponses([
-		panResponse([
-			panCall("record", { value: "first" }, { id: "call-1" }),
-			panCall("record", { value: "second" }, { id: "call-2" }),
-		], { stopReason: "tool_calls" }),
-		(context) => {
-			providerHistories.push(semanticHistory(context.messages));
-			return panResponse("batch complete");
-		},
-		(context) => {
-			providerHistories.push(semanticHistory(context.messages));
-			return panResponse("context retained");
-		},
-	]);
-	const observations: SessionObservation[] = [];
-	const session = new GeneralAgentSession({
-		...kernelDependencies("native", adapter, [tool]),
-		systemPrompt: "test",
-		memory: {
-			archiveStore: await RunArchiveStore.open(join(directory, "memory")),
-			runbook: async () => ({ content: "test", revision: TEST_RUNBOOK_REVISION }),
-		},
-		onObservation(observation) { observations.push(observation); },
-	});
-	try {
-		const first = await session.runTask("run two tools");
-		const second = await session.runTask("recall prior work");
-		assert.equal(first.status, "completed");
-		assert.equal(second.finalText, "context retained");
-		assert.deepEqual(executionOrder, ["call-1:first", "call-2:second"]);
-		assert.deepEqual(
-			observations.filter((event) => event.type === "tool.settled").map((event) => event.toolCallId),
-			["call-1", "call-2"],
-		);
-		assert.deepEqual(providerHistories[0], [
-			{ role: "user", text: "run two tools" },
-			{ role: "assistant", calls: [{ id: "call-1", name: "record" }, { id: "call-2", name: "record" }] },
-			{ role: "tool_result", id: "call-1", name: "record", error: false },
-			{ role: "tool_result", id: "call-2", name: "record", error: true },
-		]);
-		assert.deepEqual(
-			observations.filter((event) => event.type === "tool.settled").map((event) => event.isError),
-			[false, true],
-		);
-		assert.deepEqual(providerHistories[1]?.at(-1), { role: "user", text: "recall prior work" });
-		assert.equal(session.contextMessageCount, 7);
-	} finally {
-		await session.close();
-	}
-});
 
 test("C-KER-05 both Kernels return one correlated typed error per unknown or schema-invalid call", async () => {
-	for (const kernel of ["native"] as const) {
+	for (const kernel of ["pi"] as const) {
 		const directory = await root();
 		const { faux, adapter } = fauxAdapter();
 		let executions = 0;
-		const parameters = stringParameters;
-		const tool: AgentTool = {
-			name: "record", description: "record", parameters,
-			validate: validateFixtureArguments,
+		const parameters = Type.Object({ value: Type.String() }, { additionalProperties: false });
+		const tool: AgentTool<typeof parameters> = {
+			name: "record", label: "record", description: "record", parameters,
 			async execute() {
 				executions += 1;
 				return { content: [{ type: "text", text: "unexpected" }], details: {} };
@@ -126,15 +81,15 @@ test("C-KER-05 both Kernels return one correlated typed error per unknown or sch
 		};
 		let providerResults: Array<{ id: string; name: string; error: boolean }> = [];
 		faux.setResponses([
-			panResponse([
-				panCall("missing", {}, { id: "unknown-1" }),
-				panCall("record", {}, { id: "invalid-1" }),
-			], { stopReason: "tool_calls" }),
+			fauxAssistantMessage([
+				fauxToolCall("missing", {}, { id: "unknown-1" }),
+				fauxToolCall("record", {}, { id: "invalid-1" }),
+			], { stopReason: "toolUse" }),
 			(context) => {
 				providerResults = context.messages
-					.filter((message) => message.role === "tool_result")
+					.filter((message) => message.role === "toolResult")
 					.map((message) => ({ id: message.toolCallId, name: message.toolName, error: message.isError }));
-				return panResponse("errors observed");
+				return fauxAssistantMessage("errors observed");
 			},
 		]);
 		const observations: SessionObservation[] = [];
@@ -159,24 +114,23 @@ test("C-KER-05 both Kernels return one correlated typed error per unknown or sch
 });
 
 test("C-KER-05 both Kernels reject duplicate ToolCall ids before tool effects", async () => {
-	for (const kernel of ["native"] as const) {
+	for (const kernel of ["pi"] as const) {
 		const directory = await root();
 		const { faux, adapter } = fauxAdapter();
 		let executions = 0;
-		const parameters = emptyParameters;
-		const tool: AgentTool = {
-			name: "effect", description: "effect", parameters,
-			validate(value) { return { ok: true, value }; },
+		const parameters = Type.Object({}, { additionalProperties: false });
+		const tool: AgentTool<typeof parameters> = {
+			name: "effect", label: "effect", description: "effect", parameters,
 			async execute() {
 				executions += 1;
 				return { content: [{ type: "text", text: "effect" }], details: {} };
 			},
 		};
-		faux.setUncheckedResponses([
-			panResponse([
-				panCall("effect", {}, { id: "duplicate" }),
-				panCall("effect", {}, { id: "duplicate" }),
-			], { stopReason: "tool_calls" }),
+		faux.setResponses([
+			fauxAssistantMessage([
+				fauxToolCall("effect", {}, { id: "duplicate" }),
+				fauxToolCall("effect", {}, { id: "duplicate" }),
+			], { stopReason: "toolUse" }),
 		]);
 		const observations: SessionObservation[] = [];
 		const session = await kernelSession(directory, kernel, adapter, [tool], observations);
@@ -193,12 +147,12 @@ test("C-KER-05 both Kernels reject duplicate ToolCall ids before tool effects", 
 });
 
 test("C-KER-05 orphan seeded ToolResults settle model_error before model or tool effects", async () => {
-	for (const kernel of ["native"] as const) {
+	for (const kernel of ["pi"] as const) {
 		const directory = await root();
 		const { faux, adapter } = fauxAdapter();
 		const observations: SessionObservation[] = [];
 		const initialMessages: Message[] = [{
-			role: "tool_result", toolCallId: "orphan", toolName: "missing",
+			role: "toolResult", toolCallId: "orphan", toolName: "missing",
 			content: [{ type: "text", text: "orphan" }], isError: true, timestamp: 1,
 		}];
 		const session = new GeneralAgentSession({
@@ -225,7 +179,7 @@ test("C-KER-05 orphan seeded ToolResults settle model_error before model or tool
 async function kernelSession(
 	directory: string,
 	kernel: KernelSelector,
-	adapter: ModelAdapter,
+	adapter: PiModelAdapter,
 	tools: AgentTool[],
 	observations: SessionObservation[],
 ): Promise<GeneralAgentSession> {
@@ -241,15 +195,14 @@ async function kernelSession(
 }
 
 test("C-KER-06 both Kernels cancel the active tool with no late effect and one final archived terminal", async () => {
-	for (const kernel of ["native"] as const) {
+	for (const kernel of ["pi"] as const) {
 		const directory = await root();
 		const { faux, adapter } = fauxAdapter();
 		const marker = join(directory, "late-marker.txt");
-		const parameters = emptyParameters;
-		const tool: AgentTool = {
-			name: "slow", description: "abort-aware delayed effect", parameters,
-			validate(value) { return { ok: true, value }; },
-			async execute({ signal }) {
+		const parameters = Type.Object({}, { additionalProperties: false });
+		const tool: AgentTool<typeof parameters> = {
+			name: "slow", label: "slow", description: "abort-aware delayed effect", parameters,
+			async execute(_id, _args, signal) {
 				await new Promise<void>((resolve, reject) => {
 					const timer = setTimeout(async () => {
 						await writeFile(marker, "late", "utf8");
@@ -264,7 +217,7 @@ test("C-KER-06 both Kernels cancel the active tool with no late effect and one f
 			},
 		};
 		faux.setResponses([
-			panResponse(panCall("slow", {}, { id: "slow-1" }), { stopReason: "tool_calls" }),
+			fauxAssistantMessage(fauxToolCall("slow", {}, { id: "slow-1" }), { stopReason: "toolUse" }),
 		]);
 		const observations: SessionObservation[] = [];
 		let session: GeneralAgentSession;
@@ -299,23 +252,22 @@ test("C-KER-06 both Kernels cancel the active tool with no late effect and one f
 });
 
 test("C-KER-07 both Kernels enforce exact model-turn and atomic tool-step budgets", async () => {
-	for (const kernel of ["native"] as const) {
+	for (const kernel of ["pi"] as const) {
 		const turnDirectory = await root();
 		const turnFaux = fauxAdapter();
 		let turnEffects = 0;
-		const parameters = emptyParameters;
-		const tool: AgentTool = {
-			name: "tick", description: "tick", parameters,
-			validate(value) { return { ok: true, value }; },
+		const parameters = Type.Object({}, { additionalProperties: false });
+		const tool: AgentTool<typeof parameters> = {
+			name: "tick", label: "tick", description: "tick", parameters,
 			async execute() {
 				turnEffects += 1;
 				return { content: [{ type: "text", text: "tick" }], details: {} };
 			},
 		};
 		turnFaux.faux.setResponses([
-			panResponse(panCall("tick", {}, { id: "turn-1" }), { stopReason: "tool_calls" }),
-			panResponse(panCall("tick", {}, { id: "turn-2" }), { stopReason: "tool_calls" }),
-			panResponse("must not be consumed"),
+			fauxAssistantMessage(fauxToolCall("tick", {}, { id: "turn-1" }), { stopReason: "toolUse" }),
+			fauxAssistantMessage(fauxToolCall("tick", {}, { id: "turn-2" }), { stopReason: "toolUse" }),
+			fauxAssistantMessage("must not be consumed"),
 		]);
 		const turnSession = await limitedSession(turnDirectory, kernel, turnFaux.adapter, [tool], { maxModelTurns: 2 });
 		try {
@@ -330,20 +282,19 @@ test("C-KER-07 both Kernels enforce exact model-turn and atomic tool-step budget
 		const stepDirectory = await root();
 		const stepFaux = fauxAdapter();
 		let stepEffects = 0;
-		const stepTool: AgentTool = {
+		const stepTool: AgentTool<typeof parameters> = {
 			...tool,
-			validate(value) { return { ok: true, value }; },
 			async execute() {
 				stepEffects += 1;
 				return { content: [{ type: "text", text: "effect" }], details: {} };
 			},
 		};
 		stepFaux.faux.setResponses([
-			panResponse([
-				panCall("tick", {}, { id: "step-1" }),
-				panCall("tick", {}, { id: "step-2" }),
-				panCall("tick", {}, { id: "step-3" }),
-			], { stopReason: "tool_calls" }),
+			fauxAssistantMessage([
+				fauxToolCall("tick", {}, { id: "step-1" }),
+				fauxToolCall("tick", {}, { id: "step-2" }),
+				fauxToolCall("tick", {}, { id: "step-3" }),
+			], { stopReason: "toolUse" }),
 		]);
 		const stepSession = await limitedSession(stepDirectory, kernel, stepFaux.adapter, [stepTool], { maxToolSteps: 2 });
 		try {
@@ -363,12 +314,10 @@ test("C-KER-07 invalid budgets fail before model, tool, or archive effects", () 
 	const values: unknown[] = [true, 1.5, 0, -1];
 	for (const value of values) {
 		assert.throws(() => new GeneralAgentSession({
-		kernel: "native",
 			adapter,
 			tools: [{
-				name: "effect", description: "effect", parameters: emptyParameters,
-				validate: validateFixtureArguments,
-			async execute() { toolEffects += 1; return { content: [], details: {} }; },
+				name: "effect", label: "effect", description: "effect", parameters: Type.Object({}),
+				async execute() { toolEffects += 1; return { content: [], details: {} }; },
 			}],
 			systemPrompt: "test",
 			limits: { maxModelTurns: value as number },
@@ -386,7 +335,7 @@ test("C-KER-07 invalid budgets fail before model, tool, or archive effects", () 
 async function limitedSession(
 	directory: string,
 	kernel: KernelSelector,
-	adapter: ModelAdapter,
+	adapter: PiModelAdapter,
 	tools: AgentTool[],
 	limits: { maxModelTurns?: number; maxToolSteps?: number },
 ): Promise<GeneralAgentSession> {

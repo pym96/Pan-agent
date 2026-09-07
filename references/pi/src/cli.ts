@@ -2,29 +2,34 @@ import { stat } from "node:fs/promises";
 import { pathToFileURL, fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
 import type { Writable } from "node:stream";
-import { isKernelSelector, type KernelSelector } from "./kernels/agent-kernel.ts";
+import { isKernelSelector, type KernelSelector } from "../../../typescript/src/kernels/agent-kernel.ts";
+import {
+	createPiDeepSeekAdapter,
+	type PiModelAdapter,
+} from "./model-adapter.ts";
 import {
 	DEFAULT_DEEPSEEK_PROFILE,
 	isDeepSeekModelId,
 	type DeepSeekProfile,
-} from "./deepseek-profile.ts";
-import type { ModelAdapter } from "./model-adapter-contract.ts";
-import { createPanDeepSeekAdapter } from "./pan-deepseek-model-adapter.ts";
-import { RunArchiveStore } from "./run-archive.ts";
-import { loadRunbook } from "./runbook.ts";
-import { createPanTrustedLocalTools, PAN_TRUSTED_LOCAL_LABEL } from "./pan-trusted-local-tools.ts";
+} from "../../../typescript/src/deepseek-profile.ts";
+import type { ModelAdapter } from "../../../typescript/src/model-adapter-contract.ts";
+import { createPanDeepSeekAdapter } from "../../../typescript/src/pan-deepseek-model-adapter.ts";
+import { RunArchiveStore } from "../../../typescript/src/run-archive.ts";
+import { loadRunbook } from "../../../typescript/src/runbook.ts";
+import { createPanTrustedLocalTools, PAN_TRUSTED_LOCAL_LABEL } from "../../../typescript/src/pan-trusted-local-tools.ts";
 import { GENERAL_AGENT_SYSTEM_PROMPT, GeneralAgentSession } from "./session.ts";
-import { renderObservation, runTui } from "./tui.ts";
+import { createTrustedLocalTools, TRUSTED_LOCAL_SHELL_LABEL } from "./tools.ts";
+import { renderObservation, runTui } from "../../../typescript/src/tui.ts";
 
 export const CLI_USAGE = `Usage:
-  npm run agent -- --workspace /absolute/path --memory-root /absolute/path --kernel native [--model deepseek-v4-flash|deepseek-v4-pro] [--thinking low|high|max]
+  npm run agent -- --workspace /absolute/path --memory-root /absolute/path [--kernel pi|native] [--model deepseek-v4-flash|deepseek-v4-pro] [--thinking low|high|max]
 
-The Product requires explicit --kernel native; NativeKernel receives Pan-owned typed read/write/edit/bash implementations directly.
+The General Agent defaults to PiKernel and accepts explicit --kernel native; NativeKernel receives Pan-owned typed read/write/edit/bash implementations directly.
 The bash tool is trusted-local: it has host-user authority; --workspace sets cwd but is not containment or an OS sandbox.
 Every admitted run is durably archived under --memory-root (must be disjoint from the workspace) with the current Runbook revision; :runs and :replay inspect sealed archives with zero Provider calls or tool effects.
 No Provider call occurs for --help, startup, cancellation before confirmation, or TUI commands.`;
 
-const RUNBOOK_PATH = resolve(dirname(fileURLToPath(import.meta.url)), "..", "RUNBOOK.md");
+const RUNBOOK_PATH = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..", "..", "typescript", "RUNBOOK.md");
 
 export interface CliConfiguration {
 	readonly help: boolean;
@@ -37,13 +42,13 @@ export interface CliConfiguration {
 export function parseCliArgs(args: readonly string[]): CliConfiguration {
 	let workspace: string | undefined;
 	let memoryRoot: string | undefined;
-	let kernel: string | undefined;
+	let kernel: string = "pi";
 	let modelId: string = DEFAULT_DEEPSEEK_PROFILE.modelId;
 	let thinkingLevel: string = DEFAULT_DEEPSEEK_PROFILE.thinkingLevel;
 	for (let index = 0; index < args.length; index += 1) {
 		const argument = args[index];
 		if (argument === "--help" || argument === "-h") {
-			return { help: true, kernel: "native", profile: DEFAULT_DEEPSEEK_PROFILE };
+			return { help: true, kernel: "pi", profile: DEFAULT_DEEPSEEK_PROFILE };
 		}
 		const value = args[index + 1];
 		if (argument === "--workspace" || argument === "--memory-root" || argument === "--kernel" || argument === "--model" || argument === "--thinking") {
@@ -58,8 +63,6 @@ export function parseCliArgs(args: readonly string[]): CliConfiguration {
 		}
 		throw new Error(`Unknown argument: ${argument}`);
 	}
-	if (kernel === undefined) throw new Error("kernel_selection_required: pass --kernel native");
-	if (kernel === "pi") throw new Error("kernel_not_in_product: see references/pi/README.md");
 	if (!isKernelSelector(kernel)) throw new Error(`Unsupported kernel: ${kernel}`);
 	if (!isDeepSeekModelId(modelId)) throw new Error(`Unsupported DeepSeek model: ${modelId}`);
 	if (thinkingLevel !== "low" && thinkingLevel !== "high" && thinkingLevel !== "max") {
@@ -76,9 +79,10 @@ export function parseCliArgs(args: readonly string[]): CliConfiguration {
 
 export interface CliDependencies {
 	readonly output?: Writable;
+	/** Transitional Pi-only injection seam retained for the default reference path. */
+	readonly createAdapter?: (profile: DeepSeekProfile) => PiModelAdapter;
 	/** Pan-owned injection seam for deterministic Native composition tests. */
 	readonly createNativeAdapter?: (profile: DeepSeekProfile) => ModelAdapter;
-	readonly createTools?: typeof createPanTrustedLocalTools;
 	readonly startTui?: typeof runTui;
 }
 
@@ -145,10 +149,10 @@ export async function runCli(args: readonly string[], dependencies: CliDependenc
 	let provider: string;
 	let model: string;
 	let thinking: string;
-	{
+	if (configuration.kernel === "native") {
 		const adapterFactory = dependencies.createNativeAdapter ?? createPanDeepSeekAdapter;
 		const adapter = adapterFactory(configuration.profile);
-		const trustedLocal = dependencies.createTools ? dependencies.createTools(workspace) : createPanTrustedLocalTools(workspace);
+		const trustedLocal = createPanTrustedLocalTools(workspace);
 		session = new GeneralAgentSession({
 			...shared,
 			kernel: "native",
@@ -159,8 +163,22 @@ export async function runCli(args: readonly string[], dependencies: CliDependenc
 		provider = adapter.providerId;
 		model = adapter.modelId;
 		thinking = adapter.reasoningLevel;
+	} else {
+		const adapterFactory = dependencies.createAdapter ?? createPiDeepSeekAdapter;
+		const adapter = adapterFactory(configuration.profile);
+		const trustedLocal = createTrustedLocalTools(workspace);
+		session = new GeneralAgentSession({
+			...shared,
+			kernel: "pi",
+			adapter,
+			tools: trustedLocal.tools,
+			cleanup: () => trustedLocal.environment.cleanup(),
+		});
+		boundaryLabel = TRUSTED_LOCAL_SHELL_LABEL;
+		provider = adapter.providerId;
+		model = adapter.modelId;
+		thinking = adapter.thinkingLevel;
 	}
-
 	writeLine(`BOUNDARY ${boundaryLabel}`);
 	writeLine(`MEMORY ${memoryRoot}`);
 	return (dependencies.startTui ?? runTui)({

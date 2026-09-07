@@ -1,8 +1,8 @@
-# TypeScript/Pi General Agent Working Stack
+# TypeScript Native Product
 
-Status: WorkOrders #23–#25, #28, #31, and #32 are independently accepted and landed. WorkOrder #33's direct Pan-owned DeepSeek Adapter is a Builder candidate pending independent review; Pi remains installed and default.
+Status: #33 is accepted at `55afc93deff70035810666f0efbf583357ad12fc`; #34 is a Builder candidate pending independent review. This package is **Product**. It requires explicit Native selection and has no Pi dependency. The separate `references/pi/` package is **Frozen Reference** and is never installed or loaded by Product.
 
-This is the authoritative TypeScript working stack for a Human-operated general coding agent. One `GeneralAgentSession` owns admission and durable memory, then delegates Context and iterative semantics through `AgentKernel`. `PiKernel` remains the default and wraps Pi's stateful `Agent`; explicit `NativeKernel` is a repository-owned second loop using Pan-owned semantic contracts and accepted direct Pan-owned read/write/edit/bash implementations. On the #33 candidate, Native also receives the direct Pan-owned DeepSeek `ModelAdapter`, transport, and SSE assembler; it no longer crosses the Pi Provider bridge. The existing Python implementation remains available as reference-only; this package neither imports nor ports its AgentLoop.
+One `GeneralAgentSession` owns admission and durable memory and delegates the same iterative semantics through AgentKernel to NativeKernel, using accepted Pan ModelAdapter, DeepSeek transport and trusted-local Tools. An explicitly supplied AgentKernel may enter this seam without exposing internal loop steps. #29 alone decides a future omitted-selector default.
 
 ## Install
 
@@ -12,7 +12,7 @@ From the repository root, install the exact dependency graph in `package-lock.js
 npm --prefix typescript ci --ignore-scripts
 ```
 
-The direct Pi dependencies are pinned to `@earendil-works/pi-agent-core@0.84.4` and `@earendil-works/pi-ai@0.84.4`. The lockfile pins every transitive package and registry integrity value.
+Only TypeScript and Node type development dependencies are installed. Runtime uses Node built-ins. The lockfile pins package versions and registry integrity values; the package file inventory excludes reference code and dependencies.
 
 ## Run the TUI
 
@@ -24,12 +24,12 @@ export DEEPSEEK_API_KEY
 npm --prefix typescript run agent -- \
   --workspace /absolute/path/to/workspace \
   --memory-root /absolute/path/to/memory \
-	--kernel pi \
+	--kernel native \
   --model deepseek-v4-flash \
   --thinking high
 ```
 
-The initial profile is `deepseek-v4-flash` with `high` thinking. Omitting `--kernel` is identical to explicit `--kernel pi`; `--kernel native` selects the second implementation without changing TUI or archive interfaces. The Native path receives canonical Context and assembled outcomes through Pan contracts, receives the Pan trusted-local Tools directly, and on the #33 candidate selects the direct Pan DeepSeek Adapter. `deepseek-v4-pro` and the listed thinking levels are explicit alternatives. `--memory-root` is required and must be disjoint from the workspace; it holds the durable three-lane memory (below). Construction, `--help`, confirmation rejection, blank input, `:help`, `:context`, `:runs`, `:replay RUN_ID`, and `:exit` make no Provider call. The first non-empty task submitted after confirmation is the first Provider call.
+The initial profile is `deepseek-v4-flash` with `high` thinking. Product tasks must explicitly pass `--kernel native`. Omission fails with exit 2 and `kernel_selection_required`; Pi fails with `kernel_not_in_product`; unknown selectors fail validation. These paths and `--help` perform no setup. `deepseek-v4-pro` and the listed thinking levels are explicit alternatives. `--memory-root` is required and must be disjoint from the workspace; it holds the durable three-lane memory (below). Construction, `--help`, confirmation rejection, blank input, `:help`, `:context`, `:runs`, `:replay RUN_ID`, and `:exit` make no Provider call. The first non-empty task submitted after confirmation is the first Provider call.
 
 Each task returns control to `Task>` and the next task continues the selected Kernel's typed transcript. `:context` reports the retained message count and owner. Ctrl-C during a task requests Kernel cancellation; Ctrl-C at the prompt closes the TUI.
 
@@ -47,7 +47,7 @@ The TUI renders normalized events for each Run:
 - typed ToolCall name, correlation ID, arguments, ToolResult text, and error status;
 - one attributable terminal: `completed`, `cancelled`, `model_error`, or `incomplete`.
 
-Thinking blocks are retained inside Pi's model transcript but never rendered by this projection. No credential is copied into source, CLI arguments, shell child environment, or Run Archive bytes. The stack does not yet implement checkpoint/resume across processes, enforce a paid-call budget, compact Context, or recover from Context overflow. It performs no application-level history truncation.
+Provider-private reasoning continuation stays inside the Pan DeepSeek Adapter and never enters this projection. No credential is copied into source, CLI arguments, shell child environment, or Run Archive bytes. The stack does not yet implement checkpoint/resume across processes, enforce a paid-call budget, compact Context, or recover from Context overflow. It performs no application-level history truncation.
 
 ## Three-lane memory (WorkOrder #25 accepted implementation)
 
@@ -65,4 +65,8 @@ npm --prefix typescript run pan-contracts
 npm --prefix typescript run pan-faux-tools
 ```
 
-The retained Pi regression Adapter uses Pi's Faux Provider. The accepted #31 seam checks use test-local Pan doubles, #32 adds a reusable Pan `FauxModelAdapter` plus product Tool tests, and #33 adds content-hashed request/SSE/failure fixtures for the direct Pan DeepSeek boundary. None of these checks makes a network, Provider-credential, balance, or paid-model call. The Kernel conformance suite consumes one versioned implementation-neutral manifest against both implementations and does not require the reference Python package.
+Product checks use Pan Faux and canonical fixtures plus the content-hashed offline DeepSeek fixtures. Native and memory regression cases have been migrated to Pan inputs. Shared manifests remain byte-identical and run on Native here and on Pi in the independently installed reference. Full source isolation, coverage and relocation evidence is documented in `docs/design/product-isolation.md` from the repository root; packed-consumer verification belongs to #35.
+
+## File navigation
+
+`src/session.ts` and `src/cli.ts` own Product selection/composition. `src/kernels/agent-kernel.ts` is the common injection seam; `src/kernels/native-kernel.ts` retains accepted semantics. `test/pan-fixture.ts` supplies canonical test scripts through the accepted Faux Adapter; `test/general-agent.test.ts` covers selection, CLI/TUI and P-D6. `scripts/check_workorder_34_scope.py` and `scripts/check_product_isolation.py` (from repository root) audit preservation and absence.

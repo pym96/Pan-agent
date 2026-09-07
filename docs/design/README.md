@@ -43,3 +43,7 @@ These documents remain useful comparison material. Their Python AgentLoop, TUI, 
 All historical experiment Evidence, locks, reports, and Wiki material retain their original identities and review boundaries. Current verified implementation facts remain exclusively in [`../evidence/verified-project-facts.md`](../evidence/verified-project-facts.md).
 
 The Human-accepted architecture history remains indexed in [`../adr/README.md`](../adr/README.md). WorkOrder #24 changes the product route; it does not retroactively change the acceptance status or claims of any retained design.
+
+- [Product isolation](product-isolation.md) — #34 Product/Frozen Reference relocation, coverage and checks.
+
+- [WorkOrder #34 baseline case map](workorder-34-coverage.json) — all 78 baseline test identities and destinations.

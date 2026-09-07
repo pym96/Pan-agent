@@ -383,8 +383,5 @@ test("C-PFREE-A03/A06 Pan seams and NativeKernel have no Pi import or hidden Pi 
 	const nativeSource = await readFile(join(REPOSITORY_ROOT, "typescript/src/kernels/native-kernel.ts"), "utf8");
 	assert.match(nativeSource, /this\.adapter\.exchange/);
 	assert.match(nativeSource, /tool\.validate\(call\.arguments\)/);
-	const compatibilitySource = await readFile(join(REPOSITORY_ROOT, "typescript/src/pi-compatibility.ts"), "utf8");
-	assert.match(compatibilitySource, /Transitional Pan↔Pi compatibility boundary/);
-	assert.match(compatibilitySource, /Legacy test\/reference bridge/);
-	assert.match(compatibilitySource, /#33 replaces/);
+
 });

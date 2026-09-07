@@ -6,8 +6,7 @@ import { afterEach, test } from "node:test";
 import { createModels, fauxAssistantMessage, fauxProvider } from "@earendil-works/pi-ai";
 import { parseCliArgs } from "../src/cli.ts";
 import type { PiModelAdapter } from "../src/model-adapter.ts";
-import { adaptPiAgentTools, adaptPiModelAdapter } from "../src/pi-compatibility.ts";
-import { RunArchiveStore } from "../src/run-archive.ts";
+import { RunArchiveStore } from "../../../typescript/src/run-archive.ts";
 import {
 	GENERAL_AGENT_SYSTEM_PROMPT,
 	GeneralAgentSession,
@@ -56,17 +55,9 @@ async function runPiSelection(kernel?: KernelSelector): Promise<{
 		},
 		cleanup: () => trustedLocal.environment.cleanup(),
 	};
-	const session = kernel === "native"
-		? new GeneralAgentSession({
-			...shared, kernel: "native",
-			adapter: adaptPiModelAdapter(adapter), tools: adaptPiAgentTools(trustedLocal.tools),
-		})
-		: new GeneralAgentSession({
-			...shared,
-			...(kernel === undefined ? {} : { kernel: "pi" as const }),
-			adapter,
-			tools: trustedLocal.tools,
-		});
+	const session = new GeneralAgentSession({
+		...shared, ...(kernel === undefined ? {} : { kernel: "pi" as const }), adapter, tools: trustedLocal.tools,
+	});
 	try {
 		return { result: await session.runTask("same task"), observations };
 	} finally {

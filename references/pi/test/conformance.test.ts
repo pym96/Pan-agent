@@ -5,18 +5,22 @@ import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterEach, test } from "node:test";
-import { response as panResponse, call as panCall, scriptedAdapter, stringParameters, emptyParameters, validateFixtureArguments } from "./pan-fixture.ts";
-import type { Message } from "../src/canonical-protocol.ts";
-import type { ModelAdapter } from "../src/model-adapter-contract.ts";
-import { RunArchiveStore } from "../src/run-archive.ts";
+import {
+	createModels,
+	fauxAssistantMessage,
+	fauxProvider,
+	fauxToolCall,
+} from "@earendil-works/pi-ai";
+import type { PiModelAdapter } from "../src/model-adapter.ts";
+import { RunArchiveStore } from "../../../typescript/src/run-archive.ts";
 import {
 	GENERAL_AGENT_SYSTEM_PROMPT,
 	GeneralAgentSession,
 	type SessionObservation,
 } from "../src/session.ts";
-import { createPanTrustedLocalTools } from "../src/pan-trusted-local-tools.ts";
+import { createTrustedLocalTools } from "../src/tools.ts";
 
-const REPOSITORY_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
+const REPOSITORY_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "../../..");
 const FIXTURE_ROOT = join(REPOSITORY_ROOT, "conformance", "fixtures", "v1");
 const TEST_RUNBOOK_REVISION = `sha256:${"0".repeat(64)}`;
 const temporaryDirectories: string[] = [];
@@ -25,7 +29,7 @@ interface ToolCallStep {
 	readonly kind: "tool_call";
 	readonly call_id: string;
 	readonly tool: string;
-	readonly arguments: import("../src/canonical-protocol.ts").JsonObject;
+	readonly arguments: Record<string, unknown>;
 }
 
 interface FinalStep {
@@ -135,18 +139,36 @@ async function loadToolCase(): Promise<ToolSemanticsCase> {
 	return JSON.parse(body) as ToolSemanticsCase;
 }
 
-function fauxAdapter() { return scriptedAdapter(); }
+function fauxAdapter(): {
+	readonly adapter: PiModelAdapter;
+	readonly faux: ReturnType<typeof fauxProvider>;
+} {
+	const faux = fauxProvider({ models: [{ id: "faux-conformance", reasoning: true }] });
+	const models = createModels();
+	models.setProvider(faux.provider);
+	const model = faux.getModel("faux-conformance");
+	assert.ok(model);
+	return {
+		faux,
+		adapter: {
+			providerId: faux.provider.id,
+			modelId: model.id,
+			model,
+			streamFn: models.streamSimple.bind(models),
+			thinkingLevel: "high",
+		},
+	};
+}
 
 async function harness(
 	root: string,
 	workspace: string,
-	adapter: ModelAdapter,
+	adapter: PiModelAdapter,
 	observations: SessionObservation[],
 	afterObservation: (observation: SessionObservation) => void = () => {},
 ): Promise<GeneralAgentSession> {
-	const trustedLocal = createPanTrustedLocalTools(workspace);
+	const trustedLocal = createTrustedLocalTools(workspace);
 	return new GeneralAgentSession({
-		kernel: "native",
 		adapter,
 		tools: trustedLocal.tools,
 		systemPrompt: GENERAL_AGENT_SYSTEM_PROMPT,
@@ -158,7 +180,7 @@ async function harness(
 			observations.push(observation);
 			afterObservation(observation);
 		},
-
+		cleanup: () => trustedLocal.environment.cleanup(),
 	});
 }
 
@@ -223,11 +245,11 @@ test("language-neutral tool semantics fixture passes through the TypeScript prod
 	faux.setResponses(
 		fixture.task.model_script.map((step) =>
 			step.kind === "tool_call"
-				? panResponse(
-						panCall(step.tool, step.arguments, { id: step.call_id }),
-						{ stopReason: "tool_calls" },
+				? fauxAssistantMessage(
+						fauxToolCall(step.tool, step.arguments, { id: step.call_id }),
+						{ stopReason: "toolUse" },
 					)
-				: panResponse(step.text),
+				: fauxAssistantMessage(step.text),
 		),
 	);
 	const observations: SessionObservation[] = [];
@@ -275,11 +297,11 @@ test("language-neutral terminal fixtures cover completed, model-error, and incom
 		const response = selected.response;
 		faux.setResponses([
 			response.kind === "error"
-				? panResponse("", {
+				? fauxAssistantMessage("", {
 						stopReason: "error",
 						errorMessage: response.error,
 					})
-				: panResponse(response.text ?? "", {
+				: fauxAssistantMessage(response.text ?? "", {
 						...(response.kind === "length" ? { stopReason: "length" as const } : {}),
 					}),
 		]);
@@ -309,13 +331,13 @@ test("language-neutral cancellation fixture settles the active tool and prevents
 	await mkdir(workspace);
 	const { adapter, faux } = fauxAdapter();
 	faux.setResponses([
-		panResponse(
-			panCall(
+		fauxAssistantMessage(
+			fauxToolCall(
 				fixture.tool_call.tool,
 				fixture.tool_call.arguments,
 				{ id: fixture.tool_call.call_id },
 			),
-			{ stopReason: "tool_calls" },
+			{ stopReason: "toolUse" },
 		),
 	]);
 	const observations: SessionObservation[] = [];
@@ -355,12 +377,12 @@ test("language-neutral Context fixture remains visible across successive tasks",
 	const { adapter, faux } = fauxAdapter();
 	const [firstTask, secondTask] = fixture.tasks;
 	faux.setResponses([
-		panResponse(firstTask.response.text),
+		fauxAssistantMessage(firstTask.response.text),
 		(context) => {
 			const retained = JSON.stringify(context.messages).includes(
 				secondTask.response.contains,
 			);
-			return panResponse(
+			return fauxAssistantMessage(
 				retained
 					? secondTask.response.if_present
 					: secondTask.response.if_absent,
