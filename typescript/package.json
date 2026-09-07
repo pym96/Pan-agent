@@ -15,16 +15,36 @@
     "pan-faux-tools": "node --experimental-strip-types --test test/pan-faux-tools.test.ts",
     "pan-deepseek": "node --experimental-strip-types --test test/pan-deepseek-adapter.test.ts",
     "typecheck": "tsc --noEmit",
-    "check": "npm run typecheck && npm run test"
+    "check": "npm run typecheck && npm run test",
+    "build": "node scripts/build.mjs",
+    "prepack": "npm run build"
   },
   "devDependencies": {
     "@types/node": "22.19.19",
     "typescript": "5.9.3"
   },
   "files": [
-    "src/",
+    "dist/",
+    "bin/",
     "RUNBOOK.md",
-    "README.md",
-    "tsconfig.json"
-  ]
+    "README.md"
+  ],
+  "bin": {
+    "pan-agent": "bin/pan-agent.mjs"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./cli": {
+      "types": "./dist/cli.d.ts",
+      "import": "./dist/cli.js"
+    },
+    "./faux": {
+      "types": "./dist/faux-model-adapter.d.ts",
+      "import": "./dist/faux-model-adapter.js"
+    }
+  },
+  "types": "./dist/index.d.ts"
 }

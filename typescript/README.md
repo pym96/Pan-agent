@@ -1,6 +1,6 @@
 # TypeScript Native Product
 
-Status: #33 is accepted at `55afc93deff70035810666f0efbf583357ad12fc`; #34 is a Builder candidate pending independent review. This package is **Product**. It requires explicit Native selection and has no Pi dependency. The separate `references/pi/` package is **Frozen Reference** and is never installed or loaded by Product.
+Status: #34 is accepted and landed at `13d659a7292748f7f01dd592aa417848917d9065`; #35 compiled packaging is a Builder candidate pending independent review. This package is **Product**. It requires explicit Native selection and has no Pi dependency. The separate `references/pi/` package is **Frozen Reference** and is never installed or loaded by Product.
 
 One `GeneralAgentSession` owns admission and durable memory and delegates the same iterative semantics through AgentKernel to NativeKernel, using accepted Pan ModelAdapter, DeepSeek transport and trusted-local Tools. An explicitly supplied AgentKernel may enter this seam without exposing internal loop steps. #29 alone decides a future omitted-selector default.
 
@@ -13,6 +13,33 @@ npm --prefix typescript ci --ignore-scripts
 ```
 
 Only TypeScript and Node type development dependencies are installed. Runtime uses Node built-ins. The lockfile pins package versions and registry integrity values; the package file inventory excludes reference code and dependencies.
+
+## Installed JavaScript package
+
+From this package directory, `npm run build` removes its own generated `dist/` and invokes pinned TypeScript `5.9.3` with `tsconfig.build.json`. `npm pack --pack-destination /absolute/path/to/artifacts` runs the same build in `prepack`; it includes `dist/`, `bin/`, this guide and `RUNBOOK.md`. The package remains `private: true`; this procedure does not publish it. `dist/` and generated tarballs are ignored build output.
+
+Install the resulting `pan-agent-0.1.0.tgz` into a fresh consumer with ordinary Node `22.19.0` or newer:
+
+```bash
+npm install /absolute/path/to/artifacts/pan-agent-0.1.0.tgz \
+  --omit=dev --offline --ignore-scripts --no-audit --no-fund
+./node_modules/.bin/pan-agent --help
+./node_modules/.bin/pan-agent --kernel native \
+  --workspace /absolute/path/to/workspace \
+  --memory-root /absolute/path/to/memory
+```
+
+The installed executable delegates to the compiled `runCli`. It has the same confirmation and Provider-use boundary described below. Decline confirmation to check startup without a model call. Accepted task submission requires an intentionally configured Provider credential; the #35 offline verifier instead injects the shipped Pan Faux at the existing API seam. No compiler, TS loader, Python, Pi, checkout link or install-time build is needed by the consumer.
+
+The ESM exports are:
+
+| Import | Shipped interface |
+|---|---|
+| `pan-agent` | `runCli`, `runTui`, Pan `FauxModelAdapter`, `GeneralAgentSession`, archive inspection, Runbook helpers and public declarations |
+| `pan-agent/cli` | Existing CLI functions and types, including the `createNativeAdapter` and `startTui` option seams |
+| `pan-agent/faux` | Pan Faux Adapter and its existing script helpers |
+
+An external plain JavaScript verifier imports these exports, supplies a four-response Faux script to `createNativeAdapter`, and passes streams into the real `runTui` via `startTui`. It retains real ToolResults, Contexts and sealed archives; it does not supply another agent loop. The installed package README intentionally contains no repository-relative Markdown links, so it remains readable after packing.
 
 ## Run the TUI
 
@@ -65,8 +92,11 @@ npm --prefix typescript run pan-contracts
 npm --prefix typescript run pan-faux-tools
 ```
 
-Product checks use Pan Faux and canonical fixtures plus the content-hashed offline DeepSeek fixtures. Native and memory regression cases have been migrated to Pan inputs. Shared manifests remain byte-identical and run on Native here and on Pi in the independently installed reference. Full source isolation, coverage and relocation evidence is documented in `docs/design/product-isolation.md` from the repository root; packed-consumer verification belongs to #35.
+Product checks use Pan Faux and canonical fixtures plus the content-hashed offline DeepSeek fixtures. Native and memory regression cases have been migrated to Pan inputs. Shared manifests remain byte-identical and run on Native here and on Pi in the independently installed reference. Full source isolation, coverage and relocation evidence is documented in `docs/design/product-isolation.md` from the repository root; the #35 compiled consumer procedure is documented in `docs/design/packed-product-consumer.md`.
 
 ## File navigation
 
 `src/session.ts` and `src/cli.ts` own Product selection/composition. `src/kernels/agent-kernel.ts` is the common injection seam; `src/kernels/native-kernel.ts` retains accepted semantics. `test/pan-fixture.ts` supplies canonical test scripts through the accepted Faux Adapter; `test/general-agent.test.ts` covers selection, CLI/TUI and P-D6. `scripts/check_workorder_34_scope.py` and `scripts/check_product_isolation.py` (from repository root) audit preservation and absence.
+
+
+`tsconfig.build.json` and `scripts/build.mjs` compile `src/` into ignored `dist/`; `bin/pan-agent.mjs` is the executable delegate and `src/index.ts` the public export facade. `test/packaging.test.ts` checks fresh builds and the synthetic task fixture. Repository scripts `verify_packed_consumer.py`, `wo35-consumer-guard.mjs`, `wo35-consumer-driver.mjs` and `check_workorder_35_scope.py` retain the installed artifact proof without becoming runtime dependencies.

@@ -215,3 +215,8 @@ The preview deterministically enumerates the unchanged 120-slot denominator and 
 ## WorkOrder #34 isolation checks
 
 `check_workorder_34_scope.py` validates protected bytes, relocation and baseline test coverage. `check_product_isolation.py` installs a disposable Product checkout with reference physically absent, audits installed/type/runtime graphs and runs the full suite. `wo34-runtime-guard.mjs` blocks forbidden resolution and real transport/credential access in offline checks, recording attempts even when caught. Temporary evidence and host fixture instructions are in `docs/design/product-isolation.md` from repository root.
+
+
+## WorkOrder #35 local compiled consumer
+
+[`verify_packed_consumer.py`](verify_packed_consumer.py) builds twice, retains the exact tarball and file identities, and installs it into a fresh production-only Node 22.19.0 consumer. [`wo35-consumer-guard.mjs`](wo35-consumer-guard.mjs) records file/module/network attempts and caught negative controls; [`wo35-consumer-driver.mjs`](wo35-consumer-driver.mjs) drives only installed Product exports through real CLI/TUI/Tools. The synthetic input lives in [`fixtures/`](fixtures/README.md). [`check_workorder_35_scope.py`](check_workorder_35_scope.py) checks exact core/reference/fixture preservation and all baseline test obligations. These are verification tools, not package runtime files. Commands, identities and Criterion mapping are in the [packaging design](../docs/design/packed-product-consumer.md).

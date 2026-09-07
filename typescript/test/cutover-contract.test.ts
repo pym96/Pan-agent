@@ -60,7 +60,7 @@ test("C-CUT-06 assignment and ADR record architectural supersession", async () =
 	const assignment = await text("docs/agents/current-assignment.md");
 	assert.match(
 		assignment,
-		/## Active mission \| WorkOrder #34 Product isolation and Frozen Reference/,
+		/## Active mission \| WorkOrder #35 compiled package and offline consumer/,
 	);
 	assert.match(assignment, /## Accepted foundation \| WorkOrder #32 Pan Faux Adapter and product Tools/);
 	assert.match(

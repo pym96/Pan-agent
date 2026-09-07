@@ -1,0 +1,10 @@
+{
+  "id": "packed-create-run-verify/v1",
+  "calls": [
+    {"id": "packed-write", "name": "write", "arguments": {"path": "hello.js", "content": "console.log(\"PAN_PACK_OK\");\n"}},
+    {"id": "packed-bash", "name": "bash", "arguments": {"command": "node hello.js"}},
+    {"id": "packed-read", "name": "read", "arguments": {"path": "hello.js"}}
+  ],
+  "final": "verified PAN_PACK_OK",
+  "expected_stdout": "PAN_PACK_OK"
+}

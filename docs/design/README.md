@@ -4,6 +4,8 @@ Design documents record contracts and trade-offs; they do not establish implemen
 
 ## Authoritative product
 
+- [`packed-product-consumer.md`](packed-product-consumer.md): WorkOrder #35 compiled private tarball, installed executable/exports and Node 22.19.0 offline consumer proof, pending independent review.
+
 - [`typescript-pi-general-agent-working-stack.md`](typescript-pi-general-agent-working-stack.md): the authoritative TypeScript/Pi working stack, deep `GeneralAgentSession` Interface, real DeepSeek and deterministic Faux Adapters, typed workspace tools, trusted-local authority boundary, observable terminals, and three memory lanes.
 - [`native-agent-kernel-v0.md`](native-agent-kernel-v0.md): WorkOrder #28's accepted `AgentKernel` seam, default Pi compatibility implementation, explicit repository-owned Native implementation, shared Context/tool/cancellation/budget semantics, and dual-Kernel conformance boundary.
 - [`pan-owned-canonical-protocol.md`](pan-owned-canonical-protocol.md): WorkOrder #31's accepted Pan-owned Message/Tool/usage/identity/failure semantics plus the `ModelAdapter` and `AgentTool` seams used by NativeKernel; Pi remains the default behind a named transitional compatibility module.
