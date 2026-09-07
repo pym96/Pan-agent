@@ -1,9 +1,13 @@
+import { runCompactTui } from "./compact-tui.ts";
+import type { CompactPresentation } from "./presentation.ts";
 import { createInterface } from "node:readline/promises";
 import type { Readable, Writable } from "node:stream";
 import type { RunArchiveStore } from "../memory/run-archive.ts";
 import type { GeneralAgentSession, SessionObservation, TaskRunResult } from "../runtime/session.ts";
 
 export interface TuiOptions {
+	/** Omitted retains the legacy/Reference presentation. */
+	readonly presentation?: CompactPresentation;
 	readonly session: GeneralAgentSession;
 	readonly provider: string;
 	readonly model: string;
@@ -75,6 +79,7 @@ export function renderArchivedRecord(record: Record<string, unknown>): string[] 
 }
 
 export async function runTui(options: TuiOptions): Promise<number> {
+	if (options.presentation) return runCompactTui(options);
 	const input = options.input ?? process.stdin;
 	const output = options.output ?? process.stdout;
 	const inputIsTty = "isTTY" in input && input.isTTY === true;

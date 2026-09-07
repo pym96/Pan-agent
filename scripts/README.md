@@ -225,3 +225,7 @@ The preview deterministically enumerates the unchanged 120-slot denominator and 
 ## WorkOrder #41 Module correspondence
 
 [`check_module_layout.mjs`](check_module_layout.mjs) compares base/candidate source bytes using compiler-parsed import spans, enforces resolved dependency direction, and checks protected files/test obligations. [`check_public_package.mjs`](check_public_package.mjs) installs old/new local tarballs and checks equivalent named exports and the [compile-only public client](fixtures/module-layout-public-types.ts). Negative test copies are created outside Product. The [layout design](../docs/design/native-module-layout.md) specifies exact commands and the unchanged #35 consumer verifier. Historical #34/#35 scope scripts remain tied to their accepted commits.
+
+## WorkOrder #42 compact TUI
+
+[Guide and commands](../docs/design/native-compact-tui.md). `check_tui_scope.mjs` checks current core/graph and prior obligations; `verify_tui_execution.mjs` compares exact base/candidate execution; `verify_tui_pty.py` drives actual PTYs with explicit barriers; `verify_tui_consumer.py` retains all #35 artifact/isolation checks and drives installed compact/details/replay, including fresh-process cancelled archives. `check_tui_public_package.mjs` checks the old typed client plus the single optional runtime export. `demo_tui.mjs` runs actual offline Product CLI; `verify_tui_demo.py` records Builder scenarios, never Human acceptance. Historical scripts stay unchanged.

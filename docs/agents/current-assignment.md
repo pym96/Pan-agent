@@ -2,11 +2,15 @@
 
 This document owns the current project lane, constraints, and non-goals. It does not grant a session-specific task or establish implementation facts. A Working session starts only from a Master-published WorkOrder, and that WorkOrder cannot widen this lane or override Human decisions. Read the fact register linked from the root Agent map before making any current-state statement.
 
-## Active mission | WorkOrder #41 Native Module layout
+## Active mission | WorkOrder #42 Native compact TUI
 
-[WorkOrder #41 activation](https://github.com/pym96/Pan-agent/issues/41#issuecomment-5568906007) freezes Criteria-Version `1.0` (C-LAY-01…05), using accepted base `97fb7db1574a240b1a689733bc1b56791879c6d6`. This Builder candidate organizes existing Product source into protocol, runtime, providers, tools, memory and tui Modules. The root CLI composition and package export facade remain stable. The [layout map and checks](../design/native-module-layout.md) record every source relocation and the precise import/test/document locator substitutions.
+The [#42 activation](https://github.com/pym96/Pan-agent/issues/42#issuecomment-5569544327) plus [count amendment](https://github.com/pym96/Pan-agent/issues/42#issuecomment-5569953515) binds Criteria-Version `1.1`, C-TUI-01…07, at base `75de6de21c4f0c5e0a93c7a4143c5ecf94d92358`. The Builder candidate changes Native presentation only: compact progress, full final answer, details, retained archive replay and one editable draft. [Design, commands and verification](../design/native-compact-tui.md) explain count provenance and the offline demo. Candidate checks do not constitute an independent Verdict or Human trial.
 
-Only mechanical relocation and named wiring changes are authorized. Existing executable/type declarations, schemas, limits, messages, callbacks, authority and memory semantics are preserved. Tests retain their titles and logical assertions; Frozen Reference edits only retarget imports and source locators. The same Node 22.19.0 offline installed task must run after relocation. Independent Regulator review remains required. #42 presentation, #43 @file and #39 Qwen work remain queued and are not activated here.
+Runtime, Session, Kernel, protocol, Providers, Tools, memory/schema, Runbook and dependencies remain protected. Legacy renderers and omitted runTui presentation retain Reference behavior. C-TUI-05 requires independent plus different-family/Human review; C-TUI-07 remains NOT_EVALUABLE until the project Human tries the immutable candidate and records all five answers. No real Provider/credential/balance/paid run, main push, npm publication, #43 or #39 work is authorized.
+
+## Accepted foundation | WorkOrder #41 Native Module layout
+
+#41 landed unchanged at `75de6de21c4f0c5e0a93c7a4143c5ecf94d92358`. Its [source relocation map](../design/workorder-41-relocations.json), historical scope scripts, and exact-migration negative controls are retained. The four historical tests inspect that exact source snapshot; the new #42 scope checker inspects the current graph and protected bytes. The [obligation map](../design/workorder-42-obligations.json) accounts for all 73 prior Product tests.
 
 ## Accepted foundation | WorkOrder #35 compiled package and offline consumer
 

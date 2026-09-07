@@ -160,3 +160,7 @@ python3 -m unittest discover -s tests -p 'test_*.py' -v
 ```
 
 The historical Local Workspace v1 specification remains [GitHub Issue #1](https://github.com/pym96/workspace-agent-harness/issues/1) and [`docs/spec/v1.md`](docs/spec/v1.md). Domain language lives in [CONTEXT.md](CONTEXT.md); ADR-0008 is the accepted historical product decision, while Human-accepted ADR-0009 and ADR-0010 define the current target. Their bounded ordinary implementation has passed a same-model Regulator Gate; this does not release high-risk security, benchmark, project-fact, or resume claims.
+
+## Native compact TUI candidate | WorkOrder #42
+
+The [compact TUI guide](docs/design/native-compact-tui.md) covers progress, `:details`, archive replay and the offline/scripted interactive demo. Criteria-Version 1.1 governs the candidate; independent and Human review remain required. The established real DeepSeek route above is available for separately chosen Human use.

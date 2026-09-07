@@ -51,3 +51,8 @@ The Human-accepted architecture history remains indexed in [`../adr/README.md`](
 - [Product isolation](product-isolation.md) — #34 Product/Frozen Reference relocation, coverage and checks.
 
 - [WorkOrder #34 baseline case map](workorder-34-coverage.json) — all 78 baseline test identities and destinations.
+
+## WorkOrder #42 presentation candidate
+
+- [Native compact TUI](native-compact-tui.md): Criteria-Version 1.1, count sources, editable input, safe projection, demo and review protocol.
+- [Prior test obligation map](workorder-42-obligations.json): all 73 obligations, historical/current execution and exact presentation substitutions.

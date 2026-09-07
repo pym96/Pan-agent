@@ -4,10 +4,14 @@ import { cp, mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { test } from "node:test";
+import { test, after } from "node:test";
 
-const root = fileURLToPath(new URL("../../", import.meta.url));
-const checker = join(root, "scripts/check_module_layout.mjs");
+const repository = fileURLToPath(new URL("../../", import.meta.url));
+const checker = join(repository, "scripts/check_module_layout.mjs");
+// #42 historical exception: retain the exact accepted #41 inputs and all controls.
+const root = await mkdtemp(join(tmpdir(), "wo41-exact-snapshot-"));
+execFileSync("tar", ["-xf", "-", "-C", root], {input: execFileSync("git", ["archive", "75de6de21c4f0c5e0a93c7a4143c5ecf94d92358", "typescript/src", "typescript/test", "docs/design/workorder-41-relocations.json"], {cwd: repository, maxBuffer: 32 * 1024 * 1024})});
+after(async () => { await rm(root, {recursive:true, force:true}); });
 async function copyProduct(): Promise<string> {
   const target = await mkdtemp(join(tmpdir(), "wo41-layout-control-"));
   await mkdir(join(target, "typescript"));
@@ -26,7 +30,7 @@ function rejected(target: string, check: string, diagnostic: RegExp): void {
 
 test("C-LAY-01/C-LAY-02 exact relocation and resolved source graph preserve all baseline Modules", () => {
   for (const check of ["fidelity", "graph"]) {
-    const output = execFileSync(process.execPath, [checker, "--check", check, "--product-only"], {cwd: root, encoding: "utf8"});
+    const output = execFileSync(process.execPath, [checker, "--root", root, "--check", check, "--product-only"], {cwd: root, encoding: "utf8"});
     assert.match(output, new RegExp(`PASS #41 ${check}`));
   }
 });

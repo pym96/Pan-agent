@@ -11,3 +11,6 @@ export { loadRunbook } from "./memory/runbook.ts";
 export type * from "./protocol/canonical-protocol.ts";
 export type * from "./protocol/model-adapter-contract.ts";
 export type * from "./protocol/agent-tool.ts";
+
+export { createCompactPresentation } from "./tui/presentation.ts";
+export type { CompactPresentation } from "./tui/presentation.ts";

@@ -12,16 +12,19 @@ import type { ModelAdapter } from "./protocol/model-adapter-contract.ts";
 import { createPanDeepSeekAdapter } from "./providers/deepseek/pan-deepseek-model-adapter.ts";
 import { RunArchiveStore } from "./memory/run-archive.ts";
 import { loadRunbook } from "./memory/runbook.ts";
-import { createPanTrustedLocalTools, PAN_TRUSTED_LOCAL_LABEL } from "./tools/pan-trusted-local-tools.ts";
+import { createPanTrustedLocalTools } from "./tools/pan-trusted-local-tools.ts";
 import { GENERAL_AGENT_SYSTEM_PROMPT, GeneralAgentSession } from "./runtime/session.ts";
-import { renderObservation, runTui } from "./tui/tui.ts";
+import { runTui } from "./tui/tui.ts";
+
+import { createCompactPresentation, observeSafely, terminalText, type CompactPresentation } from "./tui/presentation.ts";
+import type { SessionObservation } from "./runtime/session.ts";
 
 export const CLI_USAGE = `Usage:
   npm run agent -- --workspace /absolute/path --memory-root /absolute/path --kernel native [--model deepseek-v4-flash|deepseek-v4-pro] [--thinking low|high|max]
 
 The Product requires explicit --kernel native; NativeKernel receives Pan-owned typed read/write/edit/bash implementations directly.
 The bash tool is trusted-local: it has host-user authority; --workspace sets cwd but is not containment or an OS sandbox.
-Every admitted run is durably archived under --memory-root (must be disjoint from the workspace) with the current Runbook revision; :runs and :replay inspect sealed archives with zero Provider calls or tool effects.
+Every admitted run is durably archived under --memory-root (must be disjoint from the workspace) with the current Runbook revision; :details, :runs and :replay inspect sealed archives with zero Provider calls or tool effects.
 No Provider call occurs for --help, startup, cancellation before confirmation, or TUI commands.`;
 
 const RUNBOOK_PATH = resolve(dirname(fileURLToPath(import.meta.url)), "..", "RUNBOOK.md");
@@ -80,6 +83,8 @@ export interface CliDependencies {
 	readonly createNativeAdapter?: (profile: DeepSeekProfile) => ModelAdapter;
 	readonly createTools?: typeof createPanTrustedLocalTools;
 	readonly startTui?: typeof runTui;
+	/** Optional presentation factory; execution stays in Session. */
+	readonly createPresentation?: typeof createCompactPresentation;
 }
 
 export async function runCli(args: readonly string[], dependencies: CliDependencies = {}): Promise<number> {
@@ -91,7 +96,7 @@ export async function runCli(args: readonly string[], dependencies: CliDependenc
 	try {
 		configuration = parseCliArgs(args);
 	} catch (error) {
-		writeLine(`Validation failed: ${error instanceof Error ? error.message : String(error)}`);
+		writeLine(`Validation failed: ${terminalText(error instanceof Error ? error.message : "unknown")}`);
 		writeLine(CLI_USAGE);
 		return 2;
 	}
@@ -115,7 +120,7 @@ export async function runCli(args: readonly string[], dependencies: CliDependenc
 		const info = await stat(workspace);
 		if (!info.isDirectory()) throw new Error("path is not a directory");
 	} catch (error) {
-		writeLine(`Validation failed: workspace is not an existing directory: ${workspace}`);
+		writeLine(`Validation failed: workspace is not an existing directory: ${terminalText(workspace)}`);
 		return 2;
 	}
 	const memoryRoot = resolve(configuration.memoryRoot);
@@ -129,19 +134,19 @@ export async function runCli(args: readonly string[], dependencies: CliDependenc
 		await loadRunbook(RUNBOOK_PATH);
 		archiveStore = await RunArchiveStore.open(memoryRoot);
 	} catch (error) {
-		writeLine(`Validation failed: ${error instanceof Error ? error.message : String(error)}`);
+		writeLine(`Validation failed: ${terminalText(error instanceof Error ? error.message : "unknown")}`);
 		return 2;
 	}
 
+	const presentation: CompactPresentation = (dependencies.createPresentation ?? createCompactPresentation)(writeLine);
 	const shared = {
 		systemPrompt: GENERAL_AGENT_SYSTEM_PROMPT,
 		memory: { archiveStore, runbook: () => loadRunbook(RUNBOOK_PATH) },
-		onObservation(observation: Parameters<typeof renderObservation>[0]) {
-			for (const line of renderObservation(observation)) writeLine(line);
+		onObservation(observation: SessionObservation) {
+			observeSafely(presentation, observation, writeLine);
 		},
 	};
 	let session: GeneralAgentSession;
-	let boundaryLabel: string;
 	let provider: string;
 	let model: string;
 	let thinking: string;
@@ -155,16 +160,15 @@ export async function runCli(args: readonly string[], dependencies: CliDependenc
 			adapter,
 			tools: trustedLocal.tools,
 		});
-		boundaryLabel = PAN_TRUSTED_LOCAL_LABEL;
 		provider = adapter.providerId;
 		model = adapter.modelId;
 		thinking = adapter.reasoningLevel;
 	}
 
-	writeLine(`BOUNDARY ${boundaryLabel}`);
-	writeLine(`MEMORY ${memoryRoot}`);
+	writeLine(`归档目录：${terminalText(memoryRoot)}`);
 	return (dependencies.startTui ?? runTui)({
 		session,
+		presentation,
 		provider,
 		model,
 		thinking,

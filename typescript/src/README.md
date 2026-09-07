@@ -11,4 +11,4 @@ Root [`cli.ts`](cli.ts) owns concrete composition and the existing source CLI in
 | Durable memory | [memory](memory/README.md) |
 | Terminal presentation | [tui](tui/README.md) |
 
-The [#41 design](../../docs/design/native-module-layout.md) and [source map](../../docs/design/workorder-41-relocations.json) specify preservation and dependency checks. This directory layout does not add behavior.
+The [#41 design](../../docs/design/native-module-layout.md) and [source map](../../docs/design/workorder-41-relocations.json) specify preservation and dependency checks. The #42 [presentation guide](../../docs/design/native-compact-tui.md) describes the subsequent Native UI change; core Modules remain unchanged.
