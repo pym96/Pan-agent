@@ -13,6 +13,7 @@
     "kernel-conformance": "node --experimental-strip-types --test test/kernel-conformance.test.ts",
     "pan-contracts": "node --experimental-strip-types --test test/pan-contracts.test.ts",
     "pan-faux-tools": "node --experimental-strip-types --test test/pan-faux-tools.test.ts",
+    "pan-deepseek": "node --experimental-strip-types --test test/pan-deepseek-adapter.test.ts",
     "typecheck": "tsc --noEmit",
     "check": "npm run typecheck && npm run test"
   },

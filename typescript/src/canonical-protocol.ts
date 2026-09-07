@@ -64,7 +64,8 @@ export interface UsageValues {
 	readonly input: number;
 	readonly output: number;
 	readonly cacheRead: number;
-	readonly cacheWrite: number;
+	/** Omitted when a Provider does not report a cache-write count. */
+	readonly cacheWrite?: number;
 	readonly cacheWrite1h?: number;
 	readonly reasoning?: number;
 	readonly totalTokens: number;
@@ -80,6 +81,8 @@ export interface ResponseIdentity {
 	readonly provider: Availability<string>;
 	readonly model: Availability<string>;
 	readonly responseId: Availability<string>;
+	/** Optional Provider-neutral identity for the serving backend configuration. */
+	readonly backendFingerprint?: Availability<string>;
 }
 
 export type ModelStopReason = "stop" | "tool_calls" | "length";
@@ -197,6 +200,9 @@ export function validateResponseIdentity(identity: ResponseIdentity): void {
 	validateAvailability(identity.provider, "provider");
 	validateAvailability(identity.model, "model");
 	validateAvailability(identity.responseId, "response_id");
+	if (identity.backendFingerprint !== undefined) {
+		validateAvailability(identity.backendFingerprint, "backend_fingerprint");
+	}
 }
 
 export function validateUsage(usage: Usage): void {
@@ -207,9 +213,9 @@ export function validateUsage(usage: Usage): void {
 		input: values.input,
 		output: values.output,
 		cache_read: values.cacheRead,
-		cache_write: values.cacheWrite,
 		total_tokens: values.totalTokens,
 	})) assertFiniteNonNegative(value, `usage_invalid:${name}`);
+	if (values.cacheWrite !== undefined) assertFiniteNonNegative(values.cacheWrite, "usage_invalid:cache_write");
 	if (values.cacheWrite1h !== undefined) assertFiniteNonNegative(values.cacheWrite1h, "usage_invalid:cache_write_1h");
 	if (values.reasoning !== undefined) assertFiniteNonNegative(values.reasoning, "usage_invalid:reasoning");
 	if (values.cost) {
@@ -365,6 +371,9 @@ export function addUsage(left: Usage, right: Usage): Usage {
 	const reasoning = left.value.reasoning === undefined || right.value.reasoning === undefined
 		? undefined
 		: left.value.reasoning + right.value.reasoning;
+	const cacheWrite = left.value.cacheWrite === undefined || right.value.cacheWrite === undefined
+		? undefined
+		: left.value.cacheWrite + right.value.cacheWrite;
 	const leftCost = left.value.cost;
 	const rightCost = right.value.cost;
 	const cost = leftCost === undefined || rightCost === undefined ? undefined : {
@@ -380,7 +389,7 @@ export function addUsage(left: Usage, right: Usage): Usage {
 			input: left.value.input + right.value.input,
 			output: left.value.output + right.value.output,
 			cacheRead: left.value.cacheRead + right.value.cacheRead,
-			cacheWrite: left.value.cacheWrite + right.value.cacheWrite,
+			...(cacheWrite === undefined ? {} : { cacheWrite }),
 			...(cacheWrite1h === undefined ? {} : { cacheWrite1h }),
 			...(reasoning === undefined ? {} : { reasoning }),
 			totalTokens: left.value.totalTokens + right.value.totalTokens,

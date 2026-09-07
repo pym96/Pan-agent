@@ -1,0 +1,39 @@
+{
+  "model": "deepseek-v4-flash",
+  "messages": [
+    { "role": "system", "content": "You are Pan." },
+    { "role": "user", "content": "请读取。" },
+    {
+      "role": "assistant",
+      "content": "",
+      "reasoning_content": "private-r1",
+      "tool_calls": [
+        {
+          "id": "call-1",
+          "type": "function",
+          "function": { "name": "read", "arguments": "{\"path\":\"a.txt\"}" }
+        }
+      ]
+    },
+    { "role": "tool", "tool_call_id": "call-1", "content": "A" }
+  ],
+  "thinking": { "type": "enabled" },
+  "reasoning_effort": "high",
+  "stream": true,
+  "stream_options": { "include_usage": true },
+  "tools": [
+    {
+      "type": "function",
+      "function": {
+        "name": "read",
+        "description": "Read one file.",
+        "parameters": {
+          "type": "object",
+          "properties": { "path": { "type": "string" } },
+          "required": ["path"],
+          "additionalProperties": false
+        }
+      }
+    }
+  ]
+}

@@ -1,6 +1,6 @@
 # Pan deterministic Faux Adapter and trusted-local Tools
 
-Status: WorkOrder #32 Builder candidate on accepted base `72de8e5866196d7a55d7d1cd8ce02c60d1cf8122`, pending independent Verdict and the separately assigned high-risk review for C-PFREE-B104.
+Status: WorkOrder #32 accepted after independent Verdict and explicit Human C-PFREE-B104 review; landed unchanged at `2ed4cee780e36f1e33845d66b9065381f775d6d2` on 2026-09-07.
 
 Criteria-Version: `1.0` (`C-PFREE-B101`…`C-PFREE-B107`).
 
@@ -11,7 +11,7 @@ This tracer bullet supplies concrete Pan-owned implementations behind WorkOrder 
 - [`faux-model-adapter.ts`](../../typescript/src/faux-model-adapter.ts) implements `ModelAdapter` from canonical scripted outcomes;
 - [`pan-trusted-local-tools.ts`](../../typescript/src/pan-trusted-local-tools.ts) implements `AgentTool` for `read`, `write`, `edit`, and `bash` using Node platform APIs;
 - explicit `native` composition receives those Pan Tools directly, without the Pi Tool adapter;
-- `PiKernel` remains the default and the Native production Provider still crosses [`pi-compatibility.ts`](../../typescript/src/pi-compatibility.ts) until the separately governed #33 migration.
+- `PiKernel` remains the default; WorkOrder #33 separately replaces explicit Native's Provider bridge without changing these accepted Tool/Faux semantics.
 
 Neither Pan module imports, aliases, dynamically loads, copies, or delegates Pi code. This slice does not remove or change the pinned Pi dependencies and does not claim a Pi-free installed package.
 
@@ -42,4 +42,4 @@ On POSIX, each shell starts as a detached process group. Active cancellation sen
 
 [`pan-faux-tools.test.ts`](../../typescript/test/pan-faux-tools.test.ts) drives `GeneralAgentSession → NativeKernel → Faux/Tools → canonical Events → sealed Run Archive`. It covers immediate final, read→write→edit→bash→final, multiple ToolCalls in declared order, typed model failure, pending cancellation, exact model-turn exhaustion, atomic Tool-step exhaustion, invalid admission with zero implementation effects, environment filtering, nonzero shell exit, and descendant cancellation.
 
-These deterministic checks use temporary workspaces only. Provider calls, credential reads, balance queries, paid/formal Runs, and cost are `0 / 0 / 0 / 0 / CNY 0`. This candidate creates no Provider result, benchmark claim, Verified Project Fact, Wiki fact, resume fact, live readiness claim, dependency-removal claim, or default-cutover decision.
+These deterministic checks use temporary workspaces only. Provider calls, credential reads, balance queries, paid/formal Runs, and cost are `0 / 0 / 0 / 0 / CNY 0`. This accepted slice created no Provider result, benchmark claim, Verified Project Fact, Wiki fact, resume fact, live readiness claim, dependency-removal claim, or default-cutover decision.

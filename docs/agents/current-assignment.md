@@ -2,19 +2,23 @@
 
 This document owns the current project lane, constraints, and non-goals. It does not grant a session-specific task or establish implementation facts. A Working session starts only from a Master-published WorkOrder, and that WorkOrder cannot widen this lane or override Human decisions. Read the fact register linked from the root Agent map before making any current-state statement.
 
-## Active mission | WorkOrder #32 Pan-owned deterministic Faux Adapter and product Tools
+## Active mission | WorkOrder #33 direct Pan-owned DeepSeek ModelAdapter
 
-The active lane is [WorkOrder #32](https://github.com/pym96/Pan-agent/issues/32) (Criteria-Version `1.0`, C-PFREE-B101…B107; C-PFREE-B104 high-risk) on exact accepted base `72de8e5866196d7a55d7d1cd8ce02c60d1cf8122`. It adds a reusable deterministic Pan `FauxModelAdapter` and Pan-owned trusted-local `read`/`write`/`edit`/`bash` implementations, then composes those Tools directly into the explicit Native path. `PiKernel` remains the default.
+The active lane is [WorkOrder #33](https://github.com/pym96/Pan-agent/issues/33) (Criteria-Version `1.0`, `C-PFREE-C101`…`C-PFREE-C108`) on exact accepted base `2ed4cee780e36f1e33845d66b9065381f775d6d2`. It replaces the explicit Native product path's temporary Pi Provider bridge with a direct Pan-owned DeepSeek `ModelAdapter`, transport boundary, request codec, SSE assembler, cancellation path, and typed failure map. `PiKernel` remains installed and default.
 
-WorkOrder #32 is deterministic and offline. It makes no Provider call, reads no Provider credential, queries no balance, starts no paid/formal Run, and changes no historical Python, Evidence, Wiki, benchmark, resume, website, dependency identity, or outer HEAD anchor. It does not begin the direct DeepSeek work in #33, dependency removal in #34, packed-consumer verification in #35, live work in #36, or default cutover in #29.
+WorkOrder #33 is implemented and checked only through secret-free content-hashed fixtures and deterministic injectable transports. It makes no Provider call, reads no Provider credential, queries no balance, starts no paid/formal Run, and changes no Kernel, TUI, Tool, Archive, historical Python, Evidence, Wiki, benchmark, resume, website, dependency identity, or outer HEAD anchor. It does not begin dependency removal in #34, packed-consumer verification in #35, live work in #36, or default cutover in #29.
+
+## Accepted foundation | WorkOrder #32 Pan Faux Adapter and product Tools
+
+WorkOrder #32 passed its independent Verdict plus required Human review and landed unchanged at `2ed4cee780e36f1e33845d66b9065381f775d6d2`. It supplies the reusable deterministic Pan `FauxModelAdapter`, Pan-owned trusted-local `read`/`write`/`edit`/`bash` implementations, and direct Native Tool composition. #33 builds only the production model boundary on that accepted foundation.
 
 ## Accepted foundation | WorkOrder #31 Pan-owned canonical protocol and seams
 
-WorkOrder #31 passed independent review plus the required Human C-PFREE-A04/P4 review and landed unchanged at `72de8e5866196d7a55d7d1cd8ce02c60d1cf8122`. It established Pan-owned canonical Message/ToolCall/ToolResult/Usage/identity/failure semantics plus `ModelAdapter` and `AgentTool` Interfaces, and migrated NativeKernel to those seams. #32 supplies concrete offline/product implementations without reopening those meanings.
+WorkOrder #31 passed independent review plus the required Human C-PFREE-A04/P4 review and landed unchanged at `72de8e5866196d7a55d7d1cd8ce02c60d1cf8122`. It established Pan-owned canonical Message/ToolCall/ToolResult/Usage/identity/failure semantics plus `ModelAdapter` and `AgentTool` Interfaces, and migrated NativeKernel to those seams. #32 supplied concrete offline/product Tool implementations, and #33 supplies the direct DeepSeek implementation without reopening Kernel semantics.
 
 ## Accepted foundation | WorkOrder #28 Native Agent Kernel v0
 
-WorkOrder #28 passed its independent Regulator Gate, received the required Human high-risk review, and landed unchanged at `895aa65654405cf7f96cf4ec31dbb5f1031b13e2`. It established the `AgentKernel` seam, default `PiKernel`, explicit repository-owned `NativeKernel`, and shared Context/correlation/scheduling/cancellation/budget/terminal/Event/Archive behavior. #31 may replace NativeKernel's temporary Pi-shaped semantic dependencies but must preserve that accepted public behavior and default selection.
+WorkOrder #28 passed its independent Regulator Gate, received the required Human high-risk review, and landed unchanged at `895aa65654405cf7f96cf4ec31dbb5f1031b13e2`. It established the `AgentKernel` seam, default `PiKernel`, explicit repository-owned `NativeKernel`, and shared Context/correlation/scheduling/cancellation/budget/terminal/Event/Archive behavior. Later Provider and Tool composition must preserve that accepted public behavior and default selection.
 
 ## Retained prior mission history | WorkOrder #24 (accepted and landed)
 

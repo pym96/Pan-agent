@@ -59,8 +59,9 @@ test("C-CUT-06 assignment and ADR record architectural supersession", async () =
 	const assignment = await text("docs/agents/current-assignment.md");
 	assert.match(
 		assignment,
-		/## Active mission \| WorkOrder #32 Pan-owned deterministic Faux Adapter and product Tools/,
+		/## Active mission \| WorkOrder #33 direct Pan-owned DeepSeek ModelAdapter/,
 	);
+	assert.match(assignment, /## Accepted foundation \| WorkOrder #32 Pan Faux Adapter and product Tools/);
 	assert.match(
 		assignment,
 		/## Accepted foundation \| WorkOrder #31 Pan-owned canonical protocol and seams/,

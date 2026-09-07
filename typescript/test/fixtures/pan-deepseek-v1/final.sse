@@ -1,0 +1,7 @@
+data: {"id":"ds-final-1","object":"chat.completion.chunk","created":1788742800,"model":"deepseek-v4-flash","system_fingerprint":"fp-final","choices":[{"index":0,"delta":{"role":"assistant","reasoning_content":"private-final"},"finish_reason":null}],"usage":null}
+
+data: {"id":"ds-final-1","object":"chat.completion.chunk","created":1788742800,"model":"deepseek-v4-flash","system_fingerprint":"fp-final","choices":[{"index":0,"delta":{"content":"你好，Pan。"},"finish_reason":null}],"usage":null}
+
+data: {"id":"ds-final-1","object":"chat.completion.chunk","created":1788742800,"model":"deepseek-v4-flash","system_fingerprint":"fp-final","choices":[{"index":0,"delta":{},"finish_reason":"stop"}],"usage":{"prompt_tokens":11,"completion_tokens":7,"prompt_cache_hit_tokens":3,"prompt_cache_miss_tokens":8,"total_tokens":18,"completion_tokens_details":{"reasoning_tokens":4}}}
+
+data: [DONE]

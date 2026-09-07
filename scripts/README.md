@@ -2,6 +2,17 @@
 
 These scripts prepare ignored local state and invoke pinned external tooling. They do not produce benchmark Claims or update the project fact register.
 
+## WorkOrder #33 direct Pan DeepSeek Adapter checks
+
+Run the content-hashed offline Provider fixtures and verify the frozen write scope, protected Kernel/Tool/TUI/Archive bytes, direct Native composition, Pan-only Provider module graph, unchanged dependencies, and required scan-tool availability:
+
+```bash
+npm --prefix typescript run pan-deepseek
+bash scripts/check_workorder_33_scope.sh
+```
+
+The focused suite uses only injected byte streams and synthetic transport failures. Provider calls, Provider credential reads, balance queries, paid/formal Runs, and cost are `0 / 0 / 0 / 0 / CNY 0`. Passing these commands does not accept #33, remove Pi, switch the default Kernel, or authorize #34–#36, #29, or #17.
+
 ## WorkOrder #32 Pan Faux and trusted-local Tool checks
 
 Run the focused reusable Faux/product Tool tracer and verify the frozen write scope, protected bytes, Pan-only import graph, direct Native Tool composition, unchanged Provider Adapter, and unchanged Pi dependency declarations:

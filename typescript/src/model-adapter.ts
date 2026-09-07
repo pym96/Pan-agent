@@ -2,9 +2,18 @@ import type { Model } from "@earendil-works/pi-ai";
 import { createModels } from "@earendil-works/pi-ai";
 import { deepseekProvider } from "@earendil-works/pi-ai/providers/deepseek";
 import type { StreamFn, ThinkingLevel } from "@earendil-works/pi-agent-core";
+import {
+	DEFAULT_DEEPSEEK_PROFILE,
+	type DeepSeekProfile,
+} from "./deepseek-profile.ts";
 
-export const DEEPSEEK_MODEL_IDS = ["deepseek-v4-flash", "deepseek-v4-pro"] as const;
-export type DeepSeekModelId = (typeof DEEPSEEK_MODEL_IDS)[number];
+export {
+	DEEPSEEK_MODEL_IDS,
+	DEFAULT_DEEPSEEK_PROFILE,
+	isDeepSeekModelId,
+	type DeepSeekModelId,
+	type DeepSeekProfile,
+} from "./deepseek-profile.ts";
 
 export interface PiModelAdapter {
 	readonly providerId: string;
@@ -14,19 +23,10 @@ export interface PiModelAdapter {
 	readonly thinkingLevel: ThinkingLevel;
 }
 
-export interface DeepSeekProfile {
-	readonly modelId: DeepSeekModelId;
-	readonly thinkingLevel: Exclude<ThinkingLevel, "off">;
-}
-
-export const DEFAULT_DEEPSEEK_PROFILE: DeepSeekProfile = {
-	modelId: "deepseek-v4-flash",
-	thinkingLevel: "high",
-};
-
 /**
- * Real Adapter at the model/provider Seam. Construction is offline: Pi resolves
- * DEEPSEEK_API_KEY only when streamFn is first called for a submitted task.
+ * Transitional Pi Provider Adapter used by the default PiKernel path.
+ * Construction is offline: Pi resolves DEEPSEEK_API_KEY only when streamFn is
+ * first called for a submitted task.
  */
 export function createPiDeepSeekAdapter(profile: DeepSeekProfile = DEFAULT_DEEPSEEK_PROFILE): PiModelAdapter {
 	const models = createModels();
@@ -42,8 +42,4 @@ export function createPiDeepSeekAdapter(profile: DeepSeekProfile = DEFAULT_DEEPS
 		streamFn: models.streamSimple.bind(models),
 		thinkingLevel: profile.thinkingLevel,
 	};
-}
-
-export function isDeepSeekModelId(value: string): value is DeepSeekModelId {
-	return DEEPSEEK_MODEL_IDS.some((modelId) => modelId === value);
 }

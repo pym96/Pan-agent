@@ -1,10 +1,9 @@
 /**
  * Transitional Pan↔Pi compatibility boundary.
  *
- * PiKernel remains the default during #31–#32, and the production Provider
- * implementation is replaced only by a downstream WorkOrder. All Pi shapes
- * and conversion decisions are confined here (plus PiKernel orchestration);
- * NativeKernel and the Pan contracts never import Pi.
+ * PiKernel remains the default during #31–#33. All Pi shapes and conversion
+ * decisions are confined here (plus PiKernel orchestration); NativeKernel,
+ * its direct DeepSeek Adapter and the Pan contracts never import Pi.
  */
 import type { AgentTool as PiAgentTool } from "@earendil-works/pi-agent-core";
 import {
@@ -167,7 +166,7 @@ function panToolDefinitionToPi(tool: AgentToolDefinition): PiToolDefinition {
 	};
 }
 
-/** Temporary production bridge; #33 replaces its Pi-backed transport implementation. */
+/** #33 replaces production use; this helper remains for deterministic reference/conformance tests. */
 export function adaptPiModelAdapter(adapter: PiModelAdapter): ModelAdapter {
 	return {
 		providerId: adapter.providerId,

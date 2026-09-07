@@ -5,14 +5,17 @@ import type { Writable } from "node:stream";
 import { isKernelSelector, type KernelSelector } from "./kernels/agent-kernel.ts";
 import {
 	createPiDeepSeekAdapter,
+	type PiModelAdapter,
+} from "./model-adapter.ts";
+import {
 	DEFAULT_DEEPSEEK_PROFILE,
 	isDeepSeekModelId,
 	type DeepSeekProfile,
-	type PiModelAdapter,
-} from "./model-adapter.ts";
+} from "./deepseek-profile.ts";
+import type { ModelAdapter } from "./model-adapter-contract.ts";
+import { createPanDeepSeekAdapter } from "./pan-deepseek-model-adapter.ts";
 import { RunArchiveStore } from "./run-archive.ts";
 import { loadRunbook } from "./runbook.ts";
-import { adaptPiModelAdapter } from "./pi-compatibility.ts";
 import { createPanTrustedLocalTools, PAN_TRUSTED_LOCAL_LABEL } from "./pan-trusted-local-tools.ts";
 import { GENERAL_AGENT_SYSTEM_PROMPT, GeneralAgentSession } from "./session.ts";
 import { createTrustedLocalTools, TRUSTED_LOCAL_SHELL_LABEL } from "./tools.ts";
@@ -76,7 +79,10 @@ export function parseCliArgs(args: readonly string[]): CliConfiguration {
 
 export interface CliDependencies {
 	readonly output?: Writable;
+	/** Transitional Pi-only injection seam retained for the default reference path. */
 	readonly createAdapter?: (profile: DeepSeekProfile) => PiModelAdapter;
+	/** Pan-owned injection seam for deterministic Native composition tests. */
+	readonly createNativeAdapter?: (profile: DeepSeekProfile) => ModelAdapter;
 	readonly startTui?: typeof runTui;
 }
 
@@ -131,8 +137,6 @@ export async function runCli(args: readonly string[], dependencies: CliDependenc
 		return 2;
 	}
 
-	const adapterFactory = dependencies.createAdapter ?? createPiDeepSeekAdapter;
-	const adapter = adapterFactory(configuration.profile);
 	const shared = {
 		systemPrompt: GENERAL_AGENT_SYSTEM_PROMPT,
 		memory: { archiveStore, runbook: () => loadRunbook(RUNBOOK_PATH) },
@@ -142,16 +146,26 @@ export async function runCli(args: readonly string[], dependencies: CliDependenc
 	};
 	let session: GeneralAgentSession;
 	let boundaryLabel: string;
+	let provider: string;
+	let model: string;
+	let thinking: string;
 	if (configuration.kernel === "native") {
+		const adapterFactory = dependencies.createNativeAdapter ?? createPanDeepSeekAdapter;
+		const adapter = adapterFactory(configuration.profile);
 		const trustedLocal = createPanTrustedLocalTools(workspace);
 		session = new GeneralAgentSession({
 			...shared,
 			kernel: "native",
-			adapter: adaptPiModelAdapter(adapter),
+			adapter,
 			tools: trustedLocal.tools,
 		});
 		boundaryLabel = PAN_TRUSTED_LOCAL_LABEL;
+		provider = adapter.providerId;
+		model = adapter.modelId;
+		thinking = adapter.reasoningLevel;
 	} else {
+		const adapterFactory = dependencies.createAdapter ?? createPiDeepSeekAdapter;
+		const adapter = adapterFactory(configuration.profile);
 		const trustedLocal = createTrustedLocalTools(workspace);
 		session = new GeneralAgentSession({
 			...shared,
@@ -161,14 +175,17 @@ export async function runCli(args: readonly string[], dependencies: CliDependenc
 			cleanup: () => trustedLocal.environment.cleanup(),
 		});
 		boundaryLabel = TRUSTED_LOCAL_SHELL_LABEL;
+		provider = adapter.providerId;
+		model = adapter.modelId;
+		thinking = adapter.thinkingLevel;
 	}
 	writeLine(`BOUNDARY ${boundaryLabel}`);
 	writeLine(`MEMORY ${memoryRoot}`);
 	return (dependencies.startTui ?? runTui)({
 		session,
-		provider: adapter.providerId,
-		model: adapter.modelId,
-		thinking: adapter.thinkingLevel,
+		provider,
+		model,
+		thinking,
 		workspace,
 		output,
 		archiveStore,

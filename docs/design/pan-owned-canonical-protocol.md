@@ -1,6 +1,6 @@
 # Pan-owned canonical protocol and model/tool seams
 
-Status: WorkOrder #31 accepted after independent Verdict and Human high-risk review; landed unchanged at `72de8e5866196d7a55d7d1cd8ce02c60d1cf8122` on 2026-09-06. WorkOrder #32's concrete Faux/Tool follow-up is a separate Builder candidate.
+Status: WorkOrder #31 accepted after independent Verdict and Human high-risk review; landed unchanged at `72de8e5866196d7a55d7d1cd8ce02c60d1cf8122` on 2026-09-06. WorkOrder #32's concrete Faux/Tool follow-up is accepted at `2ed4cee780e36f1e33845d66b9065381f775d6d2`; WorkOrder #33's direct DeepSeek implementation is a separate Builder candidate.
 
 Criteria-Version: `1.0` (`C-PFREE-A01`…`C-PFREE-A07`).
 
@@ -27,7 +27,7 @@ Runtime validation enforces the open-domain invariants:
 5. a model response cannot announce a Tool-call stop without a call, or carry a call under a non-Tool stop;
 6. optional reasoning metadata records only `present | redacted`; reasoning text cannot occupy message content, Tool identity, arguments, or a control field.
 
-`Usage` and each response-identity field use explicit `reported | unavailable` states. A reported numeric zero is therefore different from an absent Provider report. Aggregation becomes unavailable if any contributing exchange is unavailable instead of silently treating the missing exchange as zero. A failure is a separate typed outcome with category, safe detail, retryability, usage, and identity; it is never converted into fake assistant content.
+`Usage` and each response-identity field use explicit `reported | unavailable` states. A reported numeric zero is therefore different from an absent Provider report. Provider-specific optional values such as cache-write remain absent when they were not reported, and an optional provider-neutral backend fingerprint retains the same availability semantics. Aggregation becomes unavailable if any contributing exchange is unavailable instead of silently treating the missing exchange as zero; an optional numeric component is aggregated only when every exchange reported it. A failure is a separate typed outcome with category, safe detail, retryability, usage, and identity; it is never converted into fake assistant content.
 
 ## ModelAdapter seam
 
@@ -43,26 +43,25 @@ ModelAdapter.exchange({
 
 The input is canonical Context plus description-only Tool definitions. The result is one fully assembled semantic outcome. Streaming assembly, wire serialization, credentials, HTTP and Provider error decoding stay behind the Adapter and are intentionally absent from this Interface. The `AbortSignal` is the single cancellation path.
 
-This is a real seam even before production migration completes: `NativeKernel` uses the Interface, while #31 tests supply a separate scripted Adapter. The production Pi-backed bridge is transitional and belongs outside this Interface; #33 replaces that bridge with a direct Pan-owned DeepSeek Adapter.
+This is a real seam: `NativeKernel` uses the Interface, #31 tests supply a separate scripted Adapter, #32 supplies the reusable Faux Adapter, and the #33 candidate supplies a direct Pan-owned DeepSeek Adapter. The Pi-backed bridge remains only in the transitional Pi compatibility/reference boundary.
 
 ## AgentTool admission
 
 An `AgentTool` exposes one schema, one pure admission method, and one effectful method. NativeKernel resolves the Tool name, runs `validate(arguments)`, checks cancellation, and only then calls `execute({ toolCallId, arguments, signal })`. Unknown Tools, schema-invalid arguments, and cancellation effective before execution produce zero implementation calls. Successful and failed executions produce one correlated canonical ToolResult for the next model exchange.
 
-The deterministic #31 Tools live only in test code at the accepted commit. WorkOrder #32 separately supplies the reusable Faux Adapter and direct Pan-owned Tool implementations for explicit Native composition; default Pi compatibility remains until its later migration.
+The deterministic #31 Tools live only in test code at the accepted commit. WorkOrder #32 supplies the reusable Faux Adapter and direct Pan-owned Tool implementations for explicit Native composition; default Pi compatibility remains until its later migration.
 
 ## Transitional Pi compatibility
 
-[`pi-compatibility.ts`](../../typescript/src/pi-compatibility.ts) is the only temporary Pan↔Pi conversion Module used by explicit Native production composition. It converts semantic history and outcomes at the edge while `PiKernel` remains the unchanged default and sole Pi orchestration implementation. It is deliberately named and documented as transitional rather than hidden behind a Pan production claim.
+[`pi-compatibility.ts`](../../typescript/src/pi-compatibility.ts) isolates temporary Pan↔Pi conversion used by the default Pi reference path and deterministic cross-Kernel tests. The #33 candidate removes it from explicit Native product composition, while `PiKernel` remains the unchanged default and sole Pi orchestration implementation.
 
 ```text
 GeneralAgentSession
   ├─ default PiKernel ─────────────── Pi orchestration
   └─ explicit NativeKernel
-       ├─ Pan ModelAdapter Interface ─ scripted test Adapter
-       │                              transitional Pi transport bridge (#33 replaces)
-       └─ Pan AgentTool Interface ─── scripted test Tool
-                                      direct Pan product Tools (#32 candidate)
+       ├─ Pan ModelAdapter Interface ─ Faux Adapter
+       │                              direct DeepSeek Adapter (#33 candidate)
+       └─ Pan AgentTool Interface ─── direct Pan product Tools (#32 accepted)
 ```
 
 The current package keeps its pinned Pi dependencies. #31 neither removes those dependencies nor claims a Pi-free install/runtime graph.

@@ -21,7 +21,7 @@ The default AgentKernel implementation that wraps the pinned Pi Agent orchestrat
 _Avoid_: synonym for AgentKernel, NativeKernel, Provider Adapter
 
 **NativeKernel**:
-The repository-owned AgentKernel implementation selected only through explicit `native`; it drives Pan-owned ModelAdapter and AgentTool contracts without importing Pi protocol/tool types or invoking Pi Agent orchestration. On the WorkOrder #32 candidate, explicit Native composition receives Pan-owned trusted-local Tool implementations directly.
+The repository-owned AgentKernel implementation selected only through explicit `native`; it drives Pan-owned ModelAdapter and AgentTool contracts without importing Pi protocol/tool types or invoking Pi Agent orchestration. Explicit Native composition receives accepted Pan-owned trusted-local Tool implementations directly and, on the WorkOrder #33 candidate, a direct Pan-owned DeepSeek ModelAdapter.
 _Avoid_: default Kernel, Python AgentLoop, Provider wire Adapter, Pi fork
 
 **Canonical Protocol**:
@@ -31,6 +31,10 @@ _Avoid_: JSON serialization format, DeepSeek/OpenAI/Anthropic request schema, Pi
 **ModelAdapter**:
 The single model seam consumed by NativeKernel: one canonical Context plus cancellation signal enters, and one fully assembled canonical ModelResponse or typed model failure leaves. Transport, authentication, streaming assembly, and Provider wire translation stay behind an Adapter.
 _Avoid_: AgentKernel, Provider envelope, prompt template, Pi `streamFn` alias
+
+**Pan DeepSeek Model Adapter**:
+The direct explicit-Native implementation of ModelAdapter: it owns exact canonical-to-DeepSeek encoding, one-request transport, byte-stream SSE assembly, Provider-private reasoning continuation, honest usage/identity mapping, cancellation, and finite typed failure classification. Provider wire shapes never enter Kernel, Tool, Event, or Archive contracts.
+_Avoid_: Pi wrapper, Agent loop, OpenAI-format canonical protocol, retry middleware, live-result Evidence
 
 **Faux Model Adapter**:
 The reusable deterministic Pan ModelAdapter that consumes one canonical scripted outcome per admitted exchange for offline product and consumer verification. It owns no Provider envelope, credential, network, clock, or random behavior.
@@ -45,7 +49,7 @@ Kernel-owned typed message history retained across tasks in one Human session. T
 _Avoid_: Run Archive, shell output alone, hidden Provider state, reference-runtime projection policy
 
 **Trusted-local tool**:
-A read/write/edit/bash capability executed with the current host user's authority. The selected workspace supplies the default cwd and relative-path base but is not filesystem, process, or network containment. On the WorkOrder #32 candidate, the explicit Native path receives Pan-owned implementations while default Pi retains its compatibility implementation.
+A read/write/edit/bash capability executed with the current host user's authority. The selected workspace supplies the default cwd and relative-path base but is not filesystem, process, or network containment. The explicit Native path receives accepted Pan-owned implementations while default Pi retains its compatibility implementation.
 _Avoid_: sandboxed tool, workspace-confined tool, least-privilege executor
 
 **Attributable terminal**:

@@ -1,0 +1,25 @@
+{
+  "schema_version": "pan-deepseek-fixtures-v1",
+  "criteria_version": "1.0",
+  "accepted_base": "2ed4cee780e36f1e33845d66b9065381f775d6d2",
+  "provider_calls": 0,
+  "credential_reads": 0,
+  "balance_queries": 0,
+  "paid_or_formal_runs": 0,
+  "cost_cny": 0,
+  "official_contracts": {
+    "chat_completions": "67b6a6c8ab70f51ad56f6018077ac58768d95f73b53639b4d00b3f6d57a4fad9",
+    "thinking_mode": "f28c43248d26db1f27af0cb082abb00326c957d560d33a21839736edd1d10724",
+    "tool_calls": "41420d8609a15ff13afd5b82a66ea1b2a5440a59787718ade7f48230b660bcfa",
+    "error_codes": "0dd0c3c189933e69d1de6be900f6a1653ab2b543dd3a720baf1eb48c19dff916"
+  },
+  "files": {
+    "empty-reasoning.sse": "7d32ac61712f93b7137295f747e6192c7af2a3f9f3af54b6cebde049586e8d3d",
+    "failure-cases.json": "9ac1b39017611dd497df2fab7b97847d466bf99f78dc5bd52bae08c62315eaf9",
+    "final.sse": "edcbf915324f06b27f066b85cad3c0b7d1dc6fc92ccd08129e7e731250b30611",
+    "length.sse": "d82aece296c36fb5357fab14e2fcd5edca2dc84d82618d0386669c0a1f3199e5",
+    "multiple-tools.sse": "2162b2fcac569b9ace5a1853e5847e176de0a0c9052cde95c67ab410a12799b8",
+    "request-history.expected.json": "558c309c8eec75a8d974012723d1db80220ae2867fde5bb8f130e5e1dce07781",
+    "single-tool.sse": "c343034febbc823e8095668734ab4c7833273602d5de092bf72ad0842c75aa12"
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "http": [
+    { "status": 400, "body": { "error": { "code": "context_length_exceeded", "message": "secret-canary" } }, "category": "context_overflow", "retryable": false, "detail": "deepseek_context_overflow" },
+    { "status": 400, "body": { "error": { "code": "invalid_request", "message": "secret-canary" } }, "category": "provider", "retryable": false, "detail": "deepseek_http_400" },
+    { "status": 401, "body": { "error": { "message": "secret-canary" } }, "category": "authentication", "retryable": false, "detail": "deepseek_http_401_authentication" },
+    { "status": 402, "body": { "error": { "message": "secret-canary" } }, "category": "provider", "retryable": false, "detail": "deepseek_http_402_balance" },
+    { "status": 422, "body": { "error": { "message": "secret-canary" } }, "category": "provider", "retryable": false, "detail": "deepseek_http_422" },
+    { "status": 429, "body": { "error": { "message": "secret-canary" } }, "category": "rate_limit", "retryable": true, "detail": "deepseek_http_429_rate_limit" },
+    { "status": 500, "body": { "error": { "message": "secret-canary" } }, "category": "provider", "retryable": true, "detail": "deepseek_http_500" },
+    { "status": 503, "body": { "error": { "message": "secret-canary" } }, "category": "provider", "retryable": true, "detail": "deepseek_http_503" },
+    { "status": 418, "body": "malformed-secret-canary", "category": "provider", "retryable": false, "detail": "deepseek_http_418" }
+  ],
+  "cancellation": ["pre-aborted", "pending-headers", "mid-stream"],
+  "transport": ["network-rejection"],
+  "malformed_stream": [
+    "invalid-json",
+    "invalid-utf8",
+    "missing-done",
+    "duplicate-done",
+    "data-after-terminal",
+    "inconsistent-identity",
+    "unknown-finish",
+    "incomplete-tool-call",
+    "invalid-tool-arguments",
+    "non-object-tool-arguments",
+    "truncated-stream"
+  ]
+}
