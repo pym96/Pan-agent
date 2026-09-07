@@ -5,7 +5,7 @@ import { dirname, join, resolve } from "node:path";
 import { setImmediate as waitImmediate } from "node:timers/promises";
 import { afterEach, test } from "node:test";
 import { fileURLToPath } from "node:url";
-import type { AgentTool } from "../src/agent-tool.ts";
+import type { AgentTool } from "../src/protocol/agent-tool.ts";
 import {
 	UNAVAILABLE,
 	type JsonObject,
@@ -13,16 +13,16 @@ import {
 	type ModelFailure,
 	type ModelResponse,
 	type ToolCall,
-} from "../src/canonical-protocol.ts";
+} from "../src/protocol/canonical-protocol.ts";
 import {
 	FAUX_PENDING_EXCHANGE,
 	FauxModelAdapter,
 	fauxUserMessage,
 	type FauxScriptEntry,
-} from "../src/faux-model-adapter.ts";
-import { PAN_TRUSTED_LOCAL_LABEL, createPanTrustedLocalTools } from "../src/pan-trusted-local-tools.ts";
-import { RunArchiveStore } from "../src/run-archive.ts";
-import { GeneralAgentSession, type SessionObservation } from "../src/session.ts";
+} from "../src/providers/faux/faux-model-adapter.ts";
+import { PAN_TRUSTED_LOCAL_LABEL, createPanTrustedLocalTools } from "../src/tools/pan-trusted-local-tools.ts";
+import { RunArchiveStore } from "../src/memory/run-archive.ts";
+import { GeneralAgentSession, type SessionObservation } from "../src/runtime/session.ts";
 
 const TEST_RUNBOOK_REVISION = `sha256:${"0".repeat(64)}`;
 const REPOSITORY_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
@@ -219,8 +219,8 @@ test("C-PFREE-B101 Faux rejects noncanonical requests before admission and types
 });
 
 test("C-PFREE-B101/B102 Faux and Pan Tool graphs contain no Pi or Provider transport delegation", async () => {
-	const fauxSource = await readFile(join(REPOSITORY_ROOT, "typescript/src/faux-model-adapter.ts"), "utf8");
-	const toolSource = await readFile(join(REPOSITORY_ROOT, "typescript/src/pan-trusted-local-tools.ts"), "utf8");
+	const fauxSource = await readFile(join(REPOSITORY_ROOT, "typescript/src/providers/faux/faux-model-adapter.ts"), "utf8");
+	const toolSource = await readFile(join(REPOSITORY_ROOT, "typescript/src/tools/pan-trusted-local-tools.ts"), "utf8");
 	const cliSource = await readFile(join(REPOSITORY_ROOT, "typescript/src/cli.ts"), "utf8");
 	for (const [name, source] of [["Faux", fauxSource], ["Pan Tools", toolSource]] as const) {
 		assert.doesNotMatch(source, /@earendil-works\/pi|PiModelAdapter|validatePi|NodeExecutionEnv|create(?:Read|Write|Edit|Bash)Tool/, name);

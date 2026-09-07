@@ -23,7 +23,7 @@ GeneralAgentSession -> NativeKernel -> ModelAdapter
                     inert-until-send Fetch implementation
 ```
 
-[`pan-deepseek-model-adapter.ts`](../../typescript/src/pan-deepseek-model-adapter.ts) accepts canonical Context and returns one fully assembled canonical response or failure. [`deepseek-transport.ts`](../../typescript/src/deepseek-transport.ts) is a narrow internal seam for one HTTP request and a byte stream. Authentication, Provider JSON, SSE fragments, finish reasons, and private reasoning never cross `ModelAdapter`. Explicit `native` selects this Module directly; omitted or explicit `pi` retains the accepted PiKernel and Pi Provider route.
+[`pan-deepseek-model-adapter.ts`](../../typescript/src/providers/deepseek/pan-deepseek-model-adapter.ts) accepts canonical Context and returns one fully assembled canonical response or failure. [`deepseek-transport.ts`](../../typescript/src/providers/deepseek/deepseek-transport.ts) is a narrow internal seam for one HTTP request and a byte stream. Authentication, Provider JSON, SSE fragments, finish reasons, and private reasoning never cross `ModelAdapter`. Explicit `native` selects this Module directly; omitted or explicit `pi` retains the accepted PiKernel and Pi Provider route.
 
 The transport constructor is inert. Only `send(...)` resolves `DEEPSEEK_API_KEY` and invokes Fetch. Import, CLI help/validation, and Adapter construction therefore touch neither credential nor network. There is no automatic retry: one admitted `exchange(...)` starts at most one transport request.
 

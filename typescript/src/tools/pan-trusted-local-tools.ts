@@ -1,8 +1,8 @@
 import { spawn, type ChildProcessWithoutNullStreams } from "node:child_process";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, isAbsolute, resolve } from "node:path";
-import type { AgentTool, AgentToolExecutionResult, ToolValidation } from "./agent-tool.ts";
-import { assertJsonObject, type JsonObject, type JsonValue } from "./canonical-protocol.ts";
+import type { AgentTool, AgentToolExecutionResult, ToolValidation } from "../protocol/agent-tool.ts";
+import { assertJsonObject, type JsonObject, type JsonValue } from "../protocol/canonical-protocol.ts";
 
 export const PAN_TRUSTED_LOCAL_LABEL =
 	"trusted-local shell: host-user authority; selected workspace is the default cwd and relative-path base, not an OS sandbox";

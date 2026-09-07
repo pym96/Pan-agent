@@ -1,0 +1,1177 @@
+{
+  "schema": "workorder-41-relocations/v1",
+  "base": "97fb7db1574a240b1a689733bc1b56791879c6d6",
+  "sources": {
+    "typescript/src/cli.ts": "typescript/src/cli.ts",
+    "typescript/src/index.ts": "typescript/src/index.ts",
+    "typescript/src/canonical-protocol.ts": "typescript/src/protocol/canonical-protocol.ts",
+    "typescript/src/agent-tool.ts": "typescript/src/protocol/agent-tool.ts",
+    "typescript/src/model-adapter-contract.ts": "typescript/src/protocol/model-adapter-contract.ts",
+    "typescript/src/session.ts": "typescript/src/runtime/session.ts",
+    "typescript/src/kernels/agent-kernel.ts": "typescript/src/runtime/agent-kernel.ts",
+    "typescript/src/kernels/native-kernel.ts": "typescript/src/runtime/native-kernel.ts",
+    "typescript/src/deepseek-profile.ts": "typescript/src/providers/deepseek/deepseek-profile.ts",
+    "typescript/src/deepseek-transport.ts": "typescript/src/providers/deepseek/deepseek-transport.ts",
+    "typescript/src/pan-deepseek-model-adapter.ts": "typescript/src/providers/deepseek/pan-deepseek-model-adapter.ts",
+    "typescript/src/faux-model-adapter.ts": "typescript/src/providers/faux/faux-model-adapter.ts",
+    "typescript/src/pan-trusted-local-tools.ts": "typescript/src/tools/pan-trusted-local-tools.ts",
+    "typescript/src/run-archive.ts": "typescript/src/memory/run-archive.ts",
+    "typescript/src/retrospective-ledger.ts": "typescript/src/memory/retrospective-ledger.ts",
+    "typescript/src/runbook.ts": "typescript/src/memory/runbook.ts",
+    "typescript/src/tui.ts": "typescript/src/tui/tui.ts"
+  },
+  "source_asset_exceptions": [],
+  "locator_substitutions": [
+    {
+      "file": "typescript/test/cutover-contract.test.ts",
+      "before": "WorkOrder #35 compiled package and offline consumer/",
+      "after": "WorkOrder #41 Native Module layout/",
+      "reason": "current assignment heading locator",
+      "occurrences": 1
+    },
+    {
+      "file": "typescript/test/kernel-conformance.test.ts",
+      "before": "\"typescript/src/session.ts\"",
+      "after": "\"typescript/src/runtime/session.ts\"",
+      "reason": "same mapped source in a readFile locator",
+      "occurrences": 1
+    },
+    {
+      "file": "typescript/test/kernel-conformance.test.ts",
+      "before": "\"typescript/src/kernels/native-kernel.ts\"",
+      "after": "\"typescript/src/runtime/native-kernel.ts\"",
+      "reason": "same mapped source in a readFile locator",
+      "occurrences": 1
+    },
+    {
+      "file": "typescript/test/kernel-conformance.test.ts",
+      "before": "\"typescript/src/run-archive.ts\"",
+      "after": "\"typescript/src/memory/run-archive.ts\"",
+      "reason": "same mapped source in a readFile locator",
+      "occurrences": 1
+    },
+    {
+      "file": "typescript/test/kernel-conformance.test.ts",
+      "before": "\"typescript/src/tui.ts\"",
+      "after": "\"typescript/src/tui/tui.ts\"",
+      "reason": "same mapped source in a readFile locator",
+      "occurrences": 1
+    },
+    {
+      "file": "typescript/test/pan-contracts.test.ts",
+      "before": "\"typescript/src/canonical-protocol.ts\"",
+      "after": "\"typescript/src/protocol/canonical-protocol.ts\"",
+      "reason": "same mapped source in a readFile locator",
+      "occurrences": 1
+    },
+    {
+      "file": "typescript/test/pan-contracts.test.ts",
+      "before": "\"typescript/src/agent-tool.ts\"",
+      "after": "\"typescript/src/protocol/agent-tool.ts\"",
+      "reason": "same mapped source in a readFile locator",
+      "occurrences": 1
+    },
+    {
+      "file": "typescript/test/pan-contracts.test.ts",
+      "before": "\"typescript/src/model-adapter-contract.ts\"",
+      "after": "\"typescript/src/protocol/model-adapter-contract.ts\"",
+      "reason": "same mapped source in a readFile locator",
+      "occurrences": 1
+    },
+    {
+      "file": "typescript/test/pan-contracts.test.ts",
+      "before": "\"typescript/src/kernels/native-kernel.ts\"",
+      "after": "\"typescript/src/runtime/native-kernel.ts\"",
+      "reason": "same mapped source in a readFile locator",
+      "occurrences": 2
+    },
+    {
+      "file": "typescript/test/pan-deepseek-adapter.test.ts",
+      "before": "join(REPOSITORY_ROOT, \"typescript/src\", name)",
+      "after": "join(REPOSITORY_ROOT, \"typescript/src/providers/deepseek\", name)",
+      "reason": "loop reads the same three relocated Provider sources",
+      "occurrences": 1
+    },
+    {
+      "file": "typescript/test/pan-faux-tools.test.ts",
+      "before": "\"typescript/src/faux-model-adapter.ts\"",
+      "after": "\"typescript/src/providers/faux/faux-model-adapter.ts\"",
+      "reason": "same mapped source in a readFile locator",
+      "occurrences": 1
+    },
+    {
+      "file": "typescript/test/pan-faux-tools.test.ts",
+      "before": "\"typescript/src/pan-trusted-local-tools.ts\"",
+      "after": "\"typescript/src/tools/pan-trusted-local-tools.ts\"",
+      "reason": "same mapped source in a readFile locator",
+      "occurrences": 1
+    },
+    {
+      "file": "references/pi/test/kernel-conformance.test.ts",
+      "before": "\"typescript/src/session.ts\"",
+      "after": "\"typescript/src/runtime/session.ts\"",
+      "reason": "same mapped source in a readFile locator",
+      "occurrences": 1
+    },
+    {
+      "file": "references/pi/test/kernel-conformance.test.ts",
+      "before": "\"typescript/src/kernels/native-kernel.ts\"",
+      "after": "\"typescript/src/runtime/native-kernel.ts\"",
+      "reason": "same mapped source in a readFile locator",
+      "occurrences": 1
+    },
+    {
+      "file": "references/pi/test/kernel-conformance.test.ts",
+      "before": "\"typescript/src/run-archive.ts\"",
+      "after": "\"typescript/src/memory/run-archive.ts\"",
+      "reason": "same mapped source in a readFile locator",
+      "occurrences": 1
+    },
+    {
+      "file": "references/pi/test/kernel-conformance.test.ts",
+      "before": "\"typescript/src/tui.ts\"",
+      "after": "\"typescript/src/tui/tui.ts\"",
+      "reason": "same mapped source in a readFile locator",
+      "occurrences": 1
+    }
+  ],
+  "import_substitutions": [
+    {
+      "file": "typescript/src/cli.ts",
+      "destination": "typescript/src/cli.ts",
+      "start": 844,
+      "end": 852,
+      "before": "./tui.ts",
+      "after": "./tui/tui.ts"
+    },
+    {
+      "file": "typescript/src/cli.ts",
+      "destination": "typescript/src/cli.ts",
+      "start": 786,
+      "end": 798,
+      "before": "./session.ts",
+      "after": "./runtime/session.ts"
+    },
+    {
+      "file": "typescript/src/cli.ts",
+      "destination": "typescript/src/cli.ts",
+      "start": 689,
+      "end": 717,
+      "before": "./pan-trusted-local-tools.ts",
+      "after": "./tools/pan-trusted-local-tools.ts"
+    },
+    {
+      "file": "typescript/src/cli.ts",
+      "destination": "typescript/src/cli.ts",
+      "start": 605,
+      "end": 617,
+      "before": "./runbook.ts",
+      "after": "./memory/runbook.ts"
+    },
+    {
+      "file": "typescript/src/cli.ts",
+      "destination": "typescript/src/cli.ts",
+      "start": 557,
+      "end": 573,
+      "before": "./run-archive.ts",
+      "after": "./memory/run-archive.ts"
+    },
+    {
+      "file": "typescript/src/cli.ts",
+      "destination": "typescript/src/cli.ts",
+      "start": 490,
+      "end": 521,
+      "before": "./pan-deepseek-model-adapter.ts",
+      "after": "./providers/deepseek/pan-deepseek-model-adapter.ts"
+    },
+    {
+      "file": "typescript/src/cli.ts",
+      "destination": "typescript/src/cli.ts",
+      "start": 418,
+      "end": 445,
+      "before": "./model-adapter-contract.ts",
+      "after": "./protocol/model-adapter-contract.ts"
+    },
+    {
+      "file": "typescript/src/cli.ts",
+      "destination": "typescript/src/cli.ts",
+      "start": 359,
+      "end": 380,
+      "before": "./deepseek-profile.ts",
+      "after": "./providers/deepseek/deepseek-profile.ts"
+    },
+    {
+      "file": "typescript/src/cli.ts",
+      "destination": "typescript/src/cli.ts",
+      "start": 244,
+      "end": 269,
+      "before": "./kernels/agent-kernel.ts",
+      "after": "./runtime/agent-kernel.ts"
+    },
+    {
+      "file": "typescript/src/faux-model-adapter.ts",
+      "destination": "typescript/src/providers/faux/faux-model-adapter.ts",
+      "start": 322,
+      "end": 349,
+      "before": "./model-adapter-contract.ts",
+      "after": "../../protocol/model-adapter-contract.ts"
+    },
+    {
+      "file": "typescript/src/faux-model-adapter.ts",
+      "destination": "typescript/src/providers/faux/faux-model-adapter.ts",
+      "start": 225,
+      "end": 248,
+      "before": "./canonical-protocol.ts",
+      "after": "../../protocol/canonical-protocol.ts"
+    },
+    {
+      "file": "typescript/src/faux-model-adapter.ts",
+      "destination": "typescript/src/providers/faux/faux-model-adapter.ts",
+      "start": 46,
+      "end": 61,
+      "before": "./agent-tool.ts",
+      "after": "../../protocol/agent-tool.ts"
+    },
+    {
+      "file": "typescript/src/index.ts",
+      "destination": "typescript/src/index.ts",
+      "start": 889,
+      "end": 904,
+      "before": "./agent-tool.ts",
+      "after": "./protocol/agent-tool.ts"
+    },
+    {
+      "file": "typescript/src/index.ts",
+      "destination": "typescript/src/index.ts",
+      "start": 839,
+      "end": 866,
+      "before": "./model-adapter-contract.ts",
+      "after": "./protocol/model-adapter-contract.ts"
+    },
+    {
+      "file": "typescript/src/index.ts",
+      "destination": "typescript/src/index.ts",
+      "start": 793,
+      "end": 816,
+      "before": "./canonical-protocol.ts",
+      "after": "./protocol/canonical-protocol.ts"
+    },
+    {
+      "file": "typescript/src/index.ts",
+      "destination": "typescript/src/index.ts",
+      "start": 758,
+      "end": 770,
+      "before": "./runbook.ts",
+      "after": "./memory/runbook.ts"
+    },
+    {
+      "file": "typescript/src/index.ts",
+      "destination": "typescript/src/index.ts",
+      "start": 710,
+      "end": 726,
+      "before": "./run-archive.ts",
+      "after": "./memory/run-archive.ts"
+    },
+    {
+      "file": "typescript/src/index.ts",
+      "destination": "typescript/src/index.ts",
+      "start": 646,
+      "end": 654,
+      "before": "./tui.ts",
+      "after": "./tui/tui.ts"
+    },
+    {
+      "file": "typescript/src/index.ts",
+      "destination": "typescript/src/index.ts",
+      "start": 548,
+      "end": 560,
+      "before": "./session.ts",
+      "after": "./runtime/session.ts"
+    },
+    {
+      "file": "typescript/src/index.ts",
+      "destination": "typescript/src/index.ts",
+      "start": 449,
+      "end": 461,
+      "before": "./session.ts",
+      "after": "./runtime/session.ts"
+    },
+    {
+      "file": "typescript/src/index.ts",
+      "destination": "typescript/src/index.ts",
+      "start": 357,
+      "end": 380,
+      "before": "./faux-model-adapter.ts",
+      "after": "./providers/faux/faux-model-adapter.ts"
+    },
+    {
+      "file": "typescript/src/index.ts",
+      "destination": "typescript/src/index.ts",
+      "start": 293,
+      "end": 316,
+      "before": "./faux-model-adapter.ts",
+      "after": "./providers/faux/faux-model-adapter.ts"
+    },
+    {
+      "file": "typescript/src/pan-deepseek-model-adapter.ts",
+      "destination": "typescript/src/providers/deepseek/pan-deepseek-model-adapter.ts",
+      "start": 821,
+      "end": 848,
+      "before": "./model-adapter-contract.ts",
+      "after": "../../protocol/model-adapter-contract.ts"
+    },
+    {
+      "file": "typescript/src/pan-deepseek-model-adapter.ts",
+      "destination": "typescript/src/providers/deepseek/pan-deepseek-model-adapter.ts",
+      "start": 451,
+      "end": 474,
+      "before": "./canonical-protocol.ts",
+      "after": "../../protocol/canonical-protocol.ts"
+    },
+    {
+      "file": "typescript/src/pan-deepseek-model-adapter.ts",
+      "destination": "typescript/src/providers/deepseek/pan-deepseek-model-adapter.ts",
+      "start": 72,
+      "end": 87,
+      "before": "./agent-tool.ts",
+      "after": "../../protocol/agent-tool.ts"
+    },
+    {
+      "file": "typescript/src/pan-trusted-local-tools.ts",
+      "destination": "typescript/src/tools/pan-trusted-local-tools.ts",
+      "start": 361,
+      "end": 384,
+      "before": "./canonical-protocol.ts",
+      "after": "../protocol/canonical-protocol.ts"
+    },
+    {
+      "file": "typescript/src/pan-trusted-local-tools.ts",
+      "destination": "typescript/src/tools/pan-trusted-local-tools.ts",
+      "start": 276,
+      "end": 291,
+      "before": "./agent-tool.ts",
+      "after": "../protocol/agent-tool.ts"
+    },
+    {
+      "file": "typescript/src/session.ts",
+      "destination": "typescript/src/runtime/session.ts",
+      "start": 740,
+      "end": 765,
+      "before": "./kernels/agent-kernel.ts",
+      "after": "./agent-kernel.ts"
+    },
+    {
+      "file": "typescript/src/session.ts",
+      "destination": "typescript/src/runtime/session.ts",
+      "start": 600,
+      "end": 612,
+      "before": "./runbook.ts",
+      "after": "../memory/runbook.ts"
+    },
+    {
+      "file": "typescript/src/session.ts",
+      "destination": "typescript/src/runtime/session.ts",
+      "start": 543,
+      "end": 559,
+      "before": "./run-archive.ts",
+      "after": "../memory/run-archive.ts"
+    },
+    {
+      "file": "typescript/src/session.ts",
+      "destination": "typescript/src/runtime/session.ts",
+      "start": 437,
+      "end": 463,
+      "before": "./kernels/native-kernel.ts",
+      "after": "./native-kernel.ts"
+    },
+    {
+      "file": "typescript/src/session.ts",
+      "destination": "typescript/src/runtime/session.ts",
+      "start": 379,
+      "end": 404,
+      "before": "./kernels/agent-kernel.ts",
+      "after": "./agent-kernel.ts"
+    },
+    {
+      "file": "typescript/src/session.ts",
+      "destination": "typescript/src/runtime/session.ts",
+      "start": 178,
+      "end": 205,
+      "before": "./model-adapter-contract.ts",
+      "after": "../protocol/model-adapter-contract.ts"
+    },
+    {
+      "file": "typescript/src/session.ts",
+      "destination": "typescript/src/runtime/session.ts",
+      "start": 117,
+      "end": 140,
+      "before": "./canonical-protocol.ts",
+      "after": "../protocol/canonical-protocol.ts"
+    },
+    {
+      "file": "typescript/src/session.ts",
+      "destination": "typescript/src/runtime/session.ts",
+      "start": 48,
+      "end": 63,
+      "before": "./agent-tool.ts",
+      "after": "../protocol/agent-tool.ts"
+    },
+    {
+      "file": "typescript/src/tui.ts",
+      "destination": "typescript/src/tui/tui.ts",
+      "start": 247,
+      "end": 259,
+      "before": "./session.ts",
+      "after": "../runtime/session.ts"
+    },
+    {
+      "file": "typescript/src/tui.ts",
+      "destination": "typescript/src/tui/tui.ts",
+      "start": 151,
+      "end": 167,
+      "before": "./run-archive.ts",
+      "after": "../memory/run-archive.ts"
+    },
+    {
+      "file": "typescript/src/kernels/agent-kernel.ts",
+      "destination": "typescript/src/runtime/agent-kernel.ts",
+      "start": 124,
+      "end": 148,
+      "before": "../canonical-protocol.ts",
+      "after": "../protocol/canonical-protocol.ts"
+    },
+    {
+      "file": "typescript/src/kernels/native-kernel.ts",
+      "destination": "typescript/src/runtime/native-kernel.ts",
+      "start": 541,
+      "end": 569,
+      "before": "../model-adapter-contract.ts",
+      "after": "../protocol/model-adapter-contract.ts"
+    },
+    {
+      "file": "typescript/src/kernels/native-kernel.ts",
+      "destination": "typescript/src/runtime/native-kernel.ts",
+      "start": 479,
+      "end": 503,
+      "before": "../canonical-protocol.ts",
+      "after": "../protocol/canonical-protocol.ts"
+    },
+    {
+      "file": "typescript/src/kernels/native-kernel.ts",
+      "destination": "typescript/src/runtime/native-kernel.ts",
+      "start": 117,
+      "end": 133,
+      "before": "../agent-tool.ts",
+      "after": "../protocol/agent-tool.ts"
+    },
+    {
+      "file": "typescript/test/conformance.test.ts",
+      "destination": "typescript/test/conformance.test.ts",
+      "start": 1260,
+      "end": 1288,
+      "before": "../src/canonical-protocol.ts",
+      "after": "../src/protocol/canonical-protocol.ts"
+    },
+    {
+      "file": "typescript/test/conformance.test.ts",
+      "destination": "typescript/test/conformance.test.ts",
+      "start": 827,
+      "end": 860,
+      "before": "../src/pan-trusted-local-tools.ts",
+      "after": "../src/tools/pan-trusted-local-tools.ts"
+    },
+    {
+      "file": "typescript/test/conformance.test.ts",
+      "destination": "typescript/test/conformance.test.ts",
+      "start": 763,
+      "end": 780,
+      "before": "../src/session.ts",
+      "after": "../src/runtime/session.ts"
+    },
+    {
+      "file": "typescript/test/conformance.test.ts",
+      "destination": "typescript/test/conformance.test.ts",
+      "start": 644,
+      "end": 665,
+      "before": "../src/run-archive.ts",
+      "after": "../src/memory/run-archive.ts"
+    },
+    {
+      "file": "typescript/test/conformance.test.ts",
+      "destination": "typescript/test/conformance.test.ts",
+      "start": 576,
+      "end": 608,
+      "before": "../src/model-adapter-contract.ts",
+      "after": "../src/protocol/model-adapter-contract.ts"
+    },
+    {
+      "file": "typescript/test/conformance.test.ts",
+      "destination": "typescript/test/conformance.test.ts",
+      "start": 510,
+      "end": 538,
+      "before": "../src/canonical-protocol.ts",
+      "after": "../src/protocol/canonical-protocol.ts"
+    },
+    {
+      "file": "typescript/test/general-agent.test.ts",
+      "destination": "typescript/test/general-agent.test.ts",
+      "start": 8492,
+      "end": 8520,
+      "before": "../src/canonical-protocol.ts",
+      "after": "../src/protocol/canonical-protocol.ts"
+    },
+    {
+      "file": "typescript/test/general-agent.test.ts",
+      "destination": "typescript/test/general-agent.test.ts",
+      "start": 1003,
+      "end": 1023,
+      "before": "../src/agent-tool.ts",
+      "after": "../src/protocol/agent-tool.ts"
+    },
+    {
+      "file": "typescript/test/general-agent.test.ts",
+      "destination": "typescript/test/general-agent.test.ts",
+      "start": 936,
+      "end": 968,
+      "before": "../src/model-adapter-contract.ts",
+      "after": "../src/protocol/model-adapter-contract.ts"
+    },
+    {
+      "file": "typescript/test/general-agent.test.ts",
+      "destination": "typescript/test/general-agent.test.ts",
+      "start": 862,
+      "end": 898,
+      "before": "../src/pan-deepseek-model-adapter.ts",
+      "after": "../src/providers/deepseek/pan-deepseek-model-adapter.ts"
+    },
+    {
+      "file": "typescript/test/general-agent.test.ts",
+      "destination": "typescript/test/general-agent.test.ts",
+      "start": 785,
+      "end": 818,
+      "before": "../src/pan-trusted-local-tools.ts",
+      "after": "../src/tools/pan-trusted-local-tools.ts"
+    },
+    {
+      "file": "typescript/test/general-agent.test.ts",
+      "destination": "typescript/test/general-agent.test.ts",
+      "start": 710,
+      "end": 738,
+      "before": "../src/faux-model-adapter.ts",
+      "after": "../src/providers/faux/faux-model-adapter.ts"
+    },
+    {
+      "file": "typescript/test/general-agent.test.ts",
+      "destination": "typescript/test/general-agent.test.ts",
+      "start": 660,
+      "end": 673,
+      "before": "../src/tui.ts",
+      "after": "../src/tui/tui.ts"
+    },
+    {
+      "file": "typescript/test/general-agent.test.ts",
+      "destination": "typescript/test/general-agent.test.ts",
+      "start": 612,
+      "end": 633,
+      "before": "../src/run-archive.ts",
+      "after": "../src/memory/run-archive.ts"
+    },
+    {
+      "file": "typescript/test/general-agent.test.ts",
+      "destination": "typescript/test/general-agent.test.ts",
+      "start": 545,
+      "end": 576,
+      "before": "../src/kernels/native-kernel.ts",
+      "after": "../src/runtime/native-kernel.ts"
+    },
+    {
+      "file": "typescript/test/general-agent.test.ts",
+      "destination": "typescript/test/general-agent.test.ts",
+      "start": 495,
+      "end": 512,
+      "before": "../src/session.ts",
+      "after": "../src/runtime/session.ts"
+    },
+    {
+      "file": "typescript/test/kernel-conformance.test.ts",
+      "destination": "typescript/test/kernel-conformance.test.ts",
+      "start": 930,
+      "end": 947,
+      "before": "../src/session.ts",
+      "after": "../src/runtime/session.ts"
+    },
+    {
+      "file": "typescript/test/kernel-conformance.test.ts",
+      "destination": "typescript/test/kernel-conformance.test.ts",
+      "start": 778,
+      "end": 799,
+      "before": "../src/run-archive.ts",
+      "after": "../src/memory/run-archive.ts"
+    },
+    {
+      "file": "typescript/test/kernel-conformance.test.ts",
+      "destination": "typescript/test/kernel-conformance.test.ts",
+      "start": 710,
+      "end": 742,
+      "before": "../src/model-adapter-contract.ts",
+      "after": "../src/protocol/model-adapter-contract.ts"
+    },
+    {
+      "file": "typescript/test/kernel-conformance.test.ts",
+      "destination": "typescript/test/kernel-conformance.test.ts",
+      "start": 644,
+      "end": 672,
+      "before": "../src/canonical-protocol.ts",
+      "after": "../src/protocol/canonical-protocol.ts"
+    },
+    {
+      "file": "typescript/test/kernel-conformance.test.ts",
+      "destination": "typescript/test/kernel-conformance.test.ts",
+      "start": 554,
+      "end": 582,
+      "before": "../src/canonical-protocol.ts",
+      "after": "../src/protocol/canonical-protocol.ts"
+    },
+    {
+      "file": "typescript/test/kernel-conformance.test.ts",
+      "destination": "typescript/test/kernel-conformance.test.ts",
+      "start": 346,
+      "end": 366,
+      "before": "../src/agent-tool.ts",
+      "after": "../src/protocol/agent-tool.ts"
+    },
+    {
+      "file": "typescript/test/memory-lanes.test.ts",
+      "destination": "typescript/test/memory-lanes.test.ts",
+      "start": 1310,
+      "end": 1323,
+      "before": "../src/tui.ts",
+      "after": "../src/tui/tui.ts"
+    },
+    {
+      "file": "typescript/test/memory-lanes.test.ts",
+      "destination": "typescript/test/memory-lanes.test.ts",
+      "start": 1250,
+      "end": 1283,
+      "before": "../src/pan-trusted-local-tools.ts",
+      "after": "../src/tools/pan-trusted-local-tools.ts"
+    },
+    {
+      "file": "typescript/test/memory-lanes.test.ts",
+      "destination": "typescript/test/memory-lanes.test.ts",
+      "start": 1186,
+      "end": 1203,
+      "before": "../src/session.ts",
+      "after": "../src/runtime/session.ts"
+    },
+    {
+      "file": "typescript/test/memory-lanes.test.ts",
+      "destination": "typescript/test/memory-lanes.test.ts",
+      "start": 1071,
+      "end": 1088,
+      "before": "../src/runbook.ts",
+      "after": "../src/memory/runbook.ts"
+    },
+    {
+      "file": "typescript/test/memory-lanes.test.ts",
+      "destination": "typescript/test/memory-lanes.test.ts",
+      "start": 996,
+      "end": 1026,
+      "before": "../src/retrospective-ledger.ts",
+      "after": "../src/memory/retrospective-ledger.ts"
+    },
+    {
+      "file": "typescript/test/memory-lanes.test.ts",
+      "destination": "typescript/test/memory-lanes.test.ts",
+      "start": 913,
+      "end": 934,
+      "before": "../src/run-archive.ts",
+      "after": "../src/memory/run-archive.ts"
+    },
+    {
+      "file": "typescript/test/memory-lanes.test.ts",
+      "destination": "typescript/test/memory-lanes.test.ts",
+      "start": 754,
+      "end": 786,
+      "before": "../src/model-adapter-contract.ts",
+      "after": "../src/protocol/model-adapter-contract.ts"
+    },
+    {
+      "file": "typescript/test/memory-lanes.test.ts",
+      "destination": "typescript/test/memory-lanes.test.ts",
+      "start": 648,
+      "end": 676,
+      "before": "../src/canonical-protocol.ts",
+      "after": "../src/protocol/canonical-protocol.ts"
+    },
+    {
+      "file": "typescript/test/native-kernel.test.ts",
+      "destination": "typescript/test/native-kernel.test.ts",
+      "start": 740,
+      "end": 757,
+      "before": "../src/session.ts",
+      "after": "../src/runtime/session.ts"
+    },
+    {
+      "file": "typescript/test/native-kernel.test.ts",
+      "destination": "typescript/test/native-kernel.test.ts",
+      "start": 683,
+      "end": 700,
+      "before": "../src/session.ts",
+      "after": "../src/runtime/session.ts"
+    },
+    {
+      "file": "typescript/test/native-kernel.test.ts",
+      "destination": "typescript/test/native-kernel.test.ts",
+      "start": 597,
+      "end": 618,
+      "before": "../src/run-archive.ts",
+      "after": "../src/memory/run-archive.ts"
+    },
+    {
+      "file": "typescript/test/native-kernel.test.ts",
+      "destination": "typescript/test/native-kernel.test.ts",
+      "start": 529,
+      "end": 561,
+      "before": "../src/model-adapter-contract.ts",
+      "after": "../src/protocol/model-adapter-contract.ts"
+    },
+    {
+      "file": "typescript/test/native-kernel.test.ts",
+      "destination": "typescript/test/native-kernel.test.ts",
+      "start": 463,
+      "end": 491,
+      "before": "../src/canonical-protocol.ts",
+      "after": "../src/protocol/canonical-protocol.ts"
+    },
+    {
+      "file": "typescript/test/native-kernel.test.ts",
+      "destination": "typescript/test/native-kernel.test.ts",
+      "start": 255,
+      "end": 275,
+      "before": "../src/agent-tool.ts",
+      "after": "../src/protocol/agent-tool.ts"
+    },
+    {
+      "file": "typescript/test/pan-contracts.test.ts",
+      "destination": "typescript/test/pan-contracts.test.ts",
+      "start": 781,
+      "end": 798,
+      "before": "../src/session.ts",
+      "after": "../src/runtime/session.ts"
+    },
+    {
+      "file": "typescript/test/pan-contracts.test.ts",
+      "destination": "typescript/test/pan-contracts.test.ts",
+      "start": 695,
+      "end": 716,
+      "before": "../src/run-archive.ts",
+      "after": "../src/memory/run-archive.ts"
+    },
+    {
+      "file": "typescript/test/pan-contracts.test.ts",
+      "destination": "typescript/test/pan-contracts.test.ts",
+      "start": 627,
+      "end": 659,
+      "before": "../src/model-adapter-contract.ts",
+      "after": "../src/protocol/model-adapter-contract.ts"
+    },
+    {
+      "file": "typescript/test/pan-contracts.test.ts",
+      "destination": "typescript/test/pan-contracts.test.ts",
+      "start": 539,
+      "end": 567,
+      "before": "../src/canonical-protocol.ts",
+      "after": "../src/protocol/canonical-protocol.ts"
+    },
+    {
+      "file": "typescript/test/pan-contracts.test.ts",
+      "destination": "typescript/test/pan-contracts.test.ts",
+      "start": 304,
+      "end": 324,
+      "before": "../src/agent-tool.ts",
+      "after": "../src/protocol/agent-tool.ts"
+    },
+    {
+      "file": "typescript/test/pan-deepseek-adapter.test.ts",
+      "destination": "typescript/test/pan-deepseek-adapter.test.ts",
+      "start": 1252,
+      "end": 1269,
+      "before": "../src/session.ts",
+      "after": "../src/runtime/session.ts"
+    },
+    {
+      "file": "typescript/test/pan-deepseek-adapter.test.ts",
+      "destination": "typescript/test/pan-deepseek-adapter.test.ts",
+      "start": 1166,
+      "end": 1187,
+      "before": "../src/run-archive.ts",
+      "after": "../src/memory/run-archive.ts"
+    },
+    {
+      "file": "typescript/test/pan-deepseek-adapter.test.ts",
+      "destination": "typescript/test/pan-deepseek-adapter.test.ts",
+      "start": 1097,
+      "end": 1130,
+      "before": "../src/pan-trusted-local-tools.ts",
+      "after": "../src/tools/pan-trusted-local-tools.ts"
+    },
+    {
+      "file": "typescript/test/pan-deepseek-adapter.test.ts",
+      "destination": "typescript/test/pan-deepseek-adapter.test.ts",
+      "start": 1014,
+      "end": 1050,
+      "before": "../src/pan-deepseek-model-adapter.ts",
+      "after": "../src/providers/deepseek/pan-deepseek-model-adapter.ts"
+    },
+    {
+      "file": "typescript/test/pan-deepseek-adapter.test.ts",
+      "destination": "typescript/test/pan-deepseek-adapter.test.ts",
+      "start": 847,
+      "end": 875,
+      "before": "../src/deepseek-transport.ts",
+      "after": "../src/providers/deepseek/deepseek-transport.ts"
+    },
+    {
+      "file": "typescript/test/pan-deepseek-adapter.test.ts",
+      "destination": "typescript/test/pan-deepseek-adapter.test.ts",
+      "start": 686,
+      "end": 712,
+      "before": "../src/deepseek-profile.ts",
+      "after": "../src/providers/deepseek/deepseek-profile.ts"
+    },
+    {
+      "file": "typescript/test/pan-deepseek-adapter.test.ts",
+      "destination": "typescript/test/pan-deepseek-adapter.test.ts",
+      "start": 617,
+      "end": 645,
+      "before": "../src/canonical-protocol.ts",
+      "after": "../src/protocol/canonical-protocol.ts"
+    },
+    {
+      "file": "typescript/test/pan-deepseek-adapter.test.ts",
+      "destination": "typescript/test/pan-deepseek-adapter.test.ts",
+      "start": 444,
+      "end": 464,
+      "before": "../src/agent-tool.ts",
+      "after": "../src/protocol/agent-tool.ts"
+    },
+    {
+      "file": "typescript/test/pan-faux-tools.test.ts",
+      "destination": "typescript/test/pan-faux-tools.test.ts",
+      "start": 933,
+      "end": 950,
+      "before": "../src/session.ts",
+      "after": "../src/runtime/session.ts"
+    },
+    {
+      "file": "typescript/test/pan-faux-tools.test.ts",
+      "destination": "typescript/test/pan-faux-tools.test.ts",
+      "start": 847,
+      "end": 868,
+      "before": "../src/run-archive.ts",
+      "after": "../src/memory/run-archive.ts"
+    },
+    {
+      "file": "typescript/test/pan-faux-tools.test.ts",
+      "destination": "typescript/test/pan-faux-tools.test.ts",
+      "start": 778,
+      "end": 811,
+      "before": "../src/pan-trusted-local-tools.ts",
+      "after": "../src/tools/pan-trusted-local-tools.ts"
+    },
+    {
+      "file": "typescript/test/pan-faux-tools.test.ts",
+      "destination": "typescript/test/pan-faux-tools.test.ts",
+      "start": 678,
+      "end": 706,
+      "before": "../src/faux-model-adapter.ts",
+      "after": "../src/providers/faux/faux-model-adapter.ts"
+    },
+    {
+      "file": "typescript/test/pan-faux-tools.test.ts",
+      "destination": "typescript/test/pan-faux-tools.test.ts",
+      "start": 546,
+      "end": 574,
+      "before": "../src/canonical-protocol.ts",
+      "after": "../src/protocol/canonical-protocol.ts"
+    },
+    {
+      "file": "typescript/test/pan-faux-tools.test.ts",
+      "destination": "typescript/test/pan-faux-tools.test.ts",
+      "start": 400,
+      "end": 420,
+      "before": "../src/agent-tool.ts",
+      "after": "../src/protocol/agent-tool.ts"
+    },
+    {
+      "file": "typescript/test/pan-fixture.ts",
+      "destination": "typescript/test/pan-fixture.ts",
+      "start": 385,
+      "end": 417,
+      "before": "../src/model-adapter-contract.ts",
+      "after": "../src/protocol/model-adapter-contract.ts"
+    },
+    {
+      "file": "typescript/test/pan-fixture.ts",
+      "destination": "typescript/test/pan-fixture.ts",
+      "start": 283,
+      "end": 311,
+      "before": "../src/canonical-protocol.ts",
+      "after": "../src/protocol/canonical-protocol.ts"
+    },
+    {
+      "file": "typescript/test/pan-fixture.ts",
+      "destination": "typescript/test/pan-fixture.ts",
+      "start": 128,
+      "end": 156,
+      "before": "../src/faux-model-adapter.ts",
+      "after": "../src/providers/faux/faux-model-adapter.ts"
+    },
+    {
+      "file": "references/pi/src/cli.ts",
+      "destination": "references/pi/src/cli.ts",
+      "start": 1165,
+      "end": 1195,
+      "before": "../../../typescript/src/tui.ts",
+      "after": "../../../typescript/src/tui/tui.ts"
+    },
+    {
+      "file": "references/pi/src/cli.ts",
+      "destination": "references/pi/src/cli.ts",
+      "start": 907,
+      "end": 957,
+      "before": "../../../typescript/src/pan-trusted-local-tools.ts",
+      "after": "../../../typescript/src/tools/pan-trusted-local-tools.ts"
+    },
+    {
+      "file": "references/pi/src/cli.ts",
+      "destination": "references/pi/src/cli.ts",
+      "start": 801,
+      "end": 835,
+      "before": "../../../typescript/src/runbook.ts",
+      "after": "../../../typescript/src/memory/runbook.ts"
+    },
+    {
+      "file": "references/pi/src/cli.ts",
+      "destination": "references/pi/src/cli.ts",
+      "start": 731,
+      "end": 769,
+      "before": "../../../typescript/src/run-archive.ts",
+      "after": "../../../typescript/src/memory/run-archive.ts"
+    },
+    {
+      "file": "references/pi/src/cli.ts",
+      "destination": "references/pi/src/cli.ts",
+      "start": 642,
+      "end": 695,
+      "before": "../../../typescript/src/pan-deepseek-model-adapter.ts",
+      "after": "../../../typescript/src/providers/deepseek/pan-deepseek-model-adapter.ts"
+    },
+    {
+      "file": "references/pi/src/cli.ts",
+      "destination": "references/pi/src/cli.ts",
+      "start": 548,
+      "end": 597,
+      "before": "../../../typescript/src/model-adapter-contract.ts",
+      "after": "../../../typescript/src/protocol/model-adapter-contract.ts"
+    },
+    {
+      "file": "references/pi/src/cli.ts",
+      "destination": "references/pi/src/cli.ts",
+      "start": 467,
+      "end": 510,
+      "before": "../../../typescript/src/deepseek-profile.ts",
+      "after": "../../../typescript/src/providers/deepseek/deepseek-profile.ts"
+    },
+    {
+      "file": "references/pi/src/cli.ts",
+      "destination": "references/pi/src/cli.ts",
+      "start": 244,
+      "end": 291,
+      "before": "../../../typescript/src/kernels/agent-kernel.ts",
+      "after": "../../../typescript/src/runtime/agent-kernel.ts"
+    },
+    {
+      "file": "references/pi/src/model-adapter.ts",
+      "destination": "references/pi/src/model-adapter.ts",
+      "start": 506,
+      "end": 549,
+      "before": "../../../typescript/src/deepseek-profile.ts",
+      "after": "../../../typescript/src/providers/deepseek/deepseek-profile.ts"
+    },
+    {
+      "file": "references/pi/src/model-adapter.ts",
+      "destination": "references/pi/src/model-adapter.ts",
+      "start": 328,
+      "end": 371,
+      "before": "../../../typescript/src/deepseek-profile.ts",
+      "after": "../../../typescript/src/providers/deepseek/deepseek-profile.ts"
+    },
+    {
+      "file": "references/pi/src/pi-compatibility.ts",
+      "destination": "references/pi/src/pi-compatibility.ts",
+      "start": 1141,
+      "end": 1190,
+      "before": "../../../typescript/src/model-adapter-contract.ts",
+      "after": "../../../typescript/src/protocol/model-adapter-contract.ts"
+    },
+    {
+      "file": "references/pi/src/pi-compatibility.ts",
+      "destination": "references/pi/src/pi-compatibility.ts",
+      "start": 1058,
+      "end": 1103,
+      "before": "../../../typescript/src/canonical-protocol.ts",
+      "after": "../../../typescript/src/protocol/canonical-protocol.ts"
+    },
+    {
+      "file": "references/pi/src/pi-compatibility.ts",
+      "destination": "references/pi/src/pi-compatibility.ts",
+      "start": 711,
+      "end": 748,
+      "before": "../../../typescript/src/agent-tool.ts",
+      "after": "../../../typescript/src/protocol/agent-tool.ts"
+    },
+    {
+      "file": "references/pi/src/session.ts",
+      "destination": "references/pi/src/session.ts",
+      "start": 539,
+      "end": 573,
+      "before": "../../../typescript/src/session.ts",
+      "after": "../../../typescript/src/runtime/session.ts"
+    },
+    {
+      "file": "references/pi/src/session.ts",
+      "destination": "references/pi/src/session.ts",
+      "start": 487,
+      "end": 521,
+      "before": "../../../typescript/src/session.ts",
+      "after": "../../../typescript/src/runtime/session.ts"
+    },
+    {
+      "file": "references/pi/src/session.ts",
+      "destination": "references/pi/src/session.ts",
+      "start": 282,
+      "end": 329,
+      "before": "../../../typescript/src/kernels/agent-kernel.ts",
+      "after": "../../../typescript/src/runtime/agent-kernel.ts"
+    },
+    {
+      "file": "references/pi/src/kernels/pi-kernel.ts",
+      "destination": "references/pi/src/kernels/pi-kernel.ts",
+      "start": 800,
+      "end": 850,
+      "before": "../../../../typescript/src/kernels/agent-kernel.ts",
+      "after": "../../../../typescript/src/runtime/agent-kernel.ts"
+    },
+    {
+      "file": "references/pi/src/kernels/pi-kernel.ts",
+      "destination": "references/pi/src/kernels/pi-kernel.ts",
+      "start": 621,
+      "end": 669,
+      "before": "../../../../typescript/src/canonical-protocol.ts",
+      "after": "../../../../typescript/src/protocol/canonical-protocol.ts"
+    },
+    {
+      "file": "references/pi/src/kernels/pi-kernel.ts",
+      "destination": "references/pi/src/kernels/pi-kernel.ts",
+      "start": 407,
+      "end": 455,
+      "before": "../../../../typescript/src/canonical-protocol.ts",
+      "after": "../../../../typescript/src/protocol/canonical-protocol.ts"
+    },
+    {
+      "file": "references/pi/test/conformance.test.ts",
+      "destination": "references/pi/test/conformance.test.ts",
+      "start": 530,
+      "end": 568,
+      "before": "../../../typescript/src/run-archive.ts",
+      "after": "../../../typescript/src/memory/run-archive.ts"
+    },
+    {
+      "file": "references/pi/test/general-agent.test.ts",
+      "destination": "references/pi/test/general-agent.test.ts",
+      "start": 846,
+      "end": 876,
+      "before": "../../../typescript/src/tui.ts",
+      "after": "../../../typescript/src/tui/tui.ts"
+    },
+    {
+      "file": "references/pi/test/general-agent.test.ts",
+      "destination": "references/pi/test/general-agent.test.ts",
+      "start": 588,
+      "end": 626,
+      "before": "../../../typescript/src/run-archive.ts",
+      "after": "../../../typescript/src/memory/run-archive.ts"
+    },
+    {
+      "file": "references/pi/test/kernel-conformance.test.ts",
+      "destination": "references/pi/test/kernel-conformance.test.ts",
+      "start": 751,
+      "end": 789,
+      "before": "../../../typescript/src/run-archive.ts",
+      "after": "../../../typescript/src/memory/run-archive.ts"
+    },
+    {
+      "file": "references/pi/test/kernel-conformance.test.ts",
+      "destination": "references/pi/test/kernel-conformance.test.ts",
+      "start": 607,
+      "end": 652,
+      "before": "../../../typescript/src/canonical-protocol.ts",
+      "after": "../../../typescript/src/protocol/canonical-protocol.ts"
+    },
+    {
+      "file": "references/pi/test/kernel-selection.test.ts",
+      "destination": "references/pi/test/kernel-selection.test.ts",
+      "start": 434,
+      "end": 472,
+      "before": "../../../typescript/src/run-archive.ts",
+      "after": "../../../typescript/src/memory/run-archive.ts"
+    },
+    {
+      "file": "references/pi/test/native-kernel.test.ts",
+      "destination": "references/pi/test/native-kernel.test.ts",
+      "start": 514,
+      "end": 552,
+      "before": "../../../typescript/src/run-archive.ts",
+      "after": "../../../typescript/src/memory/run-archive.ts"
+    }
+  ],
+  "document_locator_substitutions": [
+    {
+      "file": "docs/design/pan-deepseek-model-adapter.md",
+      "before": "](../../typescript/src/deepseek-transport.ts)",
+      "after": "](../../typescript/src/providers/deepseek/deepseek-transport.ts)"
+    },
+    {
+      "file": "docs/design/pan-deepseek-model-adapter.md",
+      "before": "](../../typescript/src/pan-deepseek-model-adapter.ts)",
+      "after": "](../../typescript/src/providers/deepseek/pan-deepseek-model-adapter.ts)"
+    },
+    {
+      "file": "docs/design/pan-owned-canonical-protocol.md",
+      "before": "](../../typescript/src/canonical-protocol.ts)",
+      "after": "](../../typescript/src/protocol/canonical-protocol.ts)"
+    },
+    {
+      "file": "docs/design/pan-owned-canonical-protocol.md",
+      "before": "](../../typescript/src/agent-tool.ts)",
+      "after": "](../../typescript/src/protocol/agent-tool.ts)"
+    },
+    {
+      "file": "docs/design/pan-owned-canonical-protocol.md",
+      "before": "](../../typescript/src/model-adapter-contract.ts)",
+      "after": "](../../typescript/src/protocol/model-adapter-contract.ts)"
+    },
+    {
+      "file": "docs/design/pan-faux-and-trusted-local-tools.md",
+      "before": "](../../typescript/src/faux-model-adapter.ts)",
+      "after": "](../../typescript/src/providers/faux/faux-model-adapter.ts)"
+    },
+    {
+      "file": "docs/design/pan-faux-and-trusted-local-tools.md",
+      "before": "](../../typescript/src/pan-trusted-local-tools.ts)",
+      "after": "](../../typescript/src/tools/pan-trusted-local-tools.ts)"
+    }
+  ]
+}

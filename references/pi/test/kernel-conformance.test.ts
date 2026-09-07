@@ -15,9 +15,9 @@ import {
 	type FauxProviderHandle,
 	type Message as PiMessage,
 } from "@earendil-works/pi-ai";
-import { addUsage, ZERO_REPORTED_USAGE, type Usage } from "../../../typescript/src/canonical-protocol.ts";
+import { addUsage, ZERO_REPORTED_USAGE, type Usage } from "../../../typescript/src/protocol/canonical-protocol.ts";
 import type { PiModelAdapter } from "../src/model-adapter.ts";
-import { RunArchiveStore } from "../../../typescript/src/run-archive.ts";
+import { RunArchiveStore } from "../../../typescript/src/memory/run-archive.ts";
 import {
 	GeneralAgentSession,
 	type KernelLimits,
@@ -148,11 +148,11 @@ async function assertTerminalAccounting(
 
 test("C-KER-01 AgentKernel is the sole Session orchestration seam and only PiKernel invokes Pi orchestration", async () => {
 	const [sessionSource, piSource, nativeSource, tuiSource, archiveSource] = await Promise.all([
-		readFile(join(REPOSITORY_ROOT, "typescript/src/session.ts"), "utf8"),
+		readFile(join(REPOSITORY_ROOT, "typescript/src/runtime/session.ts"), "utf8"),
 		readFile(join(REPOSITORY_ROOT, "references/pi/src/kernels/pi-kernel.ts"), "utf8"),
-		readFile(join(REPOSITORY_ROOT, "typescript/src/kernels/native-kernel.ts"), "utf8"),
-		readFile(join(REPOSITORY_ROOT, "typescript/src/tui.ts"), "utf8"),
-		readFile(join(REPOSITORY_ROOT, "typescript/src/run-archive.ts"), "utf8"),
+		readFile(join(REPOSITORY_ROOT, "typescript/src/runtime/native-kernel.ts"), "utf8"),
+		readFile(join(REPOSITORY_ROOT, "typescript/src/tui/tui.ts"), "utf8"),
+		readFile(join(REPOSITORY_ROOT, "typescript/src/memory/run-archive.ts"), "utf8"),
 	]);
 	assert.match(sessionSource, /private readonly kernel: AgentKernel/);
 	assert.match(sessionSource, /this\.kernel\.runTask/);

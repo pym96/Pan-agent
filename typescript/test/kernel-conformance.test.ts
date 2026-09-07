@@ -5,19 +5,19 @@ import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterEach, test } from "node:test";
-import type { AgentTool } from "../src/agent-tool.ts";
+import type { AgentTool } from "../src/protocol/agent-tool.ts";
 import { response as panResponse, call as panCall, scriptedAdapter, stringParameters, emptyParameters, validateFixtureArguments } from "./pan-fixture.ts";
-import type { Message } from "../src/canonical-protocol.ts";
-import { addUsage, ZERO_REPORTED_USAGE, type Usage } from "../src/canonical-protocol.ts";
-import type { ModelAdapter } from "../src/model-adapter-contract.ts";
-import { RunArchiveStore } from "../src/run-archive.ts";
+import type { Message } from "../src/protocol/canonical-protocol.ts";
+import { addUsage, ZERO_REPORTED_USAGE, type Usage } from "../src/protocol/canonical-protocol.ts";
+import type { ModelAdapter } from "../src/protocol/model-adapter-contract.ts";
+import { RunArchiveStore } from "../src/memory/run-archive.ts";
 import {
 	GeneralAgentSession,
 	type KernelLimits,
 	type KernelSelector,
 	type SessionObservation,
 	type TaskRunResult,
-} from "../src/session.ts";
+} from "../src/runtime/session.ts";
 
 const REPOSITORY_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 const FIXTURE_ROOT = join(REPOSITORY_ROOT, "conformance", "fixtures", "kernel-v1");
@@ -129,10 +129,10 @@ async function assertTerminalAccounting(
 
 test("C-KER-01 AgentKernel is the sole Session orchestration seam and only PiKernel invokes Pi orchestration", async () => {
 	const [sessionSource, nativeSource, tuiSource, archiveSource] = await Promise.all([
-		readFile(join(REPOSITORY_ROOT, "typescript/src/session.ts"), "utf8"),
-		readFile(join(REPOSITORY_ROOT, "typescript/src/kernels/native-kernel.ts"), "utf8"),
-		readFile(join(REPOSITORY_ROOT, "typescript/src/tui.ts"), "utf8"),
-		readFile(join(REPOSITORY_ROOT, "typescript/src/run-archive.ts"), "utf8"),
+		readFile(join(REPOSITORY_ROOT, "typescript/src/runtime/session.ts"), "utf8"),
+		readFile(join(REPOSITORY_ROOT, "typescript/src/runtime/native-kernel.ts"), "utf8"),
+		readFile(join(REPOSITORY_ROOT, "typescript/src/tui/tui.ts"), "utf8"),
+		readFile(join(REPOSITORY_ROOT, "typescript/src/memory/run-archive.ts"), "utf8"),
 	]);
 	assert.match(sessionSource, /private readonly kernel: AgentKernel/);
 	assert.match(sessionSource, /this\.kernel\.runTask/);

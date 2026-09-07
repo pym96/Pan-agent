@@ -1,4 +1,4 @@
-import { validateAgentToolDefinitions, type AgentToolDefinition } from "./agent-tool.ts";
+import { validateAgentToolDefinitions, type AgentToolDefinition } from "../../protocol/agent-tool.ts";
 import {
 	CanonicalProtocolError,
 	UNAVAILABLE,
@@ -17,7 +17,7 @@ import {
 	type ResponseIdentity,
 	type ToolCall,
 	type Usage,
-} from "./canonical-protocol.ts";
+} from "../../protocol/canonical-protocol.ts";
 import {
 	DEFAULT_DEEPSEEK_PROFILE,
 	type DeepSeekProfile,
@@ -29,7 +29,7 @@ import {
 	type DeepSeekTransportRequest,
 	type DeepSeekTransportResponse,
 } from "./deepseek-transport.ts";
-import type { ModelAdapter, ModelExchangeRequest } from "./model-adapter-contract.ts";
+import type { ModelAdapter, ModelExchangeRequest } from "../../protocol/model-adapter-contract.ts";
 
 export const DEEPSEEK_OFFICIAL_CONTRACT = Object.freeze({
 	retrievedOn: "2026-09-07",

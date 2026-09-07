@@ -2,7 +2,7 @@ import { stat } from "node:fs/promises";
 import { pathToFileURL, fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
 import type { Writable } from "node:stream";
-import { isKernelSelector, type KernelSelector } from "../../../typescript/src/kernels/agent-kernel.ts";
+import { isKernelSelector, type KernelSelector } from "../../../typescript/src/runtime/agent-kernel.ts";
 import {
 	createPiDeepSeekAdapter,
 	type PiModelAdapter,
@@ -11,15 +11,15 @@ import {
 	DEFAULT_DEEPSEEK_PROFILE,
 	isDeepSeekModelId,
 	type DeepSeekProfile,
-} from "../../../typescript/src/deepseek-profile.ts";
-import type { ModelAdapter } from "../../../typescript/src/model-adapter-contract.ts";
-import { createPanDeepSeekAdapter } from "../../../typescript/src/pan-deepseek-model-adapter.ts";
-import { RunArchiveStore } from "../../../typescript/src/run-archive.ts";
-import { loadRunbook } from "../../../typescript/src/runbook.ts";
-import { createPanTrustedLocalTools, PAN_TRUSTED_LOCAL_LABEL } from "../../../typescript/src/pan-trusted-local-tools.ts";
+} from "../../../typescript/src/providers/deepseek/deepseek-profile.ts";
+import type { ModelAdapter } from "../../../typescript/src/protocol/model-adapter-contract.ts";
+import { createPanDeepSeekAdapter } from "../../../typescript/src/providers/deepseek/pan-deepseek-model-adapter.ts";
+import { RunArchiveStore } from "../../../typescript/src/memory/run-archive.ts";
+import { loadRunbook } from "../../../typescript/src/memory/runbook.ts";
+import { createPanTrustedLocalTools, PAN_TRUSTED_LOCAL_LABEL } from "../../../typescript/src/tools/pan-trusted-local-tools.ts";
 import { GENERAL_AGENT_SYSTEM_PROMPT, GeneralAgentSession } from "./session.ts";
 import { createTrustedLocalTools, TRUSTED_LOCAL_SHELL_LABEL } from "./tools.ts";
-import { renderObservation, runTui } from "../../../typescript/src/tui.ts";
+import { renderObservation, runTui } from "../../../typescript/src/tui/tui.ts";
 
 export const CLI_USAGE = `Usage:
   npm run agent -- --workspace /absolute/path --memory-root /absolute/path [--kernel pi|native] [--model deepseek-v4-flash|deepseek-v4-pro] [--thinking low|high|max]

@@ -1,4 +1,4 @@
-import { validateAgentToolDefinitions } from "./agent-tool.ts";
+import { validateAgentToolDefinitions } from "../../protocol/agent-tool.ts";
 import {
 	CanonicalProtocolError,
 	UNAVAILABLE,
@@ -7,8 +7,8 @@ import {
 	type Message,
 	type ModelFailure,
 	type ModelOutcome,
-} from "./canonical-protocol.ts";
-import type { ModelAdapter, ModelContext, ModelExchangeRequest } from "./model-adapter-contract.ts";
+} from "../../protocol/canonical-protocol.ts";
+import type { ModelAdapter, ModelContext, ModelExchangeRequest } from "../../protocol/model-adapter-contract.ts";
 
 export interface FauxPendingExchange {
 	readonly kind: "pending";

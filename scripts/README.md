@@ -220,3 +220,8 @@ The preview deterministically enumerates the unchanged 120-slot denominator and 
 ## WorkOrder #35 local compiled consumer
 
 [`verify_packed_consumer.py`](verify_packed_consumer.py) builds twice, retains the exact tarball and file identities, and installs it into a fresh production-only Node 22.19.0 consumer. [`wo35-consumer-guard.mjs`](wo35-consumer-guard.mjs) records file/module/network attempts and caught negative controls; [`wo35-consumer-driver.mjs`](wo35-consumer-driver.mjs) drives only installed Product exports through real CLI/TUI/Tools. The synthetic input lives in [`fixtures/`](fixtures/README.md). [`check_workorder_35_scope.py`](check_workorder_35_scope.py) checks exact core/reference/fixture preservation and all baseline test obligations. These are verification tools, not package runtime files. Commands, identities and Criterion mapping are in the [packaging design](../docs/design/packed-product-consumer.md).
+
+
+## WorkOrder #41 Module correspondence
+
+[`check_module_layout.mjs`](check_module_layout.mjs) compares base/candidate source bytes using compiler-parsed import spans, enforces resolved dependency direction, and checks protected files/test obligations. [`check_public_package.mjs`](check_public_package.mjs) installs old/new local tarballs and checks equivalent named exports and the [compile-only public client](fixtures/module-layout-public-types.ts). Negative test copies are created outside Product. The [layout design](../docs/design/native-module-layout.md) specifies exact commands and the unchanged #35 consumer verifier. Historical #34/#35 scope scripts remain tied to their accepted commits.

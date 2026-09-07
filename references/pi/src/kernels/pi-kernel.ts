@@ -14,14 +14,14 @@ import {
 	type Model,
 } from "@earendil-works/pi-ai";
 import type { PiModelAdapter } from "../model-adapter.ts";
-import type { Usage } from "../../../../typescript/src/canonical-protocol.ts";
+import type { Usage } from "../../../../typescript/src/protocol/canonical-protocol.ts";
 import {
 	piAssistantIdentity,
 	piAssistantPublicText,
 	piMessagesToPan,
 	piUsageToPan,
 } from "../pi-compatibility.ts";
-import { validateCanonicalContext } from "../../../../typescript/src/canonical-protocol.ts";
+import { validateCanonicalContext } from "../../../../typescript/src/protocol/canonical-protocol.ts";
 import {
 	addUsage,
 	EMPTY_USAGE,
@@ -29,7 +29,7 @@ import {
 	type KernelLimits,
 	type KernelRunRequest,
 	type KernelRunResult,
-} from "../../../../typescript/src/kernels/agent-kernel.ts";
+} from "../../../../typescript/src/runtime/agent-kernel.ts";
 
 function resultText(result: unknown): string {
 	if (!result || typeof result !== "object" || !("content" in result) || !Array.isArray(result.content)) return "";

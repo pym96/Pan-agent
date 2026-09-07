@@ -11,8 +11,8 @@ Criteria-Version: `1.0` (`C-PFREE-B101`…`C-PFREE-B107`).
 
 This tracer bullet supplies concrete Pan-owned implementations behind WorkOrder #31's accepted semantic contracts:
 
-- [`faux-model-adapter.ts`](../../typescript/src/faux-model-adapter.ts) implements `ModelAdapter` from canonical scripted outcomes;
-- [`pan-trusted-local-tools.ts`](../../typescript/src/pan-trusted-local-tools.ts) implements `AgentTool` for `read`, `write`, `edit`, and `bash` using Node platform APIs;
+- [`faux-model-adapter.ts`](../../typescript/src/providers/faux/faux-model-adapter.ts) implements `ModelAdapter` from canonical scripted outcomes;
+- [`pan-trusted-local-tools.ts`](../../typescript/src/tools/pan-trusted-local-tools.ts) implements `AgentTool` for `read`, `write`, `edit`, and `bash` using Node platform APIs;
 - explicit `native` composition receives those Pan Tools directly, without the Pi Tool adapter;
 - `PiKernel` remains the default; WorkOrder #33 separately replaces explicit Native's Provider bridge without changing these accepted Tool/Faux semantics.
 

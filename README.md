@@ -37,6 +37,10 @@ npm install /absolute/path/to/artifacts/pan-agent-0.1.0.tgz \
 
 Use Node `22.19.0` or newer. The installed package contains JavaScript and its Runbook, has no runtime dependencies, and needs no TypeScript compiler or loader. The [package guide](typescript/README.md#installed-javascript-package) documents explicit Native startup and exports; the [consumer verifier](docs/design/packed-product-consumer.md) performs the credential-free, fixed four-exchange create/run/verify task on Node `22.19.0`. This is a local private tarball candidate, with no npm publication or live-model result.
 
+## Source Module navigation
+
+The [Product source map](typescript/src/README.md) locates protocol, runtime, Provider, Tool, memory and TUI code. The [#41 relocation design](docs/design/native-module-layout.md) records exact old→new correspondence and dependency checks. Root `src/cli.ts` still composes the concrete Native product; installed `pan-agent`, `pan-agent/cli` and `pan-agent/faux` imports remain stable. #35 packaging is accepted; #41 relocation is a candidate pending independent review.
+
 ## Repository lanes
 
 | Lane | Classification |
@@ -58,7 +62,7 @@ The project maintains a source-grounded [Learning Wiki](wiki/index.md) recording
 
 ## Authoritative TypeScript Native working stack
 
-The [TypeScript package and Human command](typescript/README.md) use one `GeneralAgentSession` lifecycle with explicit Native selection, the accepted Pan DeepSeek Adapter and Pan trusted-local Tools. WorkOrder #34 is [accepted and landed](https://github.com/pym96/Pan-agent/issues/34#issuecomment-5566954695): Product has no Pi dependency. Missing selection fails before setup; `--kernel pi` points to the [separate Frozen Reference instructions](https://github.com/pym96/Pan-agent/blob/13d659a7292748f7f01dd592aa417848917d9065/references/pi/README.md). The [transition decision](docs/adr/0017-product-isolation-and-frozen-pi.md) and [relocation/coverage inventory](docs/design/product-isolation.md) retain that boundary. #35 adds the [compiled package and offline consumer candidate](docs/design/packed-product-consumer.md), pending independent review. #29's future default and #36 live validation remain separate assignments.
+The [TypeScript package and Human command](typescript/README.md) use one `GeneralAgentSession` lifecycle with explicit Native selection, the accepted Pan DeepSeek Adapter and Pan trusted-local Tools. WorkOrder #34 is [accepted and landed](https://github.com/pym96/Pan-agent/issues/34#issuecomment-5566954695): Product has no Pi dependency. Missing selection fails before setup; `--kernel pi` points to the [separate Frozen Reference instructions](https://github.com/pym96/Pan-agent/blob/13d659a7292748f7f01dd592aa417848917d9065/references/pi/README.md). The [transition decision](docs/adr/0017-product-isolation-and-frozen-pi.md) and [relocation/coverage inventory](docs/design/product-isolation.md) retain that boundary. #35 landed the [compiled package and offline consumer](docs/design/packed-product-consumer.md) after independent review. #41 now organizes the existing Modules as described below. #29's future default and #36 live validation remain separate assignments.
 
 The shell is explicitly **trusted-local**: it runs as the host user, and the selected workspace is only the default cwd. It claims neither path containment nor an OS/network sandbox. The Python shell/PTY implementation remains available for comparison, but it is not the default product route.
 

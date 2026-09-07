@@ -7,15 +7,15 @@ import { join } from "node:path";
 import { PassThrough } from "node:stream";
 import { afterEach, test } from "node:test";
 import { runCli } from "../src/cli.ts";
-import { GeneralAgentSession, type GeneralAgentSessionOptions, type SessionObservation } from "../src/session.ts";
-import { NativeKernel } from "../src/kernels/native-kernel.ts";
-import { RunArchiveStore } from "../src/run-archive.ts";
-import { runTui } from "../src/tui.ts";
-import { FauxModelAdapter } from "../src/faux-model-adapter.ts";
-import { createPanTrustedLocalTools } from "../src/pan-trusted-local-tools.ts";
-import { PanDeepSeekModelAdapter } from "../src/pan-deepseek-model-adapter.ts";
-import type { ModelAdapter } from "../src/model-adapter-contract.ts";
-import type { AgentTool } from "../src/agent-tool.ts";
+import { GeneralAgentSession, type GeneralAgentSessionOptions, type SessionObservation } from "../src/runtime/session.ts";
+import { NativeKernel } from "../src/runtime/native-kernel.ts";
+import { RunArchiveStore } from "../src/memory/run-archive.ts";
+import { runTui } from "../src/tui/tui.ts";
+import { FauxModelAdapter } from "../src/providers/faux/faux-model-adapter.ts";
+import { createPanTrustedLocalTools } from "../src/tools/pan-trusted-local-tools.ts";
+import { PanDeepSeekModelAdapter } from "../src/providers/deepseek/pan-deepseek-model-adapter.ts";
+import type { ModelAdapter } from "../src/protocol/model-adapter-contract.ts";
+import type { AgentTool } from "../src/protocol/agent-tool.ts";
 import { response, call } from "./pan-fixture.ts";
 const revision = `sha256:${"0".repeat(64)}`;
 const roots: string[] = [];
@@ -115,7 +115,7 @@ test("C-PFREE-D106 P-D6 admission, secret exclusion, process cancellation and ma
  for (const scenario of ["valid", "schema-invalid", "unknown", "pre-cancel"] as const) {
   let implementations = 0; const spawnBefore = spawns.length;
   const name = scenario === "unknown" ? "missing" : "bash";
-  const args: import("../src/canonical-protocol.ts").JsonObject = scenario === "schema-invalid" ? {} : {command: "printf once > admitted.txt"};
+  const args: import("../src/protocol/canonical-protocol.ts").JsonObject = scenario === "schema-invalid" ? {} : {command: "printf once > admitted.txt"};
   const adapter = new FauxModelAdapter([response(call(name, args, {id: "admit-1"}), {stopReason: "tool_calls"}), response("done")]);
   const h = await harness(adapter, (tools) => tools.map((tool) => ({...tool, async execute(invocation) { implementations++; return tool.execute(invocation); }})),
    (event, session) => { if (scenario === "pre-cancel" && event.type === "tool.started") session.cancel(); });

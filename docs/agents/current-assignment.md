@@ -2,11 +2,15 @@
 
 This document owns the current project lane, constraints, and non-goals. It does not grant a session-specific task or establish implementation facts. A Working session starts only from a Master-published WorkOrder, and that WorkOrder cannot widen this lane or override Human decisions. Read the fact register linked from the root Agent map before making any current-state statement.
 
-## Active mission | WorkOrder #35 compiled package and offline consumer
+## Active mission | WorkOrder #41 Native Module layout
 
-[WorkOrder #35 activation](https://github.com/pym96/Pan-agent/issues/35#issuecomment-5567129723) freezes Criteria-Version `1.0` (C-PFREE-E101…E107) on accepted base `13d659a7292748f7f01dd592aa417848917d9065`. This Builder candidate adds compiled JavaScript, an installed executable and exports, deterministic packing and an offline production-only consumer on Node `22.19.0`. The [packaging design](../design/packed-product-consumer.md) defines the artifact chain, installed CLI/TUI tracer and independent reproduction commands.
+[WorkOrder #41 activation](https://github.com/pym96/Pan-agent/issues/41#issuecomment-5568906007) freezes Criteria-Version `1.0` (C-LAY-01…05), using accepted base `97fb7db1574a240b1a689733bc1b56791879c6d6`. This Builder candidate organizes existing Product source into protocol, runtime, providers, tools, memory and tui Modules. The root CLI composition and package export facade remain stable. The [layout map and checks](../design/native-module-layout.md) record every source relocation and the precise import/test/document locator substitutions.
 
-Product remains explicit `--kernel native`. Runtime, Provider, Tool, TUI and memory source bytes are preserved. The package stays private; verification uses the synthetic `packed-create-run-verify/v1` fixture and zero real Provider calls, credential reads, balance queries or paid/formal runs, CNY 0. Publishing, live validation (#36), default selection (#29), Qwen, fact promotion and resume changes remain outside this WorkOrder. Candidate test results require a separate Regulator Verdict.
+Only mechanical relocation and named wiring changes are authorized. Existing executable/type declarations, schemas, limits, messages, callbacks, authority and memory semantics are preserved. Tests retain their titles and logical assertions; Frozen Reference edits only retarget imports and source locators. The same Node 22.19.0 offline installed task must run after relocation. Independent Regulator review remains required. #42 presentation, #43 @file and #39 Qwen work remain queued and are not activated here.
+
+## Accepted foundation | WorkOrder #35 compiled package and offline consumer
+
+WorkOrder #35 received an independent [accepted Verdict](https://github.com/pym96/Pan-agent/issues/35#issuecomment-5567900432) and [landed unchanged](https://github.com/pym96/Pan-agent/issues/35#issuecomment-5567937971) at `97fb7db1574a240b1a689733bc1b56791879c6d6`. It supplies compiled JavaScript, installed bin/public exports, deterministic tarball identity and a Node 22.19.0 Darwin arm64 offline production-only consumer. The [packaging procedure](../design/packed-product-consumer.md) and its frozen fixture/guards are retained. It does not establish live-model compatibility, a default cutover or public npm publication.
 
 ## Accepted foundation | WorkOrder #34 Product isolation and Frozen Reference
 

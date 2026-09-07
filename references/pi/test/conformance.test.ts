@@ -12,7 +12,7 @@ import {
 	fauxToolCall,
 } from "@earendil-works/pi-ai";
 import type { PiModelAdapter } from "../src/model-adapter.ts";
-import { RunArchiveStore } from "../../../typescript/src/run-archive.ts";
+import { RunArchiveStore } from "../../../typescript/src/memory/run-archive.ts";
 import {
 	GENERAL_AGENT_SYSTEM_PROMPT,
 	GeneralAgentSession,

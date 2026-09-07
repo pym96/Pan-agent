@@ -3,7 +3,7 @@ import {
 	describeAgentTool,
 	validateAgentTools,
 	type AgentTool,
-} from "../agent-tool.ts";
+} from "../protocol/agent-tool.ts";
 import {
 	CanonicalProtocolError,
 	UNAVAILABLE,
@@ -21,8 +21,8 @@ import {
 	type ResponseIdentity,
 	type ToolCall,
 	type ToolResultMessage,
-} from "../canonical-protocol.ts";
-import type { ModelAdapter } from "../model-adapter-contract.ts";
+} from "../protocol/canonical-protocol.ts";
+import type { ModelAdapter } from "../protocol/model-adapter-contract.ts";
 import {
 	EMPTY_USAGE,
 	type AgentKernel,

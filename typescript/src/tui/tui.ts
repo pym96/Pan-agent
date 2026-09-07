@@ -1,7 +1,7 @@
 import { createInterface } from "node:readline/promises";
 import type { Readable, Writable } from "node:stream";
-import type { RunArchiveStore } from "./run-archive.ts";
-import type { GeneralAgentSession, SessionObservation, TaskRunResult } from "./session.ts";
+import type { RunArchiveStore } from "../memory/run-archive.ts";
+import type { GeneralAgentSession, SessionObservation, TaskRunResult } from "../runtime/session.ts";
 
 export interface TuiOptions {
 	readonly session: GeneralAgentSession;

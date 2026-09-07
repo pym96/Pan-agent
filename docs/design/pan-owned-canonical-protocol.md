@@ -11,9 +11,9 @@ Criteria-Version: `1.0` (`C-PFREE-A01`…`C-PFREE-A07`).
 
 This slice moves semantic ownership below `NativeKernel` into three repository-owned Modules:
 
-- [`canonical-protocol.ts`](../../typescript/src/canonical-protocol.ts) owns `Message`, `ToolCall`, `ToolResult`, `Usage`, `ModelResponse`, `ResponseIdentity`, typed `ModelFailure`, and their runtime invariants;
-- [`model-adapter-contract.ts`](../../typescript/src/model-adapter-contract.ts) owns the single `ModelAdapter.exchange(...)` Interface used by NativeKernel;
-- [`agent-tool.ts`](../../typescript/src/agent-tool.ts) owns Tool identity, JSON parameter schema, explicit validation, cancellation-aware invocation, and typed execution result.
+- [`canonical-protocol.ts`](../../typescript/src/protocol/canonical-protocol.ts) owns `Message`, `ToolCall`, `ToolResult`, `Usage`, `ModelResponse`, `ResponseIdentity`, typed `ModelFailure`, and their runtime invariants;
+- [`model-adapter-contract.ts`](../../typescript/src/protocol/model-adapter-contract.ts) owns the single `ModelAdapter.exchange(...)` Interface used by NativeKernel;
+- [`agent-tool.ts`](../../typescript/src/protocol/agent-tool.ts) owns Tool identity, JSON parameter schema, explicit validation, cancellation-aware invocation, and typed execution result.
 
 These are semantic contracts. They contain no Pi import, Provider request/response envelope, SDK model object, stream event, authentication option, or hidden-reasoning text. The deletion test is intentional: removing these Modules would force Context meaning, missing-data policy, correlation, Tool admission, and failure classification back into the loop and every Adapter.
 

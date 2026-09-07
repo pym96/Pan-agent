@@ -42,8 +42,8 @@
       "import": "./dist/cli.js"
     },
     "./faux": {
-      "types": "./dist/faux-model-adapter.d.ts",
-      "import": "./dist/faux-model-adapter.js"
+      "types": "./dist/providers/faux/faux-model-adapter.d.ts",
+      "import": "./dist/providers/faux/faux-model-adapter.js"
     }
   },
   "types": "./dist/index.d.ts"

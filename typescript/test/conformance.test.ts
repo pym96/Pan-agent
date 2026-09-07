@@ -6,15 +6,15 @@ import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterEach, test } from "node:test";
 import { response as panResponse, call as panCall, scriptedAdapter, stringParameters, emptyParameters, validateFixtureArguments } from "./pan-fixture.ts";
-import type { Message } from "../src/canonical-protocol.ts";
-import type { ModelAdapter } from "../src/model-adapter-contract.ts";
-import { RunArchiveStore } from "../src/run-archive.ts";
+import type { Message } from "../src/protocol/canonical-protocol.ts";
+import type { ModelAdapter } from "../src/protocol/model-adapter-contract.ts";
+import { RunArchiveStore } from "../src/memory/run-archive.ts";
 import {
 	GENERAL_AGENT_SYSTEM_PROMPT,
 	GeneralAgentSession,
 	type SessionObservation,
-} from "../src/session.ts";
-import { createPanTrustedLocalTools } from "../src/pan-trusted-local-tools.ts";
+} from "../src/runtime/session.ts";
+import { createPanTrustedLocalTools } from "../src/tools/pan-trusted-local-tools.ts";
 
 const REPOSITORY_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 const FIXTURE_ROOT = join(REPOSITORY_ROOT, "conformance", "fixtures", "v1");
@@ -25,7 +25,7 @@ interface ToolCallStep {
 	readonly kind: "tool_call";
 	readonly call_id: string;
 	readonly tool: string;
-	readonly arguments: import("../src/canonical-protocol.ts").JsonObject;
+	readonly arguments: import("../src/protocol/canonical-protocol.ts").JsonObject;
 }
 
 interface FinalStep {

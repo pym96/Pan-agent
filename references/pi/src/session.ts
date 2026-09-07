@@ -2,9 +2,9 @@ import type { AgentTool } from "@earendil-works/pi-agent-core";
 import type { Message } from "@earendil-works/pi-ai";
 import type { PiModelAdapter } from "./model-adapter.ts";
 import { PiKernel } from "./kernels/pi-kernel.ts";
-import { resolveKernelLimits, isKernelSelector } from "../../../typescript/src/kernels/agent-kernel.ts";
-import { GeneralAgentSession as ProductSession, type NativeGeneralAgentSessionOptions, type SessionMemory, type KernelLimits, type ObservationSink } from "../../../typescript/src/session.ts";
-export * from "../../../typescript/src/session.ts";
+import { resolveKernelLimits, isKernelSelector } from "../../../typescript/src/runtime/agent-kernel.ts";
+import { GeneralAgentSession as ProductSession, type NativeGeneralAgentSessionOptions, type SessionMemory, type KernelLimits, type ObservationSink } from "../../../typescript/src/runtime/session.ts";
+export * from "../../../typescript/src/runtime/session.ts";
 export interface PiGeneralAgentSessionOptions {
  readonly kernel?: "pi";
  readonly adapter: PiModelAdapter;

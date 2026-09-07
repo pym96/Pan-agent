@@ -5,7 +5,7 @@ import {
 	type ModelFailure,
 	type ResponseIdentity,
 	type Usage,
-} from "../canonical-protocol.ts";
+} from "../protocol/canonical-protocol.ts";
 
 export type KernelSelector = "pi" | "native";
 export type TerminalStatus = "completed" | "cancelled" | "model_error" | "incomplete";

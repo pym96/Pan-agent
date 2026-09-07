@@ -1,7 +1,7 @@
 /** Test scripts are canonical Pan outcomes; no Provider wire or compatibility conversion. */
-import { FauxModelAdapter } from "../src/faux-model-adapter.ts";
-import { ZERO_REPORTED_USAGE, UNAVAILABLE, type ModelOutcome, type AssistantMessage, type ToolCall, type JsonObject } from "../src/canonical-protocol.ts";
-import type { ModelAdapter, ModelContext, ModelExchangeRequest } from "../src/model-adapter-contract.ts";
+import { FauxModelAdapter } from "../src/providers/faux/faux-model-adapter.ts";
+import { ZERO_REPORTED_USAGE, UNAVAILABLE, type ModelOutcome, type AssistantMessage, type ToolCall, type JsonObject } from "../src/protocol/canonical-protocol.ts";
+import type { ModelAdapter, ModelContext, ModelExchangeRequest } from "../src/protocol/model-adapter-contract.ts";
 export function call(name: string, args: JsonObject, options: { id: string }): ToolCall {
  return { type: "tool_call", name, arguments: args, id: options.id };
 }

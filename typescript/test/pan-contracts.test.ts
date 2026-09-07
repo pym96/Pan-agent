@@ -4,7 +4,7 @@ import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterEach, test } from "node:test";
-import type { AgentTool } from "../src/agent-tool.ts";
+import type { AgentTool } from "../src/protocol/agent-tool.ts";
 import {
 	UNAVAILABLE,
 	validateCanonicalContext,
@@ -16,10 +16,10 @@ import {
 	type ModelResponse,
 	type ResponseIdentity,
 	type Usage,
-} from "../src/canonical-protocol.ts";
-import type { ModelAdapter, ModelExchangeRequest } from "../src/model-adapter-contract.ts";
-import { RunArchiveStore } from "../src/run-archive.ts";
-import { GeneralAgentSession, type SessionObservation } from "../src/session.ts";
+} from "../src/protocol/canonical-protocol.ts";
+import type { ModelAdapter, ModelExchangeRequest } from "../src/protocol/model-adapter-contract.ts";
+import { RunArchiveStore } from "../src/memory/run-archive.ts";
+import { GeneralAgentSession, type SessionObservation } from "../src/runtime/session.ts";
 
 const REPOSITORY_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 const TEST_RUNBOOK_REVISION = `sha256:${"0".repeat(64)}`;
@@ -371,16 +371,16 @@ test("C-PFREE-A04 unknown/schema-invalid/cancelled ToolCalls have zero implement
 
 test("C-PFREE-A03/A06 Pan seams and NativeKernel have no Pi import or hidden Pi model/tool decision", async () => {
 	const paths = [
-		"typescript/src/canonical-protocol.ts",
-		"typescript/src/model-adapter-contract.ts",
-		"typescript/src/agent-tool.ts",
-		"typescript/src/kernels/native-kernel.ts",
+		"typescript/src/protocol/canonical-protocol.ts",
+		"typescript/src/protocol/model-adapter-contract.ts",
+		"typescript/src/protocol/agent-tool.ts",
+		"typescript/src/runtime/native-kernel.ts",
 	];
 	for (const path of paths) {
 		const source = await readFile(join(REPOSITORY_ROOT, path), "utf8");
 		assert.doesNotMatch(source, /@earendil-works\/pi|PiModelAdapter|validatePiToolCall|\.streamFn\b/, path);
 	}
-	const nativeSource = await readFile(join(REPOSITORY_ROOT, "typescript/src/kernels/native-kernel.ts"), "utf8");
+	const nativeSource = await readFile(join(REPOSITORY_ROOT, "typescript/src/runtime/native-kernel.ts"), "utf8");
 	assert.match(nativeSource, /this\.adapter\.exchange/);
 	assert.match(nativeSource, /tool\.validate\(call\.arguments\)/);
 

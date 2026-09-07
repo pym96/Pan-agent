@@ -6,7 +6,7 @@ import { dirname, join, resolve } from "node:path";
 import { afterEach, test } from "node:test";
 import { setImmediate as waitImmediate } from "node:timers/promises";
 import { fileURLToPath } from "node:url";
-import type { AgentToolDefinition } from "../src/agent-tool.ts";
+import type { AgentToolDefinition } from "../src/protocol/agent-tool.ts";
 import { runCli } from "../src/cli.ts";
 import {
 	UNAVAILABLE,
@@ -14,23 +14,23 @@ import {
 	type Message,
 	type ModelFailure,
 	type ModelOutcome,
-} from "../src/canonical-protocol.ts";
-import type { DeepSeekProfile } from "../src/deepseek-profile.ts";
+} from "../src/protocol/canonical-protocol.ts";
+import type { DeepSeekProfile } from "../src/providers/deepseek/deepseek-profile.ts";
 import {
 	DeepSeekFetchTransport,
 	type DeepSeekTransport,
 	type DeepSeekTransportRequest,
 	type DeepSeekTransportResponse,
-} from "../src/deepseek-transport.ts";
+} from "../src/providers/deepseek/deepseek-transport.ts";
 import {
 	DEEPSEEK_CONTEXT_OVERFLOW_CODES,
 	DEEPSEEK_HTTP_FAILURE_TABLE,
 	DEEPSEEK_OFFICIAL_CONTRACT,
 	PanDeepSeekModelAdapter,
-} from "../src/pan-deepseek-model-adapter.ts";
-import { createPanTrustedLocalTools } from "../src/pan-trusted-local-tools.ts";
-import { RunArchiveStore } from "../src/run-archive.ts";
-import { GeneralAgentSession, type SessionObservation } from "../src/session.ts";
+} from "../src/providers/deepseek/pan-deepseek-model-adapter.ts";
+import { createPanTrustedLocalTools } from "../src/tools/pan-trusted-local-tools.ts";
+import { RunArchiveStore } from "../src/memory/run-archive.ts";
+import { GeneralAgentSession, type SessionObservation } from "../src/runtime/session.ts";
 
 const REPOSITORY_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 const FIXTURE_ROOT = join(REPOSITORY_ROOT, "typescript/test/fixtures/pan-deepseek-v1");
@@ -250,7 +250,7 @@ test("C-PFREE-C101 direct Pan Adapter construction and explicit Native CLI compo
 	assert.equal(fetchCalls, 0);
 
 	for (const name of ["deepseek-profile.ts", "deepseek-transport.ts", "pan-deepseek-model-adapter.ts"]) {
-		const source = await readFile(join(REPOSITORY_ROOT, "typescript/src", name), "utf8");
+		const source = await readFile(join(REPOSITORY_ROOT, "typescript/src/providers/deepseek", name), "utf8");
 		assert.doesNotMatch(source, /@earendil-works\/pi|adaptPi|PiModel|openai|anthropic/i, name);
 	}
 	const cli = await readFile(join(REPOSITORY_ROOT, "typescript/src/cli.ts"), "utf8");

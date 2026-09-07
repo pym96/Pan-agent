@@ -9,25 +9,25 @@ import { fileURLToPath } from "node:url";
 import { PassThrough } from "node:stream";
 import { afterEach, test } from "node:test";
 import { response as panResponse, call as panCall, scriptedAdapter, stringParameters, emptyParameters, validateFixtureArguments } from "./pan-fixture.ts";
-import type { Message } from "../src/canonical-protocol.ts";
+import type { Message } from "../src/protocol/canonical-protocol.ts";
 import { runCli } from "../src/cli.ts";
-import type { ModelAdapter } from "../src/model-adapter-contract.ts";
+import type { ModelAdapter } from "../src/protocol/model-adapter-contract.ts";
 import {
 	ArchiveIdentityError,
 	ArchiveIntegrityError,
 	ArchiveSealedError,
 	RunArchiveStore,
 	verifyArchiveBytes,
-} from "../src/run-archive.ts";
-import { LedgerReferenceError, RetrospectiveLedger } from "../src/retrospective-ledger.ts";
-import { editRunbook, loadRunbook } from "../src/runbook.ts";
+} from "../src/memory/run-archive.ts";
+import { LedgerReferenceError, RetrospectiveLedger } from "../src/memory/retrospective-ledger.ts";
+import { editRunbook, loadRunbook } from "../src/memory/runbook.ts";
 import {
 	GENERAL_AGENT_SYSTEM_PROMPT,
 	GeneralAgentSession,
 	type SessionObservation,
-} from "../src/session.ts";
-import { createPanTrustedLocalTools } from "../src/pan-trusted-local-tools.ts";
-import { runTui } from "../src/tui.ts";
+} from "../src/runtime/session.ts";
+import { createPanTrustedLocalTools } from "../src/tools/pan-trusted-local-tools.ts";
+import { runTui } from "../src/tui/tui.ts";
 
 const TEST_RUNBOOK_REVISION = `sha256:${"0".repeat(64)}`;
 const temporaryDirectories: string[] = [];

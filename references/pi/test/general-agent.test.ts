@@ -15,14 +15,14 @@ import {
 } from "@earendil-works/pi-ai";
 import { runCli } from "../src/cli.ts";
 import { createPiDeepSeekAdapter, type PiModelAdapter } from "../src/model-adapter.ts";
-import { RunArchiveStore } from "../../../typescript/src/run-archive.ts";
+import { RunArchiveStore } from "../../../typescript/src/memory/run-archive.ts";
 import {
 	GENERAL_AGENT_SYSTEM_PROMPT,
 	GeneralAgentSession,
 	type SessionObservation,
 } from "../src/session.ts";
 import { createTrustedLocalTools } from "../src/tools.ts";
-import { renderObservation, runTui } from "../../../typescript/src/tui.ts";
+import { renderObservation, runTui } from "../../../typescript/src/tui/tui.ts";
 
 const TEST_RUNBOOK_REVISION = `sha256:${"0".repeat(64)}`;
 

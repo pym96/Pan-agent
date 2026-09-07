@@ -1,6 +1,6 @@
 # TypeScript Native Product
 
-Status: #34 is accepted and landed at `13d659a7292748f7f01dd592aa417848917d9065`; #35 compiled packaging is a Builder candidate pending independent review. This package is **Product**. It requires explicit Native selection and has no Pi dependency. The separate `references/pi/` package is **Frozen Reference** and is never installed or loaded by Product.
+Status: #35 is accepted and landed at `97fb7db1574a240b1a689733bc1b56791879c6d6`; #41 Module relocation is a Builder candidate pending independent review. This package remains **Product**, with explicit Native selection and no Pi dependency. `references/pi/` remains **Frozen Reference**; its only #41 changes retarget Product imports and source locators.
 
 One `GeneralAgentSession` owns admission and durable memory and delegates the same iterative semantics through AgentKernel to NativeKernel, using accepted Pan ModelAdapter, DeepSeek transport and trusted-local Tools. An explicitly supplied AgentKernel may enter this seam without exposing internal loop steps. #29 alone decides a future omitted-selector default.
 
@@ -96,7 +96,19 @@ Product checks use Pan Faux and canonical fixtures plus the content-hashed offli
 
 ## File navigation
 
-`src/session.ts` and `src/cli.ts` own Product selection/composition. `src/kernels/agent-kernel.ts` is the common injection seam; `src/kernels/native-kernel.ts` retains accepted semantics. `test/pan-fixture.ts` supplies canonical test scripts through the accepted Faux Adapter; `test/general-agent.test.ts` covers selection, CLI/TUI and P-D6. `scripts/check_workorder_34_scope.py` and `scripts/check_product_isolation.py` (from repository root) audit preservation and absence.
+Source Modules are indexed by `src/README.md` in the checkout:
 
+| Location | Responsibility |
+|---|---|
+| `src/protocol/` | Canonical protocol, AgentTool and ModelAdapter contracts |
+| `src/runtime/` | GeneralAgentSession, AgentKernel contract and NativeKernel |
+| `src/providers/deepseek/` | Existing DeepSeek profile, transport and Adapter |
+| `src/providers/faux/` | Existing Pan Faux Adapter |
+| `src/tools/` | Trusted-local read/write/edit/bash implementation |
+| `src/memory/` | Archive, retrospective ledger and Runbook implementation |
+| `src/tui/` | Existing TUI and observation/replay rendering |
+| `src/cli.ts`, `src/index.ts` | Concrete composition/CLI entry and public export facade |
 
-`tsconfig.build.json` and `scripts/build.mjs` compile `src/` into ignored `dist/`; `bin/pan-agent.mjs` is the executable delegate and `src/index.ts` the public export facade. `test/packaging.test.ts` checks fresh builds and the synthetic task fixture. Repository scripts `verify_packed_consumer.py`, `wo35-consumer-guard.mjs`, `wo35-consumer-driver.mjs` and `check_workorder_35_scope.py` retain the installed artifact proof without becoming runtime dependencies.
+The source command remains `npm run agent -- --kernel native ...`. Installed import names and bin behavior remain unchanged; only the internal `pan-agent/faux` target moves to `dist/providers/faux/faux-model-adapter.js`. `tsconfig.build.json` and `scripts/build.mjs` already compile nested source directories; no build algorithm or Runbook asset locator change is required. `dist/` and generated tarballs remain ignored output.
+
+Repository `scripts/check_module_layout.mjs` reconstructs exact source/import correspondence and checks dependency direction, scope and baseline test obligations. `scripts/check_public_package.mjs` compiles the same typed client against old/new installed tarballs and compares public named exports. The unchanged `scripts/verify_packed_consumer.py` and #35 driver/guards verify the real installed task. Historical `check_workorder_34_scope.py` / `check_workorder_35_scope.py` remain unchanged proofs runnable at their respective accepted SHAs; the #41 checker is the current scope gate. See `docs/design/native-module-layout.md` from the repository root for the complete relocation map and reproduction.

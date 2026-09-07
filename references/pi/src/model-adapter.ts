@@ -5,7 +5,7 @@ import type { StreamFn, ThinkingLevel } from "@earendil-works/pi-agent-core";
 import {
 	DEFAULT_DEEPSEEK_PROFILE,
 	type DeepSeekProfile,
-} from "../../../typescript/src/deepseek-profile.ts";
+} from "../../../typescript/src/providers/deepseek/deepseek-profile.ts";
 
 export {
 	DEEPSEEK_MODEL_IDS,
@@ -13,7 +13,7 @@ export {
 	isDeepSeekModelId,
 	type DeepSeekModelId,
 	type DeepSeekProfile,
-} from "../../../typescript/src/deepseek-profile.ts";
+} from "../../../typescript/src/providers/deepseek/deepseek-profile.ts";
 
 export interface PiModelAdapter {
 	readonly providerId: string;

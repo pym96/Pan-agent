@@ -1,6 +1,6 @@
-import type { AgentTool as PanAgentTool } from "./agent-tool.ts";
-import type { Message as PanMessage, Usage } from "./canonical-protocol.ts";
-import type { ModelAdapter } from "./model-adapter-contract.ts";
+import type { AgentTool as PanAgentTool } from "../protocol/agent-tool.ts";
+import type { Message as PanMessage, Usage } from "../protocol/canonical-protocol.ts";
+import type { ModelAdapter } from "../protocol/model-adapter-contract.ts";
 import {
 	type AgentKernel,
 	type KernelLimits,
@@ -9,10 +9,10 @@ import {
 	resolveKernelLimits,
 	type SessionObservation,
 	type TerminalStatus,
-} from "./kernels/agent-kernel.ts";
-import { NativeKernel } from "./kernels/native-kernel.ts";
-import type { ArchiveSettledState, RunArchiveStore, RunArchiveWriter } from "./run-archive.ts";
-import type { RunbookSnapshot } from "./runbook.ts";
+} from "./agent-kernel.ts";
+import { NativeKernel } from "./native-kernel.ts";
+import type { ArchiveSettledState, RunArchiveStore, RunArchiveWriter } from "../memory/run-archive.ts";
+import type { RunbookSnapshot } from "../memory/runbook.ts";
 
 export type {
 	AgentKernel,
@@ -21,7 +21,7 @@ export type {
 	ObservationSink,
 	SessionObservation,
 	TerminalStatus,
-} from "./kernels/agent-kernel.ts";
+} from "./agent-kernel.ts";
 
 function archiveStateFor(status: TerminalStatus): ArchiveSettledState {
 	switch (status) {
