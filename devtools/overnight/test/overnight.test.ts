@@ -129,6 +129,7 @@ test('C-AUTO-06 canary channels, hostile payloads and negative oracle controls',
   for(const kind of ['canary','hostile','accept']) {
     const f=fixture(kind);writeFileSync(join(f.workspace,'raw-synthetic-canary.txt'),canary);const s:any=await run(f.manifest,f.state);
     if(kind!=='accept')assert.equal(s.state,'needs_human');else assert.equal(s.state,'accepted_pending_master');
+    assert(!existsSync(join(f.workspace,'injected-sentinel')));
     clean(readFileSync(join(f.state,'ledger.json'),'utf8'));clean(safe(status(f.state)));
     const l=load(f.state);for(const a of l.attempts){const d=join(f.state,'attempts',a.key);clean(readFileSync(join(d,'observed-process.json'),'utf8'));clean(readFileSync(join(d,'input.json'),'utf8'));assert.equal(read(join(d,'observed-process.json')).env.OVERNIGHT_TEST_SECRET,undefined);}
     if(existsSync(join(f.state,'tracker')))for(const n of readdirSync(join(f.state,'tracker')))clean(readFileSync(join(f.state,'tracker',n),'utf8'));
