@@ -14,7 +14,7 @@ let exchanges=0;
 const adapter={providerId:'pan-faux (offline/scripted)',modelId:'pan-faux-v1',reasoningLevel:'off',async exchange(request){
  exchanges++;const task=request.context.messages.filter(m=>m.role==='user').at(-1).content.filter(c=>c.type==='text').map(c=>c.text).join('\n');const decoded=decodeAttachedTask(task);
  const text=decoded?`Offline Faux received ${decoded.attachments.length} snapshot(s), ${decoded.attachments.reduce((n,a)=>n+a.bytes,0)} original bytes as user data. Use :details or :runs then :replay RUN_ID to inspect the recorded snapshot.`:'Offline Faux received literal task text without an attachment.';
- const response={kind:'response',message:{role:'assistant',timestamp:0,content:[{type:'text',text}]},stopReason:'stop',usage:{status:'unavailable'},identity:{provider:{status:'reported',value:'pan-faux'},model:{status:'reported',value:'pan-faux-v1'},responseId:{status:'unavailable'}};
+ const response={kind:'response',message:{role:'assistant',timestamp:0,content:[{type:'text',text}]},stopReason:'stop',usage:{status:'unavailable'},identity:{provider:{status:'reported',value:'pan-faux'},model:{status:'reported',value:'pan-faux-v1'},responseId:{status:'unavailable'}}};
  return new FauxModelAdapter([response],{progress:async function*(_index,signal){for(const fragment of text.match(/.{1,8}/gu)??[]){if(signal.aborted)return;yield fragment;try{await delay(40,undefined,{signal});}catch{return;}}}}).exchange(request);
 }};
 console.log('OFFLINE FILE DEMO · installed Product · synthetic files · deterministic Faux');console.log(`Disposable snapshots and archives: ${root}`);
