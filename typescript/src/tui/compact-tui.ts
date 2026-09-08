@@ -2,17 +2,21 @@ import { readdir, lstat } from "node:fs/promises";
 import { join } from "node:path";
 import type { TuiOptions } from "./tui.ts";
 import { terminalText } from "./presentation.ts";
+import { AttachmentPicker } from "./attachment-picker.ts";
+import { validateAttachmentLimit } from "../input/attachments.ts";
 import { TerminalInput } from "./terminal-input.ts";
 
 export async function runCompactTui(options: TuiOptions): Promise<number> {
+	const maxAttachmentBytes = validateAttachmentLimit(options.maxAttachmentBytes);
 	const presentation = options.presentation!;
 	let phase: "confirm" | "idle" | "running" | "command" | "closed" = "confirm";
 	let cancelled = false, ending = false;
 	let resolveClosed!: () => void;
 	const closed = new Promise<void>(resolve => { resolveClosed = resolve; });
 	let terminal: TerminalInput;
+	let attachments: AttachmentPicker;
 	const write = (line: string) => terminal.write(line);
-	function finish(): void { phase = "closed"; terminal.setPrompt(""); resolveClosed(); }
+	function finish(): void { attachments?.close(); phase = "closed"; terminal.setPrompt(""); resolveClosed(); }
 	function interrupt(): void {
 		if (phase === "running") { cancelled = true; write("Cancellation requested; waiting for settlement."); options.session.cancel(); }
 		else if (phase !== "command") { if (phase === "confirm") write("Cancelled before Provider use."); finish(); }
@@ -21,7 +25,10 @@ export async function runCompactTui(options: TuiOptions): Promise<number> {
 	async function command(text: string): Promise<void> {
 		const store = options.archiveStore;
 		if (text === ":exit") { finish(); return; }
-		if (text === ":help") { write(":details inspect · :context context · :runs history · :replay RUN_ID replay · :exit quit; Ctrl-C cancels a running task and retains your draft."); return; }
+		if (text === ":help") { write(":details inspect · :context context · :runs history · :replay RUN_ID replay · :exit quit; Ctrl-C cancels a running task and retains your draft. @ after whitespace: file picker; Esc: literal @query; Ctrl-P: attachment preview; Ctrl-R: remove last; :attachments / :preview / :remove N."); return; }
+		if (text === ":attachments") { attachments.summary(); return; }
+		if (text === ":preview") { attachments.preview(); return; }
+		if (text.startsWith(":remove ")) { attachments.remove(Number(text.slice(8))-1); return; }
 		if (text === ":details") { presentation.details(); return; }
 		if (text === ":context") { write(`CONTEXT messages=${options.session.contextMessageCount} owner=${options.session.kernelKind} truncation=none`); return; }
 		if (text === ":runs") {
@@ -49,8 +56,8 @@ export async function runCompactTui(options: TuiOptions): Promise<number> {
 		}
 		write(`Unknown command: ${terminalText(text)}; no Provider call was made.`);
 	}
-	async function execute(text: string): Promise<void> {
-		try { if (text.trim().startsWith(":")) await command(text.trim()); else presentation.settle(await options.session.runTask(text)); }
+	async function execute(text: string, isCommand: boolean): Promise<void> {
+		try { if (isCommand) await command(text.trim()); else presentation.settle(await options.session.runTask(text)); }
 		catch (error) { write(`LOCAL_ERROR ${terminalText(error instanceof Error ? error.message : "unknown")}`); }
 		finally { if (phase !== "closed") { if (ending) finish(); else { phase = "idle"; terminal.setPrompt("You > "); } } }
 	}
@@ -62,19 +69,23 @@ export async function runCompactTui(options: TuiOptions): Promise<number> {
 			else { phase = "idle"; write(":help for commands · :details for run details"); terminal.setPrompt("You > "); }
 			return true;
 		}
-		if (!text.trim()) { write("Task must not be blank; no Provider call was made."); return true; }
-		phase = text.trim().startsWith(":") ? "command" : "running"; cancelled = false;
+		if (!text.trim() && !attachments.count) { write("Task must not be blank; no Provider call was made."); return true; }
+		const isCommand = text.trim().startsWith(":");
+		const prepared = isCommand ? text : attachments.prepare(text);
+		phase = isCommand ? "command" : "running"; cancelled = false;
 		terminal.setPrompt(phase === "running" ? "Draft > " : "");
 		// Start after TerminalInput has synchronously committed/cleared the submitted draft.
-		queueMicrotask(() => { void execute(text); });
+		queueMicrotask(() => { void execute(prepared, isCommand); });
 		return true;
-	}, interrupt, end);
+	}, interrupt, end, (text, key) => phase === "idle" && attachments.handleKey(text, key));
+	attachments = new AttachmentPicker(options.workspace, terminal, write, maxAttachmentBytes);
 	presentation.attach(write, () => { if (cancelled) options.session.cancel(); }, fragment => terminal.append(fragment));
 	write(`Pan Agent · Native · ${terminalText(options.provider)}`);
 	write(`Model: ${terminalText(options.model)}`);
 	write(`Workspace: ${terminalText(options.workspace)}`);
 	write("SHELL trusted-local: host-user authority; workspace is cwd, not containment or an OS sandbox.");
 	write("The selected model is called only for a confirmed nonblank task; local commands make no model calls.");
+	write(`Attachments: @ picker · Ctrl-P preview · Ctrl-R remove last · ${maxAttachmentBytes} byte aggregate local policy; snapshots are sent and archived only on submit.`);
 	terminal.setPrompt("Confirm provider and trusted-local workspace [y/N]> ");
 	try { await closed; return 0; }
 	finally { terminal.close(); await options.session.close(); (options.output ?? process.stdout).write("General Agent TUI closed.\n"); }

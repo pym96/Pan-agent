@@ -59,3 +59,5 @@ The Human-accepted architecture history remains indexed in [`../adr/README.md`](
 
 - [Native streaming TUI](native-streaming-tui.md): #44 optional transient progress interface, English labels, safety boundaries and reproduction.
 - [#44 obligation map](workorder-44-obligations.json): all 83 prior tests, precise presentation substitutions and approved wiring diffs.
+
+[native-file-input.md](native-file-input.md) and [workorder-43-obligations.json](workorder-43-obligations.json): #43 explicit snapshots, exact task envelope, named review outputs and 92 retained obligations.

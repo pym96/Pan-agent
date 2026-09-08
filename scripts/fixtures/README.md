@@ -20,3 +20,5 @@ These are verification clients, not Product implementations or live Provider res
 - [streaming-replay-consumer.mjs](streaming-replay-consumer.mjs): fresh installed replay with task-file read traps and exact sealed hashes.
 
 - [streaming-fresh-replay.mjs](streaming-fresh-replay.mjs): new-process replay of actual interrupted stream archives; no preview cache, task reads or effects.
+
+#43 synthetic installed fixtures: [file-pty-driver.mjs](file-pty-driver.mjs) and [file-fresh-replay.mjs](file-fresh-replay.mjs). The PTY driver captures exact Context and content-read targets; fresh replay traps source reads and compares sealed hashes.

@@ -60,7 +60,7 @@ test("C-CUT-06 assignment and ADR record architectural supersession", async () =
 	const assignment = await text("docs/agents/current-assignment.md");
 	assert.match(
 		assignment,
-		/## Active mission \| WorkOrder #44 Streaming and English TUI/,
+		/## Active mission \| WorkOrder #43 Explicit file input/,
 	);
 	assert.match(assignment, /## Accepted foundation \| WorkOrder #32 Pan Faux Adapter and product Tools/);
 	assert.match(

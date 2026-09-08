@@ -19,3 +19,7 @@ export type { ModelTextDelta, ModelProgressSink } from "./protocol/model-adapter
 export type { SessionProgress, ProgressSink } from "./runtime/agent-kernel.ts";
 export { PanDeepSeekModelAdapter, createPanDeepSeekAdapter } from "./providers/deepseek/pan-deepseek-model-adapter.ts";
 export { DeepSeekFetchTransport } from "./providers/deepseek/deepseek-transport.ts";
+
+export { captureAttachment, discoverAttachmentPaths, validateAttachmentLimit, DEFAULT_MAX_ATTACHMENT_BYTES, AttachmentError } from "./input/attachments.ts";
+export { prepareAttachedTask, decodeAttachedTask } from "./input/task-envelope.ts";
+export type { AttachmentSnapshot, AttachedTask } from "./input/task-envelope.ts";

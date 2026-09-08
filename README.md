@@ -166,3 +166,5 @@ The historical Local Workspace v1 specification remains [GitHub Issue #1](https:
 The [compact TUI guide](docs/design/native-compact-tui.md) covers progress, `:details`, archive replay and the offline/scripted interactive demo. Criteria-Version 1.1 governs the candidate; independent and Human review remain required. The established real DeepSeek route above is available for separately chosen Human use.
 
 Current candidate #44: [public text streaming, English compact UI and installed offline demo](docs/design/native-streaming-tui.md). Criteria-Version 1.0; independent review pending.
+
+[WorkOrder #43 explicit file input](docs/design/native-file-input.md): candidate input-layer design, checks and offline installed demo.

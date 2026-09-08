@@ -10,3 +10,5 @@ The Native [CLI](../cli.ts) explicitly constructs and attaches the compact prese
 See the [#42 guide](../../../docs/design/native-compact-tui.md) for the offline demo and review requirements.
 
 #44 [streaming policy](../../../docs/design/native-streaming-tui.md) adds framed provisional public text, surrogate-safe incremental escaping and bounded visual-line redraw above the editable draft. Product-owned labels are English; data language and legacy renderers are unchanged.
+
+[attachment-picker.ts](attachment-picker.ts) owns idle selection/preview/removal and calls [input preparation](../input/README.md); TerminalInput provides an optional idle key interceptor. Presentation decodes only intact recorded snapshots.

@@ -19,18 +19,22 @@ import { runTui } from "./tui/tui.ts";
 import { createCompactPresentation, observeSafely, terminalText, type CompactPresentation } from "./tui/presentation.ts";
 import type { SessionObservation } from "./runtime/session.ts";
 
+import { validateAttachmentLimit } from "./input/attachments.ts";
+
 export const CLI_USAGE = `Usage:
-  npm run agent -- --workspace /absolute/path --memory-root /absolute/path --kernel native [--model deepseek-v4-flash|deepseek-v4-pro] [--thinking low|high|max]
+  npm run agent -- --workspace /absolute/path --memory-root /absolute/path --kernel native [--model deepseek-v4-flash|deepseek-v4-pro] [--thinking low|high|max] [--max-attachment-bytes INTEGER]
 
 The Product requires explicit --kernel native; NativeKernel receives Pan-owned typed read/write/edit/bash implementations directly.
 The bash tool is trusted-local: it has host-user authority; --workspace sets cwd but is not containment or an OS sandbox.
 Every admitted run is durably archived under --memory-root (must be disjoint from the workspace) with the current Runbook revision; :details, :runs and :replay inspect sealed archives with zero Provider calls or tool effects.
+Attachments use selection-time UTF-8 snapshots; default aggregate maxAttachmentBytes=1048576 (1 MiB local byte policy, not a model token limit). Override with --max-attachment-bytes; never truncates.
 No Provider call occurs for --help, startup, cancellation before confirmation, or TUI commands.`;
 
 const RUNBOOK_PATH = resolve(dirname(fileURLToPath(import.meta.url)), "..", "RUNBOOK.md");
 
 export interface CliConfiguration {
 	readonly help: boolean;
+	readonly maxAttachmentBytes?: number;
 	readonly workspace?: string;
 	readonly memoryRoot?: string;
 	readonly kernel: KernelSelector;
@@ -38,6 +42,7 @@ export interface CliConfiguration {
 }
 
 export function parseCliArgs(args: readonly string[]): CliConfiguration {
+	let maxAttachmentBytes = validateAttachmentLimit();
 	let workspace: string | undefined;
 	let memoryRoot: string | undefined;
 	let kernel: string | undefined;
@@ -49,9 +54,13 @@ export function parseCliArgs(args: readonly string[]): CliConfiguration {
 			return { help: true, kernel: "native", profile: DEFAULT_DEEPSEEK_PROFILE };
 		}
 		const value = args[index + 1];
-		if (argument === "--workspace" || argument === "--memory-root" || argument === "--kernel" || argument === "--model" || argument === "--thinking") {
+		if (argument === "--workspace" || argument === "--memory-root" || argument === "--kernel" || argument === "--model" || argument === "--thinking" || argument === "--max-attachment-bytes") {
 			if (!value || value.startsWith("--")) throw new Error(`${argument} requires a value`);
 			index += 1;
+			if (argument === "--max-attachment-bytes") {
+				if (!/^[0-9]+$/.test(value)) throw new Error("attachment_limit_invalid");
+				maxAttachmentBytes = validateAttachmentLimit(Number(value));
+			}
 			if (argument === "--workspace") workspace = value;
 			if (argument === "--memory-root") memoryRoot = value;
 			if (argument === "--kernel") kernel = value;
@@ -70,6 +79,7 @@ export function parseCliArgs(args: readonly string[]): CliConfiguration {
 	}
 	return {
 		help: false,
+		maxAttachmentBytes,
 		workspace,
 		memoryRoot,
 		kernel,
@@ -180,6 +190,7 @@ export async function runCli(args: readonly string[], dependencies: CliDependenc
 		workspace,
 		output,
 		archiveStore,
+		maxAttachmentBytes: configuration.maxAttachmentBytes,
 	});
 }
 

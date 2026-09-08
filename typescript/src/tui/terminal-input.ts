@@ -3,6 +3,8 @@ import type { Readable, Writable } from "node:stream";
 import type { ReadStream } from "node:tty";
 import { terminalText } from "./presentation.ts";
 
+export interface InputKey {name?: string; ctrl?: boolean; meta?: boolean; sequence?: string}
+
 /** One editable draft; Enter delegates admission and never creates a queue. */
 export class TerminalInput {
 	private draft: string[] = [];
@@ -19,7 +21,9 @@ export class TerminalInput {
 	private readonly enter: (text: string) => boolean;
 	private readonly interrupt: () => void;
 	private readonly ended: () => void;
-	constructor(input: Readable, output: Writable, enter: (text: string) => boolean, interrupt: () => void, ended: () => void) {
+	private readonly intercept?: (text: string | undefined, key: InputKey) => boolean;
+	constructor(input: Readable, output: Writable, enter: (text: string) => boolean, interrupt: () => void, ended: () => void, intercept?: (text: string | undefined, key: InputKey) => boolean) {
+		this.intercept = intercept;
 		this.input = input; this.output = output; this.enter = enter; this.interrupt = interrupt; this.ended = ended;
 		this.tty = (input as ReadStream).isTTY === true && (output as {isTTY?: boolean}).isTTY === true;
 		this.wasRaw = (input as ReadStream).isRaw === true;
@@ -28,6 +32,8 @@ export class TerminalInput {
 		input.on("keypress", this.key); input.on("end", this.ended);
 		input.resume();
 	}
+	beforeCursor(): string { return this.draft.slice(0, this.cursor).join(""); }
+	insert(text: string): void { this.clear(); const points = Array.from(text); this.draft.splice(this.cursor, 0, ...points); this.cursor += points.length; this.draw(); }
 	/** Append already-safe framed model data; only the unfinished visual line is redrawn. */
 	append(fragment: string): void {
 		if (!this.tty) { this.output.write(fragment); this.partial = (this.partial + fragment).split("\n").at(-1)!; return; }
@@ -63,7 +69,8 @@ export class TerminalInput {
 		if (this.tty) (this.input as ReadStream).setRawMode(this.wasRaw);
 		this.input.pause();
 	}
-	private readonly key = (text: string | undefined, key: {name?: string; ctrl?: boolean; meta?: boolean; sequence?: string} = {}): void => {
+	private readonly key = (text: string | undefined, key: InputKey = {}): void => {
+		if (this.intercept?.(text, key)) return;
 		if (key.ctrl && key.name === "c") { this.interrupt(); return; }
 		if (key.ctrl && key.name === "d") { this.ended(); return; }
 		if (key.name === "return" || key.name === "enter") {

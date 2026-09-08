@@ -240,3 +240,5 @@ The preview deterministically enumerates the unchanged 120-slot denominator and 
 - [check_streaming_scope.mjs](check_streaming_scope.mjs) and [check_streaming_public_package.mjs](check_streaming_public_package.mjs): current scope/graph, protected wiring and legacy public client compatibility.
 - [demo_streaming.mjs](demo_streaming.mjs) and [verify_streaming_demo.py](verify_streaming_demo.py): actual installed offline interactive demo and Builder trial.
 - [Design and commands](../docs/design/native-streaming-tui.md); historical scripts remain unchanged.
+
+#43: [demo_files.mjs](demo_files.mjs), [verify_file_demo.py](verify_file_demo.py), [verify_file_pty.py](verify_file_pty.py), [check_file_scope.mjs](check_file_scope.mjs), [check_file_graph.mjs](check_file_graph.mjs), [verify_file_scope.py](verify_file_scope.py) and [check_file_public_package.mjs](check_file_public_package.mjs). Existing #44 consumer and streaming verifiers run unchanged.

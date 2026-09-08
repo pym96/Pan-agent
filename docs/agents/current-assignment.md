@@ -2,11 +2,15 @@
 
 This document owns the current project lane, constraints, and non-goals. It does not grant a session-specific task or establish implementation facts. A Working session starts only from a Master-published WorkOrder, and that WorkOrder cannot widen this lane or override Human decisions. Read the fact register linked from the root Agent map before making any current-state statement.
 
-## Active mission | WorkOrder #44 Streaming and English TUI
+## Active mission | WorkOrder #43 Explicit file input
 
-The [#44 WorkOrder](https://github.com/pym96/Pan-agent/issues/44) and [activation](https://github.com/pym96/Pan-agent/issues/44#issuecomment-5579434691) bind Criteria-Version `1.0`, C-STR-01…07, at accepted base `fd408c4ecd236cf97d509436085e4df461829e9e`. The Builder candidate adds an optional public-text progress sink through Adapter/Native/Session and English compact UI labels. The completed ModelOutcome stays authoritative; transient unvalidated previews are never archived. [Interface, checks and installed demo](../design/native-streaming-tui.md) describe the candidate boundary and replay limit.
+The [#43 WorkOrder](https://github.com/pym96/Pan-agent/issues/43) and [activation](https://github.com/pym96/Pan-agent/issues/43#issuecomment-5581025788) bind Criteria-Version `1.0`, C-FILE-01…06, at accepted base `28b524deafaef3494a5c1865c5ad68c5635f1f74`. The Builder candidate adds deliberate idle `@` selection, immutable UTF-8 snapshots, user-data task preparation and safe inspection/replay above the existing session task-string seam. [Design and demo](../design/native-file-input.md) and [obligation map](../design/workorder-43-obligations.json) define the scope.
 
-Only additive protocol/routing, concrete Adapter streaming/cleanup and Product display are authorized. Tool implementations, permissions, canonical validators, budgets, Runbook, Provider request settings, durable memory and Reference remain unchanged. Keep explicit `--kernel native`. No real Provider/credential/balance/paid calls, main push, npm publication, #43 or other work. C-STR-03/05 need separate Regulator plus different-family or explicit Human review of named cancellation/effect and visibility/control outputs. Builder checks and a demo do not constitute that Verdict; aesthetics are not a new blocking criterion.
+Only the input/TUI layer and narrow CLI config/export composition are authorized. Runtime, Protocol, Provider, Tools, memory/archive implementation, Runbook, dependencies, Reference and historical evidence remain byte-identical. No real Provider/credential/balance/paid calls, main push, npm publication or another WorkOrder. C-FILE-03/05 require independent Regulator plus different-family or explicit Human review of F-AUTH/F-DISPLAY. Builder checks do not declare acceptance.
+
+## Accepted foundation | WorkOrder #44 Streaming and English TUI
+
+#44 was accepted and landed unchanged at `28b524deafaef3494a5c1865c5ad68c5635f1f74`. Its [design](../design/native-streaming-tui.md), [obligation map](../design/workorder-44-obligations.json), scripts, fixtures and retained evidence remain unchanged. Completed ModelOutcome stays authoritative and unfinished previews are not archived. #43 retains all 92 prior Product tests and the fixed installed write/bash/read and streaming probes; historical #44 scope runs on its exact accepted snapshot.
 
 ## Accepted foundation | WorkOrder #42 compact UI
 

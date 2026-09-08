@@ -6,6 +6,7 @@ import type { RunArchiveStore } from "../memory/run-archive.ts";
 import type { GeneralAgentSession, SessionObservation, TaskRunResult } from "../runtime/session.ts";
 
 export interface TuiOptions {
+	readonly maxAttachmentBytes?: number;
 	/** Omitted retains the legacy/Reference presentation. */
 	readonly presentation?: CompactPresentation;
 	readonly session: GeneralAgentSession;

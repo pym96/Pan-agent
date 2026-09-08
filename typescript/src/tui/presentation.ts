@@ -1,3 +1,4 @@
+import { decodeAttachedTask } from "../input/task-envelope.ts";
 import type { SessionProgress } from "../runtime/agent-kernel.ts";
 import type { SessionObservation, TaskRunResult } from "../runtime/session.ts";
 
@@ -90,8 +91,18 @@ export function createCompactPresentation(initialWrite: (line: string) => void =
 		const args = object(record.arguments);
 		return typeof args.path === "string" ? args.path : typeof args.command === "string" ? args.command : "";
 	};
+	function attachedTask(task: string, full: boolean): void {
+		const decoded = decodeAttachedTask(task);
+		if (!decoded) { if (full) emit(framed("Task", task)); return; }
+		if (full) emit(framed("Original prompt (user data)", decoded.prompt));
+		write(`Recorded attachments ${decoded.attachments.length} · selection-time snapshots · user data`);
+		for (const item of decoded.attachments) {
+			emit(framed("Snapshot identity", `${item.path}\n${item.bytes} bytes\nSHA-256 ${item.sha256}`));
+			if (full) emit(framed("Recorded snapshot content", item.text));
+		}
+	}
 	function progress(record: Record<string, unknown>): void {
-		if (record.type === "run.started") write("Task running");
+		if (record.type === "run.started") { write("Task running"); attachedTask(str(record.task), false); }
 		if (record.type === "model.turn_started") write("  · Waiting for model");
 		if (record.type === "tool.started") write(`  · ${terminalText(str(record.toolName))} ${identifierPreview(identifier(record))} · Waiting for tool · :details`);
 		if (record.type === "tool.settled") write(`  ${record.isError === true ? "✗ Error" : "✓ Returned"} ${terminalText(str(record.toolName))} · :details`);
@@ -147,7 +158,7 @@ export function createCompactPresentation(initialWrite: (line: string) => void =
 			for (const record of records) {
 				switch (record.type) {
 					case "run.started":
-						emit(framed("Task", str(record.task)));
+						attachedTask(str(record.task), true);
 						emit(framed("Archive identity", JSON.stringify(selected(record, ["provider", "model", "runbook_revision"])))); break;
 					case "model.turn_settled":
 						emit(framed("Model identity and stop reason", `${identityText(record.identity)} · stop=${str(record.stopReason)}`));
