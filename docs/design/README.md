@@ -63,3 +63,5 @@ The Human-accepted architecture history remains indexed in [`../adr/README.md`](
 [native-file-input.md](native-file-input.md) and [workorder-43-obligations.json](workorder-43-obligations.json): #43 explicit snapshots, exact task envelope, named review outputs and 92 retained obligations.
 
 [native-file-input-repair.md](native-file-input-repair.md) and [workorder-43-repair-obligations.json](workorder-43-repair-obligations.json): prospective #43 Criteria 1.1 and eight-criterion evidence map.
+
+- [Overnight handoff](overnight-handoff.md) and [#45 obligations](workorder-45-obligations.json): independent offline development-tool candidate.

@@ -18,3 +18,5 @@
 - [`deepseek-live-tui-smoke-candidate-2026-08-31.md`](deepseek-live-tui-smoke-candidate-2026-08-31.md) preserves WorkOrder #21's historical Live TUI observation: one retained Provider exchange, usage and balance-delta coverage, a three-ToolCall response rejected before workspace effects, and the failed exact-file oracle. The Regulator found no contemporaneous durable issue-level pre-call authorization, so this is not accepted Evidence and cannot support benchmark, fact, resume, or Provider-quality claims.
 
 Raw artifacts remain at their stable source, Git, Trace, Test, evaluator, or external-record locations. This directory indexes Evidence; it does not duplicate generated artifacts.
+
+- [Overnight handoff offline candidate](overnight-handoff-offline-candidate.md): #45 evidence navigation; independent review pending.

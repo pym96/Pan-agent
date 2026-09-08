@@ -1,0 +1,76 @@
+{
+  "workorder": 45,
+  "criteria_version": "1.0",
+  "base": "eda8bd58e95ff52af95fe2e021ebf6c7778ba74f",
+  "contract_sha256": "16201f3754e32226b7fdedd1ff26b09f17aa0b0ba6e72d948bb140d1dee7d5d0",
+  "criteria": [
+    {
+      "id": "C-AUTO-01",
+      "gate": "high-risk",
+      "output": "A-IDENTITY",
+      "test": "devtools/overnight/test/overnight.test.ts",
+      "oracle": "Deterministic invariant/test",
+      "independent_review": "Regulator plus different family or explicit Human"
+    },
+    {
+      "id": "C-AUTO-02",
+      "gate": "standard",
+      "output": "A-ROUTE",
+      "test": "devtools/overnight/test/overnight.test.ts",
+      "oracle": "Deterministic invariant/test",
+      "independent_review": "independent Regulator"
+    },
+    {
+      "id": "C-AUTO-03",
+      "gate": "standard",
+      "output": "A-RECOVERY",
+      "test": "devtools/overnight/test/overnight.test.ts",
+      "oracle": "Deterministic invariant/test",
+      "independent_review": "independent Regulator"
+    },
+    {
+      "id": "C-AUTO-04",
+      "gate": "standard",
+      "output": "A-LIMITS",
+      "test": "devtools/overnight/test/overnight.test.ts",
+      "oracle": "Deterministic invariant/test",
+      "independent_review": "independent Regulator"
+    },
+    {
+      "id": "C-AUTO-05",
+      "gate": "high-risk",
+      "output": "A-CANCEL",
+      "test": "devtools/overnight/test/overnight.test.ts",
+      "oracle": "Deterministic invariant/test",
+      "independent_review": "Regulator plus different family or explicit Human"
+    },
+    {
+      "id": "C-AUTO-06",
+      "gate": "high-risk",
+      "output": "A-CONTAINMENT",
+      "test": "devtools/overnight/test/overnight.test.ts",
+      "oracle": "Deterministic invariant/test",
+      "independent_review": "Regulator plus different family or explicit Human"
+    },
+    {
+      "id": "C-AUTO-07",
+      "gate": "standard",
+      "output": "A-PACKAGE",
+      "test": "devtools/overnight/test/overnight.test.ts",
+      "oracle": "Deterministic invariant/test",
+      "independent_review": "independent Regulator"
+    }
+  ],
+  "required_checks": [
+    "npm --prefix devtools/overnight run check",
+    "npm --prefix typescript run check (100)",
+    "npm --prefix typescript run conformance (18)",
+    "npm --prefix references/pi run check (34)",
+    "npm --prefix references/pi run conformance (13)",
+    "bash scripts/check_typescript_without_python.sh (100)",
+    "unchanged authorized candidate-mode host gate: validator 82 and Python 259"
+  ],
+  "protected_bytes": "all base tracked files except explicit documentation index allowlist in src/check-package.ts; all typescript/**, references/**, existing scripts, Python, rules and evidence unchanged",
+  "zero_external": "no real coding-agent launches, Provider/credential/balance calls or paid runs; synthetic fixtures only",
+  "stop": "new full SHA-bound Handoff then await independent review"
+}

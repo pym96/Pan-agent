@@ -2,11 +2,13 @@
 
 This document owns the current project lane, constraints, and non-goals. It does not grant a session-specific task or establish implementation facts. A Working session starts only from a Master-published WorkOrder, and that WorkOrder cannot widen this lane or override Human decisions. Read the fact register linked from the root Agent map before making any current-state statement.
 
-## Active mission | WorkOrder #43 Explicit file input
+## Active mission | WorkOrder #45 offline development coordinator
 
-The [prospective #43 amendment](https://github.com/pym96/Pan-agent/issues/43#issuecomment-5583617915) binds Criteria-Version `1.1`, inherited C-FILE-01…06 plus C-FILE-R01/R02. Accepted base stays `28b524deafaef3494a5c1865c5ad68c5635f1f74`; additive repair starts at `4cc479a16cd2767efda06c46f3d006f281e4c324`. [Repair design](../design/native-file-input-repair.md) and [repair obligations](../design/workorder-43-repair-obligations.json) limit the delta to picker navigation/query editing and explicit unsubmitted composer feedback. Old 1.0 contracts, Handoff, source/package/Evidence identities remain intact. Review transition must be acknowledged as actually observed, not assumed.
+[Activation 1.0](https://github.com/pym96/Pan-agent/issues/45#issuecomment-5584581317) authorizes [independent Product development tooling](../../devtools/README.md), outside the distributed Pan product, from accepted base `eda8bd58e95ff52af95fe2e021ebf6c7778ba74f`. Only the separate `devtools/overnight/` utility and named documentation indexes are in scope. [Design](../design/overnight-handoff.md) and [obligations](../design/workorder-45-obligations.json) cover seven criteria. Use fake local role processes/tracker only; no real account/Agent activation, main integration or UI A/B/C. High-risk 01/05/06 retain independent additional review of A-IDENTITY/A-CANCEL/A-CONTAINMENT. Candidate Handoff binds the full SHA, then Builder stops.
 
-Only the named TUI files, repair tests/scripts and documentation are authorized. Input snapshot/envelope modules, Runtime, Protocol, Provider, Tools, memory/archive, CLI configuration, Runbook, dependencies, Reference and historical Evidence remain unchanged. No main push, real Provider/credential/balance/paid calls, A/B/C or other work. C-FILE-03/05 retain independent Regulator plus different-family or explicit Human review of the new F-AUTH/F-DISPLAY outputs. Handoff #2 binds the full descendant SHA and 1.1, then Builder stops.
+## Accepted foundation | WorkOrder #43 file input and minimal repair
+
+#43 Criteria-Version 1.1 was [independently accepted](https://github.com/pym96/Pan-agent/issues/43#issuecomment-5584418862) and [landed unchanged](https://github.com/pym96/Pan-agent/issues/43#issuecomment-5584495922) at `eda8bd58e95ff52af95fe2e021ebf6c7778ba74f`. Its [repair design](../design/native-file-input-repair.md), maps, source/tests, old 1.0 and 1.1 Handoffs, installed packages and evidence retain their original identities. This new development-tool lane does not modify the TUI or reopen those criteria.
 
 ## Accepted foundation | WorkOrder #44 Streaming and English TUI
 

@@ -170,3 +170,7 @@ Current candidate #44: [public text streaming, English compact UI and installed 
 [WorkOrder #43 explicit file input](docs/design/native-file-input.md): candidate input-layer design, checks and offline installed demo.
 
 [File input repair 1.1](docs/design/native-file-input-repair.md): prospective #43 navigation, query editing and unsubmitted composer feedback; A/B/C remain future work.
+
+## Offline development tooling
+
+[Single-WorkOrder handoff](devtools/overnight/README.md) is independent Product development tooling under #45, outside the Pan install/build/startup graph. It uses SIMULATED local processes only; no real Agent/account activation.
