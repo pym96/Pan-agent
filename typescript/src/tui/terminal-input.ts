@@ -3,7 +3,7 @@ import type { Readable, Writable } from "node:stream";
 import type { ReadStream } from "node:tty";
 import { terminalText } from "./presentation.ts";
 
-export interface InputKey {name?: string; ctrl?: boolean; meta?: boolean; sequence?: string}
+export interface InputKey {name?: string; ctrl?: boolean; meta?: boolean; shift?: boolean; sequence?: string}
 
 /** One editable draft; Enter delegates admission and never creates a queue. */
 export class TerminalInput {
@@ -21,9 +21,10 @@ export class TerminalInput {
 	private readonly enter: (text: string) => boolean;
 	private readonly interrupt: () => void;
 	private readonly ended: () => void;
+	private readonly hint?: (draft: string) => string;
 	private readonly intercept?: (text: string | undefined, key: InputKey) => boolean;
-	constructor(input: Readable, output: Writable, enter: (text: string) => boolean, interrupt: () => void, ended: () => void, intercept?: (text: string | undefined, key: InputKey) => boolean) {
-		this.intercept = intercept;
+	constructor(input: Readable, output: Writable, enter: (text: string) => boolean, interrupt: () => void, ended: () => void, intercept?: (text: string | undefined, key: InputKey) => boolean, hint?: (draft: string) => string) {
+		this.intercept = intercept; this.hint = hint;
 		this.input = input; this.output = output; this.enter = enter; this.interrupt = interrupt; this.ended = ended;
 		this.tty = (input as ReadStream).isTTY === true && (output as {isTTY?: boolean}).isTTY === true;
 		this.wasRaw = (input as ReadStream).isRaw === true;
@@ -98,8 +99,9 @@ export class TerminalInput {
 	}
 	private draw(): void {
 		if (this.editing || (!this.prompt && !this.partial) || this.visible) return;
-		if (!this.tty) { if (this.prompt !== "Draft > ") this.output.write(this.prompt); this.visible = true; return; }
-		const stream = this.partial ? this.partial + "\n" : "";
+		const hint = this.prompt ? this.hint?.(this.draft.join("")) ?? "" : "";
+		if (!this.tty) { if (this.prompt !== "Draft > ") { if (hint) this.output.write(hint + "\n"); this.output.write(this.prompt); } this.visible = true; return; }
+		const stream = (this.partial ? this.partial + "\n" : "") + (hint ? hint + "\n" : "");
 		const full = stream + this.prompt + terminalText(this.draft.join(""));
 		const prefix = stream + this.prompt + terminalText(this.draft.slice(0, this.cursor).join(""));
 		const columns = Math.max(1, (this.output as {columns?: number}).columns ?? 80);

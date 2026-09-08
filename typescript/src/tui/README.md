@@ -12,3 +12,5 @@ See the [#42 guide](../../../docs/design/native-compact-tui.md) for the offline 
 #44 [streaming policy](../../../docs/design/native-streaming-tui.md) adds framed provisional public text, surrogate-safe incremental escaping and bounded visual-line redraw above the editable draft. Product-owned labels are English; data language and legacy renderers are unchanged.
 
 [attachment-picker.ts](attachment-picker.ts) owns idle selection/preview/removal and calls [input preparation](../input/README.md); TerminalInput provides an optional idle key interceptor. Presentation decodes only intact recorded snapshots.
+
+[Criteria 1.1 repair](../../../docs/design/native-file-input-repair.md): picker navigation aliases and Node grapheme cursor; TerminalInput renders an optional persistent composer hint. Snapshot/Context/execution semantics stay in their existing modules.

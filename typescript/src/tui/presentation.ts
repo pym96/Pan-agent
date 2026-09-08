@@ -151,7 +151,7 @@ export function createCompactPresentation(initialWrite: (line: string) => void =
 			summary();
 		},
 		details() {
-			if (!selectedId) { write("No run selected; submit a task or use :replay RUN_ID."); return; }
+			if (!selectedId) { write("No submitted run yet. No run selected; submit a task or use :replay RUN_ID."); return; }
 			write(`Run details ${terminalText(selectedId)} · ${archived ? "archived" : "live"}`);
 			write(`Admitted tool calls ${result?.toolCalls ?? missing} · Tool start events ${count("tool.started")} · Tool results ${count("tool.settled")}`);
 			write(`Model calls ${result?.modelCalls ?? missing} · Model start events ${count("model.turn_started")} · Model result events ${count("model.turn_settled")}`);

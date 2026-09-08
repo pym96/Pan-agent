@@ -22,3 +22,5 @@ These are verification clients, not Product implementations or live Provider res
 - [streaming-fresh-replay.mjs](streaming-fresh-replay.mjs): new-process replay of actual interrupted stream archives; no preview cache, task reads or effects.
 
 #43 synthetic installed fixtures: [file-pty-driver.mjs](file-pty-driver.mjs) and [file-fresh-replay.mjs](file-fresh-replay.mjs). The PTY driver captures exact Context and content-read targets; fresh replay traps source reads and compares sealed hashes.
+
+#43 repair: [file-repair-driver.mjs](file-repair-driver.mjs) is test-only key/state/async/display-fault instrumentation; [file-repair-screen.py](file-repair-screen.py) checks actual visible VT cells independently of Product state.

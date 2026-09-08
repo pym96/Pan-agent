@@ -4,9 +4,12 @@ import { framed, identifierPreview } from "./presentation.ts";
 import type { InputKey, TerminalInput } from "./terminal-input.ts";
 
 /** Idle input preparation only. Selection, inspection and submission are separate actions. */
+const segmenter = new Intl.Segmenter("en", {granularity:"grapheme"});
+const boundaries = (text: string): number[] => [...segmenter.segment(text)].map(s => s.index).concat(text.length);
+
 export class AttachmentPicker {
 	private selected: AttachmentSnapshot[] = [];
-	private picker?: {query:string; index:number; names:readonly string[]; loading:boolean; capturing:boolean; controller:AbortController};
+	private picker?: {query:string; cursor:number; index:number; names:readonly string[]; loading:boolean; capturing:boolean; controller:AbortController};
 	readonly maxAttachmentBytes: number;
 	private readonly workspace: string;
 	private readonly terminal: TerminalInput;
@@ -44,9 +47,9 @@ export class AttachmentPicker {
 	close(): void { this.picker?.controller.abort(); this.picker = undefined; }
 	open(): void {
 		if (this.picker) return;
-		const picker = {query:"",index:0,names:[] as readonly string[],loading:true,capturing:false,controller:new AbortController()}; this.picker = picker;
-		this.write("File picker: literal search; Up/Down; Enter selects only; Esc inserts literal @query; Ctrl-C dismisses.");
-		this.write("Listing eligible file names only…");
+		const picker = {query:"",cursor:0,index:0,names:[] as readonly string[],loading:true,capturing:false,controller:new AbortController()}; this.picker = picker;
+		this.write("File picker: literal search; Up/Down or Tab/Shift-Tab; Left/Right edit; Enter selects only; Esc inserts literal @query; Ctrl-C dismisses.");
+		this.show();
 		void discoverAttachmentPaths(this.workspace).then(names => {
 			if (this.picker !== picker) return;
 			picker.names = names; picker.loading = false; this.show();
@@ -54,9 +57,12 @@ export class AttachmentPicker {
 	}
 	private matches(): readonly string[] { return this.picker?.names.filter(name => name.includes(this.picker!.query)) ?? []; }
 	private show(): void {
-		const picker = this.picker; if (!picker || picker.loading) return;
+		const picker = this.picker; if (!picker || picker.capturing) return;
 		const matches = this.matches(); picker.index = Math.max(0, Math.min(picker.index, matches.length-1));
 		this.emit(framed("File search (literal)", picker.query));
+		const stops = boundaries(picker.query);
+		this.write(`Query cursor: ${stops.indexOf(picker.cursor)}/${stops.length-1} graphemes`);
+		if (picker.loading) { this.write("Listing eligible file names only…"); return; }
 		if (!matches.length) { this.write("No eligible matching files. Esc keeps @query as literal text."); return; }
 		const start = Math.floor(picker.index/5)*5;
 		this.write(`Matches ${matches.length} · showing ${start+1}–${Math.min(start+5,matches.length)} · Up/Down to select`);
@@ -88,10 +94,26 @@ export class AttachmentPicker {
 		if (key.ctrl && key.name === "d") return false;
 		if (key.name === "return" || key.name === "enter") { this.select(); return true; }
 		if (picker.capturing) return true;
-		if (key.name === "up") picker.index = Math.max(0, picker.index-1);
-		else if (key.name === "down") picker.index = Math.max(0, Math.min(this.matches().length-1, picker.index+1));
-		else if (key.name === "backspace") { picker.query = Array.from(picker.query).slice(0,-1).join(""); picker.index = 0; }
-		else if (!key.ctrl && !key.meta && text) { picker.query += text; picker.index = 0; }
+		const stops = boundaries(picker.query), position = stops.indexOf(picker.cursor);
+		if (key.name === "up" || (key.name === "tab" && key.shift)) picker.index = Math.max(0, picker.index-1);
+		else if (key.name === "down" || key.name === "tab") picker.index = Math.max(0, Math.min(this.matches().length-1, picker.index+1));
+		else if (key.name === "left") picker.cursor = stops[Math.max(0,position-1)]!;
+		else if (key.name === "right") picker.cursor = stops[Math.min(stops.length-1,position+1)]!;
+		else if (key.name === "home") picker.cursor = 0;
+		else if (key.name === "end") picker.cursor = picker.query.length;
+		else {
+			let insertion = picker.cursor;
+			if (key.name === "backspace") {
+				const previous = stops[Math.max(0,position-1)]!;
+				picker.query = picker.query.slice(0,previous) + picker.query.slice(picker.cursor); insertion = previous;
+			} else if (!key.ctrl && !key.meta && text && !/[\p{Cc}\p{Cs}\p{Zl}\p{Zp}]/u.test(text)
+				&& (!key.name || key.name === "space" || Array.from(key.name).length === 1)) {
+				picker.query = picker.query.slice(0,picker.cursor) + text + picker.query.slice(picker.cursor); insertion += text.length;
+			} else return true;
+			// Inserting a combining mark or ZWJ can merge adjacent clusters. Stay on a boundary.
+			picker.cursor = boundaries(picker.query).find(offset => offset >= insertion)!;
+			picker.index = 0;
+		}
 		this.show(); return true;
 	}
 }

@@ -34,7 +34,7 @@ export async function runCompactTui(options: TuiOptions): Promise<number> {
 		if (text === ":runs") {
 			if (!store) { write("Memory is not configured."); return; }
 			const entries = (await readdir(join(store.root, "runs"), {withFileTypes:true})).filter(entry => entry.isDirectory()).sort((a,b) => a.name.localeCompare(b.name));
-			if (!entries.length) write("ARCHIVES none");
+			if (!entries.length) write("ARCHIVES none · No submitted run yet.");
 			for (const entry of entries) {
 				try {
 					if (!/^[A-Za-z0-9_-]+$/.test(entry.name)) throw new Error("invalid archive ID");
@@ -69,7 +69,7 @@ export async function runCompactTui(options: TuiOptions): Promise<number> {
 			else { phase = "idle"; write(":help for commands · :details for run details"); terminal.setPrompt("You > "); }
 			return true;
 		}
-		if (!text.trim() && !attachments.count) { write("Task must not be blank; no Provider call was made."); return true; }
+		if (!text.trim()) { write("Task must not be blank; no Provider call was made."); return true; }
 		const isCommand = text.trim().startsWith(":");
 		const prepared = isCommand ? text : attachments.prepare(text);
 		phase = isCommand ? "command" : "running"; cancelled = false;
@@ -77,7 +77,11 @@ export async function runCompactTui(options: TuiOptions): Promise<number> {
 		// Start after TerminalInput has synchronously committed/cleared the submitted draft.
 		queueMicrotask(() => { void execute(prepared, isCommand); });
 		return true;
-	}, interrupt, end, (text, key) => phase === "idle" && attachments.handleKey(text, key));
+	}, interrupt, end, (text, key) => phase === "idle" && attachments.handleKey(text, key), draft => {
+		if (phase === "idle") return draft.trim() && !draft.trim().startsWith(":") ? "Not submitted · Enter Send" : "Not submitted · Write a task";
+		if (phase === "running" && draft.trim()) return "Not submitted · Busy";
+		return "";
+	});
 	attachments = new AttachmentPicker(options.workspace, terminal, write, maxAttachmentBytes);
 	presentation.attach(write, () => { if (cancelled) options.session.cancel(); }, fragment => terminal.append(fragment));
 	write(`Pan Agent · Native · ${terminalText(options.provider)}`);

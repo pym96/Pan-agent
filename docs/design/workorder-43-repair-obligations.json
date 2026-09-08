@@ -1,0 +1,544 @@
+{
+  "base": "4cc479a16cd2767efda06c46f3d006f281e4c324",
+  "accepted_base": "28b524deafaef3494a5c1865c5ad68c5635f1f74",
+  "criteria_version": "1.1",
+  "activation": "https://github.com/pym96/Pan-agent/issues/43#issuecomment-5583617915",
+  "changed_files": [
+    "README.md",
+    "docs/agents/current-assignment.md",
+    "docs/design/README.md",
+    "docs/design/native-file-input-repair.md",
+    "docs/design/workorder-43-repair-obligations.json",
+    "scripts/README.md",
+    "scripts/check_file_repair_public_package.mjs",
+    "scripts/check_file_repair_scope.mjs",
+    "scripts/demo_file_repair.mjs",
+    "scripts/fixtures/README.md",
+    "scripts/fixtures/file-repair-driver.mjs",
+    "scripts/fixtures/file-repair-screen.py",
+    "scripts/verify_file_repair_pty.py",
+    "scripts/verify_file_repair_scope.py",
+    "typescript/src/tui/README.md",
+    "typescript/src/tui/attachment-picker.ts",
+    "typescript/src/tui/compact-tui.ts",
+    "typescript/src/tui/presentation.ts",
+    "typescript/src/tui/terminal-input.ts",
+    "typescript/test/README.md",
+    "typescript/test/file-repair.test.ts"
+  ],
+  "prior_obligations": [
+    {
+      "file": "typescript/test/compact-tui.test.ts",
+      "title": "C-TUI-01 compact keeps full final once and zero tool-body lines; details retains permitted content without mutation",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/compact-tui.test.ts",
+      "title": "C-TUI-01 exact 79/80/81 code-point preview and indivisible reversible escape tokens",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/compact-tui.test.ts",
+      "title": "C-TUI-01 failure, cancellation, incomplete, zero-tool and returned-error paths keep truthful status",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/compact-tui.test.ts",
+      "title": "C-TUI-05 all projections whitelist fields and reversibly frame external terminal controls",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/compact-tui.test.ts",
+      "title": "C-TUI-01/04 v1.1 cancelled batches preserve distinct live admissions and identical replay availability",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/compact-tui.test.ts",
+      "title": "C-TUI-02 non-TTY busy Enter preserves Chinese/ASCII draft and cursor until a new idle Enter",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/compact-tui.test.ts",
+      "title": "C-TUI-02 empty/local commands and pre/post-confirmation Ctrl-C admit no task",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/compact-tui.test.ts",
+      "title": "C-TUI-03 CLI catches synchronous projector failure without archive failure or cancelled execution",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/compact-tui.test.ts",
+      "title": "C-TUI-05 banner and validation diagnostics safely display hostile allowed fields",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/compact-tui.test.ts",
+      "title": "C-TUI-06 exported legacy renderers retain exact default behavior",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/conformance.test.ts",
+      "title": "conformance manifest freezes the language-neutral case set and retained semantics",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/conformance.test.ts",
+      "title": "language-neutral tool semantics fixture passes through the TypeScript product",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/conformance.test.ts",
+      "title": "language-neutral terminal fixtures cover completed, model-error, and incomplete settlements",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/conformance.test.ts",
+      "title": "language-neutral cancellation fixture settles the active tool and prevents its late effect",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/conformance.test.ts",
+      "title": "language-neutral Context fixture remains visible across successive tasks",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/cutover-contract.test.ts",
+      "title": "C-CUT-01 default README route installs and launches only the TypeScript product",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/cutover-contract.test.ts",
+      "title": "C-CUT-04 and C-CUT-08 classify every retained non-product lane",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/cutover-contract.test.ts",
+      "title": "C-CUT-06 assignment and ADR record architectural supersession",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/cutover-contract.test.ts",
+      "title": "C-CUT-03 and C-CUT-05 conformance artifacts are language-neutral and the TypeScript specification is readable",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/cutover-contract.test.ts",
+      "title": "C-CUT-09 cutover documentation has no broken local links",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/file-input.test.ts",
+      "title": "C-FILE-02 snapshots preserve UTF8 BOM CRLF Unicode empty and immutable identities; invalid files fail locally",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/file-input.test.ts",
+      "title": "C-FILE-03 F-AUTH discovery is metadata only; Git ignores, hidden components, symlinks, FIFO, traversal and shell paths",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/file-input.test.ts",
+      "title": "C-FILE-02 bounded capture detects growth replacement and cancellation without whole-file loading",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/file-input.test.ts",
+      "title": "C-FILE-01/02 aggregate L-1 L L+1 duplicate preview removal reselect and failed/cancelled selection preserve draft",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/file-input.test.ts",
+      "title": "C-FILE-02 startup and direct limit configuration reject non-positive unsafe non-integer and boolean values",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/file-input.test.ts",
+      "title": "C-FILE-04 complete integrity recognition rejects malformed legacy data and preserves every envelope field",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/file-input.test.ts",
+      "title": "C-FILE-04/05 sealed snapshot stays canonical user data across two tasks and safe replay without source reads",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/general-agent.test.ts",
+      "title": "C-PFREE-D103 Product help and invalid selectors fail before setup; explicit injection keeps one lifecycle",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/general-agent.test.ts",
+      "title": "C-PFREE-D102 explicit Native CLI and real TUI complete write/read/verify with sealed public archive",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/general-agent.test.ts",
+      "title": "C-PFREE-D106 P-D6 admission, secret exclusion, process cancellation and malformed offline transport observations",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/kernel-conformance.test.ts",
+      "title": "C-KER-01 AgentKernel is the sole Session orchestration seam and only PiKernel invokes Pi orchestration",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/kernel-conformance.test.ts",
+      "title": "C-KER-09 kernel manifest is versioned, language-neutral, complete, and preserves v1 fixture bytes",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/kernel-conformance.test.ts",
+      "title": "C-KER-02 selection fixture runs through the same public Session interface for both Kernels",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/kernel-conformance.test.ts",
+      "title": "C-KER-03/04 context-and-batch fixture runs unchanged against both Kernels",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/kernel-conformance.test.ts",
+      "title": "C-KER-05 invalid-correlation fixture runs unchanged against both Kernels",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/kernel-conformance.test.ts",
+      "title": "C-KER-06 active-cancellation fixture runs unchanged against both Kernels",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/kernel-conformance.test.ts",
+      "title": "C-KER-07 budget fixture runs unchanged against both Kernels",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/kernel-conformance.test.ts",
+      "title": "C-KER-08 terminal-accounting fixture runs unchanged against both Kernels",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/memory-lanes.test.ts",
+      "title": "run.started is durable before the first Provider exchange (normal, provider-failure, tool-failure, cancelled)",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/memory-lanes.test.ts",
+      "title": "cancelled and tool-failure runs are durably archived and sealed",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/memory-lanes.test.ts",
+      "title": "interruption between appends, mid-write, and after cancellation settles as interrupted with a causal prefix",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/memory-lanes.test.ts",
+      "title": "sealed archives refuse append, re-settle, identity reuse, and recovery writes in all four states",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/memory-lanes.test.ts",
+      "title": "integrity verification detects modified, deleted, reordered, and injected records",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/memory-lanes.test.ts",
+      "title": "list, inspect, and replay are zero-effect; corrupted input fails typed",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/memory-lanes.test.ts",
+      "title": "TUI :runs and :replay render archives with zero Provider calls and typed corruption errors",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/memory-lanes.test.ts",
+      "title": "archive preserves every declared event kind and excludes credential canaries and restricted reasoning",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/memory-lanes.test.ts",
+      "title": "retrospective ledger enforces sealed reference integrity and supersession-only mutation",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/memory-lanes.test.ts",
+      "title": "ledger entries are rejected as archive trajectory and the fact register is untouched",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/memory-lanes.test.ts",
+      "title": "runbook revision binding survives later edits and reverts",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/memory-lanes.test.ts",
+      "title": "CLI requires a disjoint --memory-root before any Adapter construction",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/memory-lanes.test.ts",
+      "title": "corrupted sealed manifest fails typed at read surfaces without blocking startup",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/memory-lanes.test.ts",
+      "title": "TUI :runs renders a typed ARCHIVE_ERROR for a corrupted manifest with zero Provider calls",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/module-layout.test.ts",
+      "title": "C-LAY-01/C-LAY-02 exact relocation and resolved source graph preserve all baseline Modules",
+      "execution": "exact #41 historical snapshot and unchanged negative controls"
+    },
+    {
+      "file": "typescript/test/module-layout.test.ts",
+      "title": "C-LAY-02 graph rejects static, type, re-export and literal dynamic runtime-to-DeepSeek edges",
+      "execution": "exact #41 historical snapshot and unchanged negative controls"
+    },
+    {
+      "file": "typescript/test/module-layout.test.ts",
+      "title": "C-LAY-01 incomplete relocation mapping fails before it can hide a missing implementation",
+      "execution": "exact #41 historical snapshot and unchanged negative controls"
+    },
+    {
+      "file": "typescript/test/module-layout.test.ts",
+      "title": "C-LAY-04 source fidelity rejects an executable default change outside permitted import spans",
+      "execution": "exact #41 historical snapshot and unchanged negative controls"
+    },
+    {
+      "file": "typescript/test/native-kernel.test.ts",
+      "title": "C-KER-03/04 NativeKernel retains typed Context and settles a ToolCall batch sequentially",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/native-kernel.test.ts",
+      "title": "C-KER-05 both Kernels return one correlated typed error per unknown or schema-invalid call",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/native-kernel.test.ts",
+      "title": "C-KER-05 both Kernels reject duplicate ToolCall ids before tool effects",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/native-kernel.test.ts",
+      "title": "C-KER-05 orphan seeded ToolResults settle model_error before model or tool effects",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/native-kernel.test.ts",
+      "title": "C-KER-06 both Kernels cancel the active tool with no late effect and one final archived terminal",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/native-kernel.test.ts",
+      "title": "C-KER-07 both Kernels enforce exact model-turn and atomic tool-step budgets",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/native-kernel.test.ts",
+      "title": "C-KER-07 invalid budgets fail before model, tool, or archive effects",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/packaging.test.ts",
+      "title": "C-PFREE-E101 clean compiler builds eliminate stale output and preserve deterministic executable exports",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/packaging.test.ts",
+      "title": "C-PFREE-E104 packed-create-run-verify v1 fixes exact tool order, source bytes and expected output",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/pan-contracts.test.ts",
+      "title": "C-PFREE-A01 canonical values stay structural and reject invalid correlation/arguments",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/pan-contracts.test.ts",
+      "title": "C-PFREE-A02 unavailable usage/identity stay distinct from reported zero and failures are not assistant content",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/pan-contracts.test.ts",
+      "title": "C-PFREE-A03/A05 Native session uses one Pan ModelAdapter seam for final and ToolResult feedback",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/pan-contracts.test.ts",
+      "title": "C-PFREE-A03 cancellation reaches the active adapter and admits no later exchange",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/pan-contracts.test.ts",
+      "title": "C-PFREE-A04 unknown/schema-invalid/cancelled ToolCalls have zero implementation effects",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/pan-contracts.test.ts",
+      "title": "C-PFREE-A03/A06 Pan seams and NativeKernel have no Pi import or hidden Pi model/tool decision",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/pan-deepseek-adapter.test.ts",
+      "title": "C-PFREE-C101 direct Pan Adapter construction and explicit Native CLI composition are inert and Pi-free",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/pan-deepseek-adapter.test.ts",
+      "title": "C-PFREE-C101 Fetch transport resolves synthetic auth only at send and preserves the one-request envelope",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/pan-deepseek-adapter.test.ts",
+      "title": "C-PFREE-C102 exact Context encoding, private reasoning replay and session isolation",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/pan-deepseek-adapter.test.ts",
+      "title": "C-PFREE-C103 every valid SSE fixture is byte-split invariant",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/pan-deepseek-adapter.test.ts",
+      "title": "C-PFREE-C103 malformed stream table settles typed without partial response",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/pan-deepseek-adapter.test.ts",
+      "title": "C-PFREE-C104 usage and response identity preserve reported, absent and malformed meanings",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/pan-deepseek-adapter.test.ts",
+      "title": "C-PFREE-C105 cancellation, transport and exact HTTP failures settle once without retry or canary leakage",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/pan-deepseek-adapter.test.ts",
+      "title": "C-PFREE-C106 public Native Session traverses direct final, Tool, batch, length and failure fixtures",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/pan-deepseek-adapter.test.ts",
+      "title": "C-PFREE-C106 public active cancellation reaches transport, seals once and executes no Tool",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/pan-deepseek-adapter.test.ts",
+      "title": "C-PFREE-C108 fixture and official-contract identities are content-pinned and secret-free",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/pan-faux-tools.test.ts",
+      "title": "C-PFREE-B101 Faux consumes deterministic canonical scripts and fails typed on exhaustion",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/pan-faux-tools.test.ts",
+      "title": "C-PFREE-B101 pending and pre-aborted Faux exchanges consume no later script entry",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/pan-faux-tools.test.ts",
+      "title": "C-PFREE-B101 Faux rejects noncanonical requests before admission and types invalid script outcomes",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/pan-faux-tools.test.ts",
+      "title": "C-PFREE-B101/B102 Faux and Pan Tool graphs contain no Pi or Provider transport delegation",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/pan-faux-tools.test.ts",
+      "title": "C-PFREE-B102/B103 Pan read-write-edit-bash complete through Native Events and Archive",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/pan-faux-tools.test.ts",
+      "title": "C-PFREE-B103 nonzero Bash and missing edit remain attributable without Harness crash or partial edit",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/pan-faux-tools.test.ts",
+      "title": "C-PFREE-B104 malformed and cancel-before-effect calls have zero implementations and effects",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/pan-faux-tools.test.ts",
+      "title": "C-PFREE-B104 Bash excludes Provider secrets and kills descendants before settlement",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/pan-faux-tools.test.ts",
+      "title": "C-PFREE-B105 Pan Faux/Tools preserve multi-call order, typed failure, cancellation, and budgets",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/streaming.test.ts",
+      "title": "C-STR-01 same production decoder exposes text before source release and preserves every byte partition",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/streaming.test.ts",
+      "title": "C-STR-03 blocked Fetch reader cancels without EOF; pre-abort and late source are inert",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/streaming.test.ts",
+      "title": "C-STR-01/03 Faux uses the same sink with a cancellable blocked producer",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/streaming.test.ts",
+      "title": "C-STR-05 public visibility and reversible Unicode/control encoding survive all byte and delta splits",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/streaming.test.ts",
+      "title": "C-STR-02 late malformed protocol never turns a preview into an accepted response",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/streaming.test.ts",
+      "title": "C-STR-03/06 throwing observer and malicious late callback cannot affect terminal or archive",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/streaming.test.ts",
+      "title": "C-STR-04 streamed settlement, fallback and later failed preview have distinct complete bodies",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/streaming.test.ts",
+      "title": "C-STR-03 progress closes before failed settlement observation awaits",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/streaming.test.ts",
+      "title": "C-STR-04 later failed preview stays distinct from an earlier accepted tool turn",
+      "execution": "current Product"
+    }
+  ],
+  "test_substitutions": [],
+  "new_obligations": [
+    {
+      "file": "typescript/test/file-repair.test.ts",
+      "title": "C-FILE-R01 Tab aliases navigation without query text and grapheme edits preserve selection and cursor"
+    }
+  ],
+  "criteria_outputs": {
+    "C-FILE-01": "unchanged installed file PTY plus R-KEYS/R-SUBMIT",
+    "C-FILE-02": "unchanged snapshot tests and installed file PTY; snapshot/envelope modules byte-identical",
+    "C-FILE-03": "updated F-AUTH; inherited authority plus async read/cancel controls",
+    "C-FILE-04": "unchanged installed Context/fresh replay traces plus repaired installed archives",
+    "C-FILE-05": "updated F-DISPLAY; inherited control encoding plus actual repair cells and display-only negatives",
+    "C-FILE-06": "100 Product/18 conformance;34 Reference/13 conformance;259 Python/82 host; unchanged consumer/streaming/without-Python; current/historical scope; artifact/demo identities",
+    "C-FILE-R01": "R-KEYS: 40x24 and 80x24 individually delivered keys, grapheme/cursor cells, selection mismatch negative",
+    "C-FILE-R02": "R-SUBMIT: same sizes, prompt-adjacent hints after long previews/commands/blank/busy/cancel; missing-current-hint negative"
+  },
+  "impact_analysis": "All 99 pre-repair Product tests retain exact bytes. Old 1.0 scope runs at a fresh exact-4cc479a worktree; current repair scope protects all non-TUI implementation including input modules. Existing PTY/demo/public scripts stay unchanged; repair adds separate scripts. New rendering/input effects require fresh installed output and independent review, not transferred Verdicts."
+}

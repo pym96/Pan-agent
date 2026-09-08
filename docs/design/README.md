@@ -61,3 +61,5 @@ The Human-accepted architecture history remains indexed in [`../adr/README.md`](
 - [#44 obligation map](workorder-44-obligations.json): all 83 prior tests, precise presentation substitutions and approved wiring diffs.
 
 [native-file-input.md](native-file-input.md) and [workorder-43-obligations.json](workorder-43-obligations.json): #43 explicit snapshots, exact task envelope, named review outputs and 92 retained obligations.
+
+[native-file-input-repair.md](native-file-input-repair.md) and [workorder-43-repair-obligations.json](workorder-43-repair-obligations.json): prospective #43 Criteria 1.1 and eight-criterion evidence map.

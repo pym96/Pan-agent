@@ -168,3 +168,5 @@ The [compact TUI guide](docs/design/native-compact-tui.md) covers progress, `:de
 Current candidate #44: [public text streaming, English compact UI and installed offline demo](docs/design/native-streaming-tui.md). Criteria-Version 1.0; independent review pending.
 
 [WorkOrder #43 explicit file input](docs/design/native-file-input.md): candidate input-layer design, checks and offline installed demo.
+
+[File input repair 1.1](docs/design/native-file-input-repair.md): prospective #43 navigation, query editing and unsubmitted composer feedback; A/B/C remain future work.
