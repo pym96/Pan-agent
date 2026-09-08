@@ -103,7 +103,7 @@ export class TerminalInput {
 				const size = cellWidth(point);
 				if (column + size > columns) { row++; column = 0; }
 				column += size;
-				
+
 			}
 			return {row, column};
 		};

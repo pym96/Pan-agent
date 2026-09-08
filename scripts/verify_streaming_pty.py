@@ -43,7 +43,7 @@ for columns,rows,provider,mode,part in cases:
   # Verification fixtures copied beside the installed consumer; no source checkout read is needed by Node.
   import shutil
   verification=a.package.parent.parent/'verification';driver=verification/'streaming-pty-driver.mjs'
-  for name in ['streaming-pty-driver.mjs','streaming-wire.mjs']:shutil.copy2(root/'scripts/fixtures'/name,verification/name)
+  for name in ['streaming-pty-driver.mjs','streaming-wire.mjs','streaming-fresh-replay.mjs']:shutil.copy2(root/'scripts/fixtures'/name,verification/name)
  if a.guard:
   config=directory/'guard-config.json';config.write_text(json.dumps({'phase':directory.name,'consumer':str(a.package.parent.parent),'allowed':[str(a.package.parent.parent),str(directory)],'denied':[str(root)],'report':str(directory/'guard-report')}));env.update(NODE_OPTIONS='--import='+str(a.guard),WO35_GUARD_CONFIG=str(config))
  command=[a.node,*([] if a.package else ['--experimental-strip-types']),str(driver),str(a.package or root),str(directory/'workspace'),str(directory/'memory'),provider,mode,part,str(control_r),str(event_w)]
@@ -123,6 +123,19 @@ for columns,rows,provider,mode,part in cases:
   if child.poll() is None:child.kill();child.wait()
   for fd in [read_fd if columns else None,event_r,control_w]:
    if fd is not None:os.close(fd)
+# Different Node processes cannot reconstruct previews from the previous process cache.
+for provider,modes in [('deepseek',['cancel','broken','malformed','identity']),('faux',['cancel','broken'])]:
+ for mode in modes:
+  part='utf8' if mode in ['malformed','identity'] else 'grouped';directory=a.output/f'80x24-{provider}-{mode}-{part}';report=json.loads((directory/'report.json').read_text())
+  env={'PATH':str(Path(a.node).resolve().parent)+':/usr/bin:/bin','HOME':str(directory),'LANG':'en_US.UTF-8'}
+  fixture=root/'scripts/fixtures/streaming-fresh-replay.mjs'
+  if a.package:fixture=a.package.parent.parent/'verification/streaming-fresh-replay.mjs'
+  if a.guard:env.update(NODE_OPTIONS='--import='+str(a.guard),WO35_GUARD_CONFIG=str(directory/'guard-config.json'))
+  command=[a.node,*([] if a.package else ['--experimental-strip-types']),str(fixture),str(a.package or root),str(directory/'workspace'),str(directory/'memory'),report['results'][0]['runId'],str(directory/'fresh-replay.json')]
+  result=subprocess.run(command,cwd=a.package.parent.parent if a.package else root,env=env,stdout=subprocess.PIPE,stderr=subprocess.STDOUT,text=True,timeout=15);(directory/'fresh-replay.log').write_text(result.stdout);assert result.returncode==0,result.stdout
+  if a.guard:
+   for file in directory.glob('guard-report*.json'):
+    guard=json.loads(file.read_text());assert all(guard[k]==0 for k in ['forbidden_resolution','forbidden_filesystem','network_attempts','real_credential_reads','real_provider_calls','balance_queries','paid_formal_runs','cost_cny']),guard
 # Fault/control compare first complete outcome and terminal; only generated Run identity is normalized.
 for columns,rows in [(80,24),(40,12),(0,0)]:
  for provider in ['deepseek','faux']:

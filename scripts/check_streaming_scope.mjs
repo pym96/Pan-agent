@@ -10,6 +10,7 @@ const git=(...args)=>execFileSync('git',['-C',repository,...args],{encoding:'utf
 const read=file=>fs.readFileSync(path.join(root,file),'utf8'),before=file=>git('show',`${base}:${file}`),hash=value=>createHash('sha256').update(value).digest('hex');
 const files=git('ls-tree','-r','--name-only',base).trim().split('\n');
 const allowed=new Set([
+  "scripts/fixtures/streaming-fresh-replay.mjs",
   "README.md",
   "docs/agents/README.md",
   "docs/agents/current-assignment.md",

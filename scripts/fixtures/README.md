@@ -18,3 +18,5 @@ These are verification clients, not Product implementations or live Provider res
 - [streaming-pty-driver.mjs](streaming-pty-driver.mjs): real CLI with injected DeepSeek Fetch or Pan Faux sources controlled by pipes.
 - [streaming-baseline-pty-driver.mjs](streaming-baseline-pty-driver.mjs): retained #42 semantic PTY driver copy.
 - [streaming-replay-consumer.mjs](streaming-replay-consumer.mjs): fresh installed replay with task-file read traps and exact sealed hashes.
+
+- [streaming-fresh-replay.mjs](streaming-fresh-replay.mjs): new-process replay of actual interrupted stream archives; no preview cache, task reads or effects.
