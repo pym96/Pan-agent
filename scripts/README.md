@@ -229,3 +229,14 @@ The preview deterministically enumerates the unchanged 120-slot denominator and 
 ## WorkOrder #42 compact TUI
 
 [Guide and commands](../docs/design/native-compact-tui.md). `check_tui_scope.mjs` checks current core/graph and prior obligations; `verify_tui_execution.mjs` compares exact base/candidate execution; `verify_tui_pty.py` drives actual PTYs with explicit barriers; `verify_tui_consumer.py` retains all #35 artifact/isolation checks and drives installed compact/details/replay, including fresh-process cancelled archives. `check_tui_public_package.mjs` checks the old typed client plus the single optional runtime export. `demo_tui.mjs` runs actual offline Product CLI; `verify_tui_demo.py` records Builder scenarios, never Human acceptance. Historical scripts stay unchanged.
+
+## WorkOrder #44 streaming candidate
+
+- [verify_streaming_consumer.py](verify_streaming_consumer.py): two compiled packs and offline guarded production install; English successor client [wo44-consumer-driver.mjs](wo44-consumer-driver.mjs).
+- [verify_streaming_pty.py](verify_streaming_pty.py): 57 actual source-barrier/PTY/non-TTY cases; accepts --package and --guard for installed execution.
+- [verify_streaming_baseline_pty.py](verify_streaming_baseline_pty.py): all ten #42 PTY cases with mapped English labels.
+- [verify_streaming_execution.mjs](verify_streaming_execution.mjs): base/candidate × progress/omitted exact semantic comparison.
+- [verify_streaming_scope.py](verify_streaming_scope.py): current/historical scope and four disposable negative controls.
+- [check_streaming_scope.mjs](check_streaming_scope.mjs) and [check_streaming_public_package.mjs](check_streaming_public_package.mjs): current scope/graph, protected wiring and legacy public client compatibility.
+- [demo_streaming.mjs](demo_streaming.mjs) and [verify_streaming_demo.py](verify_streaming_demo.py): actual installed offline interactive demo and Builder trial.
+- [Design and commands](../docs/design/native-streaming-tui.md); historical scripts remain unchanged.

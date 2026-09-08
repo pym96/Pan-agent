@@ -116,3 +116,5 @@ Repository `scripts/check_module_layout.mjs` reconstructs exact source/import co
 ## Compact Native presentation
 
 Native CLI explicitly selects the compact TUI: `你 › `, honest tool-result counts, full final answer and local `:details` / `:runs` / `:replay RUN_ID`. [The guide](../docs/design/native-compact-tui.md) documents the offline demo and precise missing-counter behavior. Public legacy renderers and `runTui` without presentation retain their prior output.
+
+#44 candidate adds optional ephemeral public text streaming and English compact labels. See [design and installed demo](../docs/design/native-streaming-tui.md). Existing exchange callers may omit progress; settled records and explicit Native selection are unchanged.

@@ -1,3 +1,4 @@
+import type { ModelTextDelta } from "../protocol/model-adapter-contract.ts";
 import {
 	addUsage,
 	ZERO_REPORTED_USAGE,
@@ -54,7 +55,12 @@ export const DEFAULT_KERNEL_LIMITS: KernelLimits = {
 export const EMPTY_USAGE = ZERO_REPORTED_USAGE;
 export { addUsage };
 
+/** Transient route, deliberately separate from persisted SessionObservation. */
+export type SessionProgress = ModelTextDelta & { readonly runId: string; readonly turn: number };
+export type ProgressSink = (progress: SessionProgress) => void;
+
 export interface KernelRunRequest {
+	readonly onProgress?: ProgressSink;
 	readonly runId: string;
 	readonly task: string;
 	readonly systemPrompt: string;

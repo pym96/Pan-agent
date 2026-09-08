@@ -28,16 +28,16 @@ test("C-TUI-01 compact keeps full final once and zero tool-body lines; details r
 	const before = JSON.stringify(events);
 	for (const event of events) c.view.observe(event);
 	assert.doesNotMatch(c.text(),/line-001|line-200|private-call-id|intermediate public text|USAGE|arguments=/);
-	assert.match(c.text(),/… · 等待工具返回 · :details/);
+	assert.match(c.text(),/… · Waiting for tool · :details/);
 	c.view.settle(final());
 	assert.equal(c.text().split("完整 final").length-1,1); assert.match(c.text(),/│ 第二行/);
-	assert.match(c.text(),/模型调用 2 · 工具已返回 1 次/);
+	assert.match(c.text(),/Model calls 2 · Tool results 1/);
 	c.lines.length=0; c.view.details(); const details=c.text();
 	assert.match(details,/line-200/); assert.match(details,/intermediate public text/); assert.match(details,/private-call-id/); assert.match(details,/unavailable; total_tokens=unknown/);
 	assert.match(details,new RegExp("中文".repeat(45))); assert.equal(JSON.stringify(events),before);
 	c.lines.length=0; c.view.details(); assert.equal(c.text(),details);
-	c.view.observe(start("two")); c.view.settle({...final("two"),toolCalls:0}); assert.match(c.text(),/工具已返回 0 次/);
-	c.lines.length=0; c.view.replay([],"incomplete"); assert.match(c.text(),/unavailable \(incomplete sequence\)/); assert.doesNotMatch(c.text(),/工具已返回 0 次/);
+	c.view.observe(start("two")); c.view.settle({...final("two"),toolCalls:0}); assert.match(c.text(),/Tool results 0/);
+	c.lines.length=0; c.view.replay([],"incomplete"); assert.match(c.text(),/unavailable \(incomplete sequence\)/); assert.doesNotMatch(c.text(),/Tool results 0/);
 });
 
 test("C-TUI-01 exact 79/80/81 code-point preview and indivisible reversible escape tokens", () => {
@@ -54,10 +54,10 @@ test("C-TUI-01 failure, cancellation, incomplete, zero-tool and returned-error p
 		assert.doesNotMatch(c.text(),/✓|✗/);
 		c.view.observe({type:"tool.settled",runId:"one",toolName:"bash",toolCallId:"call",isError:true,text:"error body"});
 		c.view.settle(final("one",status));
-		assert.match(c.text(),/✗ 错误 bash/);assert.match(c.text(),/工具已返回 1 次/);assert.doesNotMatch(c.text(),/error body|次工具执行/);
-		assert.equal(c.text().includes("部分回答"),status!=="completed");
+		assert.match(c.text(),/✗ Error bash/);assert.match(c.text(),/Tool results 1/);assert.doesNotMatch(c.text(),/error body|次工具执行/);
+		assert.equal(c.text().includes("Partial response"),status!=="completed");
 	}
-	const c=capture();c.view.observe(start());c.view.settle({...final(),finalText:"",toolCalls:0});assert.doesNotMatch(c.text(),/最终回答|部分回答/);assert.match(c.text(),/工具已返回 0 次/);
+	const c=capture();c.view.observe(start());c.view.settle({...final(),finalText:"",toolCalls:0});assert.doesNotMatch(c.text(),/Final answer|Partial response/);assert.match(c.text(),/Tool results 0/);
 });
 
 test("C-TUI-05 all projections whitelist fields and reversibly frame external terminal controls", () => {
@@ -79,9 +79,9 @@ test("C-TUI-01/04 v1.1 cancelled batches preserve distinct live admissions and i
 		const adapter=new FauxModelAdapter([response("",calls)]);let session:GeneralAgentSession;
 		session=new GeneralAgentSession({kernel:"native",adapter,tools:createPanTrustedLocalTools(workspace).tools.map(tool=>({...tool,async execute(invocation){executions++;return tool.execute(invocation);}})),systemPrompt:"offline",memory:{archiveStore:store,runbook:async()=>({content:"test",revision:`sha256:${"0".repeat(64)}`})},onObservation(event){c.view.observe(event);if(event.type==="tool.started")session.cancel();}});
 		const result=await session.runTask("cancel batch");await session.close();c.view.settle(result);c.view.details();
-		assert.equal(executions,0);assert.equal(result.toolCalls,n);assert.match(c.text(),new RegExp(`工具接纳数 ${n} · 工具启动事件数 1 · 工具返回数 0`));assert.doesNotMatch(c.text(),/✓|次工具执行/);
+		assert.equal(executions,0);assert.equal(result.toolCalls,n);assert.match(c.text(),new RegExp(`Admitted tool calls ${n} · Tool start events 1 · Tool results 0`));assert.doesNotMatch(c.text(),/✓|次工具执行/);
 		const retained=await store.readArchive(result.runId);c.lines.length=0;c.view.replay(retained,result.runId);c.view.details();const replay=c.text();
-		assert.match(replay,/工具接纳数 unavailable \(not recorded\) · 工具启动事件数 1 · 工具返回数 0/);assert.match(replay,/模型调用 unavailable \(not recorded\)/);
+		assert.match(replay,/Admitted tool calls unavailable \(not recorded\) · Tool start events 1 · Tool results 0/);assert.match(replay,/Model calls unavailable \(not recorded\)/);
 		const fresh=capture();fresh.view.replay(retained,result.runId);fresh.view.details();assert.equal(fresh.text(),replay);
 		c.lines.length=0;c.view.replay(retained,result.runId);c.view.details();assert.equal(c.text(),replay);
 	} } finally {await rm(root,{recursive:true,force:true});}
@@ -98,25 +98,25 @@ test("C-TUI-02 non-TTY busy Enter preserves Chinese/ASCII draft and cursor until
 	let prompts=0,busy=false;
 	const result=await interactive([FAUX_PENDING_EXCHANGE,response("second done")],(chunk,input)=>{
 		if(chunk.includes("[y/N]> "))setImmediate(()=>input.write("y\n"));
-		if(chunk==="你 › ") {const n=prompts++;setImmediate(()=>input.write(n===0?"first\n":n===1?"\n":":exit\n"));}
-		if(chunk.includes("等待模型返回")&&!busy){busy=true;setImmediate(()=>input.write("草稿ab\x1b[D中\n\x03"));}
+		if(chunk==="You > ") {const n=prompts++;setImmediate(()=>input.write(n===0?"first\n":n===1?"\n":":exit\n"));}
+		if(chunk.includes("Waiting for model")&&!busy){busy=true;setImmediate(()=>input.write("草稿ab\x1b[D中\n\x03"));}
 	});
-	assert.equal(result.state.exchangeCount,2);assert.match(result.text,/忙碌中：草稿已保留/);assert.match(result.text,/已取消/);
+	assert.equal(result.state.exchangeCount,2);assert.match(result.text,/Busy — draft retained/);assert.match(result.text,/Cancelled/);
 	assert.deepEqual(result.state.requests.map(request=>request.context.messages.filter(m=>m.role==="user").at(-1)?.content),[[{type:"text",text:"first"}],[{type:"text",text:"草稿a中b"}]]);
 	assert.doesNotMatch(result.text,/\x1b/);
 });
 
 test("C-TUI-02 empty/local commands and pre/post-confirmation Ctrl-C admit no task", {timeout:10000}, async () => {
 	for(const phase of ["before","after","commands"]){let prompts=0;const commands=["\n",":details\n",":unknown\n",":replay ../escape\n",":context\n",":help\n",":runs\n","\x03"];
-		const r=await interactive([], (chunk,input)=>{if(chunk.includes("[y/N]> "))setImmediate(()=>input.write(phase==="before"?"\x03":"y\n"));if(chunk==="你 › ")setImmediate(()=>input.write(phase==="after"?"\x03":commands[prompts++]!));});
-		assert.equal(r.state.exchangeCount,0);if(phase==="commands"){assert.match(r.text,/暂无可查看/);assert.match(r.text,/Unknown command/);assert.match(r.text,/invalid ID/);}
+		const r=await interactive([], (chunk,input)=>{if(chunk.includes("[y/N]> "))setImmediate(()=>input.write(phase==="before"?"\x03":"y\n"));if(chunk==="You > ")setImmediate(()=>input.write(phase==="after"?"\x03":commands[prompts++]!));});
+		assert.equal(r.state.exchangeCount,0);if(phase==="commands"){assert.match(r.text,/No run selected/);assert.match(r.text,/Unknown command/);assert.match(r.text,/invalid ID/);}
 	}
 });
 
 test("C-TUI-03 CLI catches synchronous projector failure without archive failure or cancelled execution", {timeout:10000}, async () => {
 	let prompts=0;
-	const r=await interactive([response("fault survived")],(chunk,input)=>{if(chunk.includes("[y/N]> "))setImmediate(()=>input.write("y\n"));if(chunk==="你 › ")setImmediate(()=>input.write(prompts++?":exit\n":"one\n"));},{createPresentation:write=>({...createCompactPresentation(write),observe(){throw new Error("projector fault\x1b[2J");}})});
-	assert.match(r.text,/显示错误（执行继续）/);assert.match(r.text,/fault survived/);assert.match(r.text,/已完成/);assert.doesNotMatch(r.text,/archive_append_error|\x1b/);assert.equal(r.state.exchangeCount,1);
+	const r=await interactive([response("fault survived")],(chunk,input)=>{if(chunk.includes("[y/N]> "))setImmediate(()=>input.write("y\n"));if(chunk==="You > ")setImmediate(()=>input.write(prompts++?":exit\n":"one\n"));},{createPresentation:write=>({...createCompactPresentation(write),observe(){throw new Error("projector fault\x1b[2J");}})});
+	assert.match(r.text,/Display error \(execution continues\)/);assert.match(r.text,/fault survived/);assert.match(r.text,/Completed/);assert.doesNotMatch(r.text,/archive_append_error|\x1b/);assert.equal(r.state.exchangeCount,1);
 });
 
 test("C-TUI-05 banner and validation diagnostics safely display hostile allowed fields", async () => {

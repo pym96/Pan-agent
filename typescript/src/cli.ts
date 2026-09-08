@@ -140,6 +140,11 @@ export async function runCli(args: readonly string[], dependencies: CliDependenc
 
 	const presentation: CompactPresentation = (dependencies.createPresentation ?? createCompactPresentation)(writeLine);
 	const shared = {
+		onProgress: (progress: import("./runtime/agent-kernel.ts").SessionProgress) => presentation.progress?.(progress),
+		onProgressError: () => {
+			if (presentation.progressError) presentation.progressError();
+			else writeLine("Display error: progress observer failed; execution continues.");
+		},
 		systemPrompt: GENERAL_AGENT_SYSTEM_PROMPT,
 		memory: { archiveStore, runbook: () => loadRunbook(RUNBOOK_PATH) },
 		onObservation(observation: SessionObservation) {
@@ -165,7 +170,7 @@ export async function runCli(args: readonly string[], dependencies: CliDependenc
 		thinking = adapter.reasoningLevel;
 	}
 
-	writeLine(`归档目录：${terminalText(memoryRoot)}`);
+	writeLine(`Archives: ${terminalText(memoryRoot)}`);
 	return (dependencies.startTui ?? runTui)({
 		session,
 		presentation,

@@ -56,3 +56,6 @@ The Human-accepted architecture history remains indexed in [`../adr/README.md`](
 
 - [Native compact TUI](native-compact-tui.md): Criteria-Version 1.1, count sources, editable input, safe projection, demo and review protocol.
 - [Prior test obligation map](workorder-42-obligations.json): all 73 obligations, historical/current execution and exact presentation substitutions.
+
+- [Native streaming TUI](native-streaming-tui.md): #44 optional transient progress interface, English labels, safety boundaries and reproduction.
+- [#44 obligation map](workorder-44-obligations.json): all 83 prior tests, precise presentation substitutions and approved wiring diffs.

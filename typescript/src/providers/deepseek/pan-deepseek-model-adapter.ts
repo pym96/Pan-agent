@@ -1,3 +1,4 @@
+import { abortableBody } from "./abortable-body.ts";
 import { validateAgentToolDefinitions, type AgentToolDefinition } from "../../protocol/agent-tool.ts";
 import {
 	CanonicalProtocolError,
@@ -286,7 +287,7 @@ async function readBodyBytes(body: AsyncIterable<Uint8Array>): Promise<Uint8Arra
 	return combined;
 }
 
-async function readSseEvents(body: AsyncIterable<Uint8Array>): Promise<string[]> {
+async function* readSseEvents(body: AsyncIterable<Uint8Array>): AsyncIterable<string> {
 	const decoder = new TextDecoder("utf-8", { fatal: true });
 	let buffer = "";
 	let dataLines: string[] = [];
@@ -314,6 +315,7 @@ async function readSseEvents(body: AsyncIterable<Uint8Array>): Promise<string[]>
 		while (newline !== -1) {
 			processLine(buffer.slice(0, newline));
 			buffer = buffer.slice(newline + 1);
+			while (events.length) yield events.shift()!;
 			newline = buffer.indexOf("\n");
 		}
 	}
@@ -324,7 +326,7 @@ async function readSseEvents(body: AsyncIterable<Uint8Array>): Promise<string[]>
 	}
 	if (buffer.length > 0) processLine(buffer);
 	if (dataLines.length > 0) events.push(dataLines.join("\n"));
-	return events;
+	for (const event of events) yield event;
 }
 
 function observeIdentity(accumulator: IdentityAccumulator, envelope: WireRecord): void {
@@ -447,8 +449,8 @@ function completeToolCalls(accumulators: Map<number, WireToolCallAccumulator>): 
 	});
 }
 
-async function assembleSuccessfulResponse(response: DeepSeekTransportResponse): Promise<AssembledResponse> {
-	const events = await readSseEvents(response.body);
+async function assembleSuccessfulResponse(response: DeepSeekTransportResponse, request: ModelExchangeRequest): Promise<AssembledResponse> {
+	const events = readSseEvents(abortableBody(response.body, request.signal));
 	const identity = {} as IdentityAccumulator;
 	const content = { value: "", observed: false };
 	const reasoning = { value: "", observed: false };
@@ -457,7 +459,7 @@ async function assembleSuccessfulResponse(response: DeepSeekTransportResponse): 
 	let usage: Usage | undefined;
 	let doneCount = 0;
 
-	for (const event of events) {
+	for await (const event of events) {
 		if (event === "[DONE]") {
 			doneCount += 1;
 			if (doneCount > 1) protocol("deepseek_sse_done_duplicate");
@@ -486,6 +488,9 @@ async function assembleSuccessfulResponse(response: DeepSeekTransportResponse): 
 			protocol("deepseek_sse_role_invalid");
 		}
 		appendOptionalString(content, delta.content, "deepseek_sse_content_invalid");
+		if (typeof delta.content === "string" && delta.content && !request.signal.aborted) {
+			try { request.onProgress?.({type:"text_delta", text:delta.content}); } catch { /* A display sink cannot change the assembled outcome. */ }
+		}
 		appendOptionalString(reasoning, delta.reasoning_content, "deepseek_sse_reasoning_invalid");
 		if (delta.tool_calls !== undefined && delta.tool_calls !== null) {
 			if (!Array.isArray(delta.tool_calls)) protocol("deepseek_sse_tool_calls_invalid");
@@ -548,7 +553,7 @@ async function classifyHttpFailure(response: DeepSeekTransportResponse, signal: 
 	let contextCode: string | undefined;
 	let bytes: Uint8Array;
 	try {
-		bytes = await readBodyBytes(response.body);
+		bytes = await readBodyBytes(abortableBody(response.body, signal));
 	} catch (error) {
 		if (isAbort(error, signal)) throw error;
 		throw error;
@@ -626,7 +631,7 @@ export class PanDeepSeekModelAdapter implements ModelAdapter {
 
 		let assembled: AssembledResponse;
 		try {
-			assembled = await assembleSuccessfulResponse(response);
+			assembled = await assembleSuccessfulResponse(response, request);
 			if (request.signal.aborted) return failure("cancelled", "deepseek_exchange_cancelled", false);
 			validateModelOutcome(assembled.outcome, request.context.messages);
 		} catch (error) {

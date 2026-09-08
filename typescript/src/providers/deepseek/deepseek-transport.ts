@@ -39,16 +39,22 @@ function defaultCredentialSource(): string | undefined {
 	return process.env.DEEPSEEK_API_KEY;
 }
 
-async function* responseBytes(response: Response): AsyncIterable<Uint8Array> {
+async function* responseBytes(response: Response, signal: AbortSignal): AsyncIterable<Uint8Array> {
 	if (!response.body) return;
 	const reader = response.body.getReader();
+	let complete = false;
+	const abort = () => { void reader.cancel().catch(() => {}); };
+	signal.addEventListener("abort", abort, {once:true});
+	if (signal.aborted) abort();
 	try {
 		while (true) {
 			const item = await reader.read();
-			if (item.done) return;
+			if (item.done) { complete = true; return; }
 			if (item.value) yield item.value;
 		}
 	} finally {
+		signal.removeEventListener("abort", abort);
+		if (!complete) void reader.cancel().catch(() => {});
 		reader.releaseLock();
 	}
 }
@@ -77,6 +83,6 @@ export class DeepSeekFetchTransport implements DeepSeekTransport {
 			body: request.body,
 			signal: request.signal,
 		});
-		return { status: response.status, body: responseBytes(response) };
+		return { status: response.status, body: responseBytes(response, request.signal) };
 	}
 }

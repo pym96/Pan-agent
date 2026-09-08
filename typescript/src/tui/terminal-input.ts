@@ -11,6 +11,7 @@ export class TerminalInput {
 	private visible = false;
 	private row = 0;
 	private editing = false;
+	private partial = "";
 	private readonly tty: boolean;
 	private readonly wasRaw: boolean;
 	private readonly input: Readable;
@@ -27,8 +28,36 @@ export class TerminalInput {
 		input.on("keypress", this.key); input.on("end", this.ended);
 		input.resume();
 	}
+	/** Append already-safe framed model data; only the unfinished visual line is redrawn. */
+	append(fragment: string): void {
+		if (!this.tty) { this.output.write(fragment); this.partial = (this.partial + fragment).split("\n").at(-1)!; return; }
+		this.clear();
+		const lines = (this.partial + fragment).split("\n");
+		this.partial = lines.pop()!;
+		for (const line of lines) this.output.write(line + "\n");
+		// Commit complete visual rows so a long response never needs cursor-up beyond the viewport.
+		const columns = Math.max(4, (this.output as {columns?: number}).columns ?? 80);
+		while (true) {
+			let cells = 0, cut = 0;
+			for (const point of this.partial) {
+				const size = cellWidth(point);
+				if (cells + size > columns) break;
+				cells += size; cut += point.length;
+			}
+			if (cut === this.partial.length) break;
+			this.output.write(this.partial.slice(0, cut) + "\n");
+			this.partial = "│ " + this.partial.slice(cut);
+		}
+		this.draw();
+	}
 	setPrompt(prompt: string): void { this.clear(); this.prompt = prompt; this.draw(); }
-	write(line: string): void { this.clear(); this.output.write(line + "\n"); this.draw(); }
+	write(line: string): void {
+		this.clear();
+		if (!this.tty && this.partial) {
+			this.output.write("\n└─\n" + line + "\nResponding… (provisional, continued)\n│ "); this.partial = "│ ";
+		} else this.output.write(line + "\n");
+		this.draw();
+	}
 	close(): void {
 		this.clear(); this.input.off("keypress", this.key); this.input.off("end", this.ended);
 		if (this.tty) (this.input as ReadStream).setRawMode(this.wasRaw);
@@ -61,26 +90,35 @@ export class TerminalInput {
 		this.visible = false;
 	}
 	private draw(): void {
-		if (this.editing || !this.prompt || this.visible) return;
-		if (!this.tty) { this.output.write(this.prompt); this.visible = true; return; }
-		const full = this.prompt + terminalText(this.draft.join(""));
-		const prefix = this.prompt + terminalText(this.draft.slice(0, this.cursor).join(""));
+		if (this.editing || (!this.prompt && !this.partial) || this.visible) return;
+		if (!this.tty) { if (this.prompt !== "Draft > ") this.output.write(this.prompt); this.visible = true; return; }
+		const stream = this.partial ? this.partial + "\n" : "";
+		const full = stream + this.prompt + terminalText(this.draft.join(""));
+		const prefix = stream + this.prompt + terminalText(this.draft.slice(0, this.cursor).join(""));
 		const columns = Math.max(1, (this.output as {columns?: number}).columns ?? 80);
 		const position = (value: string) => {
 			let row = 0, column = 0;
 			for (const point of value) {
-				const n = point.codePointAt(0)!;
-				const size = /\p{Mark}/u.test(point) ? 0 : n >= 0x1100 && (n <= 0x115f || n >= 0x2e80 && n <= 0xa4cf || n >= 0xac00 && n <= 0xd7a3 || n >= 0xf900 && n <= 0xfaff || n >= 0xfe10 && n <= 0xfe6f || n >= 0xff00 && n <= 0xff60 || n >= 0x1f300) ? 2 : 1;
+				if (point === "\n") { row++; column = 0; continue; }
+				const size = cellWidth(point);
 				if (column + size > columns) { row++; column = 0; }
 				column += size;
-				if (column === columns) { row++; column = 0; }
+				
 			}
 			return {row, column};
 		};
 		const end = position(full), cursor = position(prefix);
+		const pendingWrap = end.column === columns;
+		if (pendingWrap) { end.row++; end.column = 0; }
+		if (cursor.column === columns) { cursor.row++; cursor.column = 0; }
 		this.output.write(full);
-		if (end.column === 0) this.output.write(" \r"); // resolve terminal's pending wrap
+		if (pendingWrap) this.output.write(" \r"); // resolve terminal's pending wrap
 		this.output.write(`\r${end.row > cursor.row ? `\x1b[${end.row - cursor.row}A` : ""}${cursor.column ? `\x1b[${cursor.column}C` : ""}`);
 		this.row = cursor.row; this.visible = true;
 	}
+}
+
+function cellWidth(point: string): number {
+	const n = point.codePointAt(0)!;
+	return /\p{Mark}/u.test(point) ? 0 : n >= 0x1100 && (n <= 0x115f || n >= 0x2e80 && n <= 0xa4cf || n >= 0xac00 && n <= 0xd7a3 || n >= 0xf900 && n <= 0xfaff || n >= 0xfe10 && n <= 0xfe6f || n >= 0xff00 && n <= 0xff60 || n >= 0x1f300) ? 2 : 1;
 }

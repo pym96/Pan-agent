@@ -14,14 +14,14 @@ export async function runCompactTui(options: TuiOptions): Promise<number> {
 	const write = (line: string) => terminal.write(line);
 	function finish(): void { phase = "closed"; terminal.setPrompt(""); resolveClosed(); }
 	function interrupt(): void {
-		if (phase === "running") { cancelled = true; write("正在请求取消；等待运行结算。"); options.session.cancel(); }
+		if (phase === "running") { cancelled = true; write("Cancellation requested; waiting for settlement."); options.session.cancel(); }
 		else if (phase !== "command") { if (phase === "confirm") write("Cancelled before Provider use."); finish(); }
 	}
 	function end(): void { ending = true; if (phase === "running") interrupt(); else if (phase !== "command") finish(); }
 	async function command(text: string): Promise<void> {
 		const store = options.archiveStore;
 		if (text === ":exit") { finish(); return; }
-		if (text === ":help") { write(":details 详情 · :context 上下文 · :runs 历史 · :replay RUN_ID 回放 · :exit 退出；运行中 Ctrl-C 取消，输入保留为草稿。"); return; }
+		if (text === ":help") { write(":details inspect · :context context · :runs history · :replay RUN_ID replay · :exit quit; Ctrl-C cancels a running task and retains your draft."); return; }
 		if (text === ":details") { presentation.details(); return; }
 		if (text === ":context") { write(`CONTEXT messages=${options.session.contextMessageCount} owner=${options.session.kernelKind} truncation=none`); return; }
 		if (text === ":runs") {
@@ -52,29 +52,29 @@ export async function runCompactTui(options: TuiOptions): Promise<number> {
 	async function execute(text: string): Promise<void> {
 		try { if (text.trim().startsWith(":")) await command(text.trim()); else presentation.settle(await options.session.runTask(text)); }
 		catch (error) { write(`LOCAL_ERROR ${terminalText(error instanceof Error ? error.message : "unknown")}`); }
-		finally { if (phase !== "closed") { if (ending) finish(); else { phase = "idle"; terminal.setPrompt("你 › "); } } }
+		finally { if (phase !== "closed") { if (ending) finish(); else { phase = "idle"; terminal.setPrompt("You > "); } } }
 	}
 	terminal = new TerminalInput(options.input ?? process.stdin, options.output ?? process.stdout, text => {
-		if (phase === "running" || phase === "command") { write("忙碌中：草稿已保留；空闲后再次按 Enter 提交。"); return false; }
+		if (phase === "running" || phase === "command") { write("Busy — draft retained; press Enter after this task finishes."); return false; }
 		if (phase === "closed") return false;
 		if (phase === "confirm") {
 			if (!["y", "yes"].includes(text.trim().toLowerCase())) { write("Cancelled before Provider use."); finish(); }
-			else { phase = "idle"; write(":help 查看命令 · :details 查看运行详情"); terminal.setPrompt("你 › "); }
+			else { phase = "idle"; write(":help for commands · :details for run details"); terminal.setPrompt("You > "); }
 			return true;
 		}
 		if (!text.trim()) { write("Task must not be blank; no Provider call was made."); return true; }
 		phase = text.trim().startsWith(":") ? "command" : "running"; cancelled = false;
-		terminal.setPrompt(phase === "running" ? "草稿 › " : "");
+		terminal.setPrompt(phase === "running" ? "Draft > " : "");
 		// Start after TerminalInput has synchronously committed/cleared the submitted draft.
 		queueMicrotask(() => { void execute(text); });
 		return true;
 	}, interrupt, end);
-	presentation.attach(write, () => { if (cancelled) options.session.cancel(); });
+	presentation.attach(write, () => { if (cancelled) options.session.cancel(); }, fragment => terminal.append(fragment));
 	write(`Pan Agent · Native · ${terminalText(options.provider)}`);
-	write(`模型：${terminalText(options.model)}`);
-	write(`工作目录：${terminalText(options.workspace)}`);
+	write(`Model: ${terminalText(options.model)}`);
+	write(`Workspace: ${terminalText(options.workspace)}`);
 	write("SHELL trusted-local: host-user authority; workspace is cwd, not containment or an OS sandbox.");
-	write("仅在确认后提交非空任务时请求所选模型；命令不调用模型。");
+	write("The selected model is called only for a confirmed nonblank task; local commands make no model calls.");
 	terminal.setPrompt("Confirm provider and trusted-local workspace [y/N]> ");
 	try { await closed; return 0; }
 	finally { terminal.close(); await options.session.close(); (options.output ?? process.stdout).write("General Agent TUI closed.\n"); }

@@ -6,6 +6,7 @@ import {
 	type KernelLimits,
 	type KernelSelector,
 	type ObservationSink,
+	type ProgressSink,
 	resolveKernelLimits,
 	type SessionObservation,
 	type TerminalStatus,
@@ -54,6 +55,8 @@ interface GeneralAgentSessionOptionsBase {
 	readonly memory: SessionMemory;
 	readonly limits?: Partial<KernelLimits>;
 	readonly onObservation?: ObservationSink;
+	readonly onProgress?: ProgressSink;
+	readonly onProgressError?: () => void;
 	readonly cleanup?: () => Promise<void> | void;
 }
 
@@ -76,6 +79,7 @@ export type GeneralAgentSessionOptions = InjectedGeneralAgentSessionOptions | Na
 export class GeneralAgentSession {
 	private readonly kernel: AgentKernel;
 	private readonly onObservation: ObservationSink;
+	private readonly onProgress?: ProgressSink;
 	private readonly cleanup?: () => Promise<void> | void;
 	private readonly memory: SessionMemory;
 	private readonly baseSystemPrompt: string;
@@ -109,6 +113,10 @@ export class GeneralAgentSession {
 			this.kernel = selector as AgentKernel;
 		}
 		this.onObservation = options.onObservation ?? (() => {});
+		this.onProgress = options.onProgress ? progress => {
+			try { options.onProgress?.(progress); }
+			catch { try { options.onProgressError?.(); } catch { /* Diagnostics are observational too. */ } }
+		} : undefined;
 		this.cleanup = options.cleanup;
 		this.memory = options.memory;
 		this.baseSystemPrompt = options.systemPrompt;
@@ -151,6 +159,7 @@ export class GeneralAgentSession {
 				task,
 				systemPrompt: `${this.baseSystemPrompt}\n\nRUNBOOK (revision ${runbook.revision}):\n${runbook.content}`,
 				onObservation: (observation) => this.emit(observation),
+				...(this.onProgress ? {onProgress:this.onProgress} : {}),
 			});
 		} catch (error) {
 			await this.settleArchive("failed", `kernel_error: ${error instanceof Error ? error.message : String(error)}`);

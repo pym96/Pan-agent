@@ -14,3 +14,8 @@ export type * from "./protocol/agent-tool.ts";
 
 export { createCompactPresentation } from "./tui/presentation.ts";
 export type { CompactPresentation } from "./tui/presentation.ts";
+
+export type { ModelTextDelta, ModelProgressSink } from "./protocol/model-adapter-contract.ts";
+export type { SessionProgress, ProgressSink } from "./runtime/agent-kernel.ts";
+export { PanDeepSeekModelAdapter, createPanDeepSeekAdapter } from "./providers/deepseek/pan-deepseek-model-adapter.ts";
+export { DeepSeekFetchTransport } from "./providers/deepseek/deepseek-transport.ts";

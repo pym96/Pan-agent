@@ -1,0 +1,1048 @@
+{
+  "base": "fd408c4ecd236cf97d509436085e4df461829e9e",
+  "criteria_version": "1.0",
+  "prior_obligations": [
+    {
+      "file": "typescript/test/compact-tui.test.ts",
+      "title": "C-TUI-01 compact keeps full final once and zero tool-body lines; details retains permitted content without mutation",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/compact-tui.test.ts",
+      "title": "C-TUI-01 exact 79/80/81 code-point preview and indivisible reversible escape tokens",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/compact-tui.test.ts",
+      "title": "C-TUI-01 failure, cancellation, incomplete, zero-tool and returned-error paths keep truthful status",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/compact-tui.test.ts",
+      "title": "C-TUI-05 all projections whitelist fields and reversibly frame external terminal controls",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/compact-tui.test.ts",
+      "title": "C-TUI-01/04 v1.1 cancelled batches preserve distinct live admissions and identical replay availability",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/compact-tui.test.ts",
+      "title": "C-TUI-02 non-TTY busy Enter preserves Chinese/ASCII draft and cursor until a new idle Enter",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/compact-tui.test.ts",
+      "title": "C-TUI-02 empty/local commands and pre/post-confirmation Ctrl-C admit no task",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/compact-tui.test.ts",
+      "title": "C-TUI-03 CLI catches synchronous projector failure without archive failure or cancelled execution",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/compact-tui.test.ts",
+      "title": "C-TUI-05 banner and validation diagnostics safely display hostile allowed fields",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/compact-tui.test.ts",
+      "title": "C-TUI-06 exported legacy renderers retain exact default behavior",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/conformance.test.ts",
+      "title": "conformance manifest freezes the language-neutral case set and retained semantics",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/conformance.test.ts",
+      "title": "language-neutral tool semantics fixture passes through the TypeScript product",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/conformance.test.ts",
+      "title": "language-neutral terminal fixtures cover completed, model-error, and incomplete settlements",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/conformance.test.ts",
+      "title": "language-neutral cancellation fixture settles the active tool and prevents its late effect",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/conformance.test.ts",
+      "title": "language-neutral Context fixture remains visible across successive tasks",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/cutover-contract.test.ts",
+      "title": "C-CUT-01 default README route installs and launches only the TypeScript product",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/cutover-contract.test.ts",
+      "title": "C-CUT-04 and C-CUT-08 classify every retained non-product lane",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/cutover-contract.test.ts",
+      "title": "C-CUT-06 assignment and ADR record architectural supersession",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/cutover-contract.test.ts",
+      "title": "C-CUT-03 and C-CUT-05 conformance artifacts are language-neutral and the TypeScript specification is readable",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/cutover-contract.test.ts",
+      "title": "C-CUT-09 cutover documentation has no broken local links",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/general-agent.test.ts",
+      "title": "C-PFREE-D103 Product help and invalid selectors fail before setup; explicit injection keeps one lifecycle",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/general-agent.test.ts",
+      "title": "C-PFREE-D102 explicit Native CLI and real TUI complete write/read/verify with sealed public archive",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/general-agent.test.ts",
+      "title": "C-PFREE-D106 P-D6 admission, secret exclusion, process cancellation and malformed offline transport observations",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/kernel-conformance.test.ts",
+      "title": "C-KER-01 AgentKernel is the sole Session orchestration seam and only PiKernel invokes Pi orchestration",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/kernel-conformance.test.ts",
+      "title": "C-KER-09 kernel manifest is versioned, language-neutral, complete, and preserves v1 fixture bytes",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/kernel-conformance.test.ts",
+      "title": "C-KER-02 selection fixture runs through the same public Session interface for both Kernels",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/kernel-conformance.test.ts",
+      "title": "C-KER-03/04 context-and-batch fixture runs unchanged against both Kernels",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/kernel-conformance.test.ts",
+      "title": "C-KER-05 invalid-correlation fixture runs unchanged against both Kernels",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/kernel-conformance.test.ts",
+      "title": "C-KER-06 active-cancellation fixture runs unchanged against both Kernels",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/kernel-conformance.test.ts",
+      "title": "C-KER-07 budget fixture runs unchanged against both Kernels",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/kernel-conformance.test.ts",
+      "title": "C-KER-08 terminal-accounting fixture runs unchanged against both Kernels",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/memory-lanes.test.ts",
+      "title": "run.started is durable before the first Provider exchange (normal, provider-failure, tool-failure, cancelled)",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/memory-lanes.test.ts",
+      "title": "cancelled and tool-failure runs are durably archived and sealed",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/memory-lanes.test.ts",
+      "title": "interruption between appends, mid-write, and after cancellation settles as interrupted with a causal prefix",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/memory-lanes.test.ts",
+      "title": "sealed archives refuse append, re-settle, identity reuse, and recovery writes in all four states",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/memory-lanes.test.ts",
+      "title": "integrity verification detects modified, deleted, reordered, and injected records",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/memory-lanes.test.ts",
+      "title": "list, inspect, and replay are zero-effect; corrupted input fails typed",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/memory-lanes.test.ts",
+      "title": "TUI :runs and :replay render archives with zero Provider calls and typed corruption errors",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/memory-lanes.test.ts",
+      "title": "archive preserves every declared event kind and excludes credential canaries and restricted reasoning",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/memory-lanes.test.ts",
+      "title": "retrospective ledger enforces sealed reference integrity and supersession-only mutation",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/memory-lanes.test.ts",
+      "title": "ledger entries are rejected as archive trajectory and the fact register is untouched",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/memory-lanes.test.ts",
+      "title": "runbook revision binding survives later edits and reverts",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/memory-lanes.test.ts",
+      "title": "CLI requires a disjoint --memory-root before any Adapter construction",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/memory-lanes.test.ts",
+      "title": "corrupted sealed manifest fails typed at read surfaces without blocking startup",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/memory-lanes.test.ts",
+      "title": "TUI :runs renders a typed ARCHIVE_ERROR for a corrupted manifest with zero Provider calls",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/module-layout.test.ts",
+      "title": "C-LAY-01/C-LAY-02 exact relocation and resolved source graph preserve all baseline Modules",
+      "execution": "exact #41 historical snapshot and unchanged negative controls"
+    },
+    {
+      "file": "typescript/test/module-layout.test.ts",
+      "title": "C-LAY-02 graph rejects static, type, re-export and literal dynamic runtime-to-DeepSeek edges",
+      "execution": "exact #41 historical snapshot and unchanged negative controls"
+    },
+    {
+      "file": "typescript/test/module-layout.test.ts",
+      "title": "C-LAY-01 incomplete relocation mapping fails before it can hide a missing implementation",
+      "execution": "exact #41 historical snapshot and unchanged negative controls"
+    },
+    {
+      "file": "typescript/test/module-layout.test.ts",
+      "title": "C-LAY-04 source fidelity rejects an executable default change outside permitted import spans",
+      "execution": "exact #41 historical snapshot and unchanged negative controls"
+    },
+    {
+      "file": "typescript/test/native-kernel.test.ts",
+      "title": "C-KER-03/04 NativeKernel retains typed Context and settles a ToolCall batch sequentially",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/native-kernel.test.ts",
+      "title": "C-KER-05 both Kernels return one correlated typed error per unknown or schema-invalid call",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/native-kernel.test.ts",
+      "title": "C-KER-05 both Kernels reject duplicate ToolCall ids before tool effects",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/native-kernel.test.ts",
+      "title": "C-KER-05 orphan seeded ToolResults settle model_error before model or tool effects",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/native-kernel.test.ts",
+      "title": "C-KER-06 both Kernels cancel the active tool with no late effect and one final archived terminal",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/native-kernel.test.ts",
+      "title": "C-KER-07 both Kernels enforce exact model-turn and atomic tool-step budgets",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/native-kernel.test.ts",
+      "title": "C-KER-07 invalid budgets fail before model, tool, or archive effects",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/packaging.test.ts",
+      "title": "C-PFREE-E101 clean compiler builds eliminate stale output and preserve deterministic executable exports",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/packaging.test.ts",
+      "title": "C-PFREE-E104 packed-create-run-verify v1 fixes exact tool order, source bytes and expected output",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/pan-contracts.test.ts",
+      "title": "C-PFREE-A01 canonical values stay structural and reject invalid correlation/arguments",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/pan-contracts.test.ts",
+      "title": "C-PFREE-A02 unavailable usage/identity stay distinct from reported zero and failures are not assistant content",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/pan-contracts.test.ts",
+      "title": "C-PFREE-A03/A05 Native session uses one Pan ModelAdapter seam for final and ToolResult feedback",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/pan-contracts.test.ts",
+      "title": "C-PFREE-A03 cancellation reaches the active adapter and admits no later exchange",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/pan-contracts.test.ts",
+      "title": "C-PFREE-A04 unknown/schema-invalid/cancelled ToolCalls have zero implementation effects",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/pan-contracts.test.ts",
+      "title": "C-PFREE-A03/A06 Pan seams and NativeKernel have no Pi import or hidden Pi model/tool decision",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/pan-deepseek-adapter.test.ts",
+      "title": "C-PFREE-C101 direct Pan Adapter construction and explicit Native CLI composition are inert and Pi-free",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/pan-deepseek-adapter.test.ts",
+      "title": "C-PFREE-C101 Fetch transport resolves synthetic auth only at send and preserves the one-request envelope",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/pan-deepseek-adapter.test.ts",
+      "title": "C-PFREE-C102 exact Context encoding, private reasoning replay and session isolation",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/pan-deepseek-adapter.test.ts",
+      "title": "C-PFREE-C103 every valid SSE fixture is byte-split invariant",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/pan-deepseek-adapter.test.ts",
+      "title": "C-PFREE-C103 malformed stream table settles typed without partial response",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/pan-deepseek-adapter.test.ts",
+      "title": "C-PFREE-C104 usage and response identity preserve reported, absent and malformed meanings",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/pan-deepseek-adapter.test.ts",
+      "title": "C-PFREE-C105 cancellation, transport and exact HTTP failures settle once without retry or canary leakage",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/pan-deepseek-adapter.test.ts",
+      "title": "C-PFREE-C106 public Native Session traverses direct final, Tool, batch, length and failure fixtures",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/pan-deepseek-adapter.test.ts",
+      "title": "C-PFREE-C106 public active cancellation reaches transport, seals once and executes no Tool",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/pan-deepseek-adapter.test.ts",
+      "title": "C-PFREE-C108 fixture and official-contract identities are content-pinned and secret-free",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/pan-faux-tools.test.ts",
+      "title": "C-PFREE-B101 Faux consumes deterministic canonical scripts and fails typed on exhaustion",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/pan-faux-tools.test.ts",
+      "title": "C-PFREE-B101 pending and pre-aborted Faux exchanges consume no later script entry",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/pan-faux-tools.test.ts",
+      "title": "C-PFREE-B101 Faux rejects noncanonical requests before admission and types invalid script outcomes",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/pan-faux-tools.test.ts",
+      "title": "C-PFREE-B101/B102 Faux and Pan Tool graphs contain no Pi or Provider transport delegation",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/pan-faux-tools.test.ts",
+      "title": "C-PFREE-B102/B103 Pan read-write-edit-bash complete through Native Events and Archive",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/pan-faux-tools.test.ts",
+      "title": "C-PFREE-B103 nonzero Bash and missing edit remain attributable without Harness crash or partial edit",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/pan-faux-tools.test.ts",
+      "title": "C-PFREE-B104 malformed and cancel-before-effect calls have zero implementations and effects",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/pan-faux-tools.test.ts",
+      "title": "C-PFREE-B104 Bash excludes Provider secrets and kills descendants before settlement",
+      "execution": "current Product"
+    },
+    {
+      "file": "typescript/test/pan-faux-tools.test.ts",
+      "title": "C-PFREE-B105 Pan Faux/Tools preserve multi-call order, typed failure, cancellation, and budgets",
+      "execution": "current Product"
+    }
+  ],
+  "test_substitutions": [
+    {
+      "file": "typescript/test/compact-tui.test.ts",
+      "before": "等待工具返回",
+      "after": "Waiting for tool",
+      "occurrences": 1
+    },
+    {
+      "file": "typescript/test/compact-tui.test.ts",
+      "before": "模型调用",
+      "after": "Model calls",
+      "occurrences": 2
+    },
+    {
+      "file": "typescript/test/compact-tui.test.ts",
+      "before": "工具已返回 1 次",
+      "after": "Tool results 1",
+      "occurrences": 2
+    },
+    {
+      "file": "typescript/test/compact-tui.test.ts",
+      "before": "工具已返回 0 次",
+      "after": "Tool results 0",
+      "occurrences": 3
+    },
+    {
+      "file": "typescript/test/compact-tui.test.ts",
+      "before": "✗ 错误 bash",
+      "after": "✗ Error bash",
+      "occurrences": 1
+    },
+    {
+      "file": "typescript/test/compact-tui.test.ts",
+      "before": "部分回答",
+      "after": "Partial response",
+      "occurrences": 2
+    },
+    {
+      "file": "typescript/test/compact-tui.test.ts",
+      "before": "最终回答",
+      "after": "Final answer",
+      "occurrences": 1
+    },
+    {
+      "file": "typescript/test/compact-tui.test.ts",
+      "before": "工具接纳数",
+      "after": "Admitted tool calls",
+      "occurrences": 2
+    },
+    {
+      "file": "typescript/test/compact-tui.test.ts",
+      "before": "工具启动事件数",
+      "after": "Tool start events",
+      "occurrences": 2
+    },
+    {
+      "file": "typescript/test/compact-tui.test.ts",
+      "before": "工具返回数",
+      "after": "Tool results",
+      "occurrences": 2
+    },
+    {
+      "file": "typescript/test/compact-tui.test.ts",
+      "before": "chunk===\"你 › \"",
+      "after": "chunk===\"You > \"",
+      "occurrences": 3
+    },
+    {
+      "file": "typescript/test/compact-tui.test.ts",
+      "before": "等待模型返回",
+      "after": "Waiting for model",
+      "occurrences": 1
+    },
+    {
+      "file": "typescript/test/compact-tui.test.ts",
+      "before": "忙碌中：草稿已保留",
+      "after": "Busy — draft retained",
+      "occurrences": 1
+    },
+    {
+      "file": "typescript/test/compact-tui.test.ts",
+      "before": "/已取消/",
+      "after": "/Cancelled/",
+      "occurrences": 1
+    },
+    {
+      "file": "typescript/test/compact-tui.test.ts",
+      "before": "暂无可查看",
+      "after": "No run selected",
+      "occurrences": 1
+    },
+    {
+      "file": "typescript/test/compact-tui.test.ts",
+      "before": "显示错误（执行继续）",
+      "after": "Display error \\(execution continues\\)",
+      "occurrences": 1
+    },
+    {
+      "file": "typescript/test/compact-tui.test.ts",
+      "before": "/已完成/",
+      "after": "/Completed/",
+      "occurrences": 1
+    },
+    {
+      "file": "typescript/test/general-agent.test.ts",
+      "before": "chunk.endsWith(\"你 › \")",
+      "after": "chunk.endsWith(\"You > \")",
+      "occurrences": 1
+    },
+    {
+      "file": "typescript/test/cutover-contract.test.ts",
+      "before": "WorkOrder #42 Native compact TUI/",
+      "after": "WorkOrder #44 Streaming and English TUI/",
+      "occurrences": 1
+    }
+  ],
+  "english_label_substitutions": [
+    {
+      "file": "typescript/src/tui/presentation.ts",
+      "before": "暂无可查看的运行；先提交任务或 :replay RUN_ID。",
+      "after": "No run selected; submit a task or use :replay RUN_ID.",
+      "occurrences": 1
+    },
+    {
+      "file": "typescript/src/tui/presentation.ts",
+      "before": " 次 · :details 查看详情",
+      "after": " · :details for details",
+      "occurrences": 1
+    },
+    {
+      "file": "typescript/src/tui/presentation.ts",
+      "before": "工具启动事件（不证明实现已执行）",
+      "after": "Tool start event (not proof of execution)",
+      "occurrences": 1
+    },
+    {
+      "file": "typescript/src/tui/presentation.ts",
+      "before": "部分回答（任务未完成）",
+      "after": "Partial response (task incomplete)",
+      "occurrences": 1
+    },
+    {
+      "file": "typescript/src/tui/presentation.ts",
+      "before": "显示错误（执行继续）：",
+      "after": "Display error (execution continues): ",
+      "occurrences": 1
+    },
+    {
+      "file": "typescript/src/tui/presentation.ts",
+      "before": "模型身份与停止原因",
+      "after": "Model identity and stop reason",
+      "occurrences": 1
+    },
+    {
+      "file": "typescript/src/tui/presentation.ts",
+      "before": "累计 Usage",
+      "after": "Total Usage",
+      "occurrences": 1
+    },
+    {
+      "file": "typescript/src/tui/presentation.ts",
+      "before": "归档终态不可用",
+      "after": "Archive terminal unavailable",
+      "occurrences": 1
+    },
+    {
+      "file": "typescript/src/tui/presentation.ts",
+      "before": "工具启动事件数",
+      "after": "Tool start events",
+      "occurrences": 1
+    },
+    {
+      "file": "typescript/src/tui/presentation.ts",
+      "before": "模型启动事件数",
+      "after": "Model start events",
+      "occurrences": 1
+    },
+    {
+      "file": "typescript/src/tui/presentation.ts",
+      "before": "模型返回事件数",
+      "after": "Model result events",
+      "occurrences": 1
+    },
+    {
+      "file": "typescript/src/tui/presentation.ts",
+      "before": "工具返回：错误",
+      "after": "Tool result: error",
+      "occurrences": 1
+    },
+    {
+      "file": "typescript/src/tui/presentation.ts",
+      "before": "工具返回：成功",
+      "after": "Tool result: success",
+      "occurrences": 1
+    },
+    {
+      "file": "typescript/src/tui/presentation.ts",
+      "before": "工具结果元数据",
+      "after": "Tool result metadata",
+      "occurrences": 1
+    },
+    {
+      "file": "typescript/src/tui/presentation.ts",
+      "before": "等待模型返回",
+      "after": "Waiting for model",
+      "occurrences": 1
+    },
+    {
+      "file": "typescript/src/tui/presentation.ts",
+      "before": "等待工具返回",
+      "after": "Waiting for tool",
+      "occurrences": 1
+    },
+    {
+      "file": "typescript/src/tui/presentation.ts",
+      "before": "模型公开文本",
+      "after": "Public model text",
+      "occurrences": 1
+    },
+    {
+      "file": "typescript/src/tui/presentation.ts",
+      "before": "完整工具结果",
+      "after": "Full tool result",
+      "occurrences": 1
+    },
+    {
+      "file": "typescript/src/tui/presentation.ts",
+      "before": "任务进行中",
+      "after": "Task running",
+      "occurrences": 1
+    },
+    {
+      "file": "typescript/src/tui/presentation.ts",
+      "before": "✓ 已返回",
+      "after": "✓ Returned",
+      "occurrences": 1
+    },
+    {
+      "file": "typescript/src/tui/presentation.ts",
+      "before": "工具已返回",
+      "after": "Tool results",
+      "occurrences": 1
+    },
+    {
+      "file": "typescript/src/tui/presentation.ts",
+      "before": "工具接纳数",
+      "after": "Admitted tool calls",
+      "occurrences": 1
+    },
+    {
+      "file": "typescript/src/tui/presentation.ts",
+      "before": "工具返回数",
+      "after": "Tool results",
+      "occurrences": 1
+    },
+    {
+      "file": "typescript/src/tui/presentation.ts",
+      "before": "模型错误",
+      "after": "Model error",
+      "occurrences": 2
+    },
+    {
+      "file": "typescript/src/tui/presentation.ts",
+      "before": "✗ 错误",
+      "after": "✗ Error",
+      "occurrences": 1
+    },
+    {
+      "file": "typescript/src/tui/presentation.ts",
+      "before": "最终回答",
+      "after": "Final answer",
+      "occurrences": 1
+    },
+    {
+      "file": "typescript/src/tui/presentation.ts",
+      "before": "模型调用",
+      "after": "Model calls",
+      "occurrences": 2
+    },
+    {
+      "file": "typescript/src/tui/presentation.ts",
+      "before": "终态原因",
+      "after": "Terminal reason",
+      "occurrences": 1
+    },
+    {
+      "file": "typescript/src/tui/presentation.ts",
+      "before": "归档回放",
+      "after": "Archived replay",
+      "occurrences": 1
+    },
+    {
+      "file": "typescript/src/tui/presentation.ts",
+      "before": "运行详情",
+      "after": "Run details",
+      "occurrences": 1
+    },
+    {
+      "file": "typescript/src/tui/presentation.ts",
+      "before": "归档身份",
+      "after": "Archive identity",
+      "occurrences": 1
+    },
+    {
+      "file": "typescript/src/tui/presentation.ts",
+      "before": "完整参数",
+      "after": "Full arguments",
+      "occurrences": 1
+    },
+    {
+      "file": "typescript/src/tui/presentation.ts",
+      "before": "归档结算",
+      "after": "Archive settlement",
+      "occurrences": 1
+    },
+    {
+      "file": "typescript/src/tui/presentation.ts",
+      "before": "归档封存",
+      "after": "Archive sealed",
+      "occurrences": 1
+    },
+    {
+      "file": "typescript/src/tui/presentation.ts",
+      "before": "已完成",
+      "after": "Completed",
+      "occurrences": 1
+    },
+    {
+      "file": "typescript/src/tui/presentation.ts",
+      "before": "已取消",
+      "after": "Cancelled",
+      "occurrences": 1
+    },
+    {
+      "file": "typescript/src/tui/presentation.ts",
+      "before": "未完成",
+      "after": "Incomplete",
+      "occurrences": 1
+    },
+    {
+      "file": "typescript/src/tui/presentation.ts",
+      "before": "已中断",
+      "after": "Interrupted",
+      "occurrences": 1
+    },
+    {
+      "file": "typescript/src/tui/presentation.ts",
+      "before": "零执行",
+      "after": "zero execution",
+      "occurrences": 1
+    },
+    {
+      "file": "typescript/src/tui/presentation.ts",
+      "before": "任务",
+      "after": "Task",
+      "occurrences": 1
+    },
+    {
+      "file": "typescript/src/tui/presentation.ts",
+      "before": "终态",
+      "after": "Terminal",
+      "occurrences": 1
+    },
+    {
+      "file": "typescript/src/tui/compact-tui.ts",
+      "before": ":details 详情 · :context 上下文 · :runs 历史 · :replay RUN_ID 回放 · :exit 退出；运行中 Ctrl-C 取消，输入保留为草稿。",
+      "after": ":details inspect · :context context · :runs history · :replay RUN_ID replay · :exit quit; Ctrl-C cancels a running task and retains your draft.",
+      "occurrences": 1
+    },
+    {
+      "file": "typescript/src/tui/compact-tui.ts",
+      "before": ":help 查看命令 · :details 查看运行详情",
+      "after": ":help for commands · :details for run details",
+      "occurrences": 1
+    },
+    {
+      "file": "typescript/src/tui/compact-tui.ts",
+      "before": "仅在确认后提交非空任务时请求所选模型；命令不调用模型。",
+      "after": "The selected model is called only for a confirmed nonblank task; local commands make no model calls.",
+      "occurrences": 1
+    },
+    {
+      "file": "typescript/src/tui/compact-tui.ts",
+      "before": "忙碌中：草稿已保留；空闲后再次按 Enter 提交。",
+      "after": "Busy — draft retained; press Enter after this task finishes.",
+      "occurrences": 1
+    },
+    {
+      "file": "typescript/src/tui/compact-tui.ts",
+      "before": "正在请求取消；等待运行结算。",
+      "after": "Cancellation requested; waiting for settlement.",
+      "occurrences": 1
+    },
+    {
+      "file": "typescript/src/tui/compact-tui.ts",
+      "before": "草稿 › ",
+      "after": "Draft > ",
+      "occurrences": 1
+    },
+    {
+      "file": "typescript/src/tui/compact-tui.ts",
+      "before": "工作目录：",
+      "after": "Workspace: ",
+      "occurrences": 1
+    },
+    {
+      "file": "typescript/src/tui/compact-tui.ts",
+      "before": "你 › ",
+      "after": "You > ",
+      "occurrences": 2
+    },
+    {
+      "file": "typescript/src/tui/compact-tui.ts",
+      "before": "模型：",
+      "after": "Model: ",
+      "occurrences": 1
+    },
+    {
+      "file": "typescript/src/cli.ts",
+      "before": "归档目录：",
+      "after": "Archives: ",
+      "occurrences": 1
+    }
+  ],
+  "copied_driver_substitutions": [
+    {
+      "file": "scripts/wo44-consumer-driver.mjs",
+      "baseline": "scripts/wo42-consumer-driver.mjs",
+      "before": "工具已返回 3 次",
+      "after": "Tool results 3",
+      "occurrences": 1
+    },
+    {
+      "file": "scripts/wo44-consumer-driver.mjs",
+      "baseline": "scripts/wo42-consumer-driver.mjs",
+      "before": "工具启动事件数",
+      "after": "Tool start events",
+      "occurrences": 2
+    },
+    {
+      "file": "scripts/wo44-consumer-driver.mjs",
+      "baseline": "scripts/wo42-consumer-driver.mjs",
+      "before": "完整工具结果",
+      "after": "Full tool result",
+      "occurrences": 1
+    },
+    {
+      "file": "scripts/wo44-consumer-driver.mjs",
+      "baseline": "scripts/wo42-consumer-driver.mjs",
+      "before": "工具接纳数",
+      "after": "Admitted tool calls",
+      "occurrences": 2
+    },
+    {
+      "file": "scripts/wo44-consumer-driver.mjs",
+      "baseline": "scripts/wo42-consumer-driver.mjs",
+      "before": "工具返回数",
+      "after": "Tool results",
+      "occurrences": 2
+    },
+    {
+      "file": "scripts/wo44-consumer-driver.mjs",
+      "baseline": "scripts/wo42-consumer-driver.mjs",
+      "before": "你 › ",
+      "after": "You > ",
+      "occurrences": 1
+    },
+    {
+      "file": "scripts/wo44-consumer-driver.mjs",
+      "baseline": "scripts/wo42-consumer-driver.mjs",
+      "before": "模型调用",
+      "after": "Model calls",
+      "occurrences": 2
+    },
+    {
+      "file": "scripts/wo44-consumer-driver.mjs",
+      "baseline": "scripts/wo42-consumer-driver.mjs",
+      "before": "归档回放",
+      "after": "Archived replay",
+      "occurrences": 1
+    },
+    {
+      "file": "scripts/wo44-consumer-driver.mjs",
+      "baseline": "scripts/wo42-consumer-driver.mjs",
+      "before": "已完成",
+      "after": "Completed",
+      "occurrences": 1
+    },
+    {
+      "file": "scripts/fixtures/streaming-replay-consumer.mjs",
+      "baseline": "scripts/fixtures/tui-replay-consumer.mjs",
+      "before": "工具已返回 ${count} 次",
+      "after": "Tool results ${count}",
+      "occurrences": 1
+    },
+    {
+      "file": "scripts/fixtures/streaming-replay-consumer.mjs",
+      "baseline": "scripts/fixtures/tui-replay-consumer.mjs",
+      "before": "工具启动事件数",
+      "after": "Tool start events",
+      "occurrences": 1
+    },
+    {
+      "file": "scripts/fixtures/streaming-replay-consumer.mjs",
+      "baseline": "scripts/fixtures/tui-replay-consumer.mjs",
+      "before": "工具接纳数",
+      "after": "Admitted tool calls",
+      "occurrences": 1
+    },
+    {
+      "file": "scripts/fixtures/streaming-replay-consumer.mjs",
+      "baseline": "scripts/fixtures/tui-replay-consumer.mjs",
+      "before": "工具返回数",
+      "after": "Tool results",
+      "occurrences": 1
+    },
+    {
+      "file": "scripts/fixtures/streaming-replay-consumer.mjs",
+      "baseline": "scripts/fixtures/tui-replay-consumer.mjs",
+      "before": "暂无可查看",
+      "after": "No run selected",
+      "occurrences": 1
+    },
+    {
+      "file": "scripts/fixtures/streaming-replay-consumer.mjs",
+      "baseline": "scripts/fixtures/tui-replay-consumer.mjs",
+      "before": "你 › ",
+      "after": "You > ",
+      "occurrences": 1
+    },
+    {
+      "file": "scripts/fixtures/streaming-replay-consumer.mjs",
+      "baseline": "scripts/fixtures/tui-replay-consumer.mjs",
+      "before": "模型调用",
+      "after": "Model calls",
+      "occurrences": 1
+    },
+    {
+      "file": "scripts/verify_streaming_baseline_pty.py",
+      "baseline": "scripts/verify_tui_pty.py",
+      "before": "你 › ",
+      "after": "You > ",
+      "occurrences": 5
+    },
+    {
+      "file": "scripts/verify_streaming_baseline_pty.py",
+      "baseline": "scripts/verify_tui_pty.py",
+      "before": "模型错误",
+      "after": "Model error",
+      "occurrences": 1
+    },
+    {
+      "file": "scripts/verify_streaming_baseline_pty.py",
+      "baseline": "scripts/verify_tui_pty.py",
+      "before": "已完成",
+      "after": "Completed",
+      "occurrences": 1
+    },
+    {
+      "file": "scripts/verify_streaming_baseline_pty.py",
+      "baseline": "scripts/verify_tui_pty.py",
+      "before": "已取消",
+      "after": "Cancelled",
+      "occurrences": 1
+    },
+    {
+      "file": "scripts/verify_streaming_baseline_pty.py",
+      "baseline": "scripts/verify_tui_pty.py",
+      "before": "忙碌中",
+      "after": "Busy — draft retained",
+      "occurrences": 1
+    }
+  ],
+  "approved_core_wiring": {
+    "typescript/src/protocol/model-adapter-contract.ts": {
+      "before_sha256": "4f9e857d9848ff527705ca1cf65fa9ee88ef7e13c4305f6530c4a29917c4de60",
+      "approved_after_sha256": "7c6c8793e30ae84138ea4a47f6cb128cb0da955ad190e21ac18e2f21f56d909a",
+      "reviewable_diff": "--- base/typescript/src/protocol/model-adapter-contract.ts\n+++ candidate/typescript/src/protocol/model-adapter-contract.ts\n@@ -7,7 +7,12 @@\n \treadonly tools: readonly AgentToolDefinition[];\n }\n \n+/** Provisional public text only; never a completed message or executable action. */\n+export interface ModelTextDelta { readonly type: \"text_delta\"; readonly text: string }\n+export type ModelProgressSink = (delta: ModelTextDelta) => void;\n+\n export interface ModelExchangeRequest {\n+\treadonly onProgress?: ModelProgressSink;\n \treadonly sessionId: string;\n \treadonly context: ModelContext;\n \treadonly signal: AbortSignal;\n"
+    },
+    "typescript/src/runtime/agent-kernel.ts": {
+      "before_sha256": "a4d8aa98f99e2b6fb224f666b00e1202c0785c437b69d28e4fed925991f6bc73",
+      "approved_after_sha256": "b029b3bfe059c9671e6c3f133899771fe353c2954d13e9dd65878557af4a5807",
+      "reviewable_diff": "--- base/typescript/src/runtime/agent-kernel.ts\n+++ candidate/typescript/src/runtime/agent-kernel.ts\n@@ -1,3 +1,4 @@\n+import type { ModelTextDelta } from \"../protocol/model-adapter-contract.ts\";\n import {\n \taddUsage,\n \tZERO_REPORTED_USAGE,\n@@ -54,7 +55,12 @@\n export const EMPTY_USAGE = ZERO_REPORTED_USAGE;\n export { addUsage };\n \n+/** Transient route, deliberately separate from persisted SessionObservation. */\n+export type SessionProgress = ModelTextDelta & { readonly runId: string; readonly turn: number };\n+export type ProgressSink = (progress: SessionProgress) => void;\n+\n export interface KernelRunRequest {\n+\treadonly onProgress?: ProgressSink;\n \treadonly runId: string;\n \treadonly task: string;\n \treadonly systemPrompt: string;\n"
+    },
+    "typescript/src/runtime/native-kernel.ts": {
+      "before_sha256": "cdde70c0bdd4035281a901cce6fd43b9f5060b944d9b61d613b349ddb0abc056",
+      "approved_after_sha256": "dc8c7cae5256b9b5b0294edd867af17db5d68a42f02536463a9940a373af0e50",
+      "reviewable_diff": "--- base/typescript/src/runtime/native-kernel.ts\n+++ candidate/typescript/src/runtime/native-kernel.ts\n@@ -113,6 +113,7 @@\n \t\t\t\tif (controller.signal.aborted) return terminal(\"cancelled\", \"operator_cancelled\");\n \t\t\t\tmodelCalls += 1;\n \t\t\t\tlet outcome: ModelOutcome;\n+\t\t\t\tlet progressOpen = true;\n \t\t\t\ttry {\n \t\t\t\t\toutcome = await this.adapter.exchange({\n \t\t\t\t\t\tsessionId: this.sessionId,\n@@ -121,9 +122,14 @@\n \t\t\t\t\t\t\tmessages: [...this.messages],\n \t\t\t\t\t\t\ttools: this.tools.map(describeAgentTool),\n \t\t\t\t\t\t},\n+\t\t\t\t\t\t...(request.onProgress ? { onProgress: (delta: import(\"../protocol/model-adapter-contract.ts\").ModelTextDelta) => {\n+\t\t\t\t\t\t\tif (!progressOpen || controller.signal.aborted || !delta || delta.type !== \"text_delta\" || typeof delta.text !== \"string\") return;\n+\t\t\t\t\t\t\ttry { request.onProgress?.({type:\"text_delta\", text:delta.text, runId:request.runId, turn}); } catch { /* Transient observer cannot alter execution. */ }\n+\t\t\t\t\t\t} } : {}),\n \t\t\t\t\t\tsignal: controller.signal,\n \t\t\t\t\t});\n \t\t\t\t} catch (error) {\n+\t\t\t\t\tprogressOpen = false;\n \t\t\t\t\tconst cancelled = controller.signal.aborted;\n \t\t\t\t\tconst failure: ModelFailure = {\n \t\t\t\t\t\tkind: \"failure\",\n@@ -141,6 +147,7 @@\n \t\t\t\t\tawait this.observeModelSettlement(request, turn, failure, cancelled ? \"aborted\" : \"error\", \"\");\n \t\t\t\t\treturn terminal(cancelled ? \"cancelled\" : \"model_error\", failure.detail);\n \t\t\t\t}\n+\t\t\t\tfinally { progressOpen = false; }\n \t\t\t\tusage = addUsage(usage, outcome.usage);\n \n \t\t\t\ttry {\n"
+    },
+    "typescript/src/runtime/session.ts": {
+      "before_sha256": "611d8b849b3d4ef41f35abe726afdda004ffa9c6dddc6d5871f46185bbdb9a70",
+      "approved_after_sha256": "074ddc32fcc5b24a806635893c270bd487376180ca77cc7d253a989cdb99fd73",
+      "reviewable_diff": "--- base/typescript/src/runtime/session.ts\n+++ candidate/typescript/src/runtime/session.ts\n@@ -6,6 +6,7 @@\n \ttype KernelLimits,\n \ttype KernelSelector,\n \ttype ObservationSink,\n+\ttype ProgressSink,\n \tresolveKernelLimits,\n \ttype SessionObservation,\n \ttype TerminalStatus,\n@@ -54,6 +55,8 @@\n \treadonly memory: SessionMemory;\n \treadonly limits?: Partial<KernelLimits>;\n \treadonly onObservation?: ObservationSink;\n+\treadonly onProgress?: ProgressSink;\n+\treadonly onProgressError?: () => void;\n \treadonly cleanup?: () => Promise<void> | void;\n }\n \n@@ -76,6 +79,7 @@\n export class GeneralAgentSession {\n \tprivate readonly kernel: AgentKernel;\n \tprivate readonly onObservation: ObservationSink;\n+\tprivate readonly onProgress?: ProgressSink;\n \tprivate readonly cleanup?: () => Promise<void> | void;\n \tprivate readonly memory: SessionMemory;\n \tprivate readonly baseSystemPrompt: string;\n@@ -109,6 +113,10 @@\n \t\t\tthis.kernel = selector as AgentKernel;\n \t\t}\n \t\tthis.onObservation = options.onObservation ?? (() => {});\n+\t\tthis.onProgress = options.onProgress ? progress => {\n+\t\t\ttry { options.onProgress?.(progress); }\n+\t\t\tcatch { try { options.onProgressError?.(); } catch { /* Diagnostics are observational too. */ } }\n+\t\t} : undefined;\n \t\tthis.cleanup = options.cleanup;\n \t\tthis.memory = options.memory;\n \t\tthis.baseSystemPrompt = options.systemPrompt;\n@@ -151,6 +159,7 @@\n \t\t\t\ttask,\n \t\t\t\tsystemPrompt: `${this.baseSystemPrompt}\\n\\nRUNBOOK (revision ${runbook.revision}):\\n${runbook.content}`,\n \t\t\t\tonObservation: (observation) => this.emit(observation),\n+\t\t\t\t...(this.onProgress ? {onProgress:this.onProgress} : {}),\n \t\t\t});\n \t\t} catch (error) {\n \t\t\tawait this.settleArchive(\"failed\", `kernel_error: ${error instanceof Error ? error.message : String(error)}`);\n"
+    },
+    "typescript/src/providers/deepseek/deepseek-transport.ts": {
+      "before_sha256": "15eec8175bc96fec9e3a18b79b1af21192cc001f75c285d6b89cc3b875532ba9",
+      "approved_after_sha256": "90d5b34399dfb6f0aa69c9f4aff5983fd501645857db56fbae75c8109abb0402",
+      "reviewable_diff": "--- base/typescript/src/providers/deepseek/deepseek-transport.ts\n+++ candidate/typescript/src/providers/deepseek/deepseek-transport.ts\n@@ -39,16 +39,22 @@\n \treturn process.env.DEEPSEEK_API_KEY;\n }\n \n-async function* responseBytes(response: Response): AsyncIterable<Uint8Array> {\n+async function* responseBytes(response: Response, signal: AbortSignal): AsyncIterable<Uint8Array> {\n \tif (!response.body) return;\n \tconst reader = response.body.getReader();\n+\tlet complete = false;\n+\tconst abort = () => { void reader.cancel().catch(() => {}); };\n+\tsignal.addEventListener(\"abort\", abort, {once:true});\n+\tif (signal.aborted) abort();\n \ttry {\n \t\twhile (true) {\n \t\t\tconst item = await reader.read();\n-\t\t\tif (item.done) return;\n+\t\t\tif (item.done) { complete = true; return; }\n \t\t\tif (item.value) yield item.value;\n \t\t}\n \t} finally {\n+\t\tsignal.removeEventListener(\"abort\", abort);\n+\t\tif (!complete) void reader.cancel().catch(() => {});\n \t\treader.releaseLock();\n \t}\n }\n@@ -77,6 +83,6 @@\n \t\t\tbody: request.body,\n \t\t\tsignal: request.signal,\n \t\t});\n-\t\treturn { status: response.status, body: responseBytes(response) };\n+\t\treturn { status: response.status, body: responseBytes(response, request.signal) };\n \t}\n }\n"
+    },
+    "typescript/src/providers/deepseek/pan-deepseek-model-adapter.ts": {
+      "before_sha256": "35c4b9a6dd26b71f4971aa0c63c4d8236d4a142b4247ac440e7c0c8141e7da34",
+      "approved_after_sha256": "7a8aa0a2818d5e63294d468b745017c92a8d7053eb8e82be8ecae65ce849ce42",
+      "reviewable_diff": "--- base/typescript/src/providers/deepseek/pan-deepseek-model-adapter.ts\n+++ candidate/typescript/src/providers/deepseek/pan-deepseek-model-adapter.ts\n@@ -1,3 +1,4 @@\n+import { abortableBody } from \"./abortable-body.ts\";\n import { validateAgentToolDefinitions, type AgentToolDefinition } from \"../../protocol/agent-tool.ts\";\n import {\n \tCanonicalProtocolError,\n@@ -286,7 +287,7 @@\n \treturn combined;\n }\n \n-async function readSseEvents(body: AsyncIterable<Uint8Array>): Promise<string[]> {\n+async function* readSseEvents(body: AsyncIterable<Uint8Array>): AsyncIterable<string> {\n \tconst decoder = new TextDecoder(\"utf-8\", { fatal: true });\n \tlet buffer = \"\";\n \tlet dataLines: string[] = [];\n@@ -314,6 +315,7 @@\n \t\twhile (newline !== -1) {\n \t\t\tprocessLine(buffer.slice(0, newline));\n \t\t\tbuffer = buffer.slice(newline + 1);\n+\t\t\twhile (events.length) yield events.shift()!;\n \t\t\tnewline = buffer.indexOf(\"\\n\");\n \t\t}\n \t}\n@@ -324,7 +326,7 @@\n \t}\n \tif (buffer.length > 0) processLine(buffer);\n \tif (dataLines.length > 0) events.push(dataLines.join(\"\\n\"));\n-\treturn events;\n+\tfor (const event of events) yield event;\n }\n \n function observeIdentity(accumulator: IdentityAccumulator, envelope: WireRecord): void {\n@@ -447,8 +449,8 @@\n \t});\n }\n \n-async function assembleSuccessfulResponse(response: DeepSeekTransportResponse): Promise<AssembledResponse> {\n-\tconst events = await readSseEvents(response.body);\n+async function assembleSuccessfulResponse(response: DeepSeekTransportResponse, request: ModelExchangeRequest): Promise<AssembledResponse> {\n+\tconst events = readSseEvents(abortableBody(response.body, request.signal));\n \tconst identity = {} as IdentityAccumulator;\n \tconst content = { value: \"\", observed: false };\n \tconst reasoning = { value: \"\", observed: false };\n@@ -457,7 +459,7 @@\n \tlet usage: Usage | undefined;\n \tlet doneCount = 0;\n \n-\tfor (const event of events) {\n+\tfor await (const event of events) {\n \t\tif (event === \"[DONE]\") {\n \t\t\tdoneCount += 1;\n \t\t\tif (doneCount > 1) protocol(\"deepseek_sse_done_duplicate\");\n@@ -486,6 +488,9 @@\n \t\t\tprotocol(\"deepseek_sse_role_invalid\");\n \t\t}\n \t\tappendOptionalString(content, delta.content, \"deepseek_sse_content_invalid\");\n+\t\tif (typeof delta.content === \"string\" && delta.content && !request.signal.aborted) {\n+\t\t\ttry { request.onProgress?.({type:\"text_delta\", text:delta.content}); } catch { /* A display sink cannot change the assembled outcome. */ }\n+\t\t}\n \t\tappendOptionalString(reasoning, delta.reasoning_content, \"deepseek_sse_reasoning_invalid\");\n \t\tif (delta.tool_calls !== undefined && delta.tool_calls !== null) {\n \t\t\tif (!Array.isArray(delta.tool_calls)) protocol(\"deepseek_sse_tool_calls_invalid\");\n@@ -548,7 +553,7 @@\n \tlet contextCode: string | undefined;\n \tlet bytes: Uint8Array;\n \ttry {\n-\t\tbytes = await readBodyBytes(response.body);\n+\t\tbytes = await readBodyBytes(abortableBody(response.body, signal));\n \t} catch (error) {\n \t\tif (isAbort(error, signal)) throw error;\n \t\tthrow error;\n@@ -626,7 +631,7 @@\n \n \t\tlet assembled: AssembledResponse;\n \t\ttry {\n-\t\t\tassembled = await assembleSuccessfulResponse(response);\n+\t\t\tassembled = await assembleSuccessfulResponse(response, request);\n \t\t\tif (request.signal.aborted) return failure(\"cancelled\", \"deepseek_exchange_cancelled\", false);\n \t\t\tvalidateModelOutcome(assembled.outcome, request.context.messages);\n \t\t} catch (error) {\n"
+    },
+    "typescript/src/providers/faux/faux-model-adapter.ts": {
+      "before_sha256": "7b4bd98bdd6ea969e43d8e661b4a19567072c91a5b23b37f0c00a6d47232d62a",
+      "approved_after_sha256": "712970ccb6c3acf4a18feed168fa0ace334e09044f1f91d03808745828fbe738",
+      "reviewable_diff": "--- base/typescript/src/providers/faux/faux-model-adapter.ts\n+++ candidate/typescript/src/providers/faux/faux-model-adapter.ts\n@@ -31,6 +31,8 @@\n \treadonly providerId?: string;\n \treadonly modelId?: string;\n \treadonly reasoningLevel?: string;\n+\t/** Separately scheduled public deltas, before returning this exchange's final script entry. */\n+\treadonly progress?: (exchangeIndex: number, signal: AbortSignal) => AsyncIterable<string>;\n }\n \n export const FAUX_PENDING_EXCHANGE: FauxPendingExchange = Object.freeze({ kind: \"pending\" });\n@@ -50,12 +52,14 @@\n \treadonly modelId: string;\n \treadonly reasoningLevel: string;\n \tprivate readonly script: readonly FauxScriptEntry[];\n+\tprivate readonly progress?: FauxModelAdapterOptions[\"progress\"];\n \tprivate cursorValue = 0;\n \tprivate exchangeCountValue = 0;\n \tprivate readonly recordedRequests: FauxRecordedExchange[] = [];\n \n \tconstructor(script: readonly FauxScriptEntry[], options: FauxModelAdapterOptions = {}) {\n \t\tthis.script = clone(script);\n+\t\tthis.progress = options.progress;\n \t\tthis.providerId = options.providerId ?? \"pan-faux\";\n \t\tthis.modelId = options.modelId ?? \"pan-faux-v1\";\n \t\tthis.reasoningLevel = options.reasoningLevel ?? \"off\";\n@@ -81,6 +85,23 @@\n \t\tconst entry = this.script[this.cursorValue];\n \t\tif (entry === undefined) return this.exhaustedFailure();\n \t\tthis.cursorValue += 1;\n+\t\tif (this.progress) {\n+\t\t\tconst iterator = this.progress(this.exchangeCountValue - 1, request.signal)[Symbol.asyncIterator]();\n+\t\t\tlet cancel!: () => void;\n+\t\t\tconst aborted = new Promise<IteratorResult<string>>(resolve => { cancel = () => resolve({done:true,value:undefined}); });\n+\t\t\trequest.signal.addEventListener(\"abort\", cancel, {once:true});\n+\t\t\ttry {\n+\t\t\t\twhile (!request.signal.aborted) {\n+\t\t\t\t\tconst item = await Promise.race([iterator.next(), aborted]);\n+\t\t\t\t\tif (item.done || request.signal.aborted) break;\n+\t\t\t\t\ttry { request.onProgress?.({type:\"text_delta\",text:item.value}); } catch { /* Observer isolation. */ }\n+\t\t\t\t}\n+\t\t\t} finally {\n+\t\t\t\trequest.signal.removeEventListener(\"abort\", cancel);\n+\t\t\t\ttry { void Promise.resolve(iterator.return?.()).catch(() => {}); } catch { /* Source cleanup cannot change the outcome. */ }\n+\t\t\t}\n+\t\t\tif (request.signal.aborted) return this.cancelledFailure();\n+\t\t}\n \t\tif (entry.kind === \"pending\") return this.waitForCancellation(request.signal);\n \n \t\tconst outcome = clone(entry);\n"
+    }
+  },
+  "new_labels": [
+    "Responding… (provisional)",
+    "Response received (provisional until Run settlement)",
+    "Partial response — interrupted (preview is not a completed response)",
+    "Partial response — Run not completed",
+    "Transient unfinished preview (not archived)",
+    "Transient previews are not recorded; replay shows retained settled data only.",
+    "Display error: progress observer failed; execution continues.",
+    "Responding… (provisional, continued)"
+  ],
+  "rules": [
+    "No prior test is skipped/deleted; all 83 titles preserved.",
+    "English substitutions change presentation expectations only; Chinese task/model/tool and hostile data remain unchanged.",
+    "All historical scripts, fixture bytes, maps and evidence are protected. Copied verifier additions retain assertions.",
+    "Canonical protocol validation and budget admission stay atomic; concrete tool lookup/schema validation keeps its exact per-call base behavior.",
+    "Source/host SOT already routes #44; Working Agent does not edit host truth or resume files."
+  ]
+}

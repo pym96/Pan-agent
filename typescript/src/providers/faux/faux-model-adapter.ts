@@ -31,6 +31,8 @@ export interface FauxModelAdapterOptions {
 	readonly providerId?: string;
 	readonly modelId?: string;
 	readonly reasoningLevel?: string;
+	/** Separately scheduled public deltas, before returning this exchange's final script entry. */
+	readonly progress?: (exchangeIndex: number, signal: AbortSignal) => AsyncIterable<string>;
 }
 
 export const FAUX_PENDING_EXCHANGE: FauxPendingExchange = Object.freeze({ kind: "pending" });
@@ -50,12 +52,14 @@ export class FauxModelAdapter implements ModelAdapter {
 	readonly modelId: string;
 	readonly reasoningLevel: string;
 	private readonly script: readonly FauxScriptEntry[];
+	private readonly progress?: FauxModelAdapterOptions["progress"];
 	private cursorValue = 0;
 	private exchangeCountValue = 0;
 	private readonly recordedRequests: FauxRecordedExchange[] = [];
 
 	constructor(script: readonly FauxScriptEntry[], options: FauxModelAdapterOptions = {}) {
 		this.script = clone(script);
+		this.progress = options.progress;
 		this.providerId = options.providerId ?? "pan-faux";
 		this.modelId = options.modelId ?? "pan-faux-v1";
 		this.reasoningLevel = options.reasoningLevel ?? "off";
@@ -81,6 +85,23 @@ export class FauxModelAdapter implements ModelAdapter {
 		const entry = this.script[this.cursorValue];
 		if (entry === undefined) return this.exhaustedFailure();
 		this.cursorValue += 1;
+		if (this.progress) {
+			const iterator = this.progress(this.exchangeCountValue - 1, request.signal)[Symbol.asyncIterator]();
+			let cancel!: () => void;
+			const aborted = new Promise<IteratorResult<string>>(resolve => { cancel = () => resolve({done:true,value:undefined}); });
+			request.signal.addEventListener("abort", cancel, {once:true});
+			try {
+				while (!request.signal.aborted) {
+					const item = await Promise.race([iterator.next(), aborted]);
+					if (item.done || request.signal.aborted) break;
+					try { request.onProgress?.({type:"text_delta",text:item.value}); } catch { /* Observer isolation. */ }
+				}
+			} finally {
+				request.signal.removeEventListener("abort", cancel);
+				try { void Promise.resolve(iterator.return?.()).catch(() => {}); } catch { /* Source cleanup cannot change the outcome. */ }
+			}
+			if (request.signal.aborted) return this.cancelledFailure();
+		}
 		if (entry.kind === "pending") return this.waitForCancellation(request.signal);
 
 		const outcome = clone(entry);

@@ -113,6 +113,7 @@ export class NativeKernel implements AgentKernel {
 				if (controller.signal.aborted) return terminal("cancelled", "operator_cancelled");
 				modelCalls += 1;
 				let outcome: ModelOutcome;
+				let progressOpen = true;
 				try {
 					outcome = await this.adapter.exchange({
 						sessionId: this.sessionId,
@@ -121,9 +122,14 @@ export class NativeKernel implements AgentKernel {
 							messages: [...this.messages],
 							tools: this.tools.map(describeAgentTool),
 						},
+						...(request.onProgress ? { onProgress: (delta: import("../protocol/model-adapter-contract.ts").ModelTextDelta) => {
+							if (!progressOpen || controller.signal.aborted || !delta || delta.type !== "text_delta" || typeof delta.text !== "string") return;
+							try { request.onProgress?.({type:"text_delta", text:delta.text, runId:request.runId, turn}); } catch { /* Transient observer cannot alter execution. */ }
+						} } : {}),
 						signal: controller.signal,
 					});
 				} catch (error) {
+					progressOpen = false;
 					const cancelled = controller.signal.aborted;
 					const failure: ModelFailure = {
 						kind: "failure",
@@ -141,6 +147,7 @@ export class NativeKernel implements AgentKernel {
 					await this.observeModelSettlement(request, turn, failure, cancelled ? "aborted" : "error", "");
 					return terminal(cancelled ? "cancelled" : "model_error", failure.detail);
 				}
+				finally { progressOpen = false; }
 				usage = addUsage(usage, outcome.usage);
 
 				try {

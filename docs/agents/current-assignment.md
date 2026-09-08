@@ -2,11 +2,15 @@
 
 This document owns the current project lane, constraints, and non-goals. It does not grant a session-specific task or establish implementation facts. A Working session starts only from a Master-published WorkOrder, and that WorkOrder cannot widen this lane or override Human decisions. Read the fact register linked from the root Agent map before making any current-state statement.
 
-## Active mission | WorkOrder #42 Native compact TUI
+## Active mission | WorkOrder #44 Streaming and English TUI
 
-The [#42 activation](https://github.com/pym96/Pan-agent/issues/42#issuecomment-5569544327) plus [count amendment](https://github.com/pym96/Pan-agent/issues/42#issuecomment-5569953515) binds Criteria-Version `1.1`, C-TUI-01…07, at base `75de6de21c4f0c5e0a93c7a4143c5ecf94d92358`. The Builder candidate changes Native presentation only: compact progress, full final answer, details, retained archive replay and one editable draft. [Design, commands and verification](../design/native-compact-tui.md) explain count provenance and the offline demo. Candidate checks do not constitute an independent Verdict or Human trial.
+The [#44 WorkOrder](https://github.com/pym96/Pan-agent/issues/44) and [activation](https://github.com/pym96/Pan-agent/issues/44#issuecomment-5579434691) bind Criteria-Version `1.0`, C-STR-01…07, at accepted base `fd408c4ecd236cf97d509436085e4df461829e9e`. The Builder candidate adds an optional public-text progress sink through Adapter/Native/Session and English compact UI labels. The completed ModelOutcome stays authoritative; transient unvalidated previews are never archived. [Interface, checks and installed demo](../design/native-streaming-tui.md) describe the candidate boundary and replay limit.
 
-Runtime, Session, Kernel, protocol, Providers, Tools, memory/schema, Runbook and dependencies remain protected. Legacy renderers and omitted runTui presentation retain Reference behavior. C-TUI-05 requires independent plus different-family/Human review; C-TUI-07 remains NOT_EVALUABLE until the project Human tries the immutable candidate and records all five answers. No real Provider/credential/balance/paid run, main push, npm publication, #43 or #39 work is authorized.
+Only additive protocol/routing, concrete Adapter streaming/cleanup and Product display are authorized. Tool implementations, permissions, canonical validators, budgets, Runbook, Provider request settings, durable memory and Reference remain unchanged. Keep explicit `--kernel native`. No real Provider/credential/balance/paid calls, main push, npm publication, #43 or other work. C-STR-03/05 need separate Regulator plus different-family or explicit Human review of named cancellation/effect and visibility/control outputs. Builder checks and a demo do not constitute that Verdict; aesthetics are not a new blocking criterion.
+
+## Accepted foundation | WorkOrder #42 compact UI
+
+#42 was accepted and landed unchanged at `fd408c4ecd236cf97d509436085e4df461829e9e`. Its [design](../design/native-compact-tui.md), [v1.1 obligation map](../design/workorder-42-obligations.json), scripts, fixtures and retained evidence are unchanged. #44 prospectively replaces compact Chinese labels and completed-only public text presentation. Counts still mean admitted ToolCalls, tool.started events and tool.settled results (errors included); missing archived admissions/model calls remain unavailable. Historical #42 scope checks run at their exact accepted snapshot; [the current map](../design/workorder-44-obligations.json) retains all 83 prior Product obligations.
 
 ## Accepted foundation | WorkOrder #41 Native Module layout
 
