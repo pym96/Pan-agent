@@ -72,5 +72,25 @@
   ],
   "protected_bytes": "all base tracked files except explicit documentation index allowlist in src/check-package.ts; all typescript/**, references/**, existing scripts, Python, rules and evidence unchanged",
   "zero_external": "no real coding-agent launches, Provider/credential/balance calls or paid runs; synthetic fixtures only",
-  "stop": "new full SHA-bound Handoff then await independent review"
+  "stop": "new full SHA-bound Handoff then await independent review",
+  "repair": {
+    "from_sha": "edb507f3daa3e49b88182dd7581dbd000c257823",
+    "verdict": "https://github.com/pym96/Pan-agent/issues/45#issuecomment-5585410447",
+    "criteria_version_unchanged": "1.0",
+    "findings": {
+      "F1": [
+        "C-AUTO-01",
+        "C-AUTO-03"
+      ],
+      "F2": [
+        "C-AUTO-04"
+      ],
+      "F3": [
+        "C-AUTO-06"
+      ]
+    },
+    "regression": "devtools/overnight/test/recovery-integrity.test.ts",
+    "artifact": "R-RECOVERY.json",
+    "additional_review": "A-IDENTITY / A-CANCEL / A-CONTAINMENT still require independent additional review"
+  }
 }

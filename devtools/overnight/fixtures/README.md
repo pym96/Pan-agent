@@ -6,3 +6,5 @@
 - `crash-coordinator.mjs` kills the test coordinator at an injected durable boundary, preserving the real lock for explicit recovery tests.
 
 All tracker results are SIMULATED. These are trusted local fixtures, not coding Agents, model adapters, real tracker connectors or role grants. [Operator guide](../README.md).
+
+The crash coordinator also supports `recorded-review` and `recorded-builder` boundaries (exit 93) to exercise recovery after durable publication acknowledgment, before the next routing decision.
