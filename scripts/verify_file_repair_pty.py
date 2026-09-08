@@ -76,7 +76,7 @@ for columns in [40,80]:
     except AssertionError:negatives.append({'name':'correct-internal-wrong-visible-selection','state':s,'screen':screen.snapshot()})
     control('fault-selection-off');qkey('\x1b[A','',0,0,'e-first.txt')
     # Cancel a captured read whose completion is held; later release cannot add an attachment.
-    control('gate-capture');key('\r');pump(lambda:any(e.get('barrier')=='capture' for e in events));s=checkpoint('capture-held');assert s['capturing'] and not s['attachments'];reads=s['reads']
+    control('gate-capture');key('\r');pump(lambda:any(e.get('barrier')=='capture' for e in events));s=checkpoint('capture-held');assert s['capturing'] and not s['attachments'];assert all(r['path']=='e-first.txt' for r in s['readTargets']);reads=s['reads']
     s=key('\t');assert s['reads']==reads and s['capturing'];key('\r');key('\x03');control('release-capture');s=checkpoint('late-capture-cancelled');assert not s['attachments'] and s['admissions']==s['exchanges']==0 and s['reads']==reads
     # Listing cancellation and literal Escape each retain the composer without admitting a task.
     control('gate-listing');key('@');pump(lambda:latest().get('loading'));key('e');key('\x03');control('release-listing');checkpoint('listing-cancelled',lambda s:s['query'] is None)

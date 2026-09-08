@@ -42,12 +42,14 @@ class Screen:
    if self.col==self.columns:self.col-=1;self.pending=True
  def lines(self):return [''.join('' if c is None else c or ' ' for c in row).rstrip() for row in self.cells]
  def snapshot(self):return {'columns':self.columns,'rows':self.rows,'cursor':[self.row,self.col],'cells':[row[:] for row in self.cells],'lines':self.lines(),'scrollback_rows':len(self.history)}
+ def current_query_lines(self):
+  lines=self.lines();starts=[i for i,l in enumerate(lines) if l=='File search (literal)'];assert starts,('query editor not visible',lines);return lines[starts[-1]:]
  def selection(self,path):
-  assert any(line=='│ > '+path for line in self.lines()),('wrong visible selection',path,self.lines())
+  assert any(line=='│ > '+path for line in self.current_query_lines()),('wrong visible selection',path,self.lines())
  def query(self,text,cursor,total):
   # These fixed synthetic queries fit one row; all values are independent expected fixture values.
-  assert any(line=='│ '+text or (not text and line=='│') for line in self.lines()),('query',text,self.lines())
-  visible='\n'.join(self.lines());assert f'Query cursor: {cursor}/{total}' in visible,('query cursor',cursor,total,self.lines())
+  assert any(line=='│ '+text or (not text and line=='│') for line in self.current_query_lines()),('query',text,self.lines())
+  visible='\n'.join(self.current_query_lines());assert f'Query cursor: {cursor}/{total}' in visible,('query cursor',cursor,total,self.lines())
  def hint(self,expected,draft=''):
   lines=self.lines();positions=[i for i,l in enumerate(lines) if l.startswith(('You >','Draft >'))];assert positions,lines
   at=positions[-1];assert at>0 and lines[at-1]==expected,('prompt hint',expected,lines)
