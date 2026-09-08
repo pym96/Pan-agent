@@ -36,7 +36,8 @@ export async function run(config:unknown, root:string, resume=false, options:Opt
   try {
     let l:Ledger;
     if(existsSync(join(root,'ledger.json'))) {
-      l=load(root); insist(l.manifestDigest===digest(m),'different_job_or_manifest');
+      try{l=load(root);}catch{atomic(join(root,'reconciliation.json'),{simulation:'SIMULATED',state:'needs_reconciliation',reason:'corrupt_ledger',originalPreserved:true});return status(root);}
+      insist(l.manifestDigest===digest(m),'different_job_or_manifest');
       if(terminal.has(l.state)) return summary(l);
       if(!resume) return summary(l); // duplicate delivery is observational
     } else {

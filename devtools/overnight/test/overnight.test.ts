@@ -77,7 +77,7 @@ test('C-AUTO-03 concurrent owner, second job, surviving child and identity-misma
 });
 
 test('C-AUTO-03 corrupted ledger and contract/ref drift preserve bytes and stop',async()=>{
- const f=fixture('accept');await assert.rejects(run(f.manifest,f.state,false,crash('intent')),SimulatedCrash);const path=join(f.state,'ledger.json');writeFileSync(path,'{"truncated":');const original=readFileSync(path);await assert.rejects(run(f.manifest,f.state,true));assert.deepEqual(readFileSync(path),original);assert.equal((status(f.state)as any).state,'needs_reconciliation');record('A-RECOVERY',{point:'truncated',bytes:original.toString('hex')});inventory(f,'truncated');
+ const f=fixture('accept');await assert.rejects(run(f.manifest,f.state,false,crash('intent')),SimulatedCrash);const path=join(f.state,'ledger.json');writeFileSync(path,'{"truncated":');const original=readFileSync(path);assert.equal((await run(f.manifest,f.state,true) as any).state,'needs_reconciliation');assert.equal(read(join(f.state,'reconciliation.json')).originalPreserved,true);assert.deepEqual(readFileSync(path),original);assert.equal((status(f.state)as any).state,'needs_reconciliation');record('A-RECOVERY',{point:'truncated',bytes:original.toString('hex')});inventory(f,'truncated');
  for(const kind of ['contract','main','candidate']) {
   const g=fixture('accept');await assert.rejects(run(g.manifest,g.state,false,crash('publication')),SimulatedCrash);
   if(kind==='contract')writeFileSync(join(g.workspace,'contract.txt'),'drift');else git(join(g.workspace,'remote.git'),['update-ref',kind==='main'?'refs/heads/main':`refs/heads/${g.manifest.branch}`,kind==='main'?read(join(attemptDir(g),'result.json')).candidate:g.manifest.base]);
