@@ -92,5 +92,23 @@
     "regression": "devtools/overnight/test/recovery-integrity.test.ts",
     "artifact": "R-RECOVERY.json",
     "additional_review": "A-IDENTITY / A-CANCEL / A-CONTAINMENT still require independent additional review"
+  },
+  "f4_repair": {
+    "from_sha": "27a91f79209edd72164d4ac01a57502e285a5aa9",
+    "master": "https://github.com/pym96/Pan-agent/issues/45#issuecomment-5594424647",
+    "verdict": "https://github.com/pym96/Pan-agent/issues/45#issuecomment-5585792648",
+    "criterion": "C-AUTO-05",
+    "criteria_version_unchanged": "1.0",
+    "regression": "devtools/overnight/test/recovery-stop.test.ts",
+    "artifact": "R-F4.json",
+    "matrix": [
+      "invalid history + stop",
+      "unchanged history + repeated stop",
+      "invalid history + expired role deadline",
+      "invalid history + expired total deadline",
+      "conflicting receipt",
+      "reused start identity"
+    ],
+    "preserve": "historical integrity failure and actual independently owned cleanup result; no next launch or repair reservation"
   }
 }

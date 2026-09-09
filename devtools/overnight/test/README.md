@@ -5,3 +5,5 @@
 The test-only raw canary input and unexpected role results are explicitly labelled synthetic fixtures. They are excluded from credential-free public reports, while actual argv/environment, generated ledger/tracker/status outputs are scanned. Negative controls must be detected. Failure records remain retained; a later repair run uses a fresh evidence directory.
 
 `recovery-integrity.test.ts` covers rejected Verdict F1–F3 through actual recorded-boundary process death, tracker/role-result/evidence tampering and CLI resume, including the unchanged-record control and canary channel assertions. It writes `R-RECOVERY.json` and per-case before/after artifacts in the selected fresh evidence directory.
+
+[recovery-stop.test.ts](recovery-stop.test.ts) covers F4 with actual exit-94 coordinator crashes, CLI stop and fresh CLI resume: historical session mismatch, unchanged/repeated-stop control, expired role/total budgets, conflicting current receipt and reused start identity. `R-F4.json` retains timing, group/sentinel observations and before-records; `test-backstop/` is explicitly separate cleanup after observation.

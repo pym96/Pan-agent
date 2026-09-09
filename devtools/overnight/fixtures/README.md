@@ -8,3 +8,5 @@
 All tracker results are SIMULATED. These are trusted local fixtures, not coding Agents, model adapters, real tracker connectors or role grants. [Operator guide](../README.md).
 
 The crash coordinator also supports `recorded-review` and `recorded-builder` boundaries (exit 93) to exercise recovery after durable publication acknowledgment, before the next routing decision.
+
+`live-review` (exit 94) records a completed Builder, starts the ordinary blocked Regulator fixture and exits the actual coordinator after its PID/start identity is durable. It supports the combined F4 recovery/stop/deadline regression; it never starts a real coding Agent.

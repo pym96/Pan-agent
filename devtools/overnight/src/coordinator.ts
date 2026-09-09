@@ -67,15 +67,18 @@ export async function run(config:unknown, root:string, resume=false, options:Opt
   if(resume) reconcileOwner(root);
   const release=acquire(root);
   try {
-    let l:Ledger;let restoredTracker:Tracker|undefined;
+    let l:Ledger;let restoredTracker:Tracker|undefined;let invalidHistory=false;
     if(existsSync(join(root,'ledger.json'))) {
       try{l=load(root);}catch{atomic(join(root,'reconciliation.json'),{simulation:'SIMULATED',state:'needs_reconciliation',reason:'corrupt_ledger',originalPreserved:true});return status(root);}
       insist(l.manifestDigest===digest(m),'different_job_or_manifest');
       restoredTracker=options.tracker??new OfflineTracker(join(root,'tracker'));
       try { for(const a of l.attempts)if(a.phase==='recorded')recordedResult(m,a,root,restoredTracker); }
-      catch { l.state='needs_reconciliation';l.reason='recorded_result_invalid';save(root,l);return summary(l); }
-      if(terminal.has(l.state)) return summary(l);
-      if(!resume) return summary(l); // duplicate delivery is observational
+      catch { invalidHistory=true; }
+      if(!invalidHistory && terminal.has(l.state)) return summary(l);
+      if(!resume) {
+        if(invalidHistory){l.state='needs_reconciliation';l.reason='recorded_result_invalid';save(root,l);}
+        return summary(l); // duplicate delivery is observational; only explicit resume may adopt owned work
+      }
     } else {
       insist(!resume,'missing_ledger'); checkRefs(m,m.base);
       // Reject dirty/pre-existing role trees before the first launch.
@@ -97,11 +100,34 @@ export async function run(config:unknown, root:string, resume=false, options:Opt
       const dir=join(root,'attempts',a.key);transition('stopping',why);
       atomic(join(dir,'stop-receipt.json'),{monotonic:t0,receiptMonotonic:performance.now(),wall:Date.now(),reason:why});
       atomic(join(dir,'stop-coordination'),{requested:true});
-      const receipt=proc.receipt(dir);
       let confirmed=false;
-      if(receipt) {try{checkReceipt(receipt,a);confirmed=await proc.cleanup(receipt,dir);}catch{confirmed=false;}}
+      try {
+        const receipt=proc.receipt(dir);
+        if(receipt) {
+          checkReceipt(receipt,a);
+          if(a.pid!==undefined)insist(receipt.pid===a.pid && receipt.birth===a.birth,'process_identity');
+          confirmed=await proc.cleanup(receipt,dir);
+        }
+      } catch { confirmed=false; }
       transition(confirmed?(why==='backward_clock'?'needs_reconciliation':why):'cleanup_failed',confirmed?why:'cleanup_unconfirmed');
     };
+    const rejectHistory=async():Promise<object>=>{
+      const active=l.attempts.at(-1);
+      // Historical result authority and current process ownership are independent.
+      // No result field is used to select a process, reserve a repair or determine a diagnostic.
+      if(active && active.phase!=='recorded') {
+        const now=time.wall(),mono=time.mono();
+        const why=stopReason()??(deadline(now,active.intentAt+m.limits.roleMs)?'timed_out':'needs_reconciliation');
+        const t0=why==='timed_out' && time===clock?mono+Math.min(l.expiry,active.intentAt+m.limits.roleMs)-now:performance.now();
+        await cleanup(active,why,t0);
+        const cleanupState=l.state,cleanupReason=l.reason;
+        // Keep both decisions, even when cleanup succeeded; fixed categories only.
+        atomic(join(root,'history-reconciliation.json'),{simulation:'SIMULATED',integrity:'recorded_result_invalid',attempt:active.key,cleanupState,cleanupReason});
+        transition(cleanupState==='cleanup_failed'?'cleanup_failed':'needs_reconciliation','recorded_result_invalid');
+      } else transition('needs_reconciliation','recorded_result_invalid');
+      return summary(l);
+    };
+    if(invalidHistory)return await rejectHistory();
     let last=l.attempts.at(-1);
     if(resume && time.wall()<l.lastWall) {
       if(last && last.phase!=='recorded')await cleanup(last,'backward_clock');else transition('needs_reconciliation','backward_clock');return summary(l);
@@ -111,7 +137,7 @@ export async function run(config:unknown, root:string, resume=false, options:Opt
       let prior:Result|undefined;
       if(last?.phase==='recorded') {
         try{prior=recordedResult(m,last,root,tracker);}
-        catch{transition('needs_reconciliation','recorded_result_invalid');return summary(l);}
+        catch{return await rejectHistory();}
       }
       const reason=stopReason();
       if(reason) {if(last && last.phase!=='recorded')await cleanup(last,reason);else transition(reason==='backward_clock'?'needs_reconciliation':reason,reason);return summary(l);}
