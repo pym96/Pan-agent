@@ -8,7 +8,7 @@ import {pathToFileURL} from 'node:url';
 const [product,workspace,memory,controlFd,eventFd]=process.argv.slice(2);
 const {runCli,FauxModelAdapter,createCompactPresentation}=await import(pathToFileURL(join(product,'dist/index.js')));
 const {DailyWorkspace}=await import(pathToFileURL(join(product,'dist/tui/daily-workspace.js')));
-let inputBytes=0;process.stdin.on('data',b=>{inputBytes+=Buffer.byteLength(b);});
+let inputBytes=0;if(process.stdin.isTTY)process.stdin.on('data',b=>{inputBytes+=Buffer.byteLength(b);});
 let ui,bytes=0,keyCount=0,admissions=0,exchanges=0,cancels=0,fault=false,gateList=false,gateCapture=false;
 const results=[],observations=[],contexts=[],reads=[],dimensions=[],gates=new Map();
 const write=process.stdout.write.bind(process.stdout);
