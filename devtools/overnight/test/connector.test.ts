@@ -101,7 +101,7 @@ test('C-LIVE-01/03 real gate requires exact PASS records and unchanged formal co
  b.stageAReview=url(101);b.humanReview=url(102);b.masterActivation=url(103);
  const comment=(id:number,body:string)=>({id,body,author:b.github.author,url:url(id)});
  const valid=[comment(5595244988,read(resolve('fixtures/workorder-46-contract.json')).body),comment(101,stageAReviewBody(b.connectorSha)),comment(102,humanReviewBody(b.connectorSha)),comment(103,activationBody(b))];
- verifyRemoteAuthority(valid,b);assert(!activationBody(b).includes(b.codexHome));assert(!activationBody(b).includes(b.cli.path));record('L-AUTH',{case:'exact Stage A/Human/Master records',pass:true});
+ verifyRemoteAuthority(valid,b);assert.throws(()=>verifyRemoteAuthority(valid,{...b,cli:{...b.cli,path:b.cli.path+'-other'}}));assert.throws(()=>verifyRemoteAuthority(valid,{...b,github:{...b.github,executable:b.github.executable+'-other'}}));assert(!activationBody(b).includes(b.codexHome));assert(!activationBody(b).includes(b.cli.path));record('L-AUTH',{case:'exact Stage A/Human/Master records',pass:true});
  for(const kind of ['contract','rejected','human-rejected','wrong-sha','wrong-author','missing-activation','prose-only'])await t.test(kind,()=>{
   const changed=structuredClone(valid);
   if(kind==='contract')changed[0]!.body+='changed';if(kind==='rejected')changed[1]!.body=changed[1]!.body.replace('PASS','rejected');

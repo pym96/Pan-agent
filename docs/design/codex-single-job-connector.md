@@ -80,3 +80,5 @@ This is trusted local orchestration with bounded Codex workspace permissions, no
 A retained #46 check exposed a short-lived empty-wrapper PID identity mismatch. The ps identity reader now confirms process status again after reading the command/start string, distinguishing an intervening exit from a still-live changed identity. A deterministic OS-response regression fails on the prior implementation and passes with the extra check; live mismatches remain untrusted and unsignaled. The original failed run and its uncertainty are retained, not relabelled as a passing observation.
 
 The public Master activation contains hashes for local executable/auth-home paths; exact paths stay in the operator-owned binding. No private auth-home path is published by the generated activation body.
+
+Stage B requires resolved native Darwin CLI and GitHub executable paths. The CLI must have a Mach-O executable header; an npm/JS shim is refused because hashing only the shim would not bind its backing native binary. Master activation binds both executable bytes and path digests, so relocating identical bytes also requires a matching activation.

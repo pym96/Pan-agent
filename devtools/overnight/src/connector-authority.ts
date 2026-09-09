@@ -1,4 +1,4 @@
-import { existsSync, readdirSync, realpathSync, lstatSync } from 'node:fs';
+import { existsSync, readdirSync, realpathSync, lstatSync, openSync, readSync, closeSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { execFileSync, spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
@@ -38,7 +38,11 @@ export function validateBinding(m:Manifest):Binding {
  const auth=read(join(m.workspace,'authorization.json'));
  insist(auth.bindingDigest===digest(b) && b.manifestDigest===auth.manifestDigest,'delegation_changed');
  insist(fileDigest(b.cli.path)===b.cli.sha256 && fileDigest(b.github.executable)===b.github.sha256,'executable_changed');
- if(b.stage==='B') {
+  if(b.stage==='B') {
+  // Bind the native executable itself, not an npm shim whose backing binary can change independently.
+  insist(realpathSync(b.cli.path)===b.cli.path && realpathSync(b.github.executable)===b.github.executable,'executable_path_changed');
+  const fd=openSync(b.cli.path,'r'),magic=Buffer.alloc(4);try{insist(readSync(fd,magic,0,4,0)===4,'native_cli_required');}finally{closeSync(fd);}
+  insist(['cffaedfe','cafebabe','cafebabf','bebafeca','bfbafeca'].includes(magic.toString('hex')),'native_cli_required');
   const root=fileURLToPath(new URL('../../../',import.meta.url));
   insist(git(root,['rev-parse','HEAD'])===b.connectorSha && git(root,['status','--porcelain'])==='','connector_not_reviewed_bytes');
  }
