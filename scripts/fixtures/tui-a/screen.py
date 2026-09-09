@@ -43,3 +43,38 @@ class Screen:
   text='\n'.join(self.lines());assert ('Busy' if busy else 'Not submitted') in text,text
   assert ('draft retained' if busy else 'Enter Send') in text,text
  def selection(self,name):assert any(line.startswith('> '+name) for line in self.lines()),self.lines()
+
+# Independent source-coordinate oracle; groups marks/ZWJ for the declared Unicode fixtures.
+def clusters(text):
+ result=[]
+ for c in text:
+  if result and (unicodedata.combining(c) or c in ['\u200d','\ufe0f','\ufe0e'] or result[-1].endswith('\u200d')):result[-1]+=c
+  else:result.append(c)
+ return result
+
+def content_rows(entries,columns):
+ result=[]
+ for item,entry in enumerate(entries):
+  result.append({'item':item,'part':'header','start':0,'end':1,'text':entry['role']+' · '+entry['status']})
+  line={'item':item,'part':'text','start':0,'end':0,'text':'│ '};used=0
+  for offset,g in enumerate(clusters(entry['text'])):
+   if g=='\n':line['end']=offset+1;result.append(line);line={'item':item,'part':'text','start':offset+1,'end':offset+1,'text':'│ '};used=0;continue
+   safe=''
+   for c in g:
+    n=ord(c)
+    safe+=('\\\\' if c=='\\' else ('\\u%04x'%n) if n<32 or 127<=n<=159 or 0x202a<=n<=0x202e or 0x2066<=n<=0x2069 or n in [0x2028,0x2029] else c)
+   for v in clusters(safe):
+    size=2 if unicodedata.east_asian_width(v[0]) in 'WF' or 0x1f300<=ord(v[0])<=0x1faff else 1
+    if used+size>columns-2:result.append(line);line={'item':item,'part':'text','start':offset,'end':offset,'text':'│ '};used=0
+    line['text']+=v;line['end']=offset+1;used+=size
+  result.append(line)
+ return result
+
+def anchored(screen,state,anchor):
+ rows=content_rows(state['entries'],screen.columns)
+ indices=[i for i,r in enumerate(rows) if r['item']==anchor['item'] and r['part']==anchor['part'] and r['start']<=anchor['offset'] and (anchor['offset']<r['end'] or r['start']==r['end']==anchor['offset'])]
+ assert indices,anchor
+ first=indices[0];body=next(i for i,l in enumerate(screen.lines()) if l.startswith('─'))-1
+ top=min(first,max(0,len(rows)-body));assert state['top']==top,(state['top'],top,anchor)
+ assert screen.lines()[1]==rows[top]['text'].rstrip(),(screen.lines()[1],rows[top])
+ assert top<=first<top+body

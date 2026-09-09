@@ -10,3 +10,5 @@ Run `npm --prefix typescript run check` from the repository root. Reference rema
 [file-repair.test.ts](file-repair.test.ts) adds the #43 prospective 1.1 Tab/navigation/grapheme regression. The 99 prior Product obligations remain unchanged.
 
 [daily-workspace.test.ts](daily-workspace.test.ts): #47 grapheme/multiline draft, input admission/cancellation and stale picker/snapshot state. Installed PTY checks are under scripts.
+
+#47 repair navigation: [Criteria-Version 1.1](https://github.com/pym96/Pan-agent/issues/47#issuecomment-5597954262) covers SGR wheel, source-content reflow anchors, admitted prompt recall and Tab attachment. Startup y remains; old 1.0 evidence is retained.

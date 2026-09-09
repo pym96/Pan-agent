@@ -19,10 +19,28 @@ export class DailyEditor {
  stops():number[]{let n=0;return [0,...graphemes(this.text).map(g=>n+=g.length)];}
  move(delta:number):void {const s=this.stops();this.caret=s[Math.max(0,Math.min(s.length-1,s.indexOf(this.caret)+delta))]!;}
  backspace():void {const old=this.caret;this.move(-1);this.text=this.text.slice(0,this.caret)+this.text.slice(old);}
- vertical(delta:number):void {const before=this.text.slice(0,this.caret),line=before.split('\n').length-1,col=graphemes(before.split('\n').at(-1)!).length,lines=this.text.split('\n'),next=line+delta;if(next<0||next>=lines.length)return;this.caret=lines.slice(0,next).reduce((n,s)=>n+s.length+1,0)+graphemes(lines[next]!).slice(0,col).join('').length;}
+ vertical(delta:number,columns=Number.MAX_SAFE_INTEGER):boolean {
+  const positions:{caret:number;row:number;col:number}[]=[{caret:0,row:0,col:0}];let row=0,col=0,caret=0;
+  for(const g of graphemes(this.text)){
+   if(g.endsWith('\n')){row++;col=0;}else for(const v of graphemes(terminalText(g))){if(col+width(v)>columns){row++;col=0;}col+=width(v);}
+   caret+=g.length;positions.push({caret,row:row+(col===columns?1:0),col:col===columns?0:col});
+  }
+  const current=positions.find(p=>p.caret===this.caret)!;const next=positions.filter(p=>p.row===current.row+delta);if(!next.length)return false;
+  this.caret=next.reduce((best,p)=>Math.abs(p.col-current.col)<Math.abs(best.col-current.col)?p:best).caret;return true;
+ }
  clear():void {this.text='';this.caret=0;}
  visual(columns:number):{lines:string[];row:number;col:number} {
  const safe=(s:string)=>s.split('\n').map(terminalText).join('\n');const lines=wrap(safe(this.text),columns),prefix=wrap(safe(this.text.slice(0,this.caret)),columns);let row=prefix.length-1,col=graphemes(prefix.at(-1)!).reduce((n,g)=>n+width(g),0);
  if(col===columns){row++;col=0;if(row===lines.length)lines.push('');}return {lines,row,col};
  }
+}
+
+/** Reversible display rows retain source grapheme coordinates, including escaped controls. */
+export function sourceRows(text:string,columns:number):{text:string;start:number;end:number}[] {
+ const rows=[{text:'',start:0,end:0}];let cells=0;
+ graphemes(text).forEach((g,offset)=>{
+  if(g==='\n'){rows[rows.length-1]!.end=offset+1;rows.push({text:'',start:offset+1,end:offset+1});cells=0;return;}
+  for(const visible of graphemes(terminalText(g==='\r\n'?'\r':g))){if(cells+width(visible)>columns){rows.push({text:'',start:offset,end:offset});cells=0;}const row=rows[rows.length-1]!;row.text+=visible;row.end=offset+1;cells+=width(visible);}
+  if(g==='\r\n'){rows.push({text:'',start:offset+1,end:offset+1});cells=0;}
+ });return rows;
 }

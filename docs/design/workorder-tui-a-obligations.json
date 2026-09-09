@@ -1,7 +1,7 @@
 {
-  "criteria_version": "1.0",
+  "criteria_version": "1.1",
   "base": "7ade169b276fd68198ca4461d07c5589c273253f",
-  "contract_sha256": "b9b868effb6086bb7deea6a8fbca50a78f43463a669117e8fac21ce83a2cc858",
+  "contract_sha256": "d2951d99d760f30da7abaabdabca56430910f4c9c08490eb5f2c8a288b69ecfc",
   "changed_files": [
     "README.md",
     "docs/agents/current-assignment.md",
@@ -542,5 +542,34 @@
     "scripts/check_streaming_scope.mjs": "28b524deafaef3494a5c1865c5ad68c5635f1f74",
     "scripts/check_tui_scope.mjs": "fd408c4ecd236cf97d509436085e4df461829e9e"
   },
-  "old_display_policy": "All old Product tests unchanged/current except preexisting #41 exact snapshot tests. Historical PTY screen layouts are superseded prospectively only for native TTY; current daily PTY grids provide replacements, legacy/non-TTY projection behavior retained."
+  "old_display_policy": "All old Product tests unchanged/current except preexisting #41 exact snapshot tests. Historical PTY screen layouts are superseded prospectively only for native TTY; current daily PTY grids provide replacements, legacy/non-TTY projection behavior retained.",
+  "inherited_contract_sha256": "b9b868effb6086bb7deea6a8fbca50a78f43463a669117e8fac21ce83a2cc858",
+  "repair_parent": "f490a5ebf62041e33c258d18ff58093043765ea1",
+  "repair_mapping": [
+    {
+      "before": "1.0 no mouse required; PageUp/Down only",
+      "after": "1.1 R01 SGR wheel three rows, scoped parser and mode teardown",
+      "evidence": "verify_tui_a_pty.py R-SCROLL and daily-workspace R01"
+    },
+    {
+      "before": "1.0 numeric wrapped-row scroll offset",
+      "after": "1.1 R02 message/item + source grapheme offset reflow anchor",
+      "evidence": "verify_tui_a_pty.py source-resize grids and independent content oracle"
+    },
+    {
+      "before": "1.0 Up/Down logical draft lines, no recall",
+      "after": "1.1 R03 visual-line priority, admitted-only history and stash restoration",
+      "evidence": "verify_tui_a_pty.py history-* and daily-workspace R03"
+    },
+    {
+      "before": "1.0 picker Enter captures, Tab moves",
+      "after": "1.1 R04 picker Enter only hints, Tab captures, independent Enter sends",
+      "evidence": "updated #47 test selection + PTY choose(); all pre-#47 tests unchanged"
+    },
+    {
+      "before": "1.0 G01 required utility suite: retained FAIL 35/36",
+      "after": "1.1 G01 byte preservation and Product dependency isolation; original FAIL remains unresolved in #48",
+      "evidence": "check_tui_a_scope.py utility map; Handoff #1 https://github.com/pym96/Pan-agent/issues/47#issuecomment-5597621621"
+    }
+  ]
 }

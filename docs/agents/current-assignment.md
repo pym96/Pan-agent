@@ -1,3 +1,7 @@
+## Current #47 additive repair navigation
+
+[Criteria-Version 1.1](https://github.com/pym96/Pan-agent/issues/47#issuecomment-5597954262) and [activation](https://github.com/pym96/Pan-agent/issues/47#issuecomment-5597961063) authorize only TUI repair from f490a5ebf62041e33c258d18ff58093043765ea1. Startup y stays; #48/#49 are not executable here; #46 remains paused. Prior #47 1.0 mission and failure records below remain historical inputs, not current acceptance.
+
 # Current Assignment | Authoritative TypeScript/Pi product cutover
 
 This document owns the current project lane, constraints, and non-goals. It does not grant a session-specific task or establish implementation facts. A Working session starts only from a Master-published WorkOrder, and that WorkOrder cannot widen this lane or override Human decisions. Read the fact register linked from the root Agent map before making any current-state statement.

@@ -41,15 +41,20 @@ for columns,rows in [(120,40),(80,24),(40,12)]:
    time.sleep(.01)
  def key(value,fn=lambda s:True,label='key'):
   before=latest().get('keyCount',0);os.write(master,value.encode());pump(lambda:latest().get('keyCount',0)>before);s=checkpoint(label,fn);steps.append({'input':value,'state':s});return s
+ def mouse(value,label):
+  before=latest().get('inputBytes',0);os.write(master,value.encode());return checkpoint(label,lambda s:s['inputBytes']>=before+len(value.encode()))
  def paste(text):
   os.write(master,('\x1b[200~'+text+'\x1b[201~').encode());return checkpoint('paste',lambda s:s.get('draft')==text)
  def choose(query):
-  key('@');key(query);checkpoint('picker-ready',lambda s:not s['loading']);key('\r\r');return checkpoint('selected',lambda s:s['query'] is None)
+  key('@');key(query);checkpoint('picker-ready',lambda s:not s['loading']);before=latest()['admissions'];key('\r');s=checkpoint('enter-hints-only');assert s['query'] is not None and not s['capturing'] and s['admissions']==before;assert 'Tab Attach' in '\n'.join(screen.lines());key('\t\r\t');return checkpoint('selected',lambda s:s['query'] is None)
  try:
   checkpoint('initial',lambda s:s.get('phase')=='confirm');key('y');key('\r');checkpoint('idle',lambda s:s['phase']=='idle')
   assert next(i for i,l in enumerate(screen.lines()) if l.startswith('─'))>=1+rows//2;assert len(screen.lines())==rows;assert any(line.startswith('Pan') for line in screen.lines())
-  key('review ');control('gate-list');key('@');pump(lambda:any(e.get('barrier')=='listing' for e in events));key('old');key('\x03');control('release-listing');s=checkpoint('stale-list',lambda s:s['query'] is None);assert s['draft']=='review ' and s['entries']==[]
-  control('gate-capture');key('@');key('example');checkpoint('capture-ready',lambda s:not s['loading']);key('\r');pump(lambda:any(e.get('barrier')=='capture' for e in events));key('\x03');control('release-capture');s=checkpoint('capture-cancelled');assert s['attachments']==[] and s['draft']=='review '
+  key('review ');control('gate-list');key('@');pump(lambda:any(e.get('barrier')=='listing' for e in events));key('old');key('\t');assert latest()['loading'] and latest()['attachments']==[];key('\x03');control('release-listing');s=checkpoint('stale-list',lambda s:s['query'] is None);assert s['draft']=='review ' and s['entries']==[]
+  control('gate-capture');key('@');key('example');checkpoint('capture-ready',lambda s:not s['loading']);key('\t');pump(lambda:any(e.get('barrier')=='capture' for e in events));key('\x03');control('release-capture');s=checkpoint('capture-cancelled');assert s['attachments']==[] and s['draft']=='review '
+  key('@');checkpoint('arrows-ready',lambda s:not s['loading']);key('\x1b[B');assert latest()['index']==1;key('\x1b[B');assert latest()['index']==2;key('\x1b[Z');assert latest()['index']==1 and latest()['attachments']==[];key('\x1b');key('\x15');key('review ')
+  key('@');key('no-match');checkpoint('empty-ready',lambda s:not s['loading']);key('\t');assert latest()['query']=='no-match' and latest()['attachments']==[];key('\x1b');assert latest()['draft']=='review @no-match';key('\x15');key('review ')
+  key('@');key('example');checkpoint('denial-ready',lambda s:not s['loading']);target=workspace/'example 中文.txt';target.unlink();target.mkdir();key('\t');s=checkpoint('capture-denied',lambda s:s['query'] is None);assert s['attachments']==[] and s['admissions']==0;target.rmdir();target.write_text(files['example 中文.txt'])
   choose('example');s=checkpoint('snapshot');assert len(s['attachments'])==1 and s['admissions']==0;screen.confirmed();snapshot=s['attachments'][0];(workspace/'example 中文.txt').write_text('changed after selection')
   key('\x10');s=checkpoint('preview',lambda s:s['overlay'] is not None);assert s['admissions']==0;key('\r\r');s=checkpoint('preview-closed',lambda s:s['overlay'] is None);screen.confirmed();assert s['admissions']==0
   control('fault-on');rejected=False
@@ -59,17 +64,35 @@ for columns,rows in [(120,40),(80,24),(40,12)]:
   # Literal colon/@ multiline paste is a draft only, including when the entire paste arrives in one write.
   key('\x15');key('\x16');key(':exit @');key('\r');s=checkpoint('safe-edit');assert s['draft']==':exit @\n' and s['query'] is None and s['admissions']==0;key('\x1b');key('\x15');draft='中e\u0301👩‍💻\n@literal\n:exit';s=paste(draft);assert s['admissions']==0 and s['query'] is None;assert s['draft']==draft
   if columns==120:
-   fcntl.ioctl(slave,termios.TIOCSWINSZ,struct.pack('HHHH',8,30,0,0));screen=module.Screen(30,8);os.kill(child.pid,signal.SIGWINCH);time.sleep(.05);key('\r');assert latest()['admissions']==0 and latest()['draft']==draft;assert any('Resize terminal' in x for x in screen.lines())
-   fcntl.ioctl(slave,termios.TIOCSWINSZ,struct.pack('HHHH',rows,columns,0,0));screen=module.Screen(columns,rows);os.kill(child.pid,signal.SIGWINCH);time.sleep(.05);checkpoint('restored-idle')
+   fcntl.ioctl(slave,termios.TIOCSWINSZ,struct.pack('HHHH',8,30,0,0));modes=screen.modes.copy();screen=module.Screen(30,8);screen.modes=modes;os.kill(child.pid,signal.SIGWINCH);time.sleep(.05);key('\r');assert latest()['admissions']==0 and latest()['draft']==draft;assert any('Resize terminal' in x for x in screen.lines())
+   fcntl.ioctl(slave,termios.TIOCSWINSZ,struct.pack('HHHH',rows,columns,0,0));modes=screen.modes.copy();screen=module.Screen(columns,rows);screen.modes=modes;os.kill(child.pid,signal.SIGWINCH);time.sleep(.05);checkpoint('restored-idle')
   key('\r');pump(lambda:any(e.get('barrier')=='model-0' for e in events));s=checkpoint('stream',lambda s:s['phase']=='running');assert s['admissions']==s['exchanges']==1
+  # R-SCROLL: actual SGR reports, each fragmented delivery quarantined until complete.
+  assert screen.modes.get('1000') is True and screen.modes.get('1006') is True
+  tail=s['top'];draft_before=s['draft'];effects=(s['admissions'],s['exchanges'],len(s['reads']))
+  for chunk in ['\x1b','[','<64;','3;','3','M']:
+   mouse(chunk,'mouse-fragment')
+  s=checkpoint('wheel-up');assert s['top']==tail-3 and not s['follow'];anchor=s['anchor'];module.anchored(screen,s,anchor)
+  for report in ['\x1b[<65;3;'+str(rows)+'M','\x1b[<66;3;3M','\x1b[<64;bad;3M','\x1b[<64;3;\rM','\x1b[<999;3;3M','\x1b[999~']:
+   s=mouse(report,'ignored-report');assert s['draft']==draft_before and s['top']==tail-3 and effects==(s['admissions'],s['exchanges'],len(s['reads']))
+  s=mouse('\x1b[<65;3;3M','wheel-tail');assert s['follow'] and s['top']==tail
+  key('draft');key('\x1b[D');before_caret=latest()['caret']
+  s=mouse('\x1b[<64;3;3M','anchor-near-end');anchor=s['anchor'];module.anchored(screen,s,anchor)
+  if columns==120:
+   for cw,rh in [(40,12),(80,24),(30,8),(120,40)]:
+    fcntl.ioctl(slave,termios.TIOCSWINSZ,struct.pack('HHHH',rh,cw,0,0));modes=screen.modes.copy();screen=module.Screen(cw,rh);screen.modes=modes;os.kill(child.pid,signal.SIGWINCH);time.sleep(.05);s=checkpoint('source-resize-'+str(cw))
+    assert s['anchor']==anchor and not s['follow'] and s['draft']=='draft' and s['caret']==before_caret
+    if cw>=40:module.anchored(screen,s,anchor)
+  key('\x15');literal='\x1b[<64;3;3M\n@mouse :exit';s=paste(literal);assert s['query'] is None and s['admissions']==1 and s['anchor']==anchor
+  module.anchored(screen,s,anchor);key('\x15')
   draft2='next 中e\u0301👩‍💻\n'+('code @ literal :exit\n'*500);s=paste(draft2);assert s['admissions']==1;assert 0<=screen.row<screen.rows and 0<=screen.col<screen.columns
   key('\r');key('\r');s=checkpoint('busy');assert s['draft']==draft2 and s['admissions']==1;screen.confirmed(True)
-  choose('evil');key('\x10');checkpoint('hostile-preview');key('\r');s=checkpoint('busy-attachment');assert s['attachments'][0]['text']==files[next(n for n in files if n.startswith('evil'))];assert s['admissions']==1
-  key('\x1b[5~');s=checkpoint('reading');assert not s['follow'];top=s['top'];control('release-model-0');pump(lambda:any(e.get('barrier')=='finish-0' for e in events));s=checkpoint('new-output');assert s['top']==top and s['newOutput'];assert 'New output' in '\n'.join(screen.lines())
+  choose('evil');key('\x10');s=checkpoint('hostile-preview');saved_draft=s['draft'];s=mouse('\x1b[<65;3;3M','preview-wheel');assert s['overlay'] is not None and s['draft']==saved_draft and s['admissions']==1;key('\r');s=checkpoint('busy-attachment');assert s['attachments'][0]['text']==files[next(n for n in files if n.startswith('evil'))];assert s['admissions']==1
+  key('\x1b[5~');s=checkpoint('reading');assert not s['follow'];top=s['top'];anchor=s['anchor'];module.anchored(screen,s,anchor);control('release-model-0');pump(lambda:any(e.get('barrier')=='finish-0' for e in events));s=checkpoint('new-output');assert s['top']==top and s['newOutput'];module.anchored(screen,s,anchor);assert 'New output' in '\n'.join(screen.lines())
   # Resize preserves canonical draft/snapshot; undersized Enter cannot admit.
   if columns==120:
    for cw,rh in [(40,12),(80,24),(30,8),(120,40)]:
-    fcntl.ioctl(slave,termios.TIOCSWINSZ,struct.pack('HHHH',rh,cw,0,0));screen=module.Screen(cw,rh);os.kill(child.pid,signal.SIGWINCH);time.sleep(.05);s=checkpoint('resize-'+str(cw));assert s['draft']==draft2 and s['admissions']==1
+    fcntl.ioctl(slave,termios.TIOCSWINSZ,struct.pack('HHHH',rh,cw,0,0));modes=screen.modes.copy();screen=module.Screen(cw,rh);screen.modes=modes;os.kill(child.pid,signal.SIGWINCH);time.sleep(.05);s=checkpoint('resize-'+str(cw));assert s['draft']==draft2 and s['admissions']==1
     if cw<40:key('\r');assert latest()['admissions']==1;assert any('Resize terminal' in x for x in screen.lines())
   key('\x03');key('\x03');s=checkpoint('cancelled',lambda s:s['phase']=='idle');assert s['cancels']==1 and s['admissions']==1 and s['draft']==draft2;assert 'Partial response' in '\n'.join(screen.lines())
   assert len(s['attachments'])==1;key('\x12');assert not latest()['attachments'];assert s['results'][0]['status']=='cancelled';assert s['top']==top or columns==120
@@ -78,15 +101,26 @@ for columns,rows in [(120,40),(80,24),(40,12)]:
   key('\x15');key('second ');choose('one/');choose('two/');s=checkpoint('duplicates');assert len(s['attachments'])==2;assert 'one/same.txt' in '\n'.join(screen.lines()) and 'two/same.txt' in '\n'.join(screen.lines())
   key('\t');assert latest()['focus']=='attachments';key('\r');key('\x1b');checkpoint('focus-restored',lambda s:s['overlay'] is None);assert latest()['admissions']==1
   key('\x1b');key('\r');pump(lambda:any(e.get('barrier')=='model-1' for e in events));control('release-model-1');s=checkpoint('finished',lambda s:s['phase']=='idle');assert s['admissions']==2 and s['results'][-1]['status']=='completed';assert sum(e['text'].count('Next draft received.') for e in s['entries'])==1
+  # R-HISTORY: admission-only order, cancelled prompt retained, genuine repetition and exact stash.
+  assert s['history']==[draft,'second '] and s['admissions']==2
+  key('unsent ');choose('example');key('\x15');stash_text='中e\u0301👩‍💻 '+'soft wrap '*20+'\nlast';paste(stash_text);key('\x1b[H');key('\x1b[C');stash=checkpoint('history-stash');reads=len(stash['reads']);saved=stash['attachments']
+  key('\x1b[A');s=checkpoint('history-newest');assert s['draft']=='second ' and s['attachments']==[] and s['historyIndex']==1 and len(s['reads'])==reads;assert 'History draft' in '\n'.join(screen.lines())
+  key('edited');key('\x1b[A');s=checkpoint('history-oldest');assert s['draft']==draft and s['historyIndex']==0;key('\x1b[A');assert latest()['historyIndex']==0
+  key('\x1b');s=checkpoint('history-escape');assert s['draft']==stash_text and s['caret']==stash['caret'] and s['attachments']==saved
+  # Visual soft-wrap movement takes precedence while on a later visual row.
+  key('\x1b[F');key('\x1b[A');s=checkpoint('history-visual-up');assert s['draft']==stash_text and s.get('historyIndex') is None and s['caret']<len(stash_text)
+  key('\x1b[H');key('\x1b[C');key('\x1b[A');key('\x1b[B');s=checkpoint('history-newest-restore');assert s['draft']==stash_text and s['caret']==stash['caret'] and s['attachments']==saved
+  key('\x1b[A');key('\r');pump(lambda:any(e.get('barrier')=='model-2' for e in events));s=checkpoint('history-submitted');assert s['history']==[draft,'second ','second '] and s['draft']==stash_text and s['attachments']==saved and len(s['reads'])==reads
+  key('\r');assert latest()['admissions']==3 and latest()['draft']==stash_text;control('release-model-2');checkpoint('history-completed',lambda s:s['phase']=='idle');key('\x15');key('\x12')
   # View-only details/replay cannot change sealed archives or effects.
   def archives():return {str(p.relative_to(memory)):hashlib.sha256(p.read_bytes()).hexdigest() for p in memory.rglob('*') if p.is_file()}
-  sealed=archives();key(':details');key('\r');key('\r');key(':runs');key('\r');key('\r');s=checkpoint('view-only');assert s['admissions']==2 and archives()==sealed
+  sealed=archives();key(':details');key('\r');key('\r');key(':runs');key('\r');key('\r');s=checkpoint('view-only');assert s['admissions']==3 and archives()==sealed
   # C-SUM/protocol is irrelevant here; confirm exact selection-time envelope at actual adapter.
   key(':exit');os.write(master,b'\r');pump(lambda:any('exit' in e for e in events));os.close(control_w);control_w=-1;pump(lambda:child.poll() is not None);assert child.returncode==0
   after=termios.tcgetattr(slave);assert before==after,(before,after)
   report=json.loads((d/'report.json').read_text());assert report['contexts'][0]['messages'][-1]['role']=='user';task=report['contexts'][0]['messages'][-1]['content'];assert 'SNAPSHOT original' in json.dumps(task) and 'changed after selection' not in json.dumps(task)
-  assert b'TUI_A_ENV_CANARY_NOT_PUBLIC' not in raw;assert screen.modes.get('2004') is False and screen.modes.get('1049') is False and screen.modes.get('25') is True
-  reports.append({'viewport':[columns,rows],'result':'PASS','directory':str(d),'snapshot':snapshot,'negativeVisibleConfirmationRejected':rejected,'admissions':report['admissions'],'modesBefore':repr(before),'modesAfter':repr(after)})
+  assert b'TUI_A_ENV_CANARY_NOT_PUBLIC' not in raw;assert screen.modes.get('2004') is False and screen.modes.get('1000') is False and screen.modes.get('1006') is False and screen.modes.get('1049') is False and screen.modes.get('25') is True
+  reports.append({'viewport':[columns,rows],'result':'PASS','directory':str(d),'snapshot':snapshot,'negativeVisibleConfirmationRejected':rejected,'admissions':report['admissions'],'criteriaVersion':'1.1','repairs':['R-SCROLL','R-RESIZE','R-HISTORY','R-ATTACH'],'modesBefore':repr(before),'modesAfter':repr(after)})
  finally:
   (d/'raw.pty').write_bytes(raw);(d/'screens.json').write_text(json.dumps(screens,ensure_ascii=False)+'\n');(d/'steps.json').write_text(json.dumps(steps,ensure_ascii=False)+'\n');(d/'events.json').write_text(json.dumps(events,ensure_ascii=False)+'\n')
   if child.poll() is None:child.kill();child.wait()
