@@ -121,7 +121,7 @@ export class DailyWorkspace {
   if(!this.follow)this.newOutput=true;this.draw();
  }
  private progress(event:SessionProgress):void {if(!this.active)return;this.turnText+=event.text;this.active.text=this.turnText;if(!this.follow)this.newOutput=true;this.draw();}
- private settle(result:TaskRunResult):void {if(this.active){if(result.finalText)this.active.text=result.finalText;this.active.status=result.status==='completed'?'Completed':`Partial response · ${terminalText(result.status)}`;}this.notice=`${terminalText(result.status)} · next draft Not submitted`;this.draw();}
+ private settle(result:TaskRunResult):void {if(this.active){if(result.finalText)this.active.text=result.finalText;this.active.status=result.status==='completed'?'Completed':`Partial response · ${terminalText(result.status)}`;}this.notice=result.status==='completed'?'Completed · next draft Not submitted':`Partial response · ${terminalText(result.status)}`;this.draw();}
  private chips():string[]{return this.selected.map((item,i)=>{const parts=item.path.split('/');let n=1;while(n<parts.length&&this.selected.some((other,j)=>j!==i&&other.path.split('/').slice(-n).join('/')===parts.slice(-n).join('/')))n++;return `${this.focus==='attachments'&&i===this.chip?'>':''}[${terminalText(parts.slice(-n).join('/'))}]`;});}
  draw():void {
   if(this.phase==='closed')return;const w=Math.max(1,this.output.columns??80),h=Math.max(1,this.output.rows??24);const view=this.editor.visual(Math.max(1,w-3));const composer=Math.min(view.lines.length,Math.max(1,Math.floor(h/3)));
@@ -140,7 +140,7 @@ export class DailyWorkspace {
    const busy=this.phase==='running'||this.phase==='cancelling';rows.push({text:this.phase==='confirm'?this.notice:busy?`${this.phase==='cancelling'?'Cancelling':'Busy'} — draft retained · Ctrl-C cancel`:this.safePaste?'SAFE PASTE / EDIT · Esc exits; then Enter Send':this.editor.text.trim()?'Not submitted · Enter Send':'Not submitted · Write a task',kind:'secondary'});
    const start=Math.max(0,view.row-composer+1);const editorRow=rows.length;for(let i=0;i<composer;i++)rows.push({text:(i===0?'> ':'  ')+(view.lines[start+i]??''),kind:this.focus==='composer'?'focus':undefined});
    if(!p)cursor={row:editorRow+view.row-start,col:2+view.col};
-   rows.push({text:this.overlay?'Enter/Esc Close · Up/Down Scroll':p?'Tab Next · Esc Literal · Ctrl-C Close':this.safePaste?'SAFE PASTE: Enter newline · Esc exits':this.focus==='attachments'?'Enter Preview · Backspace Remove · Tab Focus':/:exit|denied|failed|Already selected/.test(this.notice)?this.notice:'@ Files · Alt-Enter Newline · Ctrl-V Paste',kind:'secondary'});
+   rows.push({text:this.overlay?'Enter/Esc Close · Up/Down Scroll':p?'Tab Next · Esc Literal · Ctrl-C Close':this.safePaste?'SAFE PASTE: Enter newline · Esc exits':this.focus==='attachments'?'Enter Preview · Backspace Remove · Tab Focus':/:exit|denied|failed|Already selected|^Partial response|^Completed/.test(this.notice)?this.notice:'@ Files · Alt-Enter Newline · Ctrl-V Paste',kind:'secondary'});
   }
   let frame='\x1b[?25l';for(let i=0;i<h;i++){const row=rows[i]??{text:''};const style=!this.color?'':row.kind==='You'?'\x1b[48;2;48;48;48m':row.kind==='focus'?'\x1b[38;2;0;215;215m':row.kind==='secondary'?'\x1b[38;2;155;155;155m':'';frame+=`\x1b[${i+1};1H\x1b[0m`+(this.color?'\x1b[48;2;30;30;30m\x1b[38;2;230;230;230m':'')+style+'\x1b[2K'+clip(row.text,w);}
   frame+=`\x1b[${Math.max(1,Math.min(h,cursor.row+1))};${Math.max(1,Math.min(w,cursor.col+1))}H\x1b[?25h`;this.output.write(frame);

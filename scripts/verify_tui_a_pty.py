@@ -71,7 +71,7 @@ for columns,rows in [(120,40),(80,24),(40,12)]:
    for cw,rh in [(40,12),(80,24),(30,8),(120,40)]:
     fcntl.ioctl(slave,termios.TIOCSWINSZ,struct.pack('HHHH',rh,cw,0,0));screen=module.Screen(cw,rh);os.kill(child.pid,signal.SIGWINCH);time.sleep(.05);s=checkpoint('resize-'+str(cw));assert s['draft']==draft2 and s['admissions']==1
     if cw<40:key('\r');assert latest()['admissions']==1;assert any('Resize terminal' in x for x in screen.lines())
-  key('\x03');key('\x03');s=checkpoint('cancelled',lambda s:s['phase']=='idle');assert s['cancels']==1 and s['admissions']==1 and s['draft']==draft2
+  key('\x03');key('\x03');s=checkpoint('cancelled',lambda s:s['phase']=='idle');assert s['cancels']==1 and s['admissions']==1 and s['draft']==draft2;assert 'Partial response' in '\n'.join(screen.lines())
   assert len(s['attachments'])==1;key('\x12');assert not latest()['attachments'];assert s['results'][0]['status']=='cancelled';assert s['top']==top or columns==120
   key('\x1b[1;5F');assert latest()['follow']
   # Replace with a manageable next draft, select duplicate names while still never submitting on preview.
