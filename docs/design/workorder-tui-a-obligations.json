@@ -14,6 +14,7 @@
     "scripts/fixtures/README.md",
     "scripts/fixtures/tui-a/README.md",
     "scripts/fixtures/tui-a/driver.mjs",
+    "scripts/fixtures/tui-a/equivalence.mjs",
     "scripts/fixtures/tui-a/screen.py",
     "scripts/verify_tui_a_pty.py",
     "typescript/README.md",
