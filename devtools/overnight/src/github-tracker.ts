@@ -8,7 +8,7 @@ import { CONTRACT, type Binding } from './connector-authority.ts';
 export interface Comment { id:number;body:string;author:string;url:string; }
 export interface IssueTransport { list():Comment[]; post(body:string):void; }
 export function activationBody(b:Binding):string {
- return 'WorkOrder #46 Stage B activation\n'+safe({connectorSha:b.connectorSha,manifestDigest:b.manifestDigest,contract:CONTRACT,delegation:b.delegation,roles:b.roles,campaign:b.campaign,cli:b.cli,model:b.model,auth:b.auth,codexHome:b.codexHome,github:b.github,stageAReview:b.stageAReview,humanReview:b.humanReview});
+ return 'WorkOrder #46 Stage B activation\n'+safe({connectorSha:b.connectorSha,manifestDigest:b.manifestDigest,contract:CONTRACT,delegation:b.delegation,roles:b.roles,campaign:b.campaign,cli:{sha256:b.cli.sha256,version:b.cli.version},model:b.model,auth:b.auth,codexHomeDigest:digest(b.codexHome),github:{repository:b.github.repository,issue:b.github.issue,author:b.github.author,executableDigest:b.github.sha256},stageAReview:b.stageAReview,humanReview:b.humanReview});
 }
 export function stageAReviewBody(sha:string):string {
  return 'WorkOrder #46 Stage A review\n'+safe({candidateSha:sha,criteriaVersion:'1.0',role:'Regulator Agent',result:'PASS',outputs:['L-AUTH','L-RESULT','L-TRACKER','L-STOP','L-CONTAINMENT','L-PACKAGE']});

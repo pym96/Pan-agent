@@ -61,6 +61,9 @@ export function codexArgs(m:Manifest,b:Binding,a:Attempt,dir:string):string[] {
  return ['exec','--ignore-user-config','--strict-config','--json','--color','never','--sandbox','workspace-write','--model',b.model,'--cd',cwd,'--output-schema',join(dir,'schema.json'),'--output-last-message',join(dir,'last-message.json'),...config.flatMap(x=>['-c',x]),'-'];
 }
 // Stage B only. The official CLI, not this program, handles subscription credentials.
+export function validateSubscriptionStatus(status:number|null,version:string,text:string):void {
+ insist(status===0 && version==='codex-cli 0.153.4' && text.trim()==='Logged in using ChatGPT','subscription_auth_unconfirmed');
+}
 export function subscriptionPreflight(m:Manifest,b:Binding):void {
  insist(b.stage==='B','stage_b_not_activated');
  insist(realpathSync(b.codexHome)===b.codexHome && lstatSync(b.codexHome).isDirectory(),'auth_home_scope');
@@ -74,6 +77,6 @@ export function subscriptionPreflight(m:Manifest,b:Binding):void {
  try {version=execFileSync(b.cli.path,['--version'],{env,encoding:'utf8',timeout:3000}).trim();
   const observed=spawnSync(b.cli.path,['login','status','-c','forced_login_method="chatgpt"'],{env,encoding:'utf8',timeout:3000,stdio:['ignore','pipe','pipe']});insist(observed.status===0,'subscription_auth_unconfirmed');login=(observed.stdout+observed.stderr).trim();
  }catch{throw new Error('subscription_auth_unconfirmed');}
- insist(version===b.cli.version && login==='Logged in using ChatGPT','subscription_auth_unconfirmed');
+ validateSubscriptionStatus(0,version,login);
  atomic(join(m.workspace,'auth-observation.json'),{auth:'chatgpt',version,credentials:'handled only by official CLI; never read or copied'});
 }

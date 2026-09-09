@@ -15,7 +15,12 @@ export function birth(pid: number): string | null {
   try {
     const stat=execFileSync('/bin/ps',['-p',String(pid),'-o','stat='],{encoding:'utf8'}).trim();
     if(!stat || stat.startsWith('Z')) return null;
-    return execFileSync('/bin/ps',['-p',String(pid),'-o','lstart=','-o','command='],{encoding:'utf8'}).trim() || null;
+    const identity=execFileSync('/bin/ps',['-p',String(pid),'-o','lstart=','-o','command='],{encoding:'utf8'}).trim();
+    // A short-lived wrapper may exit between the status and identity reads.
+    // Confirm it is still live before treating changed command text as PID reuse.
+    const after=execFileSync('/bin/ps',['-p',String(pid),'-o','stat='],{encoding:'utf8'}).trim();
+    if(!after || after.startsWith('Z'))return null;
+    return identity || null;
   } catch(e:any) { if(e.status===1)return null;throw new Refusal('process_inventory_unknown'); }
 }
 export function acquire(root: string): () => void {

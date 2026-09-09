@@ -7,7 +7,7 @@ import { randomUUID } from 'node:crypto';
 import { spawnSync } from 'node:child_process';
 import { performance } from 'node:perf_hooks';
 import { connectorFixture, runConnector, dryRun, FileIssueTransport, authorizeConnector } from '../src/connector.ts';
-import { bindingShape, validateBinding, codexArgs, connectorEnvironment, type Binding } from '../src/connector-authority.ts';
+import { bindingShape, validateBinding, validateSubscriptionStatus, codexArgs, connectorEnvironment, type Binding } from '../src/connector-authority.ts';
 import { CodexEvents, responseShape } from '../src/connector-output.ts';
 import { GitHubTracker, publication, verifyRemoteAuthority, activationBody, stageAReviewBody, humanReviewBody } from '../src/github-tracker.ts';
 import { atomic, read, load, birth } from '../src/storage.ts';
@@ -65,7 +65,7 @@ test('C-LIVE-01/05 actual fixed argv/environment, distinct sessions, private raw
   const preview:any=dryRun(f.manifest);assert.equal(preview.realLaunches,0);assert(!existsSync(f.state));
   const result:any=await runConnector(f.manifest);assert.equal(result.state,'accepted_pending_master');assert.equal(result.attempts.length,2);
   const l=load(f.state),threads=[];
-  for(const a of l.attempts){const dir=join(f.state,'attempts',a.key),config=read(join(dir,'effective-config.json')),session=read(join(dir,'codex-session.json'));threads.push(session.thread);
+  for(const a of l.attempts){const dir=join(f.state,'attempts',a.key),config=read(join(dir,'effective-config.json')),session=read(join(dir,'codex-session.json'));threads.push(session.thread);assert.equal(read(join(dir,'prompt-identity.json')).commonRulesDigest,fileDigest(resolve('../../AGENTS.md')));
    assert(!JSON.stringify(config).includes(canary));assert(!config.argv.some((x:string)=>['resume','fork','--last','--approve-for-me','--dangerously-bypass-approvals-and-sandbox','--dangerously-bypass-hook-trust'].includes(x)));
    assert(config.argv.includes('--ignore-user-config'));assert(config.argv.includes('forced_login_method="chatgpt"'));assert.equal(statSync(join(dir,'private-events.jsonl')).mode&0o777,0o600);
    const child=read(join(dir,'observed-connector-process.json'));assert(!JSON.stringify(child.env).includes(canary));assert(!('GH_TOKEN' in child.env));assert(!('OPENAI_API_KEY' in child.env));
@@ -101,7 +101,7 @@ test('C-LIVE-01/03 real gate requires exact PASS records and unchanged formal co
  b.stageAReview=url(101);b.humanReview=url(102);b.masterActivation=url(103);
  const comment=(id:number,body:string)=>({id,body,author:b.github.author,url:url(id)});
  const valid=[comment(5595244988,read(resolve('fixtures/workorder-46-contract.json')).body),comment(101,stageAReviewBody(b.connectorSha)),comment(102,humanReviewBody(b.connectorSha)),comment(103,activationBody(b))];
- verifyRemoteAuthority(valid,b);record('L-AUTH',{case:'exact Stage A/Human/Master records',pass:true});
+ verifyRemoteAuthority(valid,b);assert(!activationBody(b).includes(b.codexHome));assert(!activationBody(b).includes(b.cli.path));record('L-AUTH',{case:'exact Stage A/Human/Master records',pass:true});
  for(const kind of ['contract','rejected','human-rejected','wrong-sha','wrong-author','missing-activation','prose-only'])await t.test(kind,()=>{
   const changed=structuredClone(valid);
   if(kind==='contract')changed[0]!.body+='changed';if(kind==='rejected')changed[1]!.body=changed[1]!.body.replace('PASS','rejected');
@@ -109,4 +109,14 @@ test('C-LIVE-01/03 real gate requires exact PASS records and unchanged formal co
   if(kind==='wrong-author')changed[3]!.author='other';if(kind==='missing-activation')changed.pop();if(kind==='prose-only')changed[1]!.body='This rejected review mentions '+b.connectorSha;
   assert.throws(()=>verifyRemoteAuthority(changed,b));record('L-AUTH',{case:kind,rejectedBeforeInference:true});
  });inventory(f,'remote authority records');
+});
+
+
+test('C-LIVE-01 official CLI auth transcript must be successful ChatGPT, never API or unknown',async t=>{
+ for(const name of ['chatgpt','api','unknown','failed'])await t.test(name,()=>{
+  const text=['chatgpt','failed'].includes(name)?'Logged in using ChatGPT':name==='api'?'Logged in using an API key':'authentication unavailable';
+  if(name==='chatgpt')validateSubscriptionStatus(0,'codex-cli 0.153.4',text);
+  else assert.throws(()=>validateSubscriptionStatus(name==='failed'?1:0,'codex-cli 0.153.4',text));
+  record('L-AUTH',{case:'synthetic CLI auth '+name,actualCredentialAccess:0,actualCodexInference:0,accepted:name==='chatgpt'});
+ });
 });

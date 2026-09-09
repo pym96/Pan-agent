@@ -17,8 +17,9 @@ try {
  mkdirSync(join(dir,'probes'),{mode:0o700});atomic(join(dir,'schema.json'),responseSchema);
  const args=codexArgs(m,b,a,dir),env=connectorEnvironment(m,b);
  atomic(join(dir,'effective-config.json'),{argv:args,environment:env,auth:b.auth,cli:b.cli,model:b.model,source:b.stage==='A'?'SIMULATED':'TRIAL',permissions:'workspace-write; network-disabled tools; no escalation',config:'ignore-user-config; dedicated auth home; reject inherited extension/project roots'});
- const prompt=connectorTemplates[a.role]+'\n'+TRIAL+'\n'+JSON.stringify({role:a.role,session:a.session,inputCandidate:a.candidate,candidateDirectory:a.worktree,probeDirectory:join(dir,'probes'),result:'Return the required structured outcome only; use C-SUM-01 for criterion_failed.',allowedFiles:['sum-integers.js','sum-integers.test.js','README.md','package.json']});
- atomic(join(dir,'prompt-identity.json'),{digest:digest(prompt),template:m.templates[a.role]});
+ const commonRules=readFileSync(fileURLToPath(new URL('../../../AGENTS.md',import.meta.url)),'utf8');
+ const prompt=connectorTemplates[a.role]+'\nCommon AGENTS.md from the reviewed connector (map links refer to its enclosing project):\n'+commonRules+'\nHuman-approved trial assignment; use this supplied contract and the separate candidate/probe paths only:\n'+TRIAL+'\n'+JSON.stringify({role:a.role,session:a.session,inputCandidate:a.candidate,candidateDirectory:a.worktree,probeDirectory:join(dir,'probes'),result:'Return the required structured outcome only; use C-SUM-01 for criterion_failed.',allowedFiles:['sum-integers.js','sum-integers.test.js','README.md','package.json']});
+ atomic(join(dir,'prompt-identity.json'),{digest:digest(prompt),template:m.templates[a.role],commonRulesDigest:digest(commonRules)});
  const log=openSync(join(dir,'private-events.jsonl'),'wx',0o600),err=openSync(join(dir,'private-stderr.txt'),'wx',0o600);
  const child=spawn(b.stage==='A'?m.executable:b.cli.path,b.stage==='A'?['--import',fileURLToPath(new URL('./connector-guard.mjs',import.meta.url)),b.cli.path,...args]:args,{cwd:a.role==='builder'?a.worktree:join(dir,'probes'),env,stdio:['pipe','pipe','pipe']});
  let bytes=0,overflow=false;
