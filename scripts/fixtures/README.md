@@ -26,3 +26,5 @@ These are verification clients, not Product implementations or live Provider res
 #43 repair: [file-repair-driver.mjs](file-repair-driver.mjs) is test-only key/state/async/display-fault instrumentation; [file-repair-screen.py](file-repair-screen.py) checks actual visible VT cells independently of Product state.
 
 [tui-a/](tui-a/README.md): #47 installed PTY driver and independent grid oracle.
+
+#47 Criteria-Version 1.2 adds timer-free compatibility framing (Ctrl-G Back, ESC prefix only) and immutable raw-prefix screen evidence. Old 1.1 grids remain historical failed evidence.

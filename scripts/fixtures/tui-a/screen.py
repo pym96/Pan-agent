@@ -1,7 +1,7 @@
 """Independent VT cell/attribute oracle for emitted CUP/EL/SGR/private modes.
 No Product formatter or internal UI state imported. Unknown escape operations fail.
 """
-import codecs,re,unicodedata
+import codecs,re,unicodedata,copy,json
 class Screen:
  def __init__(self,columns,rows):
   self.columns=columns;self.rows=rows;self.cells=[[' ']*columns for _ in range(rows)];self.attrs=[[()]*columns for _ in range(rows)];self.row=0;self.col=0;self.attr=();self.escape='';self.decoder=codecs.getincrementaldecoder('utf-8')();self.last=None;self.join=False;self.modes={};self.pending=False
@@ -38,7 +38,7 @@ class Screen:
    self.col+=size
    if self.col>=self.columns:self.col=self.columns-1;self.pending=True
  def lines(self):return [''.join(row).rstrip() for row in self.cells]
- def snapshot(self):return {'columns':self.columns,'rows':self.rows,'cells':self.cells,'attributes':self.attrs,'cursor':[self.row,self.col],'modes':self.modes.copy()}
+ def snapshot(self,raw_bytes=None,event_index=None):return copy.deepcopy({'columns':self.columns,'rows':self.rows,'cells':self.cells,'attributes':self.attrs,'cursor':[self.row,self.col],'modes':self.modes,'rawBytes':raw_bytes,'terminalEventIndex':event_index})
  def confirmed(self,busy=False):
   text='\n'.join(self.lines());assert ('Busy' if busy else 'Not submitted') in text,text
   assert ('draft retained' if busy else 'Enter Send') in text,text
@@ -78,3 +78,15 @@ def anchored(screen,state,anchor):
  top=min(first,max(0,len(rows)-body));assert state['top']==top,(state['top'],top,anchor)
  assert screen.lines()[1]==rows[top]['text'].rstrip(),(screen.lines()[1],rows[top])
  assert top<=first<top+body
+
+def replay_checkpoints(raw,events,captures):
+ """One ordered replay visits every declared prefix; resize is metadata, never inferred from bytes."""
+ initial=events[0];assert initial['offset']==0 and initial['kind']=='initial'
+ screen=Screen(initial['columns'],initial['rows']);offset=0;applied=0
+ for capture in captures:
+  while applied<capture['terminalEventIndex']:
+   event=events[applied+1];assert offset<=event['offset']<=capture['rawBytes'];screen.feed(raw[offset:event['offset']]);offset=event['offset'];modes=screen.modes.copy();screen=Screen(event['columns'],event['rows']);screen.modes=modes;applied+=1
+  end=capture['rawBytes'];assert offset<=end<=len(raw);screen.feed(raw[offset:end]);offset=end
+  expected=screen.snapshot(end,applied)
+  assert json.dumps(expected,sort_keys=True)==json.dumps(capture['screen'],sort_keys=True),('raw prefix mismatch',capture['label'],end)
+ return len(captures)

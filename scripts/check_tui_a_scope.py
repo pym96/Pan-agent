@@ -4,7 +4,7 @@ import hashlib,json,re,subprocess
 from pathlib import Path
 root=Path(__file__).resolve().parents[1];base='7ade169b276fd68198ca4461d07c5589c273253f'
 def git(*args):return subprocess.check_output(['git',*args],cwd=root)
-m=json.loads((root/'docs/design/workorder-tui-a-obligations.json').read_text());assert m['base']==base and m['criteria_version']=='1.1'
+m=json.loads((root/'docs/design/workorder-tui-a-obligations.json').read_text());assert m['base']==base and m['criteria_version']=='1.2'
 old=git('ls-tree','-r','--name-only',base).decode().splitlines();changed=sorted(set(git('diff','--name-only',base).decode().splitlines()+git('ls-files','--others','--exclude-standard').decode().splitlines()));assert changed==sorted(m['changed_files']),(changed,m['changed_files'])
 readmes={'README.md','typescript/README.md','typescript/src/tui/README.md','typescript/test/README.md','scripts/README.md','scripts/fixtures/README.md','docs/design/README.md'}
 new={'typescript/src/tui/daily-editor.ts','typescript/src/tui/daily-workspace.ts','typescript/test/daily-workspace.test.ts','scripts/demo_tui_a.mjs','scripts/verify_tui_a_pty.py','scripts/check_tui_a_scope.py','docs/design/native-daily-workspace.md','docs/design/workorder-tui-a-obligations.json'}

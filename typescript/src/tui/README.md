@@ -18,3 +18,6 @@ See the [#42 guide](../../../docs/design/native-compact-tui.md) for the offline 
 [TUI A contract](../../../docs/design/native-daily-workspace.md): [daily-workspace.ts](daily-workspace.ts) owns the Native TTY view and focus; [daily-editor.ts](daily-editor.ts) owns grapheme draft editing and visual wrapping. The earlier compact input remains the non-TTY path.
 
 #47 repair navigation: [Criteria-Version 1.1](https://github.com/pym96/Pan-agent/issues/47#issuecomment-5597954262) covers SGR wheel, source-content reflow anchors, admitted prompt recall and Tab attachment. Startup y remains; old 1.0 evidence is retained.
+
+#47 Criteria-Version 1.2 adds timer-free compatibility framing (Ctrl-G Back, ESC prefix only) and immutable raw-prefix screen evidence. Old 1.1 grids remain historical failed evidence.
+[framed-input.ts](framed-input.ts) owns bounded incremental compatibility input framing.

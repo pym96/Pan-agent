@@ -122,3 +122,5 @@ Native CLI explicitly selects the compact TUI: `你 › `, honest tool-result co
 [Explicit file input](../docs/design/native-file-input.md): idle `@` picker, Ctrl-P preview, Ctrl-R removal; Enter selects, a separate Enter submits. `--max-attachment-bytes INTEGER` sets the inclusive aggregate byte policy (default 1048576). Use Escape for literal standalone `@` text.
 
 [TUI A daily workspace](../docs/design/native-daily-workspace.md): fixed TTY regions, inline attachments and editable next draft; non-TTY retains explicit line submission.
+
+#47 Criteria-Version 1.2 adds timer-free compatibility framing (Ctrl-G Back, ESC prefix only) and immutable raw-prefix screen evidence. Old 1.1 grids remain historical failed evidence.

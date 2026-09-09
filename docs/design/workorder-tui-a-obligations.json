@@ -1,7 +1,7 @@
 {
-  "criteria_version": "1.1",
+  "criteria_version": "1.2",
   "base": "7ade169b276fd68198ca4461d07c5589c273253f",
-  "contract_sha256": "d2951d99d760f30da7abaabdabca56430910f4c9c08490eb5f2c8a288b69ecfc",
+  "contract_sha256": "a55a393e1f95ddb436a0f9c6c79957ec9500e5dcd523bff5aecfbfa4fbcc6fe6",
   "changed_files": [
     "README.md",
     "docs/agents/current-assignment.md",
@@ -22,6 +22,7 @@
     "typescript/src/tui/compact-tui.ts",
     "typescript/src/tui/daily-editor.ts",
     "typescript/src/tui/daily-workspace.ts",
+    "typescript/src/tui/framed-input.ts",
     "typescript/src/tui/presentation.ts",
     "typescript/test/README.md",
     "typescript/test/daily-workspace.test.ts"
@@ -571,5 +572,9 @@
       "after": "1.1 G01 byte preservation and Product dependency isolation; original FAIL remains unresolved in #48",
       "evidence": "check_tui_a_scope.py utility map; Handoff #1 https://github.com/pym96/Pan-agent/issues/47#issuecomment-5597621621"
     }
-  ]
+  ],
+  "framing_snapshot_repairs": {
+    "R05": "FramedInput, Product tests, installed PTY delayed/split/overflow/paste/Back cases and external timeout negative control",
+    "R06": "deep immutable snapshot, exact consumed raw prefixes, ordered resize metadata, all checkpoint replay and external alias/offset negative controls"
+  }
 }

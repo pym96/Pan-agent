@@ -176,3 +176,5 @@ Current candidate #44: [public text streaming, English compact UI and installed 
 [Single-WorkOrder handoff](devtools/overnight/README.md) is independent Product development tooling under #45, outside the Pan install/build/startup graph. It uses SIMULATED local processes only; no real Agent/account activation.
 
 [TUI A daily workspace candidate](docs/design/native-daily-workspace.md) covers #47; #46 remains paused.
+
+#47 Criteria-Version 1.2 adds timer-free compatibility framing (Ctrl-G Back, ESC prefix only) and immutable raw-prefix screen evidence. Old 1.1 grids remain historical failed evidence.

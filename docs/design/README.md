@@ -67,3 +67,5 @@ The Human-accepted architecture history remains indexed in [`../adr/README.md`](
 - [Overnight handoff](overnight-handoff.md) and [#45 obligations](workorder-45-obligations.json): independent offline development-tool candidate.
 
 [native-daily-workspace.md](native-daily-workspace.md) and [workorder-tui-a-obligations.json](workorder-tui-a-obligations.json): #47 daily workspace contract and prior-test mapping.
+
+#47 Criteria-Version 1.2 adds timer-free compatibility framing (Ctrl-G Back, ESC prefix only) and immutable raw-prefix screen evidence. Old 1.1 grids remain historical failed evidence.

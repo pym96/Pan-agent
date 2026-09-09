@@ -1,6 +1,6 @@
 ## Current #47 additive repair navigation
 
-[Criteria-Version 1.1](https://github.com/pym96/Pan-agent/issues/47#issuecomment-5597954262) and [activation](https://github.com/pym96/Pan-agent/issues/47#issuecomment-5597961063) authorize only TUI repair from f490a5ebf62041e33c258d18ff58093043765ea1. Startup y stays; #48/#49 are not executable here; #46 remains paused. Prior #47 1.0 mission and failure records below remain historical inputs, not current acceptance.
+[Criteria-Version 1.2](https://github.com/pym96/Pan-agent/issues/47#issuecomment-5601235744) and [activation](https://github.com/pym96/Pan-agent/issues/47#issuecomment-5601244605) authorize framing and immutable-evidence repair from `f2b6c611a6bf9c5463c4d5dc7beecbb97caaf30c`. Startup y stays; #48/#49 are not executable; #46 remains paused. Handoff #3 must bind the new full SHA; old failed evidence is retained.
 
 # Current Assignment | Authoritative TypeScript/Pi product cutover
 

@@ -16,7 +16,7 @@ for columns,rows in [(120,40),(80,24),(40,12)]:
  config.write_text(json.dumps({'phase':d.name,'consumer':str(consumer),'allowed':[str(consumer),str(d)],'denied':[str(root)],'report':str(d/'guard-report')}))
  env={'PATH':str(Path(a.node).parent)+':/usr/bin:/bin','HOME':str(d),'TERM':'xterm-256color','LANG':'en_US.UTF-8','NODE_NO_WARNINGS':'1','NODE_OPTIONS':'--import='+str(guard),'WO35_GUARD_CONFIG':str(config),'PAN_SYNTHETIC_API_KEY':'TUI_A_ENV_CANARY_NOT_PUBLIC'}
  child=subprocess.Popen([a.node,str(driver),str(a.package),str(workspace),str(memory),str(control_r),str(event_w)],stdin=slave,stdout=slave,stderr=slave,cwd=consumer,env=env,pass_fds=(control_r,event_w));os.close(control_r);os.close(event_w)
- raw=bytearray();pending=bytearray();events=[];screens=[];screen=module.Screen(columns,rows);steps=[]
+ raw=bytearray();pending=bytearray();events=[];screens=[];screen=module.Screen(columns,rows);steps=[];consumed=0;terminal_events=[{'kind':'initial','offset':0,'columns':columns,'rows':rows}]
  def pump(fn):
   deadline=time.monotonic()+15
   while not fn():
@@ -24,48 +24,81 @@ for columns,rows in [(120,40),(80,24),(40,12)]:
    for fd in select.select([master,event_r],[],[],.05)[0]:
     try:data=os.read(fd,65536)
     except OSError:data=b''
-    if fd==master:raw.extend(data);screen.feed(data)
+    if fd==master:raw.extend(data)
     else:
      pending.extend(data)
      while b'\n' in pending:
       line,_,rest=pending.partition(b'\n');pending[:]=rest;events.append(json.loads(line))
+ def deliver(value):
+  data=value.encode() if isinstance(value,str) else value
+  # Drain both output channels between bounded input writes (PTY capacity is finite).
+  for start in range(0,len(data),256):
+   part=data[start:start+256];before=latest().get('inputBytes',0)
+   os.write(master,part)
+   pump(lambda:latest().get('inputBytes',0)>=before+len(part))
+ def consume(target):
+  global consumed
+  assert consumed<=target<=len(raw),(consumed,target,len(raw))
+  screen.feed(raw[consumed:target]);consumed=target
  def latest():return events[-1]['state'] if events else {}
  def control(label):
-  start=len(events);os.write(control_w,(label+'\n').encode());pump(lambda:any(e.get('control')==label for e in events[start:]));s=next(e['state'] for e in events[start:] if e.get('control')==label);pump(lambda:len(raw)>=s['outputBytes']);return s
+  start=len(events);os.write(control_w,(label+'\n').encode());pump(lambda:any(e.get('control')==label for e in events[start:]));s=next(e['state'] for e in events[start:] if e.get('control')==label);pump(lambda:len(raw)>=s['outputBytes']);consume(s['outputBytes']);return s
  def checkpoint(label,fn=lambda s:True):
   deadline=time.monotonic()+15
   while True:
    s=control('checkpoint-'+label+'-'+str(len(steps)))
-   if fn(s):screens.append({'label':label,'state':s,'screen':screen.snapshot(),'rawBytes':len(raw)});return s
+   if fn(s):screens.append({'label':label,'state':s,'screen':screen.snapshot(consumed,len(terminal_events)-1),'rawBytes':consumed,'terminalEventIndex':len(terminal_events)-1});return s
    assert time.monotonic()<deadline,(label,s)
    time.sleep(.01)
+ def resize(cw,rh):
+  global screen
+  checkpoint('before-resize')
+  terminal_events.append({'kind':'resize','offset':consumed,'columns':cw,'rows':rh,'monotonicNs':time.monotonic_ns()})
+  modes=screen.modes.copy();screen=module.Screen(cw,rh);screen.modes=modes
+  fcntl.ioctl(slave,termios.TIOCSWINSZ,struct.pack('HHHH',rh,cw,0,0));os.kill(child.pid,signal.SIGWINCH);time.sleep(.05)
  def key(value,fn=lambda s:True,label='key'):
-  before=latest().get('keyCount',0);os.write(master,value.encode());pump(lambda:latest().get('keyCount',0)>before);s=checkpoint(label,fn);steps.append({'input':value,'state':s});return s
+  before=latest().get('keyCount',0);steps.append({'delivery':value,'monotonicNs':time.monotonic_ns(),'receivedRawBytes':len(raw),'consumedRawBytes':consumed});deliver(value);pump(lambda:latest().get('keyCount',0)>before);s=checkpoint(label,fn);steps.append({'input':value,'state':s});return s
  def mouse(value,label):
-  before=latest().get('inputBytes',0);os.write(master,value.encode());return checkpoint(label,lambda s:s['inputBytes']>=before+len(value.encode()))
+  before=latest().get('inputBytes',0);steps.append({'delivery':value,'monotonicNs':time.monotonic_ns(),'receivedRawBytes':len(raw),'consumedRawBytes':consumed});deliver(value);return checkpoint(label,lambda s:s['inputBytes']>=before+len(value.encode()))
  def paste(text):
-  os.write(master,('\x1b[200~'+text+'\x1b[201~').encode());return checkpoint('paste',lambda s:s.get('draft')==text)
+  steps.append({'delivery':'\x1b[200~'+text+'\x1b[201~','monotonicNs':time.monotonic_ns(),'consumedRawBytes':consumed});deliver('\x1b[200~'+text+'\x1b[201~');return checkpoint('paste',lambda s:s.get('draft')==text)
  def choose(query):
   key('@');key(query);checkpoint('picker-ready',lambda s:not s['loading']);before=latest()['admissions'];key('\r');s=checkpoint('enter-hints-only');assert s['query'] is not None and not s['capturing'] and s['admissions']==before;assert 'Tab Attach' in '\n'.join(screen.lines());key('\t\r\t');return checkpoint('selected',lambda s:s['query'] is None)
  try:
   checkpoint('initial',lambda s:s.get('phase')=='confirm');key('y');key('\r');checkpoint('idle',lambda s:s['phase']=='idle')
   assert next(i for i,l in enumerate(screen.lines()) if l.startswith('─'))>=1+rows//2;assert len(screen.lines())==rows;assert any(line.startswith('Pan') for line in screen.lines())
+  # R05 framed compatibility input has no elapsed-time Escape command.
+  key('draft')
+  for gap in [.05,.35,.8,1.2]:
+   mouse('\x1b','delay-prefix');time.sleep(gap);s=checkpoint('pending-'+str(gap));assert s['draft']=='draft' and s['inputState']['pending'];assert 'Input sequence pending' in '\n'.join(screen.lines());s=mouse('[<64;3;3M','delay-complete');assert s['draft']=='draft' and not s['inputState']['pending'] and s['admissions']==0
+  report='\x1b[<65;3;3M'
+  for cut in range(1,len(report)):
+   mouse(report[:cut],'split-prefix-'+str(cut));s=mouse(report[cut:],'split-tail-'+str(cut));assert s['draft']=='draft' and not s['inputState']['pending'] and s['admissions']==0
+  for length in [4095,4096,4097]:
+   s=mouse('\x1b[<'+'9'*(length-3),'ceiling-'+str(length));assert s['inputState']['retainedBytes']<=4096 and s['inputState']['quarantined']==(length>4096);s=mouse('M','ceiling-drained');assert s['draft']=='draft'
+  mouse('\x1b[<','overflow-start')
+  for i in range(16):s=mouse('9'*8192,'overflow-continuation');assert s['inputState']['retainedBytes']<=4096
+  mouse('\x07','overflow-back');s=mouse('M','overflow-end');assert s['draft']=='draft' and not s['inputState']['pending']
+  for unknown in ['\x1b[999~','\x1bOA','\x1bx','\x1b]title\x1b\\','\x1bPdata\r\t@\x1b\\','\x1bXdata\x1b\\','\x1b^data\x1b\\','\x1b_data\x1b\\']:
+   s=mouse(unknown,'unsupported-framed');assert s['draft']=='draft' and not s['inputState']['pending'] and s['admissions']==0
+  key('\x15');key('return @');checkpoint('back-picker-ready',lambda s:not s['loading']);mouse('\x1b','picker-prefix');time.sleep(.8);s=checkpoint('picker-still-open');assert s['query']=='' and s['draft']=='return ';key('\x07');s=checkpoint('picker-back');assert s['query'] is None and s['draft']=='return @';s=mouse('[<64;3;3M','picker-old-tail');assert s['draft']=='return @' and s['query'] is None
+  key('\x15');key('\x16');s=paste('BEL\x07 ESC\x1b[<64;3;3M');assert s['safePaste'] and s['draft']=='BEL\x07 ESC\x1b[<64;3;3M' and s['admissions']==0;key('\x07');assert not latest()['safePaste'];key('\x15');key('alt');key('\x1b\r');assert latest()['draft']=='alt\n';key('\x15')
   key('review ');control('gate-list');key('@');pump(lambda:any(e.get('barrier')=='listing' for e in events));key('old');key('\t');assert latest()['loading'] and latest()['attachments']==[];key('\x03');control('release-listing');s=checkpoint('stale-list',lambda s:s['query'] is None);assert s['draft']=='review ' and s['entries']==[]
   control('gate-capture');key('@');key('example');checkpoint('capture-ready',lambda s:not s['loading']);key('\t');pump(lambda:any(e.get('barrier')=='capture' for e in events));key('\x03');control('release-capture');s=checkpoint('capture-cancelled');assert s['attachments']==[] and s['draft']=='review '
-  key('@');checkpoint('arrows-ready',lambda s:not s['loading']);key('\x1b[B');assert latest()['index']==1;key('\x1b[B');assert latest()['index']==2;key('\x1b[Z');assert latest()['index']==1 and latest()['attachments']==[];key('\x1b');key('\x15');key('review ')
-  key('@');key('no-match');checkpoint('empty-ready',lambda s:not s['loading']);key('\t');assert latest()['query']=='no-match' and latest()['attachments']==[];key('\x1b');assert latest()['draft']=='review @no-match';key('\x15');key('review ')
+  key('@');checkpoint('arrows-ready',lambda s:not s['loading']);key('\x1b[B');assert latest()['index']==1;key('\x1b[B');assert latest()['index']==2;key('\x1b[Z');assert latest()['index']==1 and latest()['attachments']==[];key('\x07');key('\x15');key('review ')
+  key('@');key('no-match');checkpoint('empty-ready',lambda s:not s['loading']);key('\t');assert latest()['query']=='no-match' and latest()['attachments']==[];key('\x07');assert latest()['draft']=='review @no-match';key('\x15');key('review ')
   key('@');key('example');checkpoint('denial-ready',lambda s:not s['loading']);target=workspace/'example 中文.txt';target.unlink();target.mkdir();key('\t');s=checkpoint('capture-denied',lambda s:s['query'] is None);assert s['attachments']==[] and s['admissions']==0;target.rmdir();target.write_text(files['example 中文.txt'])
   choose('example');s=checkpoint('snapshot');assert len(s['attachments'])==1 and s['admissions']==0;screen.confirmed();snapshot=s['attachments'][0];(workspace/'example 中文.txt').write_text('changed after selection')
-  key('\x10');s=checkpoint('preview',lambda s:s['overlay'] is not None);assert s['admissions']==0;key('\r\r');s=checkpoint('preview-closed',lambda s:s['overlay'] is None);screen.confirmed();assert s['admissions']==0
+  key('\x10');s=checkpoint('preview',lambda s:s['overlay'] is not None);assert s['admissions']==0;mouse('\x1b','preview-prefix');time.sleep(1.2);assert checkpoint('preview-pending')['overlay'] is not None;key('\x07');s=mouse('[<65;3;3M','preview-old-tail');assert s['overlay'] is None and s['admissions']==0;key('\x10');checkpoint('preview-again',lambda s:s['overlay'] is not None);key('\r\r');s=checkpoint('preview-closed',lambda s:s['overlay'] is None);screen.confirmed();assert s['admissions']==0
   control('fault-on');rejected=False
   try:screen.confirmed()
   except AssertionError:rejected=True
   assert rejected,'visible negative control passed';control('fault-off');screen.confirmed()
   # Literal colon/@ multiline paste is a draft only, including when the entire paste arrives in one write.
-  key('\x15');key('\x16');key(':exit @');key('\r');s=checkpoint('safe-edit');assert s['draft']==':exit @\n' and s['query'] is None and s['admissions']==0;key('\x1b');key('\x15');draft='中e\u0301👩‍💻\n@literal\n:exit';s=paste(draft);assert s['admissions']==0 and s['query'] is None;assert s['draft']==draft
+  key('\x15');key('\x16');key(':exit @');key('\r');s=checkpoint('safe-edit');assert s['draft']==':exit @\n' and s['query'] is None and s['admissions']==0;key('\x07');key('\x15');draft='中e\u0301👩‍💻\n@literal\n:exit';s=paste(draft);assert s['admissions']==0 and s['query'] is None;assert s['draft']==draft
   if columns==120:
-   fcntl.ioctl(slave,termios.TIOCSWINSZ,struct.pack('HHHH',8,30,0,0));modes=screen.modes.copy();screen=module.Screen(30,8);screen.modes=modes;os.kill(child.pid,signal.SIGWINCH);time.sleep(.05);key('\r');assert latest()['admissions']==0 and latest()['draft']==draft;assert any('Resize terminal' in x for x in screen.lines())
-   fcntl.ioctl(slave,termios.TIOCSWINSZ,struct.pack('HHHH',rows,columns,0,0));modes=screen.modes.copy();screen=module.Screen(columns,rows);screen.modes=modes;os.kill(child.pid,signal.SIGWINCH);time.sleep(.05);checkpoint('restored-idle')
+   resize(30,8);key('\r');assert latest()['admissions']==0 and latest()['draft']==draft;assert any('Resize terminal' in x for x in screen.lines())
+   resize(columns,rows);checkpoint('restored-idle')
   key('\r');pump(lambda:any(e.get('barrier')=='model-0' for e in events));s=checkpoint('stream',lambda s:s['phase']=='running');assert s['admissions']==s['exchanges']==1
   # R-SCROLL: actual SGR reports, each fragmented delivery quarantined until complete.
   assert screen.modes.get('1000') is True and screen.modes.get('1006') is True
@@ -80,7 +113,7 @@ for columns,rows in [(120,40),(80,24),(40,12)]:
   s=mouse('\x1b[<64;3;3M','anchor-near-end');anchor=s['anchor'];module.anchored(screen,s,anchor)
   if columns==120:
    for cw,rh in [(40,12),(80,24),(30,8),(120,40)]:
-    fcntl.ioctl(slave,termios.TIOCSWINSZ,struct.pack('HHHH',rh,cw,0,0));modes=screen.modes.copy();screen=module.Screen(cw,rh);screen.modes=modes;os.kill(child.pid,signal.SIGWINCH);time.sleep(.05);s=checkpoint('source-resize-'+str(cw))
+    resize(cw,rh);s=checkpoint('source-resize-'+str(cw))
     assert s['anchor']==anchor and not s['follow'] and s['draft']=='draft' and s['caret']==before_caret
     if cw>=40:module.anchored(screen,s,anchor)
   key('\x15');literal='\x1b[<64;3;3M\n@mouse :exit';s=paste(literal);assert s['query'] is None and s['admissions']==1 and s['anchor']==anchor
@@ -92,21 +125,21 @@ for columns,rows in [(120,40),(80,24),(40,12)]:
   # Resize preserves canonical draft/snapshot; undersized Enter cannot admit.
   if columns==120:
    for cw,rh in [(40,12),(80,24),(30,8),(120,40)]:
-    fcntl.ioctl(slave,termios.TIOCSWINSZ,struct.pack('HHHH',rh,cw,0,0));modes=screen.modes.copy();screen=module.Screen(cw,rh);screen.modes=modes;os.kill(child.pid,signal.SIGWINCH);time.sleep(.05);s=checkpoint('resize-'+str(cw));assert s['draft']==draft2 and s['admissions']==1
+    resize(cw,rh);s=checkpoint('resize-'+str(cw));assert s['draft']==draft2 and s['admissions']==1
     if cw<40:key('\r');assert latest()['admissions']==1;assert any('Resize terminal' in x for x in screen.lines())
-  key('\x03');key('\x03');s=checkpoint('cancelled',lambda s:s['phase']=='idle');assert s['cancels']==1 and s['admissions']==1 and s['draft']==draft2;assert 'Partial response' in '\n'.join(screen.lines())
+  mouse('\x1b[<','cancel-pending-prefix');key('\x03');key('\x03');mouse('64;3;3M','cancel-late-tail');s=checkpoint('cancelled',lambda s:s['phase']=='idle');assert s['cancels']==1 and s['admissions']==1 and s['draft']==draft2;assert 'Partial response' in '\n'.join(screen.lines())
   assert len(s['attachments'])==1;key('\x12');assert not latest()['attachments'];assert s['results'][0]['status']=='cancelled';assert s['top']==top or columns==120
   key('\x1b[1;5F');assert latest()['follow']
   # Replace with a manageable next draft, select duplicate names while still never submitting on preview.
   key('\x15');key('second ');choose('one/');choose('two/');s=checkpoint('duplicates');assert len(s['attachments'])==2;assert 'one/same.txt' in '\n'.join(screen.lines()) and 'two/same.txt' in '\n'.join(screen.lines())
-  key('\t');assert latest()['focus']=='attachments';key('\r');key('\x1b');checkpoint('focus-restored',lambda s:s['overlay'] is None);assert latest()['admissions']==1
-  key('\x1b');key('\r');pump(lambda:any(e.get('barrier')=='model-1' for e in events));control('release-model-1');s=checkpoint('finished',lambda s:s['phase']=='idle');assert s['admissions']==2 and s['results'][-1]['status']=='completed';assert sum(e['text'].count('Next draft received.') for e in s['entries'])==1
+  key('\t');assert latest()['focus']=='attachments';key('\r');key('\x07');checkpoint('focus-restored',lambda s:s['overlay'] is None);assert latest()['admissions']==1
+  key('\x07');key('\r');pump(lambda:any(e.get('barrier')=='model-1' for e in events));control('release-model-1');s=checkpoint('finished',lambda s:s['phase']=='idle');assert s['admissions']==2 and s['results'][-1]['status']=='completed';assert sum(e['text'].count('Next draft received.') for e in s['entries'])==1
   # R-HISTORY: admission-only order, cancelled prompt retained, genuine repetition and exact stash.
   assert s['history']==[draft,'second '] and s['admissions']==2
   key('unsent ');choose('example');key('\x15');stash_text='中e\u0301👩‍💻 '+'soft wrap '*20+'\nlast';paste(stash_text);key('\x1b[H');key('\x1b[C');stash=checkpoint('history-stash');reads=len(stash['reads']);saved=stash['attachments']
   key('\x1b[A');s=checkpoint('history-newest');assert s['draft']=='second ' and s['attachments']==[] and s['historyIndex']==1 and len(s['reads'])==reads;assert 'History draft' in '\n'.join(screen.lines())
-  key('edited');key('\x1b[A');s=checkpoint('history-oldest');assert s['draft']==draft and s['historyIndex']==0;key('\x1b[A');assert latest()['historyIndex']==0
-  key('\x1b');s=checkpoint('history-escape');assert s['draft']==stash_text and s['caret']==stash['caret'] and s['attachments']==saved
+  mouse('\x1b[<','history-prefix');key('\x07');s=mouse('64;3;3M','history-old-tail');assert s['draft']==stash_text and s['caret']==stash['caret'] and s['attachments']==saved;key('\x1b[A');key('edited');key('\x1b[A');s=checkpoint('history-oldest');assert s['draft']==draft and s['historyIndex']==0;key('\x1b[A');assert latest()['historyIndex']==0
+  key('\x07');s=checkpoint('history-escape');assert s['draft']==stash_text and s['caret']==stash['caret'] and s['attachments']==saved
   # Visual soft-wrap movement takes precedence while on a later visual row.
   key('\x1b[F');key('\x1b[A');s=checkpoint('history-visual-up');assert s['draft']==stash_text and s.get('historyIndex') is None and s['caret']<len(stash_text)
   key('\x1b[H');key('\x1b[C');key('\x1b[A');key('\x1b[B');s=checkpoint('history-newest-restore');assert s['draft']==stash_text and s['caret']==stash['caret'] and s['attachments']==saved
@@ -116,13 +149,14 @@ for columns,rows in [(120,40),(80,24),(40,12)]:
   def archives():return {str(p.relative_to(memory)):hashlib.sha256(p.read_bytes()).hexdigest() for p in memory.rglob('*') if p.is_file()}
   sealed=archives();key(':details');key('\r');key('\r');key(':runs');key('\r');key('\r');s=checkpoint('view-only');assert s['admissions']==3 and archives()==sealed
   # C-SUM/protocol is irrelevant here; confirm exact selection-time envelope at actual adapter.
-  key(':exit');os.write(master,b'\r');pump(lambda:any('exit' in e for e in events));os.close(control_w);control_w=-1;pump(lambda:child.poll() is not None);assert child.returncode==0
+  mouse('\x1b[<','eof-pending');os.write(master,b'\x04');pump(lambda:any('exit' in e for e in events));ending=next(e['state']['outputBytes'] for e in events if 'exit' in e);pump(lambda:len(raw)>=ending);consume(ending);os.close(control_w);control_w=-1;pump(lambda:child.poll() is not None);assert child.returncode==0
   after=termios.tcgetattr(slave);assert before==after,(before,after)
   report=json.loads((d/'report.json').read_text());assert report['contexts'][0]['messages'][-1]['role']=='user';task=report['contexts'][0]['messages'][-1]['content'];assert 'SNAPSHOT original' in json.dumps(task) and 'changed after selection' not in json.dumps(task)
   assert b'TUI_A_ENV_CANARY_NOT_PUBLIC' not in raw;assert screen.modes.get('2004') is False and screen.modes.get('1000') is False and screen.modes.get('1006') is False and screen.modes.get('1049') is False and screen.modes.get('25') is True
-  reports.append({'viewport':[columns,rows],'result':'PASS','directory':str(d),'snapshot':snapshot,'negativeVisibleConfirmationRejected':rejected,'admissions':report['admissions'],'criteriaVersion':'1.1','repairs':['R-SCROLL','R-RESIZE','R-HISTORY','R-ATTACH'],'modesBefore':repr(before),'modesAfter':repr(after)})
+  replayed=module.replay_checkpoints(bytes(raw),terminal_events,screens)
+  reports.append({'snapshotsReplayed':replayed,'viewport':[columns,rows],'result':'PASS','directory':str(d),'snapshot':snapshot,'negativeVisibleConfirmationRejected':rejected,'admissions':report['admissions'],'criteriaVersion':'1.2','repairs':['R-SCROLL','R-RESIZE','R-HISTORY','R-ATTACH'],'modesBefore':repr(before),'modesAfter':repr(after)})
  finally:
-  (d/'raw.pty').write_bytes(raw);(d/'screens.json').write_text(json.dumps(screens,ensure_ascii=False)+'\n');(d/'steps.json').write_text(json.dumps(steps,ensure_ascii=False)+'\n');(d/'events.json').write_text(json.dumps(events,ensure_ascii=False)+'\n')
+  (d/'terminal-events.json').write_text(json.dumps(terminal_events)+'\n');(d/'raw.pty').write_bytes(raw);(d/'screens.json').write_text(json.dumps(screens,ensure_ascii=False)+'\n');(d/'steps.json').write_text(json.dumps(steps,ensure_ascii=False)+'\n');(d/'events.json').write_text(json.dumps(events,ensure_ascii=False)+'\n')
   if child.poll() is None:child.kill();child.wait()
   for fd in [master,slave,event_r,control_w]:
    if fd>=0:os.close(fd)
