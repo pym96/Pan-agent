@@ -9,7 +9,7 @@ import { performance } from 'node:perf_hooks';
 import { connectorFixture, runConnector, dryRun, FileIssueTransport, authorizeConnector } from '../src/connector.ts';
 import { bindingShape, validateBinding, codexArgs, connectorEnvironment, type Binding } from '../src/connector-authority.ts';
 import { CodexEvents, responseShape } from '../src/connector-output.ts';
-import { GitHubTracker, publication, verifyRemoteAuthority } from '../src/github-tracker.ts';
+import { GitHubTracker, publication, verifyRemoteAuthority, activationBody, stageAReviewBody, humanReviewBody } from '../src/github-tracker.ts';
 import { atomic, read, load, birth } from '../src/storage.ts';
 import { digest, fileDigest, safe } from '../src/model.ts';
 import { members, pause, OfflineProcess } from '../src/process.ts';
@@ -92,4 +92,21 @@ test('C-LIVE-04 real connector crash + corrupt historical comment + CLI stop cle
   assert(lifecycle.confirmed);assert(lifecycle.term-received.monotonic<=250);assert(lifecycle.kill-lifecycle.term<=250);assert(lifecycle.observations.at(-1).at-received.monotonic<=2000);assert.equal(members(receipt.pid).length,0);assert(!existsSync(join(dir,'late-sentinel')));assert.deepEqual(readFileSync(path),raw);
   record('L-STOP',{case:'connector F4',workspace:f.workspace,received,lifecycle,sentinelAbsentAfterResumeMs:performance.now()-returned,summary:result});inventory(f,'connector F4');
  } finally {const backstop=join(output,'connector-backstop');mkdirSync(backstop,{recursive:true});assert(await new OfflineProcess().cleanup(receipt,backstop));}
+});
+
+
+test('C-LIVE-01/03 real gate requires exact PASS records and unchanged formal contract',async t=>{
+ const f=connectorFixture(),b=structuredClone(validateBinding(f.manifest));b.stage='B';
+ const url=(id:number)=>`https://github.com/pym96/Pan-agent/issues/46#issuecomment-${id}`;
+ b.stageAReview=url(101);b.humanReview=url(102);b.masterActivation=url(103);
+ const comment=(id:number,body:string)=>({id,body,author:b.github.author,url:url(id)});
+ const valid=[comment(5595244988,readFileSync(resolve('fixtures/workorder-46-contract.txt'),'utf8')),comment(101,stageAReviewBody(b.connectorSha)),comment(102,humanReviewBody(b.connectorSha)),comment(103,activationBody(b))];
+ verifyRemoteAuthority(valid,b);record('L-AUTH',{case:'exact Stage A/Human/Master records',pass:true});
+ for(const kind of ['contract','rejected','human-rejected','wrong-sha','wrong-author','missing-activation','prose-only'])await t.test(kind,()=>{
+  const changed=structuredClone(valid);
+  if(kind==='contract')changed[0]!.body+='changed';if(kind==='rejected')changed[1]!.body=changed[1]!.body.replace('PASS','rejected');
+  if(kind==='human-rejected')changed[2]!.body=changed[2]!.body.replace('PASS','rejected');if(kind==='wrong-sha')changed[1]!.body=stageAReviewBody('a'.repeat(40));
+  if(kind==='wrong-author')changed[3]!.author='other';if(kind==='missing-activation')changed.pop();if(kind==='prose-only')changed[1]!.body='This rejected review mentions '+b.connectorSha;
+  assert.throws(()=>verifyRemoteAuthority(changed,b));record('L-AUTH',{case:kind,rejectedBeforeInference:true});
+ });inventory(f,'remote authority records');
 });

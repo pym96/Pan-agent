@@ -10,12 +10,18 @@ export interface IssueTransport { list():Comment[]; post(body:string):void; }
 export function activationBody(b:Binding):string {
  return 'WorkOrder #46 Stage B activation\n'+safe({connectorSha:b.connectorSha,manifestDigest:b.manifestDigest,contract:CONTRACT,delegation:b.delegation,roles:b.roles,campaign:b.campaign,cli:b.cli,model:b.model,auth:b.auth,codexHome:b.codexHome,github:b.github,stageAReview:b.stageAReview,humanReview:b.humanReview});
 }
+export function stageAReviewBody(sha:string):string {
+ return 'WorkOrder #46 Stage A review\n'+safe({candidateSha:sha,criteriaVersion:'1.0',role:'Regulator Agent',result:'PASS',outputs:['L-AUTH','L-RESULT','L-TRACKER','L-STOP','L-CONTAINMENT','L-PACKAGE']});
+}
+export function humanReviewBody(sha:string):string {
+ return 'WorkOrder #46 Human review\n'+safe({candidateSha:sha,criteriaVersion:'1.0',role:'Human',result:'PASS',outputs:['L-AUTH','L-STOP','L-CONTAINMENT']});
+}
 export function verifyRemoteAuthority(comments:Comment[],b:Binding):void {
  const get=(url:string|null)=>{const rows=comments.filter(c=>c.url===url);insist(rows.length===1 && rows[0]!.author===b.github.author,'remote_authorization_unconfirmed');return rows[0]!;};
  const contract=get('https://github.com/pym96/Pan-agent/issues/46#issuecomment-5595244988');
  insist(digest(contract.body)===CONTRACT,'contract_drift');
  insist(get(b.masterActivation).body===activationBody(b),'activation_changed');
- for(const url of [b.stageAReview,b.humanReview])insist(get(url).body.includes(b.connectorSha),'review_identity_changed');
+ insist(get(b.stageAReview).body===stageAReviewBody(b.connectorSha) && get(b.humanReview).body===humanReviewBody(b.connectorSha),'review_identity_changed');
 }
 export class GhIssueTransport implements IssueTransport {
  private binding:Binding;private directory:string;

@@ -12,3 +12,5 @@ The crash coordinator also supports `recorded-review` and `recorded-builder` bou
 `live-review` (exit 94) records a completed Builder, starts the ordinary blocked Regulator fixture and exits the actual coordinator after its PID/start identity is durable. It supports the combined F4 recovery/stop/deadline regression; it never starts a real coding Agent.
 
 #46: `codex-supervisor.mjs` is the fixed owned wrapper; `codex-fixture.mjs` is a deterministic fake CLI only, guarded by `connector-guard.mjs` during Stage A. `connector-crash.mjs` exits the real test coordinator after durable live Regulator identity. They do not start real Codex or use credentials during Stage A.
+
+`workorder-46-contract.txt` is the exact public formal comment used as a pinned input for positive/negative remote-contract probes; its identity is checked against CONTRACT. It is not a replacement authority or an editable criterion.
