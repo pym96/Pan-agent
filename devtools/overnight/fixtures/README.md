@@ -10,3 +10,5 @@ All tracker results are SIMULATED. These are trusted local fixtures, not coding 
 The crash coordinator also supports `recorded-review` and `recorded-builder` boundaries (exit 93) to exercise recovery after durable publication acknowledgment, before the next routing decision.
 
 `live-review` (exit 94) records a completed Builder, starts the ordinary blocked Regulator fixture and exits the actual coordinator after its PID/start identity is durable. It supports the combined F4 recovery/stop/deadline regression; it never starts a real coding Agent.
+
+#46: `codex-supervisor.mjs` is the fixed owned wrapper; `codex-fixture.mjs` is a deterministic fake CLI only, guarded by `connector-guard.mjs` during Stage A. `connector-crash.mjs` exits the real test coordinator after durable live Regulator identity. They do not start real Codex or use credentials during Stage A.

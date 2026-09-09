@@ -38,3 +38,7 @@ Infer the repository from `git remote -v`; `gh` does this automatically inside t
 
 - When a skill says **publish to the issue tracker**, create a GitHub issue.
 - When a skill says **fetch the relevant ticket**, run `gh issue view <number> --comments`.
+
+## WorkOrder #46 staged connector route
+
+[Contract 1.0](https://github.com/pym96/Pan-agent/issues/46#issuecomment-5595244988) and [promotion](https://github.com/pym96/Pan-agent/issues/46#issuecomment-5595250291) authorize Stage A implementation on workorder/46-candidate from 7ade169b276fd68198ca4461d07c5589c273253f. Stage A stops at SHA-bound Handoff for independent review. Only a later validated Master activation under HF-20260909-061 delegates fresh immutable Builder/Regulator sessions for one bounded subscription trial. Trial commits stay in a disposable local remote; fixed transport may publish trial-target records only to #46. Such records cannot accept the connector. No other queue, issue, main, budget or session mutation is delegated.

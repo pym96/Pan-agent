@@ -12,7 +12,8 @@
     "test": "node --experimental-strip-types --test --test-concurrency=1 test/*.test.ts",
     "check": "npm run typecheck && npm run build && npm test && npm run scope",
     "demo": "node --experimental-strip-types src/cli.ts demo",
-    "scope": "node --experimental-strip-types src/check-package.ts"
+    "scope": "node --experimental-strip-types src/check-package-46.ts",
+    "connector": "node --experimental-strip-types src/connector.ts"
   },
   "devDependencies": {
     "typescript": "5.9.3",

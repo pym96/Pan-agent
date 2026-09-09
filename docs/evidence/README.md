@@ -20,3 +20,5 @@
 Raw artifacts remain at their stable source, Git, Trace, Test, evaluator, or external-record locations. This directory indexes Evidence; it does not duplicate generated artifacts.
 
 - [Overnight handoff offline candidate](overnight-handoff-offline-candidate.md): #45 evidence navigation; independent review pending.
+
+- [#46 connector candidate evidence](codex-single-job-connector-candidate.md): Stage A candidate navigation; independent/Human review and real C-LIVE-07 remain distinct.

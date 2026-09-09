@@ -7,3 +7,5 @@ The test-only raw canary input and unexpected role results are explicitly labell
 `recovery-integrity.test.ts` covers rejected Verdict F1–F3 through actual recorded-boundary process death, tracker/role-result/evidence tampering and CLI resume, including the unchanged-record control and canary channel assertions. It writes `R-RECOVERY.json` and per-case before/after artifacts in the selected fresh evidence directory.
 
 [recovery-stop.test.ts](recovery-stop.test.ts) covers F4 with actual exit-94 coordinator crashes, CLI stop and fresh CLI resume: historical session mismatch, unchanged/repeated-stop control, expired role/total budgets, conflicting current receipt and reused start identity. `R-F4.json` retains timing, group/sentinel observations and before-records; `test-backstop/` is explicitly separate cleanup after observation.
+
+`connector.test.ts` adds C-LIVE-01…06 Stage A observations: invalid binding/auth, JSONL boundaries, fake CLI result integrity, fixed GitHub transport fault cases, canary/config channels and real connector crash/owned-stop recovery. L-* outputs supplement all retained #45 tests; C-LIVE-07 requires future real trial evidence.

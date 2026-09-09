@@ -65,3 +65,5 @@ The Human-accepted architecture history remains indexed in [`../adr/README.md`](
 [native-file-input-repair.md](native-file-input-repair.md) and [workorder-43-repair-obligations.json](workorder-43-repair-obligations.json): prospective #43 Criteria 1.1 and eight-criterion evidence map.
 
 - [Overnight handoff](overnight-handoff.md) and [#45 obligations](workorder-45-obligations.json): independent offline development-tool candidate.
+
+- [Codex single-job connector](codex-single-job-connector.md) and [#46 obligations](workorder-46-obligations.json): staged independent-session/GitHub transport; Stage A offline implementation, Stage B separately activated.

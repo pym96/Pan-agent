@@ -1,0 +1,62 @@
+{
+  "workorder": 46,
+  "criteria_version": "1.0",
+  "stage": "A",
+  "base": "7ade169b276fd68198ca4461d07c5589c273253f",
+  "contract_digest": "486cdcbef921f3d4e183de8aa906350ee69a80887af308c4753c04b6b42e28b9",
+  "criteria": [
+    {
+      "id": "C-LIVE-01",
+      "output": "L-AUTH",
+      "stage_a": "offline probes",
+      "additional_human": true
+    },
+    {
+      "id": "C-LIVE-02",
+      "output": "L-RESULT",
+      "stage_a": "offline probes",
+      "additional_human": false
+    },
+    {
+      "id": "C-LIVE-03",
+      "output": "L-TRACKER",
+      "stage_a": "offline probes",
+      "additional_human": false
+    },
+    {
+      "id": "C-LIVE-04",
+      "output": "L-STOP",
+      "stage_a": "offline probes",
+      "additional_human": true
+    },
+    {
+      "id": "C-LIVE-05",
+      "output": "L-CONTAINMENT",
+      "stage_a": "offline probes",
+      "additional_human": true
+    },
+    {
+      "id": "C-LIVE-06",
+      "output": "L-PACKAGE",
+      "stage_a": "offline probes",
+      "additional_human": false
+    },
+    {
+      "id": "C-LIVE-07",
+      "output": "L-TRIAL",
+      "stage_a": "NOT_EVALUABLE until Stage B",
+      "additional_human": false
+    }
+  ],
+  "retained_checks": {
+    "utility45": 36,
+    "product": 100,
+    "conformance": 18,
+    "reference": 34,
+    "reference_conformance": 13,
+    "without_python": 100,
+    "python": 259,
+    "host": 82
+  },
+  "stop": "Stage A SHA-bound Handoff; no real Codex trial"
+}

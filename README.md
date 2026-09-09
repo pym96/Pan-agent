@@ -174,3 +174,5 @@ Current candidate #44: [public text streaming, English compact UI and installed 
 ## Offline development tooling
 
 [Single-WorkOrder handoff](devtools/overnight/README.md) is independent Product development tooling under #45, outside the Pan install/build/startup graph. It uses SIMULATED local processes only; no real Agent/account activation.
+
+The [#46 Codex single-job connector](docs/design/codex-single-job-connector.md) is staged development tooling, separate from the Pan product. Its offline demo does not activate real coding sessions.

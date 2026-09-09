@@ -1,13 +1,14 @@
+import { validateConnectorEvidence } from './connector-output.ts';
 import { existsSync, mkdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { performance } from 'node:perf_hooks';
-import { validate, shape, digest, fileDigest, insist, Refusal, resultShape, hash, keys, type Manifest, type Ledger, type Attempt, type Result, type Role } from './model.ts';
+import { classification, validate, shape, digest, fileDigest, insist, Refusal, resultShape, hash, keys, type Manifest, type Ledger, type Attempt, type Result, type Role } from './model.ts';
 import { acquire, reconcileOwner, save, load, read, atomic, OfflineTracker, birth, type Tracker } from './storage.ts';
 import { OfflineProcess, git, pause, checkReceipt, members, type ProcessAdapter } from './process.ts';
 export interface Clock { wall(): number; mono(): number; }
 export const clock: Clock = {wall:Date.now,mono:()=>performance.now()};
-export interface Options { clock?: Clock; process?: ProcessAdapter; tracker?: Tracker; crash?: (point:string)=>void; }
+export interface Options { connector?: boolean; clock?: Clock; process?: ProcessAdapter; tracker?: Tracker; crash?: (point:string)=>void; }
 const terminal=new Set(['accepted_pending_master','needs_human','cancelled','timed_out','cleanup_failed']);
 export function deadline(now:number, expiry:number): boolean { return now>=expiry; }
 function refs(m:Manifest): {main:string;candidate:string} {
@@ -23,8 +24,9 @@ function validatedResult(value:unknown, m:Manifest, a:Attempt, dir:string):Resul
   if(a.resultDigest!==undefined)insist(hash(a.resultDigest) && digest(value)===a.resultDigest,'result_changed');
   if(a.role==='regulator')insist(value.candidate===a.candidate,'result_identity');
   insist(fileDigest(join(dir,value.evidence.name))===value.evidence.digest,'evidence_missing');
-  const evidence=read(join(dir,value.evidence.name));keys(evidence,['simulation','candidate','role','attempt']);
-  insist(evidence.simulation==='SIMULATED' && evidence.candidate===value.candidate && evidence.role===a.role && evidence.attempt===a.number,'evidence_identity');
+  const evidence=read(join(dir,value.evidence.name));keys(evidence,m.mode==='offline'?['simulation','candidate','role','attempt']:['simulation','candidate','role','attempt','connector']);
+  insist(evidence.simulation===classification(m) && evidence.candidate===value.candidate && evidence.role===a.role && evidence.attempt===a.number,'evidence_identity');
+  if(m.mode!=='offline')validateConnectorEvidence(m,a,dir);
   return value;
 }
 function recordedResult(m:Manifest, a:Attempt, root:string, tracker:Tracker):Result {
@@ -51,13 +53,13 @@ function stopCategory(result:Result):string {
   }
 }
 export function summary(l:Ledger): object {
-  return {simulation:'SIMULATED',job:l.manifest.job,repository:l.manifest.repository,issue:l.manifest.issue,criteriaVersion:l.manifest.version,contractDigest:l.manifest.contractDigest,base:l.manifest.base,candidate:l.candidate,state:l.state,reason:l.reason,attempts:l.attempts.map(a=>({role:a.role,number:a.number,session:a.session,key:a.key,candidate:a.candidate,phase:a.phase,launch:a.pid===undefined?'unconfirmed':'confirmed',resultDigest:a.resultDigest??null})),repairs:l.repairs,limits:l.manifest.limits,expiresAt:l.expiry,pendingHuman:l.state==='needs_human'?[l.reason]:[],artifact:'ledger.json; attempts/<delivery-key>; tracker/<delivery-key>.json',realOperation:'NOT ENABLED',accountCost:'not measured; no real account operation authorized'};
+  return {simulation:classification(l.manifest),job:l.manifest.job,repository:l.manifest.repository,issue:l.manifest.issue,criteriaVersion:l.manifest.version,contractDigest:l.manifest.contractDigest,base:l.manifest.base,candidate:l.candidate,state:l.state,reason:l.reason,attempts:l.attempts.map(a=>({role:a.role,number:a.number,session:a.session,key:a.key,candidate:a.candidate,phase:a.phase,launch:a.pid===undefined?'unconfirmed':'confirmed',resultDigest:a.resultDigest??null})),repairs:l.repairs,limits:l.manifest.limits,expiresAt:l.expiry,pendingHuman:l.state==='needs_human'?[l.reason]:[],artifact:'ledger.json; attempts/<delivery-key>; tracker/<delivery-key>.json',realOperation:l.manifest.mode==='codex'?'SUBSCRIPTION TRIAL':'NOT ENABLED',accountCost:l.manifest.mode==='codex'?'subscription usage unavailable unless recorded by CLI; no API fallback':'not measured; no real account operation authorized'};
 }
 export function status(root:string): object { try {return summary(load(root));}catch{return {simulation:'SIMULATED',state:'needs_reconciliation',reason:'corrupt_or_missing_ledger',artifact:'original ledger preserved'};} }
 export function stop(root:string): void { mkdirSync(root,{recursive:true}); if(!existsSync(join(root,'stop.json'))) atomic(join(root,'stop.json'),{requested:true}); }
 export async function run(config:unknown, root:string, resume=false, options:Options={}):Promise<object> {
   // Mode and all numeric/schema checks precede any directory, credential, process or network operation.
-  shape(config); let m:Manifest;
+  shape(config);if(config.mode!=='offline')insist(options.connector && options.process && options.tracker,'offline_only'); let m:Manifest;
   try { m=validate(config); } catch(e) {
     if(!resume || !existsSync(join(root,'ledger.json')))throw e;
     reconcileOwner(root);const unlock=acquire(root);
@@ -86,7 +88,7 @@ export async function run(config:unknown, root:string, resume=false, options:Opt
         const p=join(m.workspace,'worktrees',`${role}-${n}`);
         insist(!existsSync(p),'worktree_not_fresh');
       }
-      const now=time.wall();l={simulation:'SIMULATED',manifest:m,manifestDigest:digest(m),state:'authorized',reason:'authorized_offline',created:now,expiry:now+m.limits.totalMs,lastWall:now,candidate:m.base,repairs:0,attempts:[],transitions:[{state:'authorized',at:now}]};save(root,l);
+      const now=time.wall();l={simulation:classification(m),manifest:m,manifestDigest:digest(m),state:'authorized',reason:'authorized_offline',created:now,expiry:now+m.limits.totalMs,lastWall:now,candidate:m.base,repairs:0,attempts:[],transitions:[{state:'authorized',at:now}]};save(root,l);
     }
     const aliveStart=time.mono(), totalRemaining=l.expiry-time.wall();
     const proc=options.process??new OfflineProcess();const tracker=restoredTracker??options.tracker??new OfflineTracker(join(root,'tracker'));
@@ -151,7 +153,7 @@ export async function run(config:unknown, root:string, resume=false, options:Opt
         if(last?.role==='regulator') {
           const result=prior!;
           if(result?.outcome==='accepted') {
-            transition(m.highRisk.length && m.humanProof===null?'needs_human':'accepted_pending_master',m.highRisk.length && m.humanProof===null?'human_evidence_missing':'simulated_review_accepted');options.crash?.('terminal');return summary(l);
+            transition(m.highRisk.length && m.humanProof===null?'needs_human':'accepted_pending_master',m.highRisk.length && m.humanProof===null?'human_evidence_missing':m.mode==='codex'?'trial_review_accepted':'simulated_review_accepted');options.crash?.('terminal');return summary(l);
           }
           if(result?.outcome!=='criterion_failed') {transition('needs_human',stopCategory(result));return summary(l);}
           if(l.repairs>=m.limits.repairs) {transition('needs_human','repair_limit');return summary(l);}
@@ -167,7 +169,7 @@ export async function run(config:unknown, root:string, resume=false, options:Opt
         const session=randomUUID();const key=digest({repository:m.repository,issue:m.issue,contract:m.contractDigest,version:m.version,authorization:m.authorization.digest,job:m.job,role,number,candidate:l.candidate,session});
         a={key,role,number,session,candidate:l.candidate,worktree,intentAt:time.wall(),phase:'intent'};
         l.attempts.push(a); const dir=join(root,'attempts',key);mkdirSync(dir,{recursive:true});
-        atomic(join(dir,'input.json'),{manifest:m,attempt:a,task:'SIMULATED frozen single WorkOrder',criteria:m.criteria,evidence:last?{trackerKey:last.key}:null});
+        atomic(join(dir,'input.json'),{manifest:m,attempt:a,task:m.mode==='offline'?'SIMULATED frozen single WorkOrder':'frozen sumIntegers trial task',criteria:m.criteria,evidence:last?{trackerKey:last.key}:null});
         transition(role==='builder'?(number===1?'building':'repairing'):'reviewing','launch_intent');
         options.crash?.('intent');
         const before=stopReason();if(before){transition(before==='backward_clock'?'needs_reconciliation':before,before);return summary(l);}

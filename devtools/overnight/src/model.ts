@@ -1,3 +1,4 @@
+import { validateBinding, connectorTemplates } from './connector-authority.ts';
 import { createHash } from 'node:crypto';
 import { readFileSync, realpathSync, lstatSync } from 'node:fs';
 import { join, resolve } from 'node:path';
@@ -19,7 +20,7 @@ export const ident = (x: unknown): x is string => typeof x === 'string' && /^[a-
 export function keys(x: any, names: string[]): void { insist(x && typeof x === 'object' && !Array.isArray(x) && Object.keys(x).sort().join() === names.sort().join(), 'invalid_schema'); }
 export function integer(x: unknown, min: number, max: number): void { insist(typeof x === 'number' && Number.isSafeInteger(x) && x >= min && x <= max, 'invalid_limits'); }
 export interface Manifest {
-  mode: 'offline'; job: string; repository: string; issue: number; base: string; branch: string;
+  mode: 'offline'|'connector-test'|'codex'; job: string; repository: string; issue: number; base: string; branch: string;
   version: string; contractDigest: string; criteria: string[]; highRisk: string[]; humanProof: string | null;
   workspace: string; executable: string; templates: Record<Role, string>;
   limits: { repairs: number; totalMs: number; roleMs: number };
@@ -27,22 +28,22 @@ export interface Manifest {
 }
 export function manifestCore(m: Manifest): object { const { authorization, ...core } = m; return core; }
 export function shape(m: any): asserts m is Manifest {
-  if (m?.mode !== 'offline') throw new Refusal('offline_only');
+  if (!['offline','connector-test','codex'].includes(m?.mode)) throw new Refusal('offline_only');
   keys(m, ['mode','job','repository','issue','base','branch','version','contractDigest','criteria','highRisk','humanProof','workspace','executable','templates','limits','authorization']);
   insist(ident(m.job) && ident(m.repository) && hex(m.base)); integer(m.issue, 1, 2147483647);
   insist(m.branch === `workorder/${m.issue}-candidate` && typeof m.version==='string' && /^\d+\.\d+$/.test(m.version));
   insist(hash(m.contractDigest) && Array.isArray(m.criteria) && m.criteria.length > 0 && m.criteria.every(ident) && new Set(m.criteria).size === m.criteria.length);
   insist(Array.isArray(m.highRisk) && m.highRisk.every((x: string) => m.criteria.includes(x)) && new Set(m.highRisk).size === m.highRisk.length);
   insist(m.humanProof === null || hash(m.humanProof));
-  keys(m.templates, ['builder','regulator']); for (const r of ['builder','regulator'] as Role[]) insist(m.templates[r] === digest(templates[r]), 'role_template_mismatch');
-  keys(m.limits, ['repairs','totalMs','roleMs']); integer(m.limits.repairs, 0, 2); integer(m.limits.totalMs, 1, 28800000); integer(m.limits.roleMs, 1, 3600000);
+  keys(m.templates, ['builder','regulator']); for (const r of ['builder','regulator'] as Role[]) insist(m.templates[r] === digest((m.mode==='offline'?templates:connectorTemplates)[r]), 'role_template_mismatch');
+  keys(m.limits, ['repairs','totalMs','roleMs']); integer(m.limits.repairs, 0, 2); integer(m.limits.totalMs, 1, m.mode==='offline'?28800000:7200000); integer(m.limits.roleMs, 1, 3600000);
   keys(m.authorization, ['id','digest']); insist(ident(m.authorization.id) && hash(m.authorization.digest));
   insist(typeof m.workspace === 'string' && resolve(m.workspace) === m.workspace && m.executable === process.execPath, 'path_or_executable');
 }
 export function validate(m: unknown): Manifest {
   shape(m); insist(realpathSync(m.workspace) === m.workspace, 'path_or_executable');
   const auth = JSON.parse(readFileSync(join(m.workspace, 'authorization.json'), 'utf8'));
-  keys(auth, ['id','manifestDigest']); insist(auth.id === m.authorization.id && auth.manifestDigest === digest(manifestCore(m)) && digest(auth) === m.authorization.digest, 'authorization_mismatch');
+  keys(auth, m.mode==='offline'?['id','manifestDigest']:['id','manifestDigest','bindingDigest']); insist(auth.id === m.authorization.id && auth.manifestDigest === digest(manifestCore(m)) && digest(auth) === m.authorization.digest, 'authorization_mismatch');
   const repo = JSON.parse(readFileSync(join(m.workspace,'repository.json'),'utf8')); keys(repo,['id']); insist(repo.id === m.repository);
   for (const p of ['remote.git','repo','worktrees','contract.txt']) insist(!lstatSync(join(m.workspace,p)).isSymbolicLink(), 'path_or_executable');
   insist(fileDigest(join(m.workspace,'contract.txt')) === m.contractDigest, 'contract_drift');
@@ -51,17 +52,20 @@ export function validate(m: unknown): Manifest {
     const proof = JSON.parse(readFileSync(p,'utf8')); keys(proof,['simulation','authorization','criteria']);
     insist(proof.simulation === 'SIMULATED' && proof.authorization === m.authorization.id && JSON.stringify(proof.criteria) === JSON.stringify(m.highRisk),'human_evidence_missing');
   }
+  if(m.mode!=='offline')validateBinding(m);
   return m;
 }
 export interface Attempt { key: string; role: Role; number: number; session: string; candidate: string; worktree: string; intentAt: number; phase: 'intent'|'launched'|'publishing'|'recorded'; pid?: number; birth?: string; resultDigest?: string; }
-export interface Ledger { simulation: 'SIMULATED'; manifest: Manifest; manifestDigest: string; state: string; reason: string; created: number; expiry: number; lastWall: number; candidate: string; repairs: number; attempts: Attempt[]; transitions: {state: string; at: number}[]; }
-export interface Result { simulation: 'SIMULATED'; kind: 'handoff'|'verdict'; job: string; repository: string; issue: number; version: string; contractDigest: string; authorization: string; role: Role; template: string; session: string; key: string; candidate: string; outcome: string; blockers: string[]; evidence: { name: string; digest: string }; }
+export interface Ledger { simulation: 'SIMULATED'|'TRIAL'; manifest: Manifest; manifestDigest: string; state: string; reason: string; created: number; expiry: number; lastWall: number; candidate: string; repairs: number; attempts: Attempt[]; transitions: {state: string; at: number}[]; }
+export interface Result { simulation: 'SIMULATED'|'TRIAL'; kind: 'handoff'|'verdict'; job: string; repository: string; issue: number; version: string; contractDigest: string; authorization: string; role: Role; template: string; session: string; key: string; candidate: string; outcome: string; blockers: string[]; evidence: { name: string; digest: string }; }
 export function resultShape(r: any, m: Manifest, a: Attempt): asserts r is Result {
   keys(r, ['simulation','kind','job','repository','issue','version','contractDigest','authorization','role','template','session','key','candidate','outcome','blockers','evidence']);
-  insist(r.simulation === 'SIMULATED' && r.kind === (a.role === 'builder' ? 'handoff' : 'verdict') && r.role === a.role && r.job === m.job && r.repository === m.repository && r.issue === m.issue && r.version === m.version && r.contractDigest === m.contractDigest && r.authorization === m.authorization.digest && r.template === m.templates[a.role] && r.session === a.session && r.key === a.key && hex(r.candidate), 'result_identity');
+  insist(r.simulation === classification(m) && r.kind === (a.role === 'builder' ? 'handoff' : 'verdict') && r.role === a.role && r.job === m.job && r.repository === m.repository && r.issue === m.issue && r.version === m.version && r.contractDigest === m.contractDigest && r.authorization === m.authorization.digest && r.template === m.templates[a.role] && r.session === a.session && r.key === a.key && hex(r.candidate), 'result_identity');
   insist(Array.isArray(r.blockers) && r.blockers.every((x: unknown) => typeof x === 'string' && m.criteria.includes(x as string)) && new Set(r.blockers).size === r.blockers.length, 'unknown_criterion');
   const outcomes = a.role === 'builder' ? ['handoff','scope_challenge','quota_unavailable'] : ['accepted','criterion_failed','evidence_incomplete','scope_challenge','quota_unavailable'];
   insist(outcomes.includes(r.outcome) && (r.outcome === 'criterion_failed' ? r.blockers.length > 0 : r.blockers.length === 0), 'malformed_result');
   keys(r.evidence,['name','digest']); insist(r.evidence.name === 'evidence.json' && hash(r.evidence.digest), 'evidence_missing');
 }
 export function safe(x: unknown): string { return JSON.stringify(x).replace(/[\u007f-\u009f\u2028\u2029\u202a-\u202e\u2066-\u2069]/g, c => `\\u${c.charCodeAt(0).toString(16).padStart(4,'0')}`); }
+
+export const classification=(m:Manifest):'SIMULATED'|'TRIAL'=>m.mode==='codex'?'TRIAL':'SIMULATED';

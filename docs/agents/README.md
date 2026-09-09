@@ -10,3 +10,5 @@ The [current assignment](current-assignment.md) routes #44; [streaming design](.
 [Current assignment](current-assignment.md) routes #43 to [explicit file input](../design/native-file-input.md); prior contracts remain historical inputs.
 
 The [current assignment](current-assignment.md) now routes #45 to [offline development tooling](../../devtools/overnight/README.md); prior route entries above are retained history.
+
+#46 staged Human-delegation/transport route: [issue tracker](issue-tracker.md) and [operator guide](../design/codex-single-job-connector.md).

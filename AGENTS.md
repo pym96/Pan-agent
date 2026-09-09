@@ -48,3 +48,7 @@ This file is the shared constitution and role router. It is not a glossary, impl
 ## Optional host integration
 
 When this repository is embedded in a larger private workspace, a WorkOrder may name an external file as a task-specific input. That integration is optional and absence-safe: an external file is never a repository startup or verification prerequisite, and its absence does not change the repository-local role, WorkOrder, Handoff, or Verdict contracts.
+
+## Validated Human role delegation for WorkOrder #46
+
+Only the #46 subscription trial may create fresh Builder/Regulator sessions from the fixed templates after validating Human authorization HF-20260909-061, the exact reviewed connector SHA and Master Stage B activation. Each new session has exactly one immutable role. This does not delegate Master authority, permit existing-session takeover, or let a trial child accept the connector. Stage A creates no real coding sessions. See [connector contract and operator guide](docs/design/codex-single-job-connector.md).
