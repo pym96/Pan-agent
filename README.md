@@ -174,3 +174,5 @@ Current candidate #44: [public text streaming, English compact UI and installed 
 ## Offline development tooling
 
 [Single-WorkOrder handoff](devtools/overnight/README.md) is independent Product development tooling under #45, outside the Pan install/build/startup graph. It uses SIMULATED local processes only; no real Agent/account activation.
+
+[TUI A daily workspace candidate](docs/design/native-daily-workspace.md) covers #47; #46 remains paused.

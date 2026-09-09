@@ -55,6 +55,12 @@ function identityText(value: unknown): string {
 }
 const disposition = (value: unknown): string => ({completed:"Completed", cancelled:"Cancelled", model_error:"Model error", incomplete:"Incomplete", interrupted:"Interrupted"}[str(value)] ?? "Archive terminal unavailable");
 
+export interface WorkspaceProjection {
+ observe(event: SessionObservation): void;
+ progress(event: SessionProgress): void;
+ settle(result: TaskRunResult): void;
+}
+
 export interface CompactPresentation {
 	observe(observation: SessionObservation): void;
 	settle(result: TaskRunResult): void;
@@ -65,9 +71,15 @@ export interface CompactPresentation {
 	progressError?(): void;
 }
 
+const workspaceViews = new WeakMap<CompactPresentation["attach"], WorkspaceProjection>();
+/** Internal TTY registration; the public CompactPresentation interface remains unchanged. */
+export function attachWorkspace(presentation: CompactPresentation, view: WorkspaceProjection): void { workspaceViews.set(presentation.attach, view); }
+
 /** Projection owns only display state, never execution or persistence. */
 export function createCompactPresentation(initialWrite: (line: string) => void = () => {}): CompactPresentation {
 	let write = initialWrite, activity = () => {};
+ const attach: CompactPresentation["attach"] = (nextWrite, nextActivity = () => {}, nextAppend = fragment => nextWrite(fragment)) => { write = nextWrite; activity = nextActivity; append = nextAppend; };
+ const workspace = () => workspaceViews.get(attach);
 	let append = (fragment: string) => write(fragment);
 	let turn = 0, preview = "", unicodeTail = "", previewOpen = false;
 	let renderedAccepted: string | undefined;
@@ -118,10 +130,11 @@ export function createCompactPresentation(initialWrite: (line: string) => void =
 		if (status !== "completed") emit(framed("Terminal reason", str(result?.reason ?? terminal?.reason ?? seal?.reason)));
 	}
 	return {
-		attach(nextWrite, nextActivity = () => {}, nextAppend = fragment => nextWrite(fragment)) { write = nextWrite; activity = nextActivity; append = nextAppend; },
+		attach,
 		progressError() { endPreview(); write("Display error: progress observer failed; execution continues."); },
 		progress(event) {
 			if (archived || result || event.runId !== selectedId || event.turn !== turn || !event.text) return;
+			if (workspace()) { workspace()!.progress(event); return; }
 			if (!previewOpen) { write("Responding… (provisional)"); append("│ "); previewOpen = true; }
 			preview += event.text; safeFragment(event.text);
 		},
@@ -140,9 +153,9 @@ export function createCompactPresentation(initialWrite: (line: string) => void =
 				turn = 0;
 			}
 			records.push(structuredClone(observation) as unknown as Record<string, unknown>);
-			activity(); progress(observation as unknown as Record<string, unknown>);
+			activity(); if (workspace()) workspace()!.observe(observation); else progress(observation as unknown as Record<string, unknown>);
 		},
-		settle(value) { endPreview(); result = structuredClone(value); summary(); },
+		settle(value) { endPreview(); result = structuredClone(value); if (workspace()) workspace()!.settle(value); else summary(); },
 		replay(retained, runId) {
 			records = structuredClone([...retained]); result = undefined; archived = true; selectedId = runId; renderedAccepted = undefined; transientFailed = ""; preview = ""; turn = 0;
 			write(`Archived replay ${terminalText(runId)} · archived · zero execution`);

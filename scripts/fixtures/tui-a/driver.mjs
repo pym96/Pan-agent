@@ -1,0 +1,29 @@
+/** Installed Product only. Synthetic task data and deterministic Faux; test instrumentation stays outside package. */
+import fs from 'node:fs';
+import fsp from 'node:fs/promises';
+import {syncBuiltinESMExports} from 'node:module';
+import {createInterface} from 'node:readline';
+import {join,resolve} from 'node:path';
+import {pathToFileURL} from 'node:url';
+const [product,workspace,memory,controlFd,eventFd]=process.argv.slice(2);
+const {runCli,FauxModelAdapter,createCompactPresentation}=await import(pathToFileURL(join(product,'dist/index.js')));
+const {DailyWorkspace}=await import(pathToFileURL(join(product,'dist/tui/daily-workspace.js')));
+let ui,bytes=0,keyCount=0,admissions=0,exchanges=0,cancels=0,fault=false,gateList=false,gateCapture=false;
+const results=[],observations=[],contexts=[],reads=[],dimensions=[],gates=new Map();
+const write=process.stdout.write.bind(process.stdout);
+process.stdout.write=function(chunk,...args){let s=String(chunk);if(fault)s=s.replaceAll('Not submitted · Enter Send',' '.repeat(26));fs.appendFileSync(join(workspace,'..','terminal-output.pty'),s);bytes+=Buffer.byteLength(s)+(s.match(/\n/g)?.length??0);return write(s,...args);};
+const state=()=>({phase:ui?.phase,focus:ui?.focus,draft:ui?.editor.text,caret:ui?.editor.caret,query:ui?.picker?.editor.text??null,queryCaret:ui?.picker?.editor.caret,index:ui?.picker?.index,loading:ui?.picker?.loading??false,capturing:ui?.picker?.capturing??false,attachments:ui?.selected,overlay:ui?.overlay?.title??null,entries:ui?.entries,top:ui?.top,follow:ui?.follow,newOutput:ui?.newOutput,safePaste:ui?.safePaste,admissions,exchanges,cancels,keyCount,outputBytes:bytes,results,reads});
+const notify=e=>{if(eventFd)fs.writeSync(Number(eventFd),JSON.stringify({...e,state:state()})+'\n');};
+const oldDraw=DailyWorkspace.prototype.draw;DailyWorkspace.prototype.draw=function(...args){ui=this;const size=[process.stdout.columns,process.stdout.rows];if(JSON.stringify(dimensions.at(-1))!==JSON.stringify(size))dimensions.push(size);const r=oldDraw.apply(this,args);queueMicrotask(()=>notify({draw:true}));return r;};
+const oldKey=DailyWorkspace.prototype.key;DailyWorkspace.prototype.key=function(...args){keyCount++;return oldKey.apply(this,args);};
+const oldCancel=DailyWorkspace.prototype.cancel;DailyWorkspace.prototype.cancel=function(...args){if(this.phase==='running')cancels++;return oldCancel.apply(this,args);};
+const barrier=(name,signal)=>new Promise(resolve=>{const done=()=>{gates.delete(name);resolve();};gates.set(name,done);signal?.addEventListener('abort',done,{once:true});notify({barrier:name});});
+const oldStat=fsp.lstat;fsp.lstat=async function(p,...args){if(gateList&&p===join(workspace,'.git')){gateList=false;await barrier('listing');}return oldStat.call(this,p,...args);};
+const oldOpen=fsp.open;fsp.open=async function(p,...args){const f=await oldOpen.call(this,p,...args);if(typeof p==='string'&&p.startsWith(workspace+'/')){const old=f.read.bind(f);f.read=async(...a)=>{const r=await old(...a);reads.push({path:p.slice(workspace.length+1),bytes:r.bytesRead});if(gateCapture){gateCapture=false;await barrier('capture');}return r;};}return f;};syncBuiltinESMExports();
+let controls;if(controlFd){controls=createInterface({input:fs.createReadStream('',{fd:Number(controlFd),autoClose:false})});controls.on('line',s=>{if(s.startsWith('release-'))gates.get(s.slice(8))?.();else if(s==='gate-list')gateList=true;else if(s==='gate-capture')gateCapture=true;else if(s==='fault-on')fault=true;else if(s==='fault-off')fault=false;ui?.draw();notify({control:s});});}
+const hostile='CONTROL \x1b[2J\x1b]52;c;YQ==\x07\r\b\x7f\u0085\u202e\u2066\u2028\u2029';
+const response=text=>({kind:'response',message:{role:'assistant',timestamp:0,content:[{type:'text',text}]},stopReason:'stop',usage:{status:'unavailable'},identity:{provider:{status:'reported',value:'pan-faux'},model:{status:'reported',value:'pan-faux-v1'},responseId:{status:'unavailable'}}});
+const long=Array.from({length:500},(_,i)=>'Offline line '+String(i+1).padStart(3,'0')).join('\n');
+const adapter={providerId:'pan-faux',modelId:'pan-faux-v1',reasoningLevel:'off',async exchange(request){const index=exchanges++;contexts.push(structuredClone(request.context));const text=(index===0?long+'\n'+hostile:'Next draft received.');return new FauxModelAdapter([response(text)],{progress:async function*(_i,signal){yield index===0?long+'\n'+hostile:'Next draft ';if(controlFd){await barrier('model-'+index,signal);if(index===0&&!signal.aborted){yield '\nAdditional streamed output';await barrier('finish-0',signal);}}else for(let i=0;i<80&&!signal.aborted;i++)await new Promise(r=>setTimeout(r,100));if(!signal.aborted)yield index===0?'\n'+hostile:'received.';}}).exchange(request);}};
+const code=await runCli(['--kernel','native','--workspace',workspace,'--memory-root',memory],{createNativeAdapter:()=>adapter,createTools:()=>({tools:[],boundary:'offline'}),createPresentation:writer=>{const view=createCompactPresentation(writer);return {...view,observe(e){observations.push(e);if(e.type==='run.started')admissions++;view.observe(e);},settle(r){results.push(r);view.settle(r);}};}});
+await fsp.writeFile(join(workspace,'..','report.json'),JSON.stringify({code,...state(),observations,contexts,dimensions,terminal:process.env.TERM,inputRawAfter:process.stdin.isRaw},null,2)+'\n');notify({exit:code});controls?.close();process.exit(code);

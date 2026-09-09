@@ -1,3 +1,4 @@
+import { runDailyWorkspace } from "./daily-workspace.ts";
 import { readdir, lstat } from "node:fs/promises";
 import { join } from "node:path";
 import type { TuiOptions } from "./tui.ts";
@@ -7,6 +8,7 @@ import { validateAttachmentLimit } from "../input/attachments.ts";
 import { TerminalInput } from "./terminal-input.ts";
 
 export async function runCompactTui(options: TuiOptions): Promise<number> {
+	if (((options.input ?? process.stdin) as {isTTY?:boolean}).isTTY && ((options.output ?? process.stdout) as {isTTY?:boolean}).isTTY) return runDailyWorkspace(options);
 	const maxAttachmentBytes = validateAttachmentLimit(options.maxAttachmentBytes);
 	const presentation = options.presentation!;
 	let phase: "confirm" | "idle" | "running" | "command" | "closed" = "confirm";

@@ -14,3 +14,5 @@ See the [#42 guide](../../../docs/design/native-compact-tui.md) for the offline 
 [attachment-picker.ts](attachment-picker.ts) owns idle selection/preview/removal and calls [input preparation](../input/README.md); TerminalInput provides an optional idle key interceptor. Presentation decodes only intact recorded snapshots.
 
 [Criteria 1.1 repair](../../../docs/design/native-file-input-repair.md): picker navigation aliases and Node grapheme cursor; TerminalInput renders an optional persistent composer hint. Snapshot/Context/execution semantics stay in their existing modules.
+
+[TUI A contract](../../../docs/design/native-daily-workspace.md): [daily-workspace.ts](daily-workspace.ts) owns the Native TTY view and focus; [daily-editor.ts](daily-editor.ts) owns grapheme draft editing and visual wrapping. The earlier compact input remains the non-TTY path.

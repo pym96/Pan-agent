@@ -2,7 +2,13 @@
 
 This document owns the current project lane, constraints, and non-goals. It does not grant a session-specific task or establish implementation facts. A Working session starts only from a Master-published WorkOrder, and that WorkOrder cannot widen this lane or override Human decisions. Read the fact register linked from the root Agent map before making any current-state statement.
 
-## Active mission | WorkOrder #45 offline development coordinator
+## Active mission | WorkOrder #47 TUI A
+
+[Criteria-Version 1.0](https://github.com/pym96/Pan-agent/issues/47#issuecomment-5596601510) and [promotion](https://github.com/pym96/Pan-agent/issues/47#issuecomment-5596609195) authorize the [daily workspace](../design/native-daily-workspace.md) from accepted base `7ade169b276fd68198ca4461d07c5589c273253f`. Only listed TUI/input-display, tests and navigation paths are in scope. Candidate branch workorder/47-candidate; installed offline demo and SHA-bound Handoff, then stop for independent/Human reviews. No real calls, #46 startup, Runtime/Provider/archive changes, B/C, or main push. #46 is paused; its retained Stage A/configuration does not authorize execution here.
+
+The following mission snapshots are historical. They retain their evidence and rules but do not activate work beyond #47's frozen contract.
+
+## Historical mission | WorkOrder #45 offline development coordinator
 
 [Activation 1.0](https://github.com/pym96/Pan-agent/issues/45#issuecomment-5584581317) authorizes [independent Product development tooling](../../devtools/README.md), outside the distributed Pan product, from accepted base `eda8bd58e95ff52af95fe2e021ebf6c7778ba74f`. Only the separate `devtools/overnight/` utility and named documentation indexes are in scope. [Design](../design/overnight-handoff.md) and [obligations](../design/workorder-45-obligations.json) cover seven criteria. Use fake local role processes/tracker only; no real account/Agent activation, main integration or UI A/B/C. High-risk 01/05/06 retain independent additional review of A-IDENTITY/A-CANCEL/A-CONTAINMENT. Candidate Handoff binds the full SHA, then Builder stops.
 

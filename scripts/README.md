@@ -244,3 +244,5 @@ The preview deterministically enumerates the unchanged 120-slot denominator and 
 #43: [demo_files.mjs](demo_files.mjs), [verify_file_demo.py](verify_file_demo.py), [verify_file_pty.py](verify_file_pty.py), [check_file_scope.mjs](check_file_scope.mjs), [check_file_graph.mjs](check_file_graph.mjs), [verify_file_scope.py](verify_file_scope.py) and [check_file_public_package.mjs](check_file_public_package.mjs). Existing #44 consumer and streaming verifiers run unchanged.
 
 #43 repair 1.1: [verify_file_repair_pty.py](verify_file_repair_pty.py), [demo_file_repair.mjs](demo_file_repair.mjs), [check_file_repair_scope.mjs](check_file_repair_scope.mjs), [verify_file_repair_scope.py](verify_file_repair_scope.py), [check_file_repair_public_package.mjs](check_file_repair_public_package.mjs). Existing verifiers remain unchanged.
+
+#47 TUI A: [demo_tui_a.mjs](demo_tui_a.mjs), [verify_tui_a_pty.py](verify_tui_a_pty.py), [check_tui_a_scope.py](check_tui_a_scope.py), [fixtures/tui-a](fixtures/tui-a/README.md). Existing validators remain historical and unchanged.

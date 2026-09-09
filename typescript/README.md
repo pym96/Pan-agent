@@ -120,3 +120,5 @@ Native CLI explicitly selects the compact TUI: `你 › `, honest tool-result co
 #44 candidate adds optional ephemeral public text streaming and English compact labels. See [design and installed demo](../docs/design/native-streaming-tui.md). Existing exchange callers may omit progress; settled records and explicit Native selection are unchanged.
 
 [Explicit file input](../docs/design/native-file-input.md): idle `@` picker, Ctrl-P preview, Ctrl-R removal; Enter selects, a separate Enter submits. `--max-attachment-bytes INTEGER` sets the inclusive aggregate byte policy (default 1048576). Use Escape for literal standalone `@` text.
+
+[TUI A daily workspace](../docs/design/native-daily-workspace.md): fixed TTY regions, inline attachments and editable next draft; non-TTY retains explicit line submission.

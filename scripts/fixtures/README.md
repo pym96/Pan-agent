@@ -24,3 +24,5 @@ These are verification clients, not Product implementations or live Provider res
 #43 synthetic installed fixtures: [file-pty-driver.mjs](file-pty-driver.mjs) and [file-fresh-replay.mjs](file-fresh-replay.mjs). The PTY driver captures exact Context and content-read targets; fresh replay traps source reads and compares sealed hashes.
 
 #43 repair: [file-repair-driver.mjs](file-repair-driver.mjs) is test-only key/state/async/display-fault instrumentation; [file-repair-screen.py](file-repair-screen.py) checks actual visible VT cells independently of Product state.
+
+[tui-a/](tui-a/README.md): #47 installed PTY driver and independent grid oracle.
