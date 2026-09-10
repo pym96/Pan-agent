@@ -1,0 +1,11 @@
+{
+  "id": "preview-first-task/v1",
+  "prompt": "Create hello.js, run it and verify its exact source.",
+  "calls": [
+    {"id": "preview-write", "name": "write", "arguments": {"path": "hello.js", "content": "console.log(\"PAN_PREVIEW_OK\");\n"}},
+    {"id": "preview-bash", "name": "bash", "arguments": {"command": "node hello.js"}},
+    {"id": "preview-read", "name": "read", "arguments": {"path": "hello.js"}}
+  ],
+  "final": "verified PAN_PREVIEW_OK",
+  "expected_stdout": "PAN_PREVIEW_OK"
+}

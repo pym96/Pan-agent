@@ -1,8 +1,50 @@
-# Workspace Agent Harness
+# Pan Agent
 
-Workspace Agent Harness now has one authoritative product path: the Human-usable TypeScript Native General Agent Product. The Python evented runtime remains runnable as a reference implementation, while prior ReAct, protocol, campaign, proof-pack, and benchmark work remains retained experimental material rather than a product dependency.
+Pan Agent lets you hand a task to an agent in your terminal: it reads and writes files in a workspace you choose, runs shell commands under your own user authority, shows every step as it happens, and seals each run so you can replay exactly what it did afterwards.
 
-> **Verification boundary:** WorkOrder #24 changes product authority and navigation; it creates no new benchmark, model-quality, security, project-fact, Wiki, or resume claim. Historical Evidence remains governed by its original identity and review status. Start at `AGENTS.md`; the bounded assignment lives in `docs/agents/current-assignment.md`.
+> **Early preview — macOS only.** Pan currently supports macOS with Node.js 22.19.0 or newer. Its shell tools are **trusted-local**: they run with your host user's authority, and the selected workspace is only the default directory — that is not a sandbox. The package is a private local tarball: nothing is published to npm, and no live-model result is claimed here.
+
+## Try the offline first task
+
+No API key, no real Provider, no network use by the demo itself. From a checkout of this repository:
+
+```bash
+bash scripts/try_preview.sh
+```
+
+The script echoes each step as it runs: it builds the exact local package artifact, installs it into a fresh consumer directory without dev dependencies (`--omit=dev --offline --ignore-scripts --no-audit --no-fund`), and starts the actual installed Pan TUI. Then:
+
+1. Confirm the displayed offline identities with `y`.
+2. Enter the frozen first task: `Create hello.js, run it and verify its exact source.`
+3. Watch Pan write `hello.js`, execute `node hello.js`, read the source back, and finish with `verified PAN_PREVIEW_OK`.
+4. Inspect the sealed run with `:runs` and `:replay RUN_ID` — replay only reads the retained record, it never re-executes. `:exit` closes.
+
+**This demo is offline and simulated.** Replies come from a scripted local adapter, so it demonstrates the product loop — file tools, shell execution, streaming, run archive, replay — without any Provider call, credential or cost. It is not evidence of live model behavior. Building the package uses the repository's locked development dependencies (`npm ci`, development side only); the installed demo needs no compiler, Python, repository path or network.
+
+## Use Pan with a real model
+
+The installed `pan-agent` executable runs against a real Provider when you deliberately configure one. See the [TypeScript operator guide](typescript/README.md) and [Runbook](typescript/RUNBOOK.md) first: startup displays and requires confirmation of the Provider/model/workspace/authority before any model call, and the trusted-local shell boundary above still applies.
+
+## Current boundaries and later plans
+
+| Now (this checkout) | Later (separately routed, not claimed here) |
+|---|---|
+| macOS early preview, Node ≥ 22.19.0 | Other platforms |
+| Private local tarball install | npm publication (requires a future Human-authorized release) |
+| Explicit `--kernel native` startup | Default-kernel cutover (#29) |
+| Accepted offline demos with scripted adapter | Live-model validation (#36) |
+| Trusted-local tools with Human confirmation | Startup-confirmation redesign (#49), draggable transcript scrollbar (#60) |
+
+## Repository guide
+
+- **Product**: the TypeScript Native agent stack — [package guide](typescript/README.md), [source map](typescript/src/README.md), [Runbook](typescript/RUNBOOK.md).
+- **Offline first task proof**: [design and reproduction](docs/design/preview-first-task.md) — deterministic fixture, clean-consumer verifier, fresh-process replay and isolation checks.
+- **Safety and architecture**: [product isolation decision](docs/adr/0017-product-isolation-and-frozen-pi.md), [packed consumer design](docs/design/packed-product-consumer.md), [governance and verification](docs/governance/verification.md).
+- **Learning Wiki**: [what building this system teaches](wiki/index.md) — verified learning facts and open questions.
+- **History and retained experiments**: see the catalog below; historical Evidence keeps its original identity and review status.
+- **Governance entry**: start at `AGENTS.md`; the bounded current assignment lives in `docs/agents/current-assignment.md`.
+
+---
 
 ## Default product path | TypeScript Native
 
@@ -83,7 +125,7 @@ The architecture is Human-accepted. The code and tests below remain a candidate,
 - [`docs/adr/0012-freeze-protocol-reliability-v1.md`](docs/adr/0012-freeze-protocol-reliability-v1.md): accepted decision to calibrate the Translation Layer before coding ACI treatments;
 - [`docs/design/translation-adapter.md`](docs/design/translation-adapter.md) and accepted [`ADR-0013`](docs/adr/0013-typed-native-history-translation-adapter.md): WorkOrder #4's independently accepted offline candidate seam for typed canonical history, provider-native call/result replay, separate reasoning, fail-closed correlation, and ModelProfile-owned output limits;
 - [`docs/design/agent-loop-behavioral-eval-v0.md`](docs/design/agent-loop-behavioral-eval-v0.md) and accepted [`ADR-0014`](docs/adr/0014-evented-agent-loop-and-behavioral-eval.md): WorkOrder #3's independently accepted evented AgentLoop, deep ModelGateway, consumer-only TUI, Context, and Behavioral Eval design freeze;
-- [`docs/design/evented-tui-tracer.md`](docs/design/evented-tui-tracer.md): WorkOrder #6's credential-free, manually testable Python TUI tracer candidate and replay/cancellation entry points; pending independent Regulator review and explicitly excluding #7–#10;
+- [`docs/design/evented-tui-tracer.md`](docs/design/evented-tui-tracer.md): WorkOrder #6's credential-free, manually testable Python TUI tracer candidate and replay/cancellation entry points; pending independent Regulator review;
 - [`docs/design/provider-context-overflow-recovery.md`](docs/design/provider-context-overflow-recovery.md): WorkOrder #8's one classified Provider Context-overflow recovery candidate, #7 semantic-compaction reuse, one retry ceiling, separate attempt accounting, explicit exhaustion, and deterministic TUI/replay paths; pending independent Regulator review;
 - [`docs/design/behavioral-eval-runtime-v0.md`](docs/design/behavioral-eval-runtime-v0.md): WorkOrder #9's exact 12-case deterministic Behavioral Eval campaign, protected oracles, attributable report, and zero-call replay candidate; pending independent Regulator review;
 - [`docs/design/tui-three-view-projections.md`](docs/design/tui-three-view-projections.md): WorkOrder #10's compact/expanded/trace event projections, visibility filtering, candidate/admission distinction, bounded long-output rendering, and repeatable Python TUI view selection candidate; pending independent Regulator review;

@@ -41,6 +41,8 @@ The ESM exports are:
 
 An external plain JavaScript verifier imports these exports, supplies a four-response Faux script to `createNativeAdapter`, and passes streams into the real `runTui` via `startTui`. It retains real ToolResults, Contexts and sealed archives; it does not supply another agent loop. The installed package README intentionally contains no repository-relative Markdown links, so it remains readable after packing.
 
+#51 adds the newcomer-facing offline first task: in a repository checkout, `scripts/try_preview.sh` builds this exact artifact, installs it into a fresh consumer and starts the installed TUI with the scripted `preview-first-task/v1` round trip — offline/simulated, no Provider, credential or network. Repository checkouts carry the design and verification under `docs/design/preview-first-task.md`.
+
 ## Run the TUI
 
 Choose an existing directory deliberately. It may be an actual project checkout or a disposable test workspace.

@@ -14,3 +14,5 @@ Run `npm --prefix typescript run check` from the repository root. Reference rema
 #47 repair navigation: [Criteria-Version 1.1](https://github.com/pym96/Pan-agent/issues/47#issuecomment-5597954262) covers SGR wheel, source-content reflow anchors, admitted prompt recall and Tab attachment. Startup y remains; old 1.0 evidence is retained.
 
 #47 Criteria-Version 1.2 adds timer-free compatibility framing (Ctrl-G Back, ESC prefix only) and immutable raw-prefix screen evidence. Old 1.1 grids remain historical failed evidence.
+
+[preview-entry.test.ts](preview-entry.test.ts): #51 frozen preview-first-task fixture shape, independent marker identity and verification-asset binding. The 115 prior Product obligations remain unchanged.
