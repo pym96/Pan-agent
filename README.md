@@ -6,20 +6,29 @@
 
 ## Try the offline first task
 
-No API key, no real Provider, no network use by the demo itself. From a checkout of this repository:
+No API key, no real Provider, no cost. The try path installs an already-built local artifact **offline** — it downloads nothing and needs no dev dependencies.
+
+**Step 1 — build the artifact once (developer step, needs the locked dev dependencies):**
 
 ```bash
-bash scripts/try_preview.sh
+npm --prefix typescript ci --ignore-scripts
+cd typescript && npm pack --pack-destination /absolute/path/to/artifacts
 ```
 
-The script echoes each step as it runs: it builds the exact local package artifact, installs it into a fresh consumer directory without dev dependencies (`--omit=dev --offline --ignore-scripts --no-audit --no-fund`), and starts the actual installed Pan TUI. Then:
+**Step 2 — install and try, fully offline (ordinary user path):**
+
+```bash
+bash scripts/try_preview.sh /absolute/path/to/artifacts/pan-agent-0.1.0.tgz
+```
+
+The script echoes each step as it runs: it installs the artifact into a fresh consumer directory with an intentionally empty npm cache (`--omit=dev --offline --ignore-scripts --no-audit --no-fund`), confirms the installed executable answers, and starts the actual installed Pan TUI. Then:
 
 1. Confirm the displayed offline identities with `y`.
 2. Enter the frozen first task: `Create hello.js, run it and verify its exact source.`
 3. Watch Pan write `hello.js`, execute `node hello.js`, read the source back, and finish with `verified PAN_PREVIEW_OK`.
 4. Inspect the sealed run with `:runs` and `:replay RUN_ID` — replay only reads the retained record, it never re-executes. `:exit` closes.
 
-**This demo is offline and simulated.** Replies come from a scripted local adapter, so it demonstrates the product loop — file tools, shell execution, streaming, run archive, replay — without any Provider call, credential or cost. It is not evidence of live model behavior. Building the package uses the repository's locked development dependencies (`npm ci`, development side only); the installed demo needs no compiler, Python, repository path or network.
+**This demo is offline and simulated.** Replies come from a scripted local adapter, so it demonstrates the product loop — file tools, shell execution, streaming, run archive, replay — without any Provider call, credential or cost. It is not evidence of live model behavior. Only Step 1 touches the development dependency lock; Step 2 needs no compiler, Python, repository path or network.
 
 ## Use Pan with a real model
 
