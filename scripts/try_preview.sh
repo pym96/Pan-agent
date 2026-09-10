@@ -8,8 +8,9 @@ ROOT=$(CDPATH='' cd -- "$(dirname -- "$0")/.." && pwd)
 echo "==> 1/4 Install locked build dependencies (development side only)"
 ( set -x; npm --prefix "$ROOT/typescript" ci --ignore-scripts )
 DEST=$(mktemp -d "${TMPDIR:-/tmp}/pan-preview-try.XXXXXX")
+DEST=$(realpath "$DEST")
 echo "==> 2/4 Build the exact local package artifact"
-( set -x; npm --prefix "$ROOT/typescript" pack --pack-destination "$DEST" )
+( set -x; cd "$ROOT/typescript" && npm pack --pack-destination "$DEST" )
 echo "==> 3/4 Install into a fresh consumer: $DEST/consumer (offline, no dev dependencies)"
 mkdir "$DEST/consumer"
 ( set -x; cd "$DEST/consumer" && npm install "$DEST"/pan-agent-0.1.0.tgz --omit=dev --offline --ignore-scripts --no-audit --no-fund )
