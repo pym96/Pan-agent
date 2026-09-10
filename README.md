@@ -1,6 +1,6 @@
 # Pan Agent
 
-Pan Agent lets you hand a task to an agent in your terminal: it reads and writes files in a workspace you choose, runs shell commands under your own user authority, shows every step as it happens, and seals each run so you can replay exactly what it did afterwards.
+Pan Agent is the product path of the **Workspace Agent Harness** repository: it lets you hand a task to an agent in your terminal — it reads and writes files in a workspace you choose, runs shell commands under your own user authority, shows every step as it happens, and seals each run so you can replay exactly what it did afterwards.
 
 > **Early preview — macOS only.** Pan currently supports macOS with Node.js 22.19.0 or newer. Its shell tools are **trusted-local**: they run with your host user's authority, and the selected workspace is only the default directory — that is not a sandbox. The package is a private local tarball: nothing is published to npm, and no live-model result is claimed here.
 
