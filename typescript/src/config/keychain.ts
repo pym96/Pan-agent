@@ -29,19 +29,23 @@ function classify(stderr: string): PanKeychainErrorCode {
 	return "keychain_failed";
 }
 
+const SAFE_REFERENCE = /^[A-Za-z0-9._-]+$/;
+
+const SECURITY_ENV = (): Record<string, string> => ({
+	PATH: "/usr/bin:/bin",
+	HOME: userInfo().homedir,
+	TMPDIR: "/tmp",
+});
+
 function run(reference: KeychainReference, args: readonly string[]): string {
 	// Explicit minimal environment: no ambient credential variable may flow into
 	// the security child, and no ambient env enumeration is required to spawn it.
-	// spawnSync keeps the operation off any asynchronous child recorder; the
-	// security CLI receives the secret only through its own authorized argv
-	// boundary, which this product never logs or retains.
 	// The security CLI must see the real user home (passwd entry), never a
 	// redirected settings/test HOME — otherwise it blocks on keychain access.
-	const env = { PATH: "/usr/bin:/bin", HOME: userInfo().homedir, TMPDIR: "/tmp" };
 	const result = spawnSync("security", [...args], {
 		encoding: "utf8",
 		stdio: ["ignore", "pipe", "pipe"],
-		env,
+		env: SECURITY_ENV(),
 	});
 	if (result.error) throw new PanKeychainError("keychain_unavailable", `security CLI unavailable: ${result.error.message}`);
 	const stderr = String(result.stderr ?? "");
@@ -49,9 +53,29 @@ function run(reference: KeychainReference, args: readonly string[]): string {
 	return String(result.stdout ?? "").trim();
 }
 
-/** Explicit write after a user choice. -U updates only the same named item. */
+/**
+ * Explicit write after a user choice. The secret travels only through the
+ * interactive `security -i` stdin command channel: the child argv carries just
+ * the operation/service/account, and the child environment is the minimal
+ * explicit set. `security -i` keeps exit code 0 even for failed commands, so
+ * failure is detected from the per-command `returned <code>` output marker.
+ */
 export function saveKeychainCredential(secret: string, reference: KeychainReference): void {
-	run(reference, ["add-generic-password", "-s", reference.service, "-a", reference.account, "-w", secret, "-U"]);
+	if (!SAFE_REFERENCE.test(reference.service) || !SAFE_REFERENCE.test(reference.account)) {
+		throw new PanKeychainError("keychain_failed", "keychain reference contains unsupported characters");
+	}
+	const result = spawnSync("security", ["-i"], {
+		encoding: "utf8",
+		stdio: ["pipe", "pipe", "pipe"],
+		env: SECURITY_ENV(),
+		input: `add-generic-password -s ${reference.service} -a ${reference.account} -w ${secret} -U\n`,
+	});
+	if (result.error) throw new PanKeychainError("keychain_unavailable", `security CLI unavailable: ${result.error.message}`);
+	const combined = `${String(result.stdout ?? "")}\n${String(result.stderr ?? "")}`;
+	const returned = /returned\s+(-?\d+)/.exec(combined);
+	if ((returned !== null && returned[1] !== "0") || /unknown command/i.test(combined)) {
+		throw new PanKeychainError(classify(combined), `security add-generic-password failed for service ${reference.service} account ${reference.account}`);
+	}
 }
 
 /** Retrieval only through the exact named reference. */

@@ -185,11 +185,17 @@ try:
  boundary=json.loads((consumer/'boundary-report.json').read_text())
  assert boundary['endpoint']=='https://api.deepseek.com/chat/completions' and boundary['realFetchTouched'] is False
  # C-CONFIG-04: disposable Keychain lifecycle, independently checked through the security CLI.
- for mode in ['accept','decline','interrupt-after-save']:
-  expected_exit=143 if mode=='interrupt-after-save' else 0
+ for mode in ['accept','decline','denied','fail-after-save','interrupt-after-save']:
+  expected_exit={'interrupt-after-save':143,'fail-after-save':1}.get(mode,0)
   run([node,instrumentation/'keychain.mjs',installed,settings_home,keychain_account,mode,canary_keychain_value],consumer,f'keychain-{mode}',guarded(consumer,f'keychain-{mode}'),expected=expected_exit)
   report=json.loads((settings_home/'keychain-report.json').read_text())
-  for call in report['securityCalls']:assert KEYCHAIN_SERVICE in call and keychain_account in call,(mode,call)
+  assert report['canaryInChildArgv'] is False and report['canaryInChildEnv'] is False,(mode,report)
+  for call in report.get('children',[]):
+   assert call['command']=='security',(mode,call)
+   if call['args']!=['-i']:
+    assert KEYCHAIN_SERVICE in call['args'] and keychain_account in call['args'],(mode,call)
+   if call['env'] is not None:
+    for value in call['env'].values():assert canary_keychain_value not in str(value) and canary_env_value not in str(value)
   assert keychain_absent(),f'{mode}: test item must be cleaned up'
   if mode=='accept':
    assert report['ok'] and 'item-created-and-retrieved' in report['steps']
@@ -197,6 +203,13 @@ try:
    for canary in canaries['values']:assert canary.encode() not in settings_file.read_bytes()
   if mode=='decline':
    assert report['ok'] and 'decline-no-item' in report['steps']
+  if mode=='denied':
+   assert report['ok'] and 'denied-explicit' in report['steps']
+   assert not any(c['args']==['-i'] for c in report.get('children',[])),'denied must not write'
+  if mode=='fail-after-save':
+   assert not report['ok'] and 'deliberate-failure' in report['steps'] and report['cleanedUp']
+  if mode=='interrupt-after-save':
+   assert report.get('interrupted') and report['ok'],'interrupted run reports its state before the signal'
  # restore environment-source settings for the final installed-state assertion
  run([node,instrumentation/'configure.mjs',installed,settings_home,instrumentation/'answers-env.json',keychain_account,'accept-env-final'],consumer,'configure-env-final',{**guarded(consumer,'configure-env-final'),**canary_env})
  # C-CONFIG-03: canaries reach no consumer surface, including package and evidence files.

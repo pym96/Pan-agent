@@ -6,6 +6,7 @@ import { PassThrough } from "node:stream";
 import { test } from "node:test";
 import { loadPanSettings, panSettingsPath, parsePanSettings, savePanSettings } from "../src/config/settings.ts";
 import { runFirstRunConfiguration } from "../src/config/first-run.ts";
+import { saveKeychainCredential } from "../src/config/keychain.ts";
 import { runCli } from "../src/index.ts";
 
 const tempHome = () => mkdtemp(join(tmpdir(), "wo52-settings-"));
@@ -145,4 +146,9 @@ test("C-CONFIG-01 restart restores persisted selection; explicit flags override 
  const second = io();
  await runCli(["--kernel", "native", "--workspace", ws, "--memory-root", join(home, "m2"), "--model", "deepseek-v4-flash"], { output: second.output, home, createNativeAdapter: adapter, startTui: async () => 0 });
  assert.deepEqual(seen, ["deepseek-v4-pro/max", "deepseek-v4-flash/max"]);
+});
+
+test("C-CONFIG-04 keychain write rejects unsupported reference characters before any child process", () => {
+ assert.throws(() => saveKeychainCredential("CANARY-NEVER-SPAWNED", { service: "evil; rm -rf", account: "x" }), /unsupported characters/);
+ assert.throws(() => saveKeychainCredential("CANARY-NEVER-SPAWNED", { service: "com.pym96.pan-agent.workorder-52-test", account: 'a" -w injected' }), /unsupported characters/);
 });

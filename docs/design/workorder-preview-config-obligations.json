@@ -72,6 +72,10 @@
   {
    "file": "typescript/test/config-first-run.test.ts",
    "title": "C-CONFIG-01 restart restores persisted selection; explicit flags override per run"
+  },
+  {
+   "file": "typescript/test/config-first-run.test.ts",
+   "title": "C-CONFIG-04 keychain write rejects unsupported reference characters before any child process"
   }
  ],
  "prior_obligations": [
