@@ -10,6 +10,7 @@
   "scripts/README.md",
   "scripts/check_workorder_52_scope.py",
   "scripts/demo_config.mjs",
+  "scripts/demo_preview.mjs",
   "scripts/fixtures/README.md",
   "scripts/fixtures/preview/README.md",
   "scripts/fixtures/preview/config-boundary-driver.mjs",
