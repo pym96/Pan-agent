@@ -256,3 +256,7 @@ The preview deterministically enumerates the unchanged 120-slot denominator and 
 ## WorkOrder #52 first-run settings and credential storage
 
 [`verify_config_consumer.py`](verify_config_consumer.py) proves the installed configure → restart → offline task → fresh-replay path with closed provider selection, synthetic-canary containment (including the single transport authorization-header boundary) and the disposable Keychain lifecycle (`com.pym96.pan-agent.workorder-52-test` only, cleaned on every path). [`demo_config.mjs`](demo_config.mjs) is the Human two-phase demo; [`check_workorder_52_scope.py`](check_workorder_52_scope.py) audits scope and the 117 prior + 11 added obligations. Drivers live in [fixtures/preview/](fixtures/preview/README.md). Design: [preview-config](../docs/design/preview-config.md).
+
+## WorkOrder #53 Kimi Code through the installed product (offline)
+
+[`verify_kimi_consumer.py`](verify_kimi_consumer.py) proves configure kimi-code → restart → the frozen four-exchange task through the REAL PanKimiModelAdapter over scripted wires → fresh replay zero-effect → transport boundary probe → provider-switch fresh-session proof, with canary containment and zero meters. [`demo_kimi.mjs`](demo_kimi.mjs) is the Human two-phase demo; frozen wires and drivers live in [fixtures/kimi/](fixtures/kimi/README.md); [`check_workorder_53_scope.py`](check_workorder_53_scope.py) audits scope and obligations. Design: [preview-kimi](../docs/design/preview-kimi.md). No real Kimi call is made or authorized.

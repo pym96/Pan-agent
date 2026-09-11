@@ -24,11 +24,15 @@ import { loadPanSettings, type PanSettings } from "./config/settings.ts";
 import { runFirstRunConfiguration } from "./config/first-run.ts";
 import {
 	PAN_KEYCHAIN_ACCOUNT,
+	PAN_KEYCHAIN_KIMI_ACCOUNT,
 	PAN_KEYCHAIN_SERVICE,
 	readKeychainCredential,
 	type KeychainReference,
 } from "./config/keychain.ts";
 import { DeepSeekFetchTransport } from "./providers/deepseek/deepseek-transport.ts";
+import { KimiFetchTransport } from "./providers/kimi/kimi-transport.ts";
+import { createPanKimiAdapter } from "./providers/kimi/pan-kimi-model-adapter.ts";
+import { DEFAULT_KIMI_PROFILE, KIMI_MODEL_ID, type KimiProfile } from "./providers/kimi/kimi-profile.ts";
 
 export const CLI_USAGE = `Usage:
   npm run agent -- --workspace /absolute/path --memory-root /absolute/path --kernel native [--model deepseek-v4-flash|deepseek-v4-pro] [--thinking low|high|max] [--max-attachment-bytes INTEGER]
@@ -39,7 +43,7 @@ The bash tool is trusted-local: it has host-user authority; --workspace sets cwd
 Every admitted run is durably archived under --memory-root (must be disjoint from the workspace) with the current Runbook revision; :details, :runs and :replay inspect sealed archives with zero Provider calls or tool effects.
 Attachments use selection-time UTF-8 snapshots; default aggregate maxAttachmentBytes=1048576 (1 MiB local byte policy, not a model token limit). Override with --max-attachment-bytes; never truncates.
 Ordinary settings persist at ~/.pan-agent/settings.json (mode 0600; schema version, provider/model/thinking and the literal credential source kind only — never a secret). Run 'configure' to create or replace them; on a TTY first run without settings the same flow is offered. Explicit --model/--thinking flags override persisted values for that run.
-Credential source: environment reads DEEPSEEK_API_KEY only when a Provider call is made; keychain retrieves the macOS Keychain item named by the Pan service/account convention only when a Provider call is made. kimi-code is unavailable in this build (planned, not implemented); arbitrary endpoints are rejected.
+Credential source: environment reads DEEPSEEK_API_KEY (deepseek) or KIMI_API_KEY (kimi-code) only when a Provider call is made; keychain retrieves the macOS Keychain item named by the Pan service/account convention only when a Provider call is made. kimi-code selects the official OpenAI-compatible Kimi Code endpoint with its fixed model kimi-for-coding; arbitrary endpoints and unknown models are rejected.
 No Provider call occurs for --help, configure, startup, cancellation before confirmation, or TUI commands.`;
 
 const RUNBOOK_PATH = resolve(dirname(fileURLToPath(import.meta.url)), "..", "RUNBOOK.md");
@@ -116,6 +120,8 @@ export interface CliDependencies {
 	readonly keychainReference?: KeychainReference;
 	/** Pan-owned injection seam for deterministic Native composition tests. */
 	readonly createNativeAdapter?: (profile: DeepSeekProfile) => ModelAdapter;
+	/** Pan-owned injection seam for deterministic Kimi composition tests (#53). */
+	readonly createKimiAdapter?: (profile: KimiProfile) => ModelAdapter;
 	readonly createTools?: typeof createPanTrustedLocalTools;
 	readonly startTui?: typeof runTui;
 	/** Optional presentation factory; execution stays in Session. */
@@ -228,17 +234,30 @@ export async function runCli(args: readonly string[], dependencies: CliDependenc
 			return 2;
 		}
 	}
+	const selectedProvider = settings?.provider ?? "deepseek";
+	if (selectedProvider === "kimi-code" && (args.includes("--model") || args.includes("--thinking"))) {
+		writeLine(`Validation failed: kimi-code uses the fixed model ${KIMI_MODEL_ID}; remove --model/--thinking`);
+		return 2;
+	}
 	const profile: DeepSeekProfile = {
-		modelId: args.includes("--model") ? configuration.profile.modelId : (settings?.modelId ?? configuration.profile.modelId),
+		modelId: args.includes("--model") ? configuration.profile.modelId : (settings?.modelId ?? configuration.profile.modelId) as DeepSeekProfile["modelId"],
 		thinkingLevel: args.includes("--thinking") ? configuration.profile.thinkingLevel : (settings?.thinkingLevel ?? configuration.profile.thinkingLevel),
 	};
 	const credentialSource = settings?.credentialSource ?? "environment";
-	const keychainReference: KeychainReference = dependencies.keychainReference ?? { service: PAN_KEYCHAIN_SERVICE, account: PAN_KEYCHAIN_ACCOUNT };
+	const keychainReference: KeychainReference = dependencies.keychainReference ?? { service: PAN_KEYCHAIN_SERVICE, account: selectedProvider === "kimi-code" ? PAN_KEYCHAIN_KIMI_ACCOUNT : PAN_KEYCHAIN_ACCOUNT };
 	{
-		const adapterFactory = dependencies.createNativeAdapter ?? ((selected: DeepSeekProfile) => createPanDeepSeekAdapter(selected, credentialSource === "keychain"
-			? { transport: new DeepSeekFetchTransport({ credentialSource: () => readKeychainCredential(keychainReference) }) }
-			: {}));
-		const adapter = adapterFactory(profile);
+		let adapter: ModelAdapter;
+		if (selectedProvider === "kimi-code") {
+			const kimiFactory = dependencies.createKimiAdapter ?? ((selected: KimiProfile) => createPanKimiAdapter(selected, credentialSource === "keychain"
+				? { transport: new KimiFetchTransport({ credentialSource: () => readKeychainCredential(keychainReference) }) }
+				: {}));
+			adapter = kimiFactory(DEFAULT_KIMI_PROFILE);
+		} else {
+			const adapterFactory = dependencies.createNativeAdapter ?? ((selected: DeepSeekProfile) => createPanDeepSeekAdapter(selected, credentialSource === "keychain"
+				? { transport: new DeepSeekFetchTransport({ credentialSource: () => readKeychainCredential(keychainReference) }) }
+				: {}));
+			adapter = adapterFactory(profile);
+		}
 		const trustedLocal = dependencies.createTools ? dependencies.createTools(workspace) : createPanTrustedLocalTools(workspace);
 		session = new GeneralAgentSession({
 			...shared,
@@ -252,9 +271,10 @@ export async function runCli(args: readonly string[], dependencies: CliDependenc
 	}
 
 	writeLine(`Archives: ${terminalText(memoryRoot)}`);
+	const credentialEnv = selectedProvider === "kimi-code" ? "KIMI_API_KEY" : "DEEPSEEK_API_KEY";
 	writeLine(credentialSource === "keychain"
 		? `CREDENTIAL keychain (macOS Keychain service ${keychainReference.service} account ${keychainReference.account}; retrieved only when a Provider call is made)`
-		: "CREDENTIAL environment DEEPSEEK_API_KEY (required at task time; never saved)");
+		: `CREDENTIAL environment ${credentialEnv} (required at task time; never saved)`);
 	return (dependencies.startTui ?? runTui)({
 		session,
 		presentation,

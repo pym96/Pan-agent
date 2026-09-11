@@ -32,7 +32,7 @@ The script echoes each step as it runs: it installs the artifact into a fresh co
 
 ## Use Pan with a real model
 
-The installed `pan-agent` executable runs against a real Provider when you deliberately configure one. First-run settings keep ordinary preferences at `~/.pan-agent/settings.json` (mode 0600, never a secret); run `./node_modules/.bin/pan-agent configure` to choose provider/model/thinking and whether the credential comes from the `DEEPSEEK_API_KEY` environment variable at call time or from an explicitly remembered macOS Keychain item. kimi-code is not available in this build. See the [TypeScript operator guide](typescript/README.md) and [Runbook](typescript/RUNBOOK.md) first: startup displays and requires confirmation of the Provider/model/workspace/authority before any model call, and the trusted-local shell boundary above still applies.
+The installed `pan-agent` executable runs against a real Provider when you deliberately configure one. First-run settings keep ordinary preferences at `~/.pan-agent/settings.json` (mode 0600, never a secret); run `./node_modules/.bin/pan-agent configure` to choose provider (deepseek or kimi-code with its fixed official model `kimi-for-coding`) and whether the credential comes from the environment (`DEEPSEEK_API_KEY` / `KIMI_API_KEY`, read only at call time) or from an explicitly remembered macOS Keychain item. The Kimi path uses Kimi Code's official OpenAI-compatible endpoint only; it is proven offline against frozen fixtures — no live Kimi call is claimed. See the [TypeScript operator guide](typescript/README.md) and [Runbook](typescript/RUNBOOK.md) first: startup displays and requires confirmation of the Provider/model/workspace/authority before any model call, and the trusted-local shell boundary above still applies.
 
 ## Current boundaries and later plans
 
@@ -42,6 +42,7 @@ The installed `pan-agent` executable runs against a real Provider when you delib
 | Private local tarball install | npm publication (requires a future Human-authorized release) |
 | Explicit `--kernel native` startup | Default-kernel cutover (#29) |
 | Accepted offline demos with scripted adapter | Live-model validation (#36) |
+| kimi-code selectable (offline-proven, frozen wires) | Live Kimi/DeepSeek validation (#36) |
 | Trusted-local tools with Human confirmation | Startup-confirmation redesign (#49), draggable transcript scrollbar (#60) |
 
 ## Repository guide

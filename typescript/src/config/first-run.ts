@@ -2,6 +2,7 @@
 import { createInterface } from "node:readline";
 import { Writable, type Readable } from "node:stream";
 import { DEEPSEEK_MODEL_IDS, type DeepSeekModelId, type DeepSeekThinkingLevel } from "../providers/deepseek/deepseek-profile.ts";
+import { KIMI_MODEL_ID, type KimiModelId } from "../providers/kimi/kimi-profile.ts";
 import { savePanSettings, type PanSettings, type PanCredentialSource, PAN_SETTINGS_SCHEMA_VERSION } from "./settings.ts";
 import { saveKeychainCredential, PAN_KEYCHAIN_SERVICE, PAN_KEYCHAIN_ACCOUNT, type KeychainReference } from "./keychain.ts";
 
@@ -75,44 +76,60 @@ export async function runFirstRunConfiguration(dependencies: FirstRunDependencie
 	};
 	try {
 		write("Pan first-run configuration. Settings persist ordinary preferences only; secrets are never written to settings.");
-		let provider: "deepseek" | undefined;
+		let provider: "deepseek" | "kimi-code" | undefined;
 		while (!provider) {
-			const answer = (await ask("Provider [deepseek] (kimi-code: unavailable, planned): ")).toLowerCase();
+			const answer = (await ask("Provider [deepseek|kimi-code] (default deepseek): ")).toLowerCase();
 			if (answer === "" || answer === "deepseek") provider = "deepseek";
-			else if (answer === "kimi-code" || answer === "kimi") write("kimi-code: unavailable in this build (planned, not implemented). No configuration saved for it.");
-			else write(`Unknown provider: ${answer}. Only deepseek is available.`);
+			else if (answer === "kimi-code" || answer === "kimi") provider = "kimi-code";
+			else write(`Unknown provider: ${answer}. This build supports deepseek and kimi-code only.`);
 		}
-		let modelId: DeepSeekModelId | undefined;
-		while (!modelId) {
-			const answer = await ask(`Model [${DEEPSEEK_MODEL_IDS.join("|")}] (default deepseek-v4-flash): `);
-			if (answer === "") modelId = "deepseek-v4-flash";
-			else if ((DEEPSEEK_MODEL_IDS as readonly string[]).includes(answer)) modelId = answer as DeepSeekModelId;
-			else write(`Unknown model: ${answer}.`);
+		let modelId: DeepSeekModelId | KimiModelId;
+		if (provider === "kimi-code") {
+			modelId = KIMI_MODEL_ID;
+			write(`Model fixed: ${KIMI_MODEL_ID} (Kimi Code official coding model).`);
+		} else {
+			let selected: DeepSeekModelId | undefined;
+			while (!selected) {
+				const answer = await ask(`Model [${DEEPSEEK_MODEL_IDS.join("|")}] (default deepseek-v4-flash): `);
+				if (answer === "") selected = "deepseek-v4-flash";
+				else if ((DEEPSEEK_MODEL_IDS as readonly string[]).includes(answer)) selected = answer as DeepSeekModelId;
+				else write(`Unknown model: ${answer}.`);
+			}
+			modelId = selected;
 		}
-		let thinkingLevel: DeepSeekThinkingLevel | undefined;
-		while (!thinkingLevel) {
-			const answer = (await ask(`Thinking [${THINKING_LEVELS.join("|")}] (default high): `)).toLowerCase();
-			if (answer === "") thinkingLevel = "high";
-			else if ((THINKING_LEVELS as readonly string[]).includes(answer)) thinkingLevel = answer as DeepSeekThinkingLevel;
-			else write(`Unknown thinking level: ${answer}.`);
+		let thinkingLevel: DeepSeekThinkingLevel = "high";
+		if (provider === "kimi-code") {
+			write("Thinking level is not applicable to kimi-for-coding in this build; stored as inert default.");
+		} else {
+			let selectedThinking: DeepSeekThinkingLevel | undefined;
+			while (!selectedThinking) {
+				const answer = (await ask(`Thinking [${THINKING_LEVELS.join("|")}] (default high): `)).toLowerCase();
+				if (answer === "") selectedThinking = "high";
+				else if ((THINKING_LEVELS as readonly string[]).includes(answer)) selectedThinking = answer as DeepSeekThinkingLevel;
+				else write(`Unknown thinking level: ${answer}.`);
+			}
+			thinkingLevel = selectedThinking;
 		}
+		const credentialEnv = provider === "kimi-code" ? "KIMI_API_KEY" : "DEEPSEEK_API_KEY";
+		const keychainAccount = provider === "kimi-code" ? "kimi-code-key" : reference.account;
+		const activeReference: KeychainReference = { service: reference.service, account: keychainAccount };
 		let credentialSource: PanCredentialSource | undefined;
 		while (!credentialSource) {
-			const answer = (await ask("Credential source: (e)nvironment DEEPSEEK_API_KEY, never saved / (k)eychain remember [e]: ")).toLowerCase();
+			const answer = (await ask(`Credential source: (e)nvironment ${credentialEnv}, never saved / (k)eychain remember [e]: `)).toLowerCase();
 			if (answer === "" || answer === "e" || answer === "environment") credentialSource = "environment";
 			else if (answer === "k" || answer === "keychain") {
-				const secret = await ask("DeepSeek API key to remember (input hidden; stored only in macOS Keychain): ", true);
+				const secret = await ask(`${provider === "kimi-code" ? "Kimi" : "DeepSeek"} API key to remember (input hidden; stored only in macOS Keychain): `, true);
 				if (!secret) {
 					write("Empty key; nothing written.");
 					continue;
 				}
-				const confirm = (await ask(`Save this key to macOS Keychain service ${reference.service} account ${reference.account}? [y/N]: `)).toLowerCase();
+				const confirm = (await ask(`Save this key to macOS Keychain service ${activeReference.service} account ${activeReference.account}? [y/N]: `)).toLowerCase();
 				if (confirm !== "y" && confirm !== "yes") {
 					write("Remembering declined; no Keychain item written.");
 					continue;
 				}
 				try {
-					keychainSave(secret, reference);
+					keychainSave(secret, activeReference);
 				} catch (error) {
 					write(`Keychain save failed explicitly: ${error instanceof Error ? error.message : "unknown"}. No plaintext fallback written; choose another source.`);
 					continue;

@@ -73,3 +73,5 @@ The Human-accepted architecture history remains indexed in [`../adr/README.md`](
 [preview-first-task.md](preview-first-task.md) and [workorder-preview-entry-obligations.json](workorder-preview-entry-obligations.json): #51 product-first entry, deterministic offline first task, fresh-process replay, canary isolation and 115 retained obligations.
 
 [preview-config.md](preview-config.md) and [workorder-preview-config-obligations.json](workorder-preview-config-obligations.json): #52 first-run settings, explicit credential source, closed selection, canary containment and disposable Keychain lifecycle.
+
+[preview-kimi.md](preview-kimi.md) and [workorder-preview-kimi-obligations.json](workorder-preview-kimi-obligations.json): #53 Pan-owned Kimi Code adapter, frozen official wire contract, offline fixtures, boundary/switch/cancellation proofs.

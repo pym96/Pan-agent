@@ -26,17 +26,22 @@ test("C-CONFIG-02 closed selection: secret/endpoint keys, unknown provider/model
  for (const bad of [
   '{"schemaVersion":1,"provider":"deepseek","modelId":"deepseek-v4-flash","thinkingLevel":"high","credentialSource":"environment","apiKey":"x"}',
   '{"schemaVersion":1,"provider":"deepseek","modelId":"deepseek-v4-flash","thinkingLevel":"high","credentialSource":"environment","endpoint":"https://evil.example"}',
-  '{"schemaVersion":1,"provider":"kimi-code","modelId":"deepseek-v4-flash","thinkingLevel":"high","credentialSource":"environment"}',
+  '{"schemaVersion":1,"provider":"moonshot","modelId":"kimi-for-coding","thinkingLevel":"high","credentialSource":"environment"}',
   '{"schemaVersion":1,"provider":"deepseek","modelId":"kimi-k2","thinkingLevel":"high","credentialSource":"environment"}',
+  '{"schemaVersion":1,"provider":"kimi-code","modelId":"kimi-other","thinkingLevel":"high","credentialSource":"environment"}',
   '{"schemaVersion":1,"provider":"deepseek","modelId":"deepseek-v4-flash","thinkingLevel":"ultra","credentialSource":"environment"}',
   '{"schemaVersion":1,"provider":"deepseek","modelId":"deepseek-v4-flash","thinkingLevel":"high","credentialSource":"plaintext"}',
   "not json",
  ]) assert.throws(() => parsePanSettings(bad), /settings_invalid|provider_unavailable/);
- let kimiMessage = "";
+ let unknownMessage = "";
  try {
-  parsePanSettings('{"schemaVersion":1,"provider":"kimi-code","modelId":"deepseek-v4-flash","thinkingLevel":"high","credentialSource":"environment"}');
- } catch (error) { kimiMessage = error instanceof Error ? error.message : String(error); }
- assert.match(kimiMessage, /provider_unavailable: kimi-code/);
+  parsePanSettings('{"schemaVersion":1,"provider":"moonshot","modelId":"kimi-for-coding","thinkingLevel":"high","credentialSource":"environment"}');
+ } catch (error) { unknownMessage = error instanceof Error ? error.message : String(error); }
+ assert.match(unknownMessage, /provider_unavailable: moonshot/);
+ // #53: kimi-code is now a supported provider with its fixed official model.
+ const kimi = parsePanSettings('{"schemaVersion":1,"provider":"kimi-code","modelId":"kimi-for-coding","thinkingLevel":"high","credentialSource":"environment"}');
+ assert.equal(kimi.provider, "kimi-code");
+ assert.equal(kimi.modelId, "kimi-for-coding");
  assert.throws(() => parsePanSettings(JSON.stringify({ ...valid, schemaVersion: 2 })), /schemaVersion/);
 });
 
@@ -67,12 +72,13 @@ test("C-CONFIG-01 wizard defaults persist environment source without any secret"
  assert.doesNotMatch(JSON.stringify(settings), /key|secret|token/i);
 });
 
-test("C-CONFIG-02 wizard kimi-code renders unavailable and persists nothing", async () => {
+test("C-CONFIG-02 wizard kimi-code selects the fixed official model (available since #53)", async () => {
  const home = await tempHome();
- const w = wizard(["kimi-code", "deepseek", "", "", ""]);
+ const w = wizard(["kimi-code", ""]);
  const settings = await w.run(home);
- assert.match(w.rendered(), /kimi-code: unavailable in this build \(planned, not implemented\)/);
- assert.equal(settings.provider, "deepseek");
+ assert.match(w.rendered(), /Model fixed: kimi-for-coding \(Kimi Code official coding model\)/);
+ assert.equal(settings.provider, "kimi-code");
+ assert.equal(settings.modelId, "kimi-for-coding");
  assert.deepEqual(Object.keys(JSON.parse(await readFile(panSettingsPath(home), "utf8"))).sort(), ["credentialSource", "modelId", "provider", "schemaVersion", "thinkingLevel"]);
 });
 

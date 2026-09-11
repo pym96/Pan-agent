@@ -43,7 +43,9 @@ An external plain JavaScript verifier imports these exports, supplies a four-res
 
 #51 adds the newcomer-facing offline first task: in a repository checkout, `scripts/try_preview.sh` installs an already-built artifact into a fresh consumer against an empty npm cache and starts the installed TUI with the scripted `preview-first-task/v1` round trip — offline/simulated, no Provider, credential, network or download. Building the artifact is the separate one-time developer step documented above. Repository checkouts carry the design and verification under `docs/design/preview-first-task.md`.
 
-#52 adds first-run settings: `pan-agent configure` persists provider/model/thinking and the credential source (`environment` = `DEEPSEEK_API_KEY` read only at call time, or `keychain` = an explicitly remembered macOS Keychain item) at `~/.pan-agent/settings.json`, mode 0600, never storing a secret. On a TTY first run without settings the same flow is offered; explicit `--model/--thinking` flags override persisted values per run. kimi-code remains unavailable. Repository checkouts carry the design under `docs/design/preview-config.md`.
+#52 adds first-run settings: `pan-agent configure` persists provider/model/thinking and the credential source (`environment` = provider key read only at call time, or `keychain` = an explicitly remembered macOS Keychain item) at `~/.pan-agent/settings.json`, mode 0600, never storing a secret. On a TTY first run without settings the same flow is offered; explicit `--model/--thinking` flags override persisted values per run. Repository checkouts carry the design under `docs/design/preview-config.md`.
+
+#53 makes `kimi-code` selectable: the Pan-owned Kimi adapter speaks Kimi Code's official OpenAI-compatible endpoint (`https://api.kimi.com/coding/v1`, fixed model `kimi-for-coding`, `KIMI_API_KEY` at call time); DeepSeek behavior is unchanged and never delegated to. Offline proof and limits: `docs/design/preview-kimi.md`.
 
 ## Run the TUI
 

@@ -18,3 +18,5 @@ Run `npm --prefix typescript run check` from the repository root. Reference rema
 [preview-entry.test.ts](preview-entry.test.ts): #51 frozen preview-first-task fixture shape, independent marker identity and verification-asset binding. The 115 prior Product obligations remain unchanged.
 
 [config-first-run.test.ts](config-first-run.test.ts): #52 settings roundtrip/permissions, closed provider/model/thinking selection, wizard flows incl. kimi-code unavailability, explicit Keychain remember/decline/failure, configure command and restart restore. The 117 prior obligations remain unchanged.
+
+[kimi-adapter.test.ts](kimi-adapter.test.ts): #53 request shape, byte-boundary fragmentation, ordered multi-call correlation, missing-usage, malformed rejections, status-only errors, cancellation-before-admission, fixed-model settings. The 130 prior obligations remain; the one retitled #52 wizard test is the authorized kimi-availability change.

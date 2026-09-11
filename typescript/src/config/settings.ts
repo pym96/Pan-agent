@@ -1,18 +1,21 @@
-/** #52 persisted ordinary settings: never a secret container. */
+/** #52/#53 persisted ordinary settings: never a secret container. */
 import { chmod, mkdir, readFile, rename, writeFile } from "node:fs/promises";
 import { homedir } from "node:os";
 import { dirname, join } from "node:path";
 import { isDeepSeekModelId, type DeepSeekModelId, type DeepSeekThinkingLevel } from "../providers/deepseek/deepseek-profile.ts";
+import { KIMI_MODEL_ID, type KimiModelId } from "../providers/kimi/kimi-profile.ts";
 
 export const PAN_SETTINGS_SCHEMA_VERSION = 1;
 export const PAN_CREDENTIAL_SOURCES = ["environment", "keychain"] as const;
 export type PanCredentialSource = (typeof PAN_CREDENTIAL_SOURCES)[number];
+export const PAN_PROVIDERS = ["deepseek", "kimi-code"] as const;
+export type PanProvider = (typeof PAN_PROVIDERS)[number];
 
 /** Ordinary non-secret preferences. No credential value, endpoint or arbitrary provider is representable. */
 export interface PanSettings {
 	readonly schemaVersion: typeof PAN_SETTINGS_SCHEMA_VERSION;
-	readonly provider: "deepseek";
-	readonly modelId: DeepSeekModelId;
+	readonly provider: PanProvider;
+	readonly modelId: DeepSeekModelId | KimiModelId;
 	readonly thinkingLevel: DeepSeekThinkingLevel;
 	readonly credentialSource: PanCredentialSource;
 }
@@ -40,10 +43,14 @@ export function parsePanSettings(body: string): PanSettings {
 		throw new Error(`settings_invalid: unknown key ${key}`);
 	}
 	if (record.schemaVersion !== PAN_SETTINGS_SCHEMA_VERSION) throw new Error("settings_invalid: schemaVersion");
-	if (record.provider !== "deepseek") {
-		throw new Error(`provider_unavailable: ${String(record.provider)} (only deepseek is supported in this build; kimi-code is planned, not implemented)`);
+	if (record.provider !== "deepseek" && record.provider !== "kimi-code") {
+		throw new Error(`provider_unavailable: ${String(record.provider)} (this build supports deepseek and kimi-code only)`);
 	}
-	if (typeof record.modelId !== "string" || !isDeepSeekModelId(record.modelId)) throw new Error(`settings_invalid: unsupported model ${String(record.modelId)}`);
+	if (record.provider === "kimi-code") {
+		if (record.modelId !== KIMI_MODEL_ID) throw new Error(`settings_invalid: kimi-code uses the fixed model ${KIMI_MODEL_ID}`);
+	} else if (typeof record.modelId !== "string" || !isDeepSeekModelId(record.modelId)) {
+		throw new Error(`settings_invalid: unsupported model ${String(record.modelId)}`);
+	}
 	if (record.thinkingLevel !== "low" && record.thinkingLevel !== "high" && record.thinkingLevel !== "max") {
 		throw new Error(`settings_invalid: unsupported thinking level ${String(record.thinkingLevel)}`);
 	}

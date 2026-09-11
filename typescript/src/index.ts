@@ -29,3 +29,9 @@ export { saveKeychainCredential, readKeychainCredential, deleteKeychainCredentia
 export type { KeychainReference, PanKeychainErrorCode } from "./config/keychain.ts";
 export { runFirstRunConfiguration } from "./config/first-run.ts";
 export type { FirstRunDependencies } from "./config/first-run.ts";
+export { PanKimiModelAdapter, createPanKimiAdapter, KIMI_HTTP_FAILURE_TABLE } from "./providers/kimi/pan-kimi-model-adapter.ts";
+export type { PanKimiModelAdapterOptions } from "./providers/kimi/pan-kimi-model-adapter.ts";
+export { KimiFetchTransport, KimiTransportConfigurationError, abortableKimiBody } from "./providers/kimi/kimi-transport.ts";
+export type { KimiTransport, KimiTransportRequest, KimiTransportResponse, KimiCredentialSource, KimiFetchTransportOptions } from "./providers/kimi/kimi-transport.ts";
+export { DEFAULT_KIMI_PROFILE, KIMI_MODEL_ID, KIMI_OFFICIAL_CONTRACT, isKimiModelId } from "./providers/kimi/kimi-profile.ts";
+export type { KimiProfile, KimiModelId } from "./providers/kimi/kimi-profile.ts";

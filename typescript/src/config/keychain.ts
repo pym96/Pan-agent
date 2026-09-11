@@ -10,6 +10,7 @@ export interface KeychainReference {
 /** Production Pan-owned convention. Tests must pass the authorized disposable service/account instead. */
 export const PAN_KEYCHAIN_SERVICE = "com.pym96.pan-agent";
 export const PAN_KEYCHAIN_ACCOUNT = "deepseek-api-key";
+export const PAN_KEYCHAIN_KIMI_ACCOUNT = "kimi-code-key";
 
 export type PanKeychainErrorCode = "keychain_denied" | "keychain_locked" | "keychain_unavailable" | "keychain_not_found" | "keychain_failed";
 

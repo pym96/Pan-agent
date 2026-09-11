@@ -1,0 +1,69 @@
+{
+ "id": "kimi-wire/v1",
+ "protocol": "openai-compatible chat completions SSE",
+ "model": "kimi-for-coding",
+ "exchanges": [
+  {
+   "name": "write-call",
+   "wire": "data: {\"id\":\"kimi-fixture-1\",\"object\":\"chat.completion.chunk\",\"created\":1789000000,\"model\":\"kimi-for-coding\",\"choices\":[{\"index\":0,\"delta\":{\"role\":\"assistant\"},\"finish_reason\":null}]}\n\ndata: {\"id\":\"kimi-fixture-1\",\"object\":\"chat.completion.chunk\",\"created\":1789000000,\"model\":\"kimi-for-coding\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"id\":\"kimi-write-1\",\"type\":\"function\",\"function\":{\"name\":\"write\",\"arguments\":\"{\\\"path\\\":\\\"hello.js\\\",\\\"content\\\":\\\"console.log(\\\\\\\"PAN_PREVIEW_OK\\\\\\\");\\\\n\\\"}\"}}]},\"finish_reason\":null}]}\n\ndata: {\"id\":\"kimi-fixture-1\",\"object\":\"chat.completion.chunk\",\"created\":1789000000,\"model\":\"kimi-for-coding\",\"choices\":[{\"index\":0,\"delta\":{},\"finish_reason\":\"tool_calls\"}]}\n\ndata: [DONE]\n\n"
+  },
+  {
+   "name": "bash-call",
+   "wire": "data: {\"id\":\"kimi-fixture-2\",\"object\":\"chat.completion.chunk\",\"created\":1789000000,\"model\":\"kimi-for-coding\",\"choices\":[{\"index\":0,\"delta\":{\"role\":\"assistant\"},\"finish_reason\":null}]}\n\ndata: {\"id\":\"kimi-fixture-2\",\"object\":\"chat.completion.chunk\",\"created\":1789000000,\"model\":\"kimi-for-coding\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"id\":\"kimi-bash-1\",\"type\":\"function\",\"function\":{\"name\":\"bash\",\"arguments\":\"{\\\"command\\\":\\\"node hello.js\\\"}\"}}]},\"finish_reason\":null}]}\n\ndata: {\"id\":\"kimi-fixture-2\",\"object\":\"chat.completion.chunk\",\"created\":1789000000,\"model\":\"kimi-for-coding\",\"choices\":[{\"index\":0,\"delta\":{},\"finish_reason\":\"tool_calls\"}]}\n\ndata: [DONE]\n\n"
+  },
+  {
+   "name": "read-call",
+   "wire": "data: {\"id\":\"kimi-fixture-3\",\"object\":\"chat.completion.chunk\",\"created\":1789000000,\"model\":\"kimi-for-coding\",\"choices\":[{\"index\":0,\"delta\":{\"role\":\"assistant\"},\"finish_reason\":null}]}\n\ndata: {\"id\":\"kimi-fixture-3\",\"object\":\"chat.completion.chunk\",\"created\":1789000000,\"model\":\"kimi-for-coding\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"id\":\"kimi-read-1\",\"type\":\"function\",\"function\":{\"name\":\"read\",\"arguments\":\"{\\\"path\\\":\\\"hello.js\\\"}\"}}]},\"finish_reason\":null}]}\n\ndata: {\"id\":\"kimi-fixture-3\",\"object\":\"chat.completion.chunk\",\"created\":1789000000,\"model\":\"kimi-for-coding\",\"choices\":[{\"index\":0,\"delta\":{},\"finish_reason\":\"tool_calls\"}]}\n\ndata: [DONE]\n\n"
+  },
+  {
+   "name": "final",
+   "wire": "data: {\"id\":\"kimi-fixture-1\",\"object\":\"chat.completion.chunk\",\"created\":1789000000,\"model\":\"kimi-for-coding\",\"choices\":[{\"index\":0,\"delta\":{\"role\":\"assistant\"},\"finish_reason\":null}]}\n\ndata: {\"id\":\"kimi-fixture-1\",\"object\":\"chat.completion.chunk\",\"created\":1789000000,\"model\":\"kimi-for-coding\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"verified PAN_PREVIEW_OK\"},\"finish_reason\":null}]}\n\ndata: {\"id\":\"kimi-fixture-1\",\"object\":\"chat.completion.chunk\",\"created\":1789000000,\"model\":\"kimi-for-coding\",\"choices\":[{\"index\":0,\"delta\":{},\"finish_reason\":\"stop\"}],\"usage\":{\"prompt_tokens\":12,\"completion_tokens\":4,\"total_tokens\":16}}\n\ndata: [DONE]\n\n"
+  }
+ ],
+ "calls": [
+  {
+   "id": "kimi-write-1",
+   "name": "write",
+   "arguments": {
+    "path": "hello.js",
+    "content": "console.log(\"PAN_PREVIEW_OK\");\n"
+   }
+  },
+  {
+   "id": "kimi-bash-1",
+   "name": "bash",
+   "arguments": {
+    "command": "node hello.js"
+   }
+  },
+  {
+   "id": "kimi-read-1",
+   "name": "read",
+   "arguments": {
+    "path": "hello.js"
+   }
+  }
+ ],
+ "final_text": "verified PAN_PREVIEW_OK",
+ "errors": {
+  "authentication_401": {
+   "status": 401,
+   "body": "{\"error\":{\"code\":\"CANARY-ERROR-AUTH\",\"message\":\"CANARY-ERROR-AUTH verbose detail\"}}"
+  },
+  "rate_limit_429": {
+   "status": 429,
+   "body": "{\"error\":{\"message\":\"CANARY-ERROR-RATE verbose detail\"}}"
+  },
+  "provider_500": {
+   "status": 500,
+   "body": "CANARY-ERROR-PROVIDER raw text"
+  }
+ },
+ "missing_usage_wire": "data: {\"id\":\"kimi-fixture-1\",\"object\":\"chat.completion.chunk\",\"created\":1789000000,\"model\":\"kimi-for-coding\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"ok\"},\"finish_reason\":null}]}\n\ndata: {\"id\":\"kimi-fixture-1\",\"object\":\"chat.completion.chunk\",\"created\":1789000000,\"model\":\"kimi-for-coding\",\"choices\":[{\"index\":0,\"delta\":{},\"finish_reason\":\"stop\"}]}\n\ndata: [DONE]\n\n",
+ "malformed": {
+  "bad_json": "data: {not json}\n\ndata: [DONE]\n\n",
+  "data_after_done": "data: {\"id\":\"kimi-fixture-1\",\"object\":\"chat.completion.chunk\",\"created\":1789000000,\"model\":\"kimi-for-coding\",\"choices\":[{\"index\":0,\"delta\":{\"role\":\"assistant\"},\"finish_reason\":null}]}\n\ndata: {\"id\":\"kimi-fixture-1\",\"object\":\"chat.completion.chunk\",\"created\":1789000000,\"model\":\"kimi-for-coding\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"verified PAN_PREVIEW_OK\"},\"finish_reason\":null}]}\n\ndata: {\"id\":\"kimi-fixture-1\",\"object\":\"chat.completion.chunk\",\"created\":1789000000,\"model\":\"kimi-for-coding\",\"choices\":[{\"index\":0,\"delta\":{},\"finish_reason\":\"stop\"}],\"usage\":{\"prompt_tokens\":12,\"completion_tokens\":4,\"total_tokens\":16}}\n\ndata: [DONE]\n\ndata: {\"id\":\"kimi-fixture-1\",\"object\":\"chat.completion.chunk\",\"created\":1789000000,\"model\":\"kimi-for-coding\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"late\"},\"finish_reason\":null}]}\n\n",
+  "unknown_finish": "data: {\"id\":\"kimi-fixture-1\",\"object\":\"chat.completion.chunk\",\"created\":1789000000,\"model\":\"kimi-for-coding\",\"choices\":[{\"index\":0,\"delta\":{},\"finish_reason\":\"explode\"}]}\n\ndata: [DONE]\n\n",
+  "reasoning_field": "data: {\"id\":\"kimi-fixture-1\",\"object\":\"chat.completion.chunk\",\"created\":1789000000,\"model\":\"kimi-for-coding\",\"choices\":[{\"index\":0,\"delta\":{\"reasoning_content\":\"hidden\"},\"finish_reason\":null}]}\n\ndata: {\"id\":\"kimi-fixture-1\",\"object\":\"chat.completion.chunk\",\"created\":1789000000,\"model\":\"kimi-for-coding\",\"choices\":[{\"index\":0,\"delta\":{\"role\":\"assistant\"},\"finish_reason\":null}]}\n\ndata: {\"id\":\"kimi-fixture-1\",\"object\":\"chat.completion.chunk\",\"created\":1789000000,\"model\":\"kimi-for-coding\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"verified PAN_PREVIEW_OK\"},\"finish_reason\":null}]}\n\ndata: {\"id\":\"kimi-fixture-1\",\"object\":\"chat.completion.chunk\",\"created\":1789000000,\"model\":\"kimi-for-coding\",\"choices\":[{\"index\":0,\"delta\":{},\"finish_reason\":\"stop\"}],\"usage\":{\"prompt_tokens\":12,\"completion_tokens\":4,\"total_tokens\":16}}\n\ndata: [DONE]\n\n"
+ }
+}

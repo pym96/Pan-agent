@@ -30,5 +30,6 @@ console.log('== Phase 2: restart with persisted settings, then run the offline f
 child=spawnSync(process.execPath,[driver,product,workspace,memory,fixture,home],{stdio:'inherit',cwd:consumer,env:baseEnv});
 // Demo hygiene: remove the disposable test item if the Human chose to remember a key.
 spawnSync('security',['delete-generic-password','-s','com.pym96.pan-agent.workorder-52-test','-a',testAccount],{stdio:'ignore'});
+spawnSync('security',['delete-generic-password','-s','com.pym96.pan-agent.workorder-52-test','-a','kimi-code-key'],{stdio:'ignore'});
 console.log('Demo closed. Records: '+root);
 process.exitCode=child.status??1;
