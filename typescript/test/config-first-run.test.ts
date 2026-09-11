@@ -152,3 +152,9 @@ test("C-CONFIG-04 keychain write rejects unsupported reference characters before
  assert.throws(() => saveKeychainCredential("CANARY-NEVER-SPAWNED", { service: "evil; rm -rf", account: "x" }), /unsupported characters/);
  assert.throws(() => saveKeychainCredential("CANARY-NEVER-SPAWNED", { service: "com.pym96.pan-agent.workorder-52-test", account: 'a" -w injected' }), /unsupported characters/);
 });
+
+test("C-CONFIG-04 multi-line or whitespace keys are rejected before any Keychain write", () => {
+ for (const bad of ["line1\nline2", "has space", "has\ttab", "quote\"inside", "with\rcr"]) {
+  assert.throws(() => saveKeychainCredential(bad, { service: "com.pym96.pan-agent.workorder-52-test", account: "unit-test" }), /single line of printable characters/);
+ }
+});

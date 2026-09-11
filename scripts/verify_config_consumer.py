@@ -185,7 +185,7 @@ try:
  boundary=json.loads((consumer/'boundary-report.json').read_text())
  assert boundary['endpoint']=='https://api.deepseek.com/chat/completions' and boundary['realFetchTouched'] is False
  # C-CONFIG-04: disposable Keychain lifecycle, independently checked through the security CLI.
- for mode in ['accept','decline','denied','fail-after-save','interrupt-after-save']:
+ for mode in ['accept','decline','denied','fail-after-save','interrupt-after-save','multiline-key']:
   expected_exit={'interrupt-after-save':143,'fail-after-save':1}.get(mode,0)
   run([node,instrumentation/'keychain.mjs',installed,settings_home,keychain_account,mode,canary_keychain_value],consumer,f'keychain-{mode}',guarded(consumer,f'keychain-{mode}'),expected=expected_exit)
   report=json.loads((settings_home/'keychain-report.json').read_text())
@@ -210,6 +210,9 @@ try:
    assert not report['ok'] and 'deliberate-failure' in report['steps'] and report['cleanedUp']
   if mode=='interrupt-after-save':
    assert report.get('interrupted') and report['ok'],'interrupted run reports its state before the signal'
+  if mode=='multiline-key':
+   assert report['ok'] and 'multiline-rejected-pre-write' in report['steps']
+   assert not any(c['args']==['-i'] for c in report.get('children',[])),'a rejected multi-line key must never reach the write channel'
  # restore environment-source settings for the final installed-state assertion
  run([node,instrumentation/'configure.mjs',installed,settings_home,instrumentation/'answers-env.json',keychain_account,'accept-env-final'],consumer,'configure-env-final',{**guarded(consumer,'configure-env-final'),**canary_env})
  # C-CONFIG-03: canaries reach no consumer surface, including package and evidence files.

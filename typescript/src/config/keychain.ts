@@ -31,6 +31,15 @@ function classify(stderr: string): PanKeychainErrorCode {
 
 const SAFE_REFERENCE = /^[A-Za-z0-9._-]+$/;
 
+/**
+ * API keys are single-line tokens of unquoted key characters. Anything else
+ * (newline, whitespace, quote, backslash, control characters) is rejected
+ * BEFORE any Keychain call: the `security -i` stdin channel is line-based and
+ * quote-sensitive, and a malformed secret would otherwise split into a partial
+ * write plus an erroring remainder.
+ */
+const SAFE_SECRET = /^[A-Za-z0-9._~+/=-]+$/;
+
 const SECURITY_ENV = (): Record<string, string> => ({
 	PATH: "/usr/bin:/bin",
 	HOME: userInfo().homedir,
@@ -63,6 +72,9 @@ function run(reference: KeychainReference, args: readonly string[]): string {
 export function saveKeychainCredential(secret: string, reference: KeychainReference): void {
 	if (!SAFE_REFERENCE.test(reference.service) || !SAFE_REFERENCE.test(reference.account)) {
 		throw new PanKeychainError("keychain_failed", "keychain reference contains unsupported characters");
+	}
+	if (!SAFE_SECRET.test(secret)) {
+		throw new PanKeychainError("keychain_failed", "key must be a single line of printable characters (letters, digits and ._~+/=- only); nothing was written");
 	}
 	const result = spawnSync("security", ["-i"], {
 		encoding: "utf8",

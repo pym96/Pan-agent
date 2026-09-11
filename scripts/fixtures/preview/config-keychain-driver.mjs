@@ -7,7 +7,7 @@ import {PassThrough} from 'node:stream';
 import cp from 'node:child_process';
 import {syncBuiltinESMExports} from 'node:module';
 const [product,home,account,mode,canary]=process.argv.slice(2);
-if(!product||!home||!account||!mode||!canary)throw new Error('usage: config-keychain-driver.mjs PRODUCT HOME ACCOUNT accept|decline|denied|fail-after-save|interrupt-after-save CANARY');
+if(!product||!home||!account||!mode||!canary)throw new Error('usage: config-keychain-driver.mjs PRODUCT HOME ACCOUNT accept|decline|denied|fail-after-save|interrupt-after-save|multiline-key CANARY');
 // Independent instrumentation: capture EVERY child argv and environment.
 const children=[];
 const wrap=(original)=>function(command,args,options){
@@ -31,6 +31,17 @@ const scan=()=>{
 try{
  assert.equal(keychainCredentialExists(reference),false,'test item must not pre-exist');
  report.steps.push('pre-absent');
+ if(mode==='multiline-key'){
+  // A newline-bearing key must be rejected BEFORE any write: no -i child, no item, explicit error.
+  const multiline=canary+'\nTRUNCATED-SECOND-LINE';
+  let thrown=null;
+  try{saveKeychainCredential(multiline,reference);}catch(e){thrown=e;}
+  assert.ok(thrown instanceof PanKeychainError,'rejection must be a typed Keychain error');
+  assert.match(thrown.message,/single line of printable characters/);
+  assert.equal(children.filter(c=>c.args.join(' ')==='-i').length,0,'rejected key must never spawn the write channel');
+  assert.equal(keychainCredentialExists(reference),false,'rejected key must leave no item');
+  report.steps.push('multiline-rejected-pre-write');
+ }else{
  const accepting=mode==='accept'||mode==='fail-after-save'||mode==='interrupt-after-save';
  const answers=accepting?['','','','keychain',canary,'y']:mode==='decline'?['','','','keychain',canary,'n','environment']:['','','','keychain',canary,'y','environment'];
  const saveCredential=mode==='denied'
@@ -79,6 +90,7 @@ try{
  }
  assert.ok(!rendered.includes(canary),'canary must never reach terminal output');
  report.rendered=rendered;
+ }
  Object.assign(report,scan());
  report.children=children;
  report.ok=true;

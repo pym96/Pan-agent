@@ -77,6 +77,10 @@
   {
    "file": "typescript/test/config-first-run.test.ts",
    "title": "C-CONFIG-04 keychain write rejects unsupported reference characters before any child process"
+  },
+  {
+   "file": "typescript/test/config-first-run.test.ts",
+   "title": "C-CONFIG-04 multi-line or whitespace keys are rejected before any Keychain write"
   }
  ],
  "prior_obligations": [
