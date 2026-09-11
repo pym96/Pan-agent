@@ -9,6 +9,8 @@ if(!packagePath||!recordsRoot)throw Error('usage: demo_preview.mjs INSTALLED_PAC
 const product=await realpath(resolve(packagePath)),consumer=resolve(product,'../..'),source=dirname(fileURLToPath(import.meta.url));
 const root=await mkdtemp(join(await realpath(resolve(recordsRoot)),'preview-')),workspace=join(root,'workspace'),memory=join(root,'memory');
 await mkdir(workspace);
+// Give the disposable workspace a git root so @ attachment discovery never walks past the guard boundary.
+spawnSync('/usr/bin/git',['init','-q',workspace],{env:{PATH:'/usr/bin:/bin',HOME:root,GIT_CONFIG_GLOBAL:'/dev/null',GIT_CONFIG_NOSYSTEM:'1'}});
 const guard=join(root,'guard.mjs'),driver=join(root,'driver.mjs'),fixture=join(root,'fixture.json');
 await copyFile(join(source,'wo35-consumer-guard.mjs'),guard);
 await copyFile(join(source,'fixtures/preview/interactive-driver.mjs'),driver);

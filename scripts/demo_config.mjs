@@ -11,6 +11,8 @@ const consumer=resolve(product,'../..');
 const records=await realpathResolve(recordsRoot);
 const root=await mkdtemp(join(records,'config-demo-')),workspace=join(root,'workspace'),memory=join(root,'memory'),home=join(root,'settings-home');
 await mkdir(workspace);await mkdir(home);
+// Give the disposable workspace a git root so @ attachment discovery never walks past the guard boundary.
+spawnSync('/usr/bin/git',['init','-q',workspace],{env:{PATH:'/usr/bin:/bin',HOME:root,GIT_CONFIG_GLOBAL:'/dev/null',GIT_CONFIG_NOSYSTEM:'1'}});
 const testAccount='demo-human';
 const guard=join(root,'guard.mjs'),driver=join(root,'driver.mjs'),fixture=join(root,'fixture.json'),configureDriver=join(root,'configure.mjs');
 await copyFile(join(source,'wo35-consumer-guard.mjs'),guard);
