@@ -7,3 +7,11 @@
 - [interactive-driver.mjs](interactive-driver.mjs): Human-facing TTY composition used by `../../demo_preview.mjs`. Scripted streaming Faux replies, local transcript/report recording, no real Provider.
 
 These are verification clients, not Product implementations or live Provider responses.
+
+## #52 first-run settings drivers
+
+- [config-configure-driver.mjs](config-configure-driver.mjs): installed `configure` flows from verifier-supplied answers; kimi-code renders unavailable and persists nothing.
+- [config-task-driver.mjs](config-task-driver.mjs): restart restore of the persisted selection, CREDENTIAL line, deterministic Faux task, canary containment.
+- [config-boundary-driver.mjs](config-boundary-driver.mjs): capture-only transport probe; the env canary reaches exactly the authorization header on the official endpoint.
+- [config-keychain-driver.mjs](config-keychain-driver.mjs): disposable-item accept/decline/interrupt lifecycle with cleanup on every path.
+- [config-interactive-configure.mjs](config-interactive-configure.mjs): Human demo configure helper pinned to the test Keychain item.

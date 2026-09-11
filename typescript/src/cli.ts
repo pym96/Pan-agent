@@ -1,7 +1,7 @@
 import { stat } from "node:fs/promises";
 import { pathToFileURL, fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
-import type { Writable } from "node:stream";
+import type { Readable, Writable } from "node:stream";
 import { isKernelSelector, type KernelSelector } from "./runtime/agent-kernel.ts";
 import {
 	DEFAULT_DEEPSEEK_PROFILE,
@@ -20,15 +20,27 @@ import { createCompactPresentation, observeSafely, terminalText, type CompactPre
 import type { SessionObservation } from "./runtime/session.ts";
 
 import { validateAttachmentLimit } from "./input/attachments.ts";
+import { loadPanSettings, type PanSettings } from "./config/settings.ts";
+import { runFirstRunConfiguration } from "./config/first-run.ts";
+import {
+	PAN_KEYCHAIN_ACCOUNT,
+	PAN_KEYCHAIN_SERVICE,
+	readKeychainCredential,
+	type KeychainReference,
+} from "./config/keychain.ts";
+import { DeepSeekFetchTransport } from "./providers/deepseek/deepseek-transport.ts";
 
 export const CLI_USAGE = `Usage:
   npm run agent -- --workspace /absolute/path --memory-root /absolute/path --kernel native [--model deepseek-v4-flash|deepseek-v4-pro] [--thinking low|high|max] [--max-attachment-bytes INTEGER]
+  npm run agent -- configure   (first-run settings: provider/model/thinking and credential source; persists no secret)
 
 The Product requires explicit --kernel native; NativeKernel receives Pan-owned typed read/write/edit/bash implementations directly.
 The bash tool is trusted-local: it has host-user authority; --workspace sets cwd but is not containment or an OS sandbox.
 Every admitted run is durably archived under --memory-root (must be disjoint from the workspace) with the current Runbook revision; :details, :runs and :replay inspect sealed archives with zero Provider calls or tool effects.
 Attachments use selection-time UTF-8 snapshots; default aggregate maxAttachmentBytes=1048576 (1 MiB local byte policy, not a model token limit). Override with --max-attachment-bytes; never truncates.
-No Provider call occurs for --help, startup, cancellation before confirmation, or TUI commands.`;
+Ordinary settings persist at ~/.pan-agent/settings.json (mode 0600; schema version, provider/model/thinking and the literal credential source kind only — never a secret). Run 'configure' to create or replace them; on a TTY first run without settings the same flow is offered. Explicit --model/--thinking flags override persisted values for that run.
+Credential source: environment reads DEEPSEEK_API_KEY only when a Provider call is made; keychain retrieves the macOS Keychain item named by the Pan service/account convention only when a Provider call is made. kimi-code is unavailable in this build (planned, not implemented); arbitrary endpoints are rejected.
+No Provider call occurs for --help, configure, startup, cancellation before confirmation, or TUI commands.`;
 
 const RUNBOOK_PATH = resolve(dirname(fileURLToPath(import.meta.url)), "..", "RUNBOOK.md");
 
@@ -39,6 +51,8 @@ export interface CliConfiguration {
 	readonly memoryRoot?: string;
 	readonly kernel: KernelSelector;
 	readonly profile: DeepSeekProfile;
+	/** First-run/settings flow without starting a session. */
+	readonly configure?: boolean;
 }
 
 export function parseCliArgs(args: readonly string[]): CliConfiguration {
@@ -52,6 +66,10 @@ export function parseCliArgs(args: readonly string[]): CliConfiguration {
 		const argument = args[index];
 		if (argument === "--help" || argument === "-h") {
 			return { help: true, kernel: "native", profile: DEFAULT_DEEPSEEK_PROFILE };
+		}
+		if (argument === "configure" && index === 0) {
+			if (args.length !== 1) throw new Error("configure takes no further arguments");
+			return { help: false, configure: true, kernel: "native", profile: DEFAULT_DEEPSEEK_PROFILE };
 		}
 		const value = args[index + 1];
 		if (argument === "--workspace" || argument === "--memory-root" || argument === "--kernel" || argument === "--model" || argument === "--thinking" || argument === "--max-attachment-bytes") {
@@ -89,6 +107,13 @@ export function parseCliArgs(args: readonly string[]): CliConfiguration {
 
 export interface CliDependencies {
 	readonly output?: Writable;
+	/** Input for the first-run/configuration flow; defaults to process.stdin. */
+	readonly input?: Readable;
+	/** Overrides the settings home (tests use a fresh temporary directory). */
+	readonly home?: string;
+	/** Test seam for Keychain writes; production uses the real Keychain. */
+	readonly saveCredential?: (secret: string, reference: KeychainReference) => void;
+	readonly keychainReference?: KeychainReference;
 	/** Pan-owned injection seam for deterministic Native composition tests. */
 	readonly createNativeAdapter?: (profile: DeepSeekProfile) => ModelAdapter;
 	readonly createTools?: typeof createPanTrustedLocalTools;
@@ -113,6 +138,21 @@ export async function runCli(args: readonly string[], dependencies: CliDependenc
 	if (configuration.help) {
 		writeLine(CLI_USAGE);
 		return 0;
+	}
+	if (configuration.configure) {
+		try {
+			await runFirstRunConfiguration({
+				input: dependencies.input ?? process.stdin,
+				output,
+				home: dependencies.home,
+				saveCredential: dependencies.saveCredential,
+				keychainReference: dependencies.keychainReference,
+			});
+			return 0;
+		} catch (error) {
+			writeLine(`Configuration failed: ${terminalText(error instanceof Error ? error.message : "unknown")}`);
+			return 2;
+		}
 	}
 	if (!configuration.workspace) {
 		writeLine("Validation failed: --workspace is required");
@@ -165,9 +205,40 @@ export async function runCli(args: readonly string[], dependencies: CliDependenc
 	let provider: string;
 	let model: string;
 	let thinking: string;
+	// #52: persisted ordinary settings supply defaults; explicit flags win; no silent fallback.
+	let settings: PanSettings | undefined;
+	try {
+		settings = await loadPanSettings(dependencies.home);
+	} catch (error) {
+		writeLine(`Validation failed: ${terminalText(error instanceof Error ? error.message : "unknown")}`);
+		return 2;
+	}
+	const firstRunInput = dependencies.input ?? process.stdin;
+	if (!settings && !dependencies.createNativeAdapter && (firstRunInput as NodeJS.ReadStream).isTTY === true) {
+		try {
+			settings = await runFirstRunConfiguration({
+				input: firstRunInput,
+				output,
+				home: dependencies.home,
+				saveCredential: dependencies.saveCredential,
+				keychainReference: dependencies.keychainReference,
+			});
+		} catch (error) {
+			writeLine(`Configuration failed: ${terminalText(error instanceof Error ? error.message : "unknown")}`);
+			return 2;
+		}
+	}
+	const profile: DeepSeekProfile = {
+		modelId: args.includes("--model") ? configuration.profile.modelId : (settings?.modelId ?? configuration.profile.modelId),
+		thinkingLevel: args.includes("--thinking") ? configuration.profile.thinkingLevel : (settings?.thinkingLevel ?? configuration.profile.thinkingLevel),
+	};
+	const credentialSource = settings?.credentialSource ?? "environment";
+	const keychainReference: KeychainReference = dependencies.keychainReference ?? { service: PAN_KEYCHAIN_SERVICE, account: PAN_KEYCHAIN_ACCOUNT };
 	{
-		const adapterFactory = dependencies.createNativeAdapter ?? createPanDeepSeekAdapter;
-		const adapter = adapterFactory(configuration.profile);
+		const adapterFactory = dependencies.createNativeAdapter ?? ((selected: DeepSeekProfile) => createPanDeepSeekAdapter(selected, credentialSource === "keychain"
+			? { transport: new DeepSeekFetchTransport({ credentialSource: () => readKeychainCredential(keychainReference) }) }
+			: {}));
+		const adapter = adapterFactory(profile);
 		const trustedLocal = dependencies.createTools ? dependencies.createTools(workspace) : createPanTrustedLocalTools(workspace);
 		session = new GeneralAgentSession({
 			...shared,
@@ -181,6 +252,9 @@ export async function runCli(args: readonly string[], dependencies: CliDependenc
 	}
 
 	writeLine(`Archives: ${terminalText(memoryRoot)}`);
+	writeLine(credentialSource === "keychain"
+		? `CREDENTIAL keychain (macOS Keychain service ${keychainReference.service} account ${keychainReference.account}; retrieved only when a Provider call is made)`
+		: "CREDENTIAL environment DEEPSEEK_API_KEY (required at task time; never saved)");
 	return (dependencies.startTui ?? runTui)({
 		session,
 		presentation,

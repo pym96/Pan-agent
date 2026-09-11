@@ -30,3 +30,5 @@ These are verification clients, not Product implementations or live Provider res
 #47 Criteria-Version 1.2 adds timer-free compatibility framing (Ctrl-G Back, ESC prefix only) and immutable raw-prefix screen evidence. Old 1.1 grids remain historical failed evidence.
 
 #51: [preview-first-task-v1.json](preview-first-task-v1.json) freezes the deterministic offline first task (write/run/read `hello.js`, `PAN_PREVIEW_OK` marker); [preview/](preview/README.md) holds the check, fresh-replay and interactive drivers. The #35 `packed-create-run-verify/v1` fixture keeps its own frozen identity.
+
+#52: [preview/](preview/README.md) gains the configure/task/boundary/keychain drivers and the interactive configure helper for first-run settings verification; `preview-first-task-v1.json` is reused unchanged.

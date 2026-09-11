@@ -16,3 +16,5 @@ Run `npm --prefix typescript run check` from the repository root. Reference rema
 #47 Criteria-Version 1.2 adds timer-free compatibility framing (Ctrl-G Back, ESC prefix only) and immutable raw-prefix screen evidence. Old 1.1 grids remain historical failed evidence.
 
 [preview-entry.test.ts](preview-entry.test.ts): #51 frozen preview-first-task fixture shape, independent marker identity and verification-asset binding. The 115 prior Product obligations remain unchanged.
+
+[config-first-run.test.ts](config-first-run.test.ts): #52 settings roundtrip/permissions, closed provider/model/thinking selection, wizard flows incl. kimi-code unavailability, explicit Keychain remember/decline/failure, configure command and restart restore. The 117 prior obligations remain unchanged.

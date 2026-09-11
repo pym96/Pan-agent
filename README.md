@@ -32,7 +32,7 @@ The script echoes each step as it runs: it installs the artifact into a fresh co
 
 ## Use Pan with a real model
 
-The installed `pan-agent` executable runs against a real Provider when you deliberately configure one. See the [TypeScript operator guide](typescript/README.md) and [Runbook](typescript/RUNBOOK.md) first: startup displays and requires confirmation of the Provider/model/workspace/authority before any model call, and the trusted-local shell boundary above still applies.
+The installed `pan-agent` executable runs against a real Provider when you deliberately configure one. First-run settings keep ordinary preferences at `~/.pan-agent/settings.json` (mode 0600, never a secret); run `./node_modules/.bin/pan-agent configure` to choose provider/model/thinking and whether the credential comes from the `DEEPSEEK_API_KEY` environment variable at call time or from an explicitly remembered macOS Keychain item. kimi-code is not available in this build. See the [TypeScript operator guide](typescript/README.md) and [Runbook](typescript/RUNBOOK.md) first: startup displays and requires confirmation of the Provider/model/workspace/authority before any model call, and the trusted-local shell boundary above still applies.
 
 ## Current boundaries and later plans
 

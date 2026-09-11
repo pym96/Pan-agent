@@ -71,3 +71,5 @@ The Human-accepted architecture history remains indexed in [`../adr/README.md`](
 #47 Criteria-Version 1.2 adds timer-free compatibility framing (Ctrl-G Back, ESC prefix only) and immutable raw-prefix screen evidence. Old 1.1 grids remain historical failed evidence.
 
 [preview-first-task.md](preview-first-task.md) and [workorder-preview-entry-obligations.json](workorder-preview-entry-obligations.json): #51 product-first entry, deterministic offline first task, fresh-process replay, canary isolation and 115 retained obligations.
+
+[preview-config.md](preview-config.md) and [workorder-preview-config-obligations.json](workorder-preview-config-obligations.json): #52 first-run settings, explicit credential source, closed selection, canary containment and disposable Keychain lifecycle.
