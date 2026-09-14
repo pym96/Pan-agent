@@ -4,7 +4,7 @@ import hashlib,json,re,subprocess
 from pathlib import Path
 root=Path(__file__).resolve().parents[1];base='6dc0efe7b605cf54d626091c2c790bb1b88c219d'
 def git(*args):return subprocess.check_output(['git',*args],cwd=root)
-m=json.loads((root/'docs/design/workorder-scrollbar-obligations.json').read_text());assert m['base']==base and m['criteria_version']=='1.0' and m['workorder']==60
+m=json.loads((root/'docs/design/workorder-scrollbar-obligations.json').read_text());assert m['base']==base and m['criteria_version']=='1.1' and m['workorder']==60
 old=git('ls-tree','-r','--name-only',base).decode().splitlines();changed=sorted(set(git('diff','--name-only',base).decode().splitlines()+git('ls-files','--others','--exclude-standard').decode().splitlines()));assert changed==sorted(m['changed_files']),(changed,m['changed_files'])
 readmes={'typescript/README.md','typescript/test/README.md','scripts/README.md','scripts/fixtures/README.md','scripts/fixtures/scrollbar/README.md','docs/design/README.md'}
 new={'typescript/src/tui/daily-workspace.ts','typescript/src/tui/framed-input.ts','typescript/src/tui/daily-editor.ts','typescript/src/tui/scrollbar.ts','typescript/test/scrollbar.test.ts','scripts/demo_scrollbar.mjs','scripts/verify_scrollbar_pty.py','scripts/check_workorder_60_scope.py','docs/design/transcript-scrollbar.md','docs/design/workorder-scrollbar-obligations.json'}

@@ -1,7 +1,7 @@
 {
  "workorder": 60,
  "base": "6dc0efe7b605cf54d626091c2c790bb1b88c219d",
- "criteria_version": "1.0",
+ "criteria_version": "1.1",
  "changed_files": [
   "docs/design/README.md",
   "docs/design/transcript-scrollbar.md",
@@ -40,7 +40,7 @@
   },
   {
    "file": "typescript/test/scrollbar.test.ts",
-   "title": "C-SBAR-02 non-participating reports are inert; release/cancel always end a drag"
+   "title": "C-SBAR-02@1.1 only in-track presses capture; horizontal drift and y overshoot remain captured; release/cancel clear it"
   },
   {
    "file": "typescript/test/scrollbar.test.ts",

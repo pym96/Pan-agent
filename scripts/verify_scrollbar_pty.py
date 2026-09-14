@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""#60 installed scrollbar PTY proof: 120x40 long-transcript Faux demo, press/drag/release, resize, Ctrl-End."""
+"""#60 Criteria 1.1 installed PTY proof: captured drift, both release forms, resize and Ctrl-End."""
 import argparse,fcntl,hashlib,importlib.util,json,os,pty,re,select,shutil,signal,struct,subprocess,termios,time
 from pathlib import Path
 p=argparse.ArgumentParser();p.add_argument('--node',required=True);p.add_argument('--package',type=Path,required=True);p.add_argument('--output',type=Path,required=True);a=p.parse_args();root=Path(__file__).resolve().parents[1];a.output.mkdir()
@@ -60,6 +60,11 @@ def drag_top(n,v,y):
  size,_,max_top=g
  start=max(0,min(v-size,y-2-size//2))
  return 0 if v==size else js_round(start*max_top/(v-size))
+def captured_drag_top(n,v,y,grab_offset):
+ g=geometry(n,v,0)
+ if g is None:return None
+ size,_,max_top=g;p=max(0,min(v-1,y-2));start=max(0,min(v-size,p-grab_offset))
+ return 0 if v==size else js_round(start*max_top/(v-size))
 try:
  until('Confirm provider')
  # Empty transcript: the track column stays blank (no glyphs).
@@ -76,19 +81,25 @@ try:
  for i in range(5):deliver('\x1b[<64;10;5M');pump(.12)
  pump(.5)
  assert not any('Transcript line 800' in line for line in screen_text()),'wheel must detach the reader'
- # Primary press at the top of the track jumps to the head.
+ # A press inside the current thumb captures without jumping.
+ deliver('\x1b[<0;120;35M');pump(.3)
+ assert any('Transcript line 800' in line for line in screen_text()),'thumb press must not jump the viewport'
+ deliver('\x1b[<3;120;35m');pump(.2)
+ # Primary press at the top of the track jumps to the head and captures.
  deliver('\x1b[<0;120;2M');pump(.5)
  assert any('Transcript line 001' in line for line in screen_text()),'press at track top must reach the head'
  glyphs=track_glyphs(columns,rows);assert glyphs[2]=='█',f'thumb must start at the top track row: {glyphs}'
- # Drag to the middle, then to the bottom: tail mapping restores follow.
- deliver('\x1b[<32;120;18M');pump(.5)
+ # Captured drag tolerates horizontal drift; y is still the terminal-grid coordinate.
+ deliver('\x1b[<32;80;18M');pump(.5)
  mid_screen=screen_text()
  assert not any('Transcript line 001' in line for line in mid_screen) and not any('Transcript line 800' in line for line in mid_screen),'mid drag must land mid-transcript'
- deliver('\x1b[<32;120;35M');pump(.5)
+ # A large vertical overshoot clamps to the tail even while x drifts far from the track.
+ deliver('\x1b[<32;1;999999M');pump(.5)
  assert any('Transcript line 800' in line for line in screen_text()),'drag to the track bottom must restore the tail'
- deliver('\x1b[<3;120;35m');pump(.3)
+ # Apple Terminal-compatible button=0/m release clears capture without repositioning.
+ deliver('\x1b[<0;1;999999m');pump(.3)
  # No-motion terminal: press+release without drag reports still positions.
- deliver('\x1b[<0;120;18M');deliver('\x1b[<3;120;18m');pump(.5)
+ deliver('\x1b[<0;120;18M');deliver('\x1b[<0;120;18m');pump(.5)
  anchored_line=first_transcript_line()
  assert anchored_line is not None and 1 < anchored_line < 800,f'no-motion press must position mid-transcript: {anchored_line}'
  # Detached resize cycle preserves the anchored source line; the track follows the new final column.
@@ -112,13 +123,16 @@ report=json.loads((d/'scrollbar-report.json').read_text())
 mouse=report['mouseTimings']
 press=[m for m in mouse if m['action']=='press'];drags=[m for m in mouse if m['action']=='drag'];releases=[m for m in mouse if m['action']=='release']
 assert len(press)>=2 and len(drags)>=2 and len(releases)>=2,(len(press),len(drags),len(releases))
-first_press=press[0]
-assert first_press['y']==2 and first_press['top']==0 and first_press['follow'] is False and first_press['dragging'] is True,first_press
+thumb_press=press[0]
+assert thumb_press['y']==35 and thumb_press['follow'] is True and thumb_press['dragging'] is True,thumb_press
+first_press=next(m for m in press if m['y']==2)
+assert first_press['top']==0 and first_press['follow'] is False and first_press['dragging'] is True,first_press
 mid_drag=drags[0]
-expected=drag_top(mid_drag['rows'],mid_drag['bodyHeight'],18)
+initial_geometry=geometry(mid_drag['rows'],mid_drag['bodyHeight'],0)
+expected=captured_drag_top(mid_drag['rows'],mid_drag['bodyHeight'],18,initial_geometry[0]//2)
 assert mid_drag['top']==expected,(mid_drag,expected)
 tail_drag=drags[1]
-assert tail_drag['y']==35 and tail_drag['top']==tail_drag['rows']-tail_drag['bodyHeight'] and tail_drag['follow'] is True and tail_drag['newOutput'] is False,tail_drag
+assert tail_drag['y']==999999 and tail_drag['top']==tail_drag['rows']-tail_drag['bodyHeight'] and tail_drag['follow'] is True and tail_drag['newOutput'] is False,tail_drag
 for r in releases:assert r['dragging'] is False,r
 # View-only interactions never rebuild the cached layout and stay within the visit bound.
 drag_sequence=[m for m in mouse if m['bodyHeight']==34][:4]
@@ -133,4 +147,4 @@ ordered=sorted(samples);p95=ordered[min(len(ordered)-1,int(len(ordered)*.95))] i
 summary={'mouse_samples_ms':samples,'p95_ms':p95,'drag_sequence_builds_constant':True,'dimensions':report['dimensions'],'entries':report['entries'],'follow_final':report['follow'],'dragging_final':report['dragging'],'wheel_reports':len(report['wheelTimings']),'guard_meters':'all zero','pty_raw_sha256':hashlib.sha256(bytes(raw)).hexdigest(),'pty_raw_path':str(d/'terminal-output.pty')}
 (d/'scrollbar-pty-summary.json').write_text(json.dumps(summary,indent=2)+'\n')
 print(json.dumps(summary,indent=2))
-print('PASS installed scrollbar PTY: frozen geometry on screen, press/drag/release transitions, no-motion press positioning, resize anchor, Ctrl-End, zero meters')
+print('PASS installed scrollbar PTY: captured horizontal drift, y clamp, both release forms, no-motion press positioning, resize anchor, Ctrl-End, zero meters')

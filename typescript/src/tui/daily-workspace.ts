@@ -9,7 +9,7 @@ import type { SessionProgress } from '../runtime/agent-kernel.ts';
 import type { TuiOptions } from './tui.ts';
 import { terminalText, attachWorkspace } from './presentation.ts';
 import { DailyEditor, clip, clipCells, wrap, graphemes, width, sourceRows } from './daily-editor.ts';
-import { scrollbarGeometry, scrollbarDragTop, type ScrollbarGeometry } from './scrollbar.ts';
+import { scrollbarGeometry, scrollbarDragTop, scrollbarCapturedDragTop, type ScrollbarGeometry } from './scrollbar.ts';
 import { FramedInput } from './framed-input.ts';
 import type { InputKey } from './terminal-input.ts';
 
@@ -27,8 +27,9 @@ export class DailyWorkspace {
  safePaste=false; notice='Confirm provider and trusted-local workspace: type y then Enter';
  toolCursor=0; private revealTool=false;
  anchor?:Anchor;private contentRows:ContentRow[]=[];private bodyHeight=0;
- // #60 drag state: true between a participating primary press and its release/cancellation.
+ // #60 Criteria 1.1 pointer capture: only an in-track primary press starts it.
  private dragging=false;
+ private grabOffset=0;
  // #62 viewport-bounded layout: per-entry wrap cache keyed by width and per-entry stamps.
  private layoutWidth=0;private layoutRows:ContentRow[]=[];private layoutStarts:number[]=[];private layoutStamps:number[]=[];private entryStamps:number[]=[];private layoutClock=0;
  /** Structural instrumentation for the deterministic scroll harness. */
@@ -50,7 +51,7 @@ export class DailyWorkspace {
   attachWorkspace(options.presentation!,{observe:e=>this.observe(e),progress:e=>this.progress(e),settle:r=>this.settle(r)});
  }
  start():void {this.input.setRawMode(true);this.output.write('\x1b[?1049h\x1b[?2004h\x1b[?1000h\x1b[?1002h\x1b[?1006h\x1b[?25h');this.input.on('data',this.data);this.input.on('end',this.end);this.output.on('resize',this.resize);this.input.resume();this.draw();}
- dispose():void {this.picker?.abort.abort();this.input.off('data',this.data);this.input.off('end',this.end);this.output.off('resize',this.resize);this.input.setRawMode(this.raw);this.input.pause();this.output.write('\x1b[0m\x1b[?1006l\x1b[?1002l\x1b[?1000l\x1b[?2004l\x1b[?25h\x1b[?1049l');this.output.write(`Pan closed · Run ${terminalText(this.runId)} · Archives ${terminalText(this.options.archiveStore?.root??'not configured')}\n`);}
+ dispose():void {this.clearDrag();this.picker?.abort.abort();this.input.off('data',this.data);this.input.off('end',this.end);this.output.off('resize',this.resize);this.input.setRawMode(this.raw);this.input.pause();this.output.write('\x1b[0m\x1b[?1006l\x1b[?1002l\x1b[?1000l\x1b[?2004l\x1b[?25h\x1b[?1049l');this.output.write(`Pan closed · Run ${terminalText(this.runId)} · Archives ${terminalText(this.options.archiveStore?.root??'not configured')}\n`);}
  private readonly resize=()=>this.draw();
  private readonly end=()=>{this.closing=true;if(this.phase==='running'||this.phase==='cancelling')this.cancel();else this.finish();};
  private finish():void {this.phase='closed';this.picker?.abort.abort();this.done();}
@@ -77,20 +78,24 @@ export class DailyWorkspace {
   if(!this.supported()||x<1||x>(this.output.columns??80)||y<2||y>this.bodyHeight+1)return;
   if(this.overlay){this.overlay.offset=Math.max(0,this.overlay.offset+delta);this.draw();}else this.scroll(delta);
  }
- // #60 primary-button track interaction. Participation: x = final column, y inside the body track,
- // transcript visible (no modal overlay) and overflowing. Everything else is inert for scroll state.
+ // #60 Criteria 1.1 primary-button capture. The initial press must be on the track; after that,
+ // drag x is deliberately ignored and y is clamped, matching native scrollbar capture semantics.
  private mouse(action:'press'|'drag'|'release',x:number,y:number):void {
-  if(!this.supported())return;
+  if(!this.supported()){this.clearDrag();return;}
   const columns=this.output.columns??80;
   const inside=x===columns&&y>=2&&y<=this.bodyHeight+1;
-  if(action==='release'){const active=this.dragging;this.dragging=false;if(!active||!inside||this.overlay)return;this.dragTo(y);this.drawIfMoved();return;}
+  if(action==='release'){if(this.dragging)this.clearDrag();return;}
   if(this.overlay)return;
   if(action==='press'){
    if(!inside)return;this.ensureLayout(columns-3);
-   if(!scrollbarGeometry(this.contentRows.length,this.bodyHeight,0))return; // blank track: no thumb to drag
-   this.dragging=true;this.dragTo(y);this.drawIfMoved();return;
+   const geometry=scrollbarGeometry(this.contentRows.length,this.bodyHeight,this.top);
+   if(!geometry)return; // blank track: no thumb to drag
+   const p=y-2;
+   if(p>=geometry.thumbStart&&p<geometry.thumbStart+geometry.thumbSize){this.grabOffset=p-geometry.thumbStart;}
+   else {this.dragTo(y);this.grabOffset=Math.floor(geometry.thumbSize/2);}
+   this.dragging=true;this.drawIfMoved();return;
   }
-  if(!this.dragging||!inside)return;this.dragTo(y);this.drawIfMoved();
+  if(!this.dragging)return;this.dragCapturedTo(y);this.drawIfMoved();
  }
  // Motion reports fire per pixel; repaint only when the viewport state actually changed.
  private movedMark='';private drawIfMoved():void {
@@ -100,11 +105,20 @@ export class DailyWorkspace {
  private dragTo(y:number):void {
   const next=scrollbarDragTop(this.contentRows.length,this.bodyHeight,y);
   if(next===undefined)return;
+  this.setTopFromDrag(next);
+ }
+ private dragCapturedTo(y:number):void {
+  const next=scrollbarCapturedDragTop(this.contentRows.length,this.bodyHeight,y,this.grabOffset);
+  if(next===undefined)return;
+  this.setTopFromDrag(next);
+ }
+ private setTopFromDrag(next:number):void {
   this.top=next;
   const tail=Math.max(0,this.contentRows.length-this.bodyHeight);
   if(this.top>=tail){this.top=tail;this.follow=true;this.anchor=undefined;this.newOutput=false;}
   else{this.follow=false;this.anchor=this.contentRows[this.top]?.anchor;}
  }
+ private clearDrag():void {this.dragging=false;this.grabOffset=0;}
  private restoreHistory():void {
   if(this.stash){this.editor.text=this.stash.text;this.editor.caret=this.stash.caret;this.selected=this.stash.selected;this.chip=this.stash.chip;}
   this.stash=undefined;this.historyIndex=undefined;this.notice='Not submitted · draft restored';
@@ -172,7 +186,7 @@ export class DailyWorkspace {
  private remove():void {this.selected.splice(this.chip,1);this.chip=Math.min(this.chip,Math.max(0,this.selected.length-1));if(!this.selected.length)this.focus='composer';this.notice='Not submitted · attachment removed';this.draw();}
  key(text:string|undefined,key:InputKey={}):void {
   if(this.phase==='closed')return;
-  if(key.ctrl&&(key.name==='g'||key.name==='c'))this.dragging=false; // Cancellation always ends a drag without scrolling.
+  if(key.ctrl&&(key.name==='g'||key.name==='c'))this.clearDrag(); // Cancellation always ends capture without scrolling.
   const enter=key.name==='return'||key.name==='enter';
   if((enter||key.name==='tab')&&this.barrier)return;
   if(key.ctrl&&key.name==='d'){this.end();return;}
@@ -202,7 +216,7 @@ export class DailyWorkspace {
   if(text.trim().startsWith(':')&&!text.includes('\n')){this.editor.clear();void this.command(text.trim());return;}
   let prepared:string;try{prepared=prepareAttachedTask(text,this.selected);}catch{this.notice='Task preparation denied · draft retained';this.draw();return;}
   const before={text:this.editor.text,caret:this.editor.caret,selected:this.selected,chip:this.chip},admitted=this.history.length;
-  this.editor.clear();this.selected=[];this.chip=0;this.phase='running';this.notice='Running · next draft is not submitted';this.draw();
+  this.editor.clear();this.selected=[];this.chip=0;this.clearDrag();this.phase='running';this.notice='Running · next draft is not submitted';this.draw();
   void this.options.session.runTask(prepared).then(result=>this.options.presentation!.settle(result),()=>{if(this.history.length===admitted){this.editor.text=before.text;this.editor.caret=before.caret;this.selected=before.selected;this.chip=before.chip;}if(this.active)this.active.status='Partial response · local failure';this.notice='Local error · draft retained';}).finally(()=>{if(this.closing)this.finish();else{this.phase='idle';this.draw();}});
  }
  private async command(text:string):Promise<void> {

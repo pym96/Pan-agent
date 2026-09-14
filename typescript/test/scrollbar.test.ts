@@ -9,7 +9,7 @@ import { DailyWorkspace } from '../src/tui/daily-workspace.ts';
 import { FramedInput, type FramedEvent } from '../src/tui/framed-input.ts';
 import { createCompactPresentation } from '../src/tui/presentation.ts';
 import { graphemes, width } from '../src/tui/daily-editor.ts';
-import { scrollbarGeometry, scrollbarDragTop } from '../src/tui/scrollbar.ts';
+import { scrollbarGeometry, scrollbarDragTop, scrollbarCapturedDragTop } from '../src/tui/scrollbar.ts';
 import type { TuiOptions } from '../src/tui/tui.ts';
 import { GeneralAgentSession } from '../src/runtime/session.ts';
 import { RunArchiveStore } from '../src/memory/run-archive.ts';
@@ -18,7 +18,7 @@ import { scriptedAdapter, response, call } from './pan-fixture.ts';
 
 type Entry = { role: 'You' | 'Pan' | 'Tool'; text: string; status: string };
 type WorkspacePrivates = {
- bodyHeight: number; dragging: boolean;
+ bodyHeight: number; dragging: boolean; grabOffset: number;
  contentRows: { text: string; anchor: { item: number; part: string; offset: number } }[];
  wheel(d: number, x: number, y: number): void;
  mouse(a: 'press' | 'drag' | 'release', x: number, y: number): void;
@@ -74,6 +74,13 @@ function expectedDragTop(N: number, V: number, y: number) {
  const thumbStart = Math.max(0, Math.min(g.track - g.thumbSize, y - 2 - Math.floor(g.thumbSize / 2)));
  return g.track === g.thumbSize ? 0 : Math.round((thumbStart * g.maxTop) / (g.track - g.thumbSize));
 }
+function expectedCapturedDragTop(N: number, V: number, y: number, grabOffset: number) {
+ const g = expectedGeometry(N, V, 0);
+ if (!g) return undefined;
+ const p = Math.max(0, Math.min(g.track - 1, y - 2));
+ const thumbStart = Math.max(0, Math.min(g.track - g.thumbSize, p - grabOffset));
+ return g.track === g.thumbSize ? 0 : Math.round((thumbStart * g.maxTop) / (g.track - g.thumbSize));
+}
 
 /** Parse the most recent painted frame into visible row text keyed by 1-based terminal row. */
 function frameRows(painted: string): Map<number, string> {
@@ -122,6 +129,7 @@ test('C-SBAR-01 frozen geometry formulas: table, no-overflow blank, rendered-row
  for (const N of [11, 20, 57, 100, 341, 1000]) for (const V of [10, 24, 34]) for (const top of [0, 1, Math.floor(Math.max(0, N - V) / 2), Math.max(0, N - V)]) {
   assert.deepEqual(scrollbarGeometry(N, V, top) ?? null, expectedGeometry(N, V, top) ?? null, `geometry ${N}/${V}/${top}`);
   for (const y of [2, 2 + Math.floor(V / 2), V + 1]) assert.equal(scrollbarDragTop(N, V, y), expectedDragTop(N, V, y), `drag ${N}/${V}/y${y}`);
+  for (const y of [-100, 2, 2 + Math.floor(V / 2), V + 1, 999]) assert.equal(scrollbarCapturedDragTop(N, V, y, Math.floor((expectedGeometry(N, V, 0)?.thumbSize ?? 1) / 2)), expectedCapturedDragTop(N, V, y, Math.floor((expectedGeometry(N, V, 0)?.thumbSize ?? 1) / 2)), `captured drag ${N}/${V}/y${y}`);
  }
 });
 
@@ -242,7 +250,7 @@ test('C-SBAR-02 primary press/drag/release position the viewport by the frozen m
  assert.deepEqual(counts(), { admits: 0, cancels: 0 });
 });
 
-test('C-SBAR-02 non-participating reports are inert; release/cancel always end a drag', () => {
+test('C-SBAR-02@1.1 only in-track presses capture; horizontal drift and y overshoot remain captured; release/cancel clear it', () => {
  const { ui, counts } = fixture(120, 40);
  fill(ui, 300);
  ui.phase = 'idle';
@@ -262,7 +270,7 @@ test('C-SBAR-02 non-participating reports are inert; release/cancel always end a
   assert.equal(priv(ui).dragging, false, `press ${x},${y} must not start a drag`);
   assert.equal(ui.top, top0);
  }
- // A real press starts the drag; wheel during the drag keeps its #62 scroll behavior; out-of-track drags are inert.
+ // A real press starts capture; wheel keeps its #62 behavior. Captured drags deliberately tolerate x drift.
  press(ui, 120, 8);
  assert.equal(priv(ui).dragging, true);
  const topDrag = ui.top;
@@ -271,15 +279,17 @@ test('C-SBAR-02 non-participating reports are inert; release/cancel always end a
  assert.equal(priv(ui).dragging, true, 'wheel does not end the drag');
  wheelOn(ui, 3);
  assert.equal(ui.top, topDrag);
- dragTo(ui, 119, 20);
- dragTo(ui, 120, 1);
- assert.equal(ui.top, topDrag, 'out-of-track drags are inert');
+ dragTo(ui, 1, 20);
+ assert.equal(ui.top, expectedCapturedDragTop(priv(ui).contentRows.length, V, 20, priv(ui).grabOffset), 'horizontal drift cannot freeze a captured drag');
+ dragTo(ui, 999999, -20);
+ assert.equal(ui.top, 0, 'vertical overshoot clamps to the track head');
  // Ctrl-G cancels the drag without scrolling; later drag reports are inert.
+ const topCaptured = ui.top;
  ui.key(undefined, { ctrl: true, name: 'g' });
  assert.equal(priv(ui).dragging, false);
- assert.equal(ui.top, topDrag, 'Ctrl-G does not scroll');
+ assert.equal(ui.top, topCaptured, 'Ctrl-G does not scroll');
  dragTo(ui, 120, 2);
- assert.equal(ui.top, topDrag, 'drag after cancellation is inert');
+ assert.equal(ui.top, topCaptured, 'drag after cancellation is inert');
  // Ctrl-C likewise ends a drag; in idle phase it admits and cancels nothing.
  press(ui, 120, 8);
  assert.equal(priv(ui).dragging, true);
@@ -289,6 +299,11 @@ test('C-SBAR-02 non-participating reports are inert; release/cancel always end a
  assert.equal(ui.top, topDrag2);
  dragTo(ui, 120, 2);
  assert.equal(ui.top, topDrag2);
+ // Apple Terminal-compatible button=0/m release clears capture without repositioning.
+ press(ui, 120, 8);
+ assert.equal(priv(ui).dragging, true);
+ priv(ui).parser.feed('\x1b[<0;1;999999m');
+ assert.equal(priv(ui).dragging, false, 'alternate declared release clears capture regardless of coordinates');
  assert.equal(ui.editor.text, draft);
  assert.equal(ui.editor.caret, caret);
  assert.deepEqual(counts(), { admits: 0, cancels: 0 });
@@ -352,6 +367,7 @@ test('C-SBAR-02/03 framed input: exact SGR grammar, every split reconstructs, va
   ['\x1b[<0;120;5M', { type: 'mouse', action: 'press', x: 120, y: 5 }],
   ['\x1b[<32;120;21M', { type: 'mouse', action: 'drag', x: 120, y: 21 }],
   ['\x1b[<3;120;35m', { type: 'mouse', action: 'release', x: 120, y: 35 }],
+  ['\x1b[<0;120;35m', { type: 'mouse', action: 'release', x: 120, y: 35 }],
   ['\x1b[<0;999999;999999M', { type: 'mouse', action: 'press', x: 999999, y: 999999 }],
  ];
  for (const [frame, expected] of valid) {
@@ -366,7 +382,6 @@ test('C-SBAR-02/03 framed input: exact SGR grammar, every split reconstructs, va
  // Button/terminator/coordinate variants and malformed frames emit nothing.
  const inert = [
   '\x1b[<1;120;5M', '\x1b[<2;120;5M', '\x1b[<8;120;5M', '\x1b[<35;120;5M', // other buttons/motion
-  '\x1b[<0;120;5m', // press code with release terminator
   '\x1b[<3;120;5M', // release code with press terminator
   '\x1b[<32;120;5m', // drag code with release terminator
   '\x1b[<0;1234567;5M', // 7-digit coordinate beyond the parser bound
@@ -406,16 +421,15 @@ test('C-SBAR-03 fragmented press/drag/release integrate identically; drained fra
  ui.phase = 'idle';
  ui.editor.insert('draft');
  ui.draw();
- const N = priv(ui).contentRows.length;
  const V = priv(ui).bodyHeight;
  const seq = (yPress: number, yDrag: number, yRelease: number) => `\x1b[<0;120;${yPress}M\x1b[<32;120;${yDrag}M\x1b[<3;120;${yRelease}m`;
  // Whole-frame baseline through the real parser.
  priv(ui).parser.feed(seq(2, 18, 30));
  const expected = { top: ui.top, follow: ui.follow, dragging: priv(ui).dragging };
  assert.equal(expected.dragging, false);
- assert.equal(ui.top, expectedDragTop(N, V, 30));
+ assert.equal(ui.top, expectedCapturedDragTop(priv(ui).contentRows.length, V, 18, Math.floor((scrollbarGeometry(priv(ui).contentRows.length, V, 0)?.thumbSize ?? 1) / 2)));
  // Byte-wise splits of the same sequence reproduce identical state.
- press(ui, 120, 6); release(ui, 120, 6); // reset to a known mid position
+ ui.key(undefined, { ctrl: true, name: 'end' }); // reset the same tail state as the whole-frame baseline
  for (const byte of seq(2, 18, 30)) priv(ui).parser.feed(byte);
  assert.equal(ui.top, expected.top);
  assert.equal(ui.follow, expected.follow);

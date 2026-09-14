@@ -1,5 +1,5 @@
 /**
- * Frozen WorkOrder #60 scrollbar geometry (Criteria-Version 1.0).
+ * WorkOrder #60 scrollbar geometry (Criteria-Version 1.1 preserves the 1.0 formulas).
  * Every value derives from rendered transcript rows and the body viewport,
  * never from raw entry or tool-event counts. Pure and TUI-local.
  */
@@ -35,5 +35,16 @@ export function scrollbarDragTop(rows: number, bodyHeight: number, y: number): n
  if (!geometry) return undefined;
  const { thumbSize, track, maxTop } = geometry;
  const thumbStart = Math.max(0, Math.min(track - thumbSize, y - 2 - Math.floor(thumbSize / 2)));
+ return track === thumbSize ? 0 : Math.round(thumbStart * maxTop / (track - thumbSize));
+}
+
+/** Criteria-Version 1.1 captured-drag mapping. Pointer y may overshoot the track;
+ * x deliberately has no role after the initial in-track press established capture. */
+export function scrollbarCapturedDragTop(rows: number, bodyHeight: number, y: number, grabOffset: number): number | undefined {
+ const geometry = scrollbarGeometry(rows, bodyHeight, 0);
+ if (!geometry) return undefined;
+ const { thumbSize, track, maxTop } = geometry;
+ const p = Math.max(0, Math.min(track - 1, y - 2));
+ const thumbStart = Math.max(0, Math.min(track - thumbSize, p - grabOffset));
  return track === thumbSize ? 0 : Math.round(thumbStart * maxTop / (track - thumbSize));
 }

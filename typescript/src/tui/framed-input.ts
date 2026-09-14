@@ -62,14 +62,14 @@ export class FramedInput {
   if(this.mode==='csi'&&c==='<'){this.mode='mouse';return;}
   if(this.mode==='mouse'){
    if(c!=='M'&&c!=='m')return;
-   // #60 extends the framed grammar solely by frozen SGR primary-button reports:
-   // press button=0/M, drag button=32/M, release button=3 with the SGR release terminator m.
+   // #60 Criteria 1.1 extends the framed grammar solely by declared SGR primary-button reports:
+   // press button=0/M, drag button=32/M, release button=3/m or button=0/m.
    // Every other button/terminator/coordinate shape remains unmatched and therefore inert.
    const frame=this.frame,drop=this.drop;
    const wheel=/^\x1b\[<(64|65);([0-9]{1,6});([0-9]{1,6})M$/.exec(frame);
    const press=/^\x1b\[<0;([0-9]{1,6});([0-9]{1,6})M$/.exec(frame);
    const drag=/^\x1b\[<32;([0-9]{1,6});([0-9]{1,6})M$/.exec(frame);
-   const release=/^\x1b\[<3;([0-9]{1,6});([0-9]{1,6})m$/.exec(frame);
+   const release=/^\x1b\[<(?:3|0);([0-9]{1,6});([0-9]{1,6})m$/.exec(frame);
    this.reset();if(drop)return;
    if(wheel)this.emit({type:'wheel',delta:wheel[1]==='64'?-3:3,x:Number(wheel[2]),y:Number(wheel[3])});
    else if(press)this.emit({type:'mouse',action:'press',x:Number(press[1]),y:Number(press[2])});
