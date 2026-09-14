@@ -294,6 +294,28 @@ test('C-SBAR-02 non-participating reports are inert; release/cancel always end a
  assert.deepEqual(counts(), { admits: 0, cancels: 0 });
 });
 
+test('C-SBAR-02 drag repaints only when the viewport state changes (motion flood stays bounded)', () => {
+ const { ui, painted } = fixture(120, 40);
+ fill(ui, 300);
+ ui.phase = 'idle';
+ ui.draw();
+ const frames = () => painted().split('\x1b[?25l').length - 1;
+ const base = frames();
+ press(ui, 120, 10);
+ const afterPress = frames();
+ assert.ok(afterPress <= base + 1, 'press draws at most once');
+ // Many motion reports mapping to the same track row: zero additional frames.
+ for (let i = 0; i < 50; i++) dragTo(ui, 120, 10);
+ assert.equal(frames(), afterPress, 'same-row motions repaint nothing');
+ // A motion crossing the track repaints only on the actual change.
+ const V = priv(ui).bodyHeight;
+ dragTo(ui, 120, V + 1);
+ assert.equal(ui.follow, true);
+ assert.ok(frames() <= afterPress + 2, 'cross-row drag repaints on change only');
+ release(ui, 120, V + 1);
+ assert.equal(priv(ui).dragging, false);
+});
+
 test('C-SBAR-02 blank track and modal overlay are inert for press/drag/release', () => {
  const { ui, counts } = fixture(120, 40);
  fill(ui, 5); // no overflow

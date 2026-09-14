@@ -44,6 +44,10 @@
   },
   {
    "file": "typescript/test/scrollbar.test.ts",
+   "title": "C-SBAR-02 drag repaints only when the viewport state changes (motion flood stays bounded)"
+  },
+  {
+   "file": "typescript/test/scrollbar.test.ts",
    "title": "C-SBAR-02 blank track and modal overlay are inert for press/drag/release"
   },
   {

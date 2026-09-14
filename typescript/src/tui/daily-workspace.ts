@@ -83,14 +83,19 @@ export class DailyWorkspace {
   if(!this.supported())return;
   const columns=this.output.columns??80;
   const inside=x===columns&&y>=2&&y<=this.bodyHeight+1;
-  if(action==='release'){const active=this.dragging;this.dragging=false;if(!active||!inside||this.overlay)return;this.dragTo(y);this.draw();return;}
+  if(action==='release'){const active=this.dragging;this.dragging=false;if(!active||!inside||this.overlay)return;this.dragTo(y);this.drawIfMoved();return;}
   if(this.overlay)return;
   if(action==='press'){
    if(!inside)return;this.ensureLayout(columns-3);
    if(!scrollbarGeometry(this.contentRows.length,this.bodyHeight,0))return; // blank track: no thumb to drag
-   this.dragging=true;this.dragTo(y);this.draw();return;
+   this.dragging=true;this.dragTo(y);this.drawIfMoved();return;
   }
-  if(!this.dragging||!inside)return;this.dragTo(y);this.draw();
+  if(!this.dragging||!inside)return;this.dragTo(y);this.drawIfMoved();
+ }
+ // Motion reports fire per pixel; repaint only when the viewport state actually changed.
+ private movedMark='';private drawIfMoved():void {
+  const mark=`${this.top}|${this.follow}|${this.newOutput}|${this.anchor?`${this.anchor.item}:${this.anchor.part}:${this.anchor.offset}`:''}`;
+  if(mark!==this.movedMark){this.movedMark=mark;this.draw();}
  }
  private dragTo(y:number):void {
   const next=scrollbarDragTop(this.contentRows.length,this.bodyHeight,y);
@@ -266,6 +271,7 @@ export class DailyWorkspace {
    frame+=`\x1b[${i+1};1H\x1b[0m`+(this.color?'\x1b[48;2;30;30;30m\x1b[38;2;230;230;230m':'')+style+'\x1b[2K'+clipped.text+(glyph?' '.repeat(Math.max(0,w-1-clipped.used))+(this.color?glyph==='█'?'\x1b[38;2;0;215;215m':'\x1b[38;2;155;155;155m':'')+glyph:'');
   }
   frame+=`\x1b[${Math.max(1,Math.min(h,cursor.row+1))};${Math.max(1,Math.min(w,cursor.col+1))}H\x1b[?25h`;this.output.write(frame);
+  this.movedMark=`${this.top}|${this.follow}|${this.newOutput}|${this.anchor?`${this.anchor.item}:${this.anchor.part}:${this.anchor.offset}`:''}`;
  }
 }
 export async function runDailyWorkspace(options:TuiOptions):Promise<number>{const ui=new DailyWorkspace(options);try{ui.start();await ui.closed;return 0;}finally{ui.dispose();await options.session.close();}}
