@@ -75,3 +75,5 @@ The Human-accepted architecture history remains indexed in [`../adr/README.md`](
 [preview-config.md](preview-config.md) and [workorder-preview-config-obligations.json](workorder-preview-config-obligations.json): #52 first-run settings, explicit credential source, closed selection, canary containment and disposable Keychain lifecycle.
 
 [preview-kimi.md](preview-kimi.md) and [workorder-preview-kimi-obligations.json](workorder-preview-kimi-obligations.json): #53 Pan-owned Kimi Code adapter, frozen official wire contract, offline fixtures, boundary/switch/cancellation proofs.
+
+[transcript-scroll-layout.md](transcript-scroll-layout.md) and [workorder-scroll-layout-obligations.json](workorder-scroll-layout-obligations.json): #62 viewport-bounded transcript layout, per-entry wrap cache, binary-search anchor resolution, timing harness and installed PTY proof.

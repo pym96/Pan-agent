@@ -26,9 +26,13 @@ export class DailyWorkspace {
  safePaste=false; notice='Confirm provider and trusted-local workspace: type y then Enter';
  toolCursor=0; private revealTool=false;
  anchor?:Anchor;private contentRows:ContentRow[]=[];private bodyHeight=0;
+ // #62 viewport-bounded layout: per-entry wrap cache keyed by width and per-entry stamps.
+ private layoutWidth=0;private layoutRows:ContentRow[]=[];private layoutStarts:number[]=[];private layoutStamps:number[]=[];private entryStamps:number[]=[];private layoutClock=0;
+ /** Structural instrumentation for the deterministic scroll harness. */
+ readonly layoutStats={builds:0,sourceRowVisits:0};
  readonly history:string[]=[];historyIndex?:number;private stash?:{text:string;caret:number;selected:AttachmentSnapshot[];chip:number};
  top=0; follow=true; newOutput=false; runId='none';
- private active?:Entry;private closing=false;private turnText='';
+ private active?:Entry;private activeIndex=-1;private closing=false;private turnText='';
  private readonly input:ReadStream;private readonly output:WriteStream;
  private barrier=false;private readonly raw:boolean;
  private done!:()=>void;readonly closed=new Promise<void>(resolve=>{this.done=resolve;});
@@ -59,7 +63,7 @@ export class DailyWorkspace {
   if(before.pending!==after.pending||(before.mode==='paste')!==(after.mode==='paste'))this.draw();
  };
  private scroll(delta:number):void {
-  if(!this.supported())return;const tail=Math.max(0,this.contentRows.length-this.bodyHeight);
+  if(!this.supported())return;this.ensureLayout((this.output.columns??80)-2);const tail=Math.max(0,this.contentRows.length-this.bodyHeight);
   this.top=Math.max(0,Math.min(tail,this.top+delta));this.follow=delta>0&&this.top===tail;
   this.anchor=this.follow?undefined:this.contentRows[this.top]?.anchor;if(this.follow)this.newOutput=false;this.draw();
  }
@@ -76,6 +80,50 @@ export class DailyWorkspace {
   if(this.historyIndex===undefined){if(delta>0)return;this.stash={text:this.editor.text,caret:this.editor.caret,selected:this.selected,chip:this.chip};this.historyIndex=this.history.length;}
   const next=Math.max(0,this.historyIndex+delta);if(next>=this.history.length){this.restoreHistory();return;}
   this.historyIndex=next;this.editor.text=this.history[next]!;this.editor.caret=delta<0?0:this.editor.text.length;this.selected=[];this.chip=0;this.notice='History draft — not submitted';
+ }
+ private touch(item:number):void{while(this.entryStamps.length<=item)this.entryStamps.push(0);this.entryStamps[item]=++this.layoutClock;}
+ private buildEntryRows(e:Entry,item:number,w:number):ContentRow[]{
+  const rows:ContentRow[]=[{text:`${e.role} · ${e.status}`,kind:e.role,anchor:{item,part:'header' as const,offset:0},end:1}];
+  for(const r of sourceRows(e.text,w)){this.layoutStats.sourceRowVisits++;rows.push({text:'│ '+r.text,kind:e.role,anchor:{item,part:'text' as const,offset:r.start},end:r.end});}
+  this.layoutStats.builds++;return rows;
+ }
+ private ensureLayout(w:number):void{
+  const changed=this.layoutStamps.length!==this.entryStamps.length||this.entryStamps.some((s,i)=>s!==this.layoutStamps[i]);
+  if(w===this.layoutWidth&&!changed&&this.layoutStarts.length===this.entries.length){this.contentRows=this.layoutRows;return;}
+  if(w!==this.layoutWidth){
+   this.layoutRows=[];this.layoutStarts=[];
+   this.entries.forEach((e,item)=>{this.layoutStarts.push(this.layoutRows.length);this.layoutRows.push(...this.buildEntryRows(e,item,w));});
+   this.layoutWidth=w;
+  }else{
+   // Build newly appended tail entries; splice-rebuild only entries whose stamp changed.
+   const existing=this.layoutStarts.length;
+   for(let i=existing;i<this.entries.length;i++){this.layoutStarts.push(this.layoutRows.length);this.layoutRows.push(...this.buildEntryRows(this.entries[i]!,i,w));}
+   for(let i=0;i<existing;i++){
+    if(this.entryStamps[i]===this.layoutStamps[i])continue;
+    const start=this.layoutStarts[i]!;const end=i+1<this.layoutStarts.length?this.layoutStarts[i+1]!:this.layoutRows.length;
+    const rebuilt=this.buildEntryRows(this.entries[i]!,i,w);
+    this.layoutRows.splice(start,end-start,...rebuilt);
+    const delta=rebuilt.length-(end-start);
+    for(let j=i+1;j<this.layoutStarts.length;j++)this.layoutStarts[j]=(this.layoutStarts[j]??0)+delta;
+   }
+  }
+  this.layoutStamps=[...this.entryStamps];this.contentRows=this.layoutRows;
+ }
+ private findAnchorRow(a:Anchor):number{
+  if(a.item<0||a.item>=this.layoutStarts.length)return -1;
+  const start=this.layoutStarts[a.item]!;const end=a.item+1<this.layoutStarts.length?this.layoutStarts[a.item+1]!:this.layoutRows.length;
+  const visit=(i:number)=>{this.layoutStats.sourceRowVisits++;return this.layoutRows[i]!;};
+  const matches=(r:ContentRow):boolean=>r.anchor.part===a.part&&r.anchor.offset<=a.offset&&(a.offset<r.end||r.anchor.offset===r.end&&a.offset===r.end);
+  // Offsets are non-decreasing within an entry: binary search the last row with offset<=a.offset.
+  let lo=start,hi=end-1,found=-1;
+  while(lo<=hi){const mid=(lo+hi)>>1;if(visit(mid).anchor.offset<=a.offset){found=mid;lo=mid+1;}else hi=mid-1;}
+  if(found>=0){
+   const row=visit(found);
+   if(matches(row))return found;
+   // A part mismatch can only mean the header row (always the entry's first row).
+   if(visit(start).anchor.part===a.part&&matches(this.layoutRows[start]!))return start;
+  }else if(visit(start).anchor.offset<=a.offset&&matches(this.layoutRows[start]!))return start;
+  return -1;
  }
  private supported():boolean{return (this.output.columns??80)>=40&&(this.output.rows??24)>=12;}
  private cancel():void {if(this.phase==='running'){this.phase='cancelling';this.options.session.cancel();this.notice='Cancelling · draft retained';}else if(this.phase!=='cancelling')this.notice='Draft retained · :exit to quit';this.draw();}
@@ -136,15 +184,15 @@ export class DailyWorkspace {
   }catch{if(this.overlay)this.overlay.lines.push('Archive unavailable · no execution');}this.draw();
  }
  private observe(event:SessionObservation):void {
-  if(event.type==='run.started'){this.runId=event.runId;const decoded=decodeAttachedTask(event.task);this.history.push(decoded?.prompt??event.task);if(this.historyIndex!==undefined)this.restoreHistory();this.entries.push({role:'You',text:decoded?.prompt??event.task,status:decoded?`${decoded.attachments.length} attached snapshot(s)`:''});this.active={role:'Pan',text:'',status:'Waiting for model'};this.entries.push(this.active);}
-  if(event.type==='model.turn_started'){this.turnText='';if(this.active)this.active.status='Responding · provisional';}
-  if(event.type==='model.turn_settled'&&this.active){if(!event.failure)this.active.text=event.text;this.active.status=event.failure?'Partial response':'Response received · provisional';}
-  if(event.type==='tool.started')this.entries.push({role:'Tool',text:terminalText(event.toolName),status:'Running · Enter details'});
-  if(event.type==='tool.settled'){const e=this.entries.at(-1);if(e?.role==='Tool')e.status=event.isError?'Error · Enter details':'Returned · Enter details';}
+  if(event.type==='run.started'){this.runId=event.runId;const decoded=decodeAttachedTask(event.task);this.history.push(decoded?.prompt??event.task);if(this.historyIndex!==undefined)this.restoreHistory();this.entries.push({role:'You',text:decoded?.prompt??event.task,status:decoded?`${decoded.attachments.length} attached snapshot(s)`:''});this.touch(this.entries.length-1);this.active={role:'Pan',text:'',status:'Waiting for model'};this.entries.push(this.active);this.activeIndex=this.entries.length-1;this.touch(this.activeIndex);}
+  if(event.type==='model.turn_started'){this.turnText='';if(this.active){this.active.status='Responding · provisional';this.touch(this.activeIndex);}}
+  if(event.type==='model.turn_settled'&&this.active){if(!event.failure)this.active.text=event.text;this.active.status=event.failure?'Partial response':'Response received · provisional';this.touch(this.activeIndex);}
+  if(event.type==='tool.started'){this.entries.push({role:'Tool',text:terminalText(event.toolName),status:'Running · Enter details'});this.touch(this.entries.length-1);}
+  if(event.type==='tool.settled'){const e=this.entries.at(-1);if(e?.role==='Tool'){e.status=event.isError?'Error · Enter details':'Returned · Enter details';this.touch(this.entries.length-1);}}
   if(!this.follow)this.newOutput=true;this.draw();
  }
- private progress(event:SessionProgress):void {if(!this.active)return;this.turnText+=event.text;this.active.text=this.turnText;if(!this.follow)this.newOutput=true;this.draw();}
- private settle(result:TaskRunResult):void {if(this.active){if(result.finalText)this.active.text=result.finalText;this.active.status=result.status==='completed'?'Completed':`Partial response · ${terminalText(result.status)}`;}this.notice=result.status==='completed'?'Completed · next draft Not submitted':`Partial response · ${terminalText(result.status)}`;this.draw();}
+ private progress(event:SessionProgress):void {if(!this.active)return;this.turnText+=event.text;this.active.text=this.turnText;this.touch(this.activeIndex);if(!this.follow)this.newOutput=true;this.draw();}
+ private settle(result:TaskRunResult):void {if(this.active){if(result.finalText)this.active.text=result.finalText;this.active.status=result.status==='completed'?'Completed':`Partial response · ${terminalText(result.status)}`;this.touch(this.activeIndex);}this.notice=result.status==='completed'?'Completed · next draft Not submitted':`Partial response · ${terminalText(result.status)}`;this.draw();}
  private chips():string[]{return this.selected.map((item,i)=>{const parts=item.path.split('/');let n=1;while(n<parts.length&&this.selected.some((other,j)=>j!==i&&other.path.split('/').slice(-n).join('/')===parts.slice(-n).join('/')))n++;return `${this.focus==='attachments'&&i===this.chip?'>':''}[${terminalText(parts.slice(-n).join('/'))}]`;});}
  draw():void {
   if(this.phase==='closed')return;const w=Math.max(1,this.output.columns??80),h=Math.max(1,this.output.rows??24);const view=this.editor.visual(Math.max(1,w-3));const composer=Math.min(view.lines.length,Math.max(1,Math.floor(h/3)));
@@ -157,17 +205,16 @@ export class DailyWorkspace {
    if(this.overlay){const lines=[this.overlay.title,...this.overlay.lines].flatMap(s=>wrap(s,w-2).map(t=>'│ '+t));this.overlay.offset=Math.min(this.overlay.offset,Math.max(0,lines.length-bodyRows));body=lines.slice(this.overlay.offset,this.overlay.offset+bodyRows).map(text=>({text}));}
    else {
     const selectedTool=this.entries.filter(e=>e.role==='Tool')[this.toolCursor];
-    const all:ContentRow[]=this.entries.flatMap((e,item)=>[
-     {text:`${this.focus==='transcript'&&e===selectedTool?'> ':''}${e.role} · ${e.status}`,kind:e.role,anchor:{item,part:'header' as const,offset:0},end:1},
-     ...sourceRows(e.text,w-2).map(r=>({text:'│ '+r.text,kind:e.role,anchor:{item,part:'text' as const,offset:r.start},end:r.end}))]);
-    this.contentRows=all;
+    this.ensureLayout(w-2);
+    const all=this.contentRows;
+    const toolMarkerRow=selectedTool?this.layoutStarts[this.entries.indexOf(selectedTool)]!:-1;
     if(!all.length){const intro=this.phase==='confirm'?['Confirm provider and trusted-local workspace [y/N]','Provider: '+terminalText(this.options.provider),'Workspace: '+terminalText(this.options.workspace),'Host-user tools; cwd is not an OS sandbox.']:['Write a task. @ opens files; Tab attaches; Enter sends.'];body=intro.flatMap(s=>wrap(s,w-2).map(text=>({text,kind:'Pan'})));}
     else {
-     if(this.revealTool&&selectedTool){this.follow=false;this.top=Math.max(0,all.findIndex(r=>r.text.startsWith('> Tool'))-Math.floor(bodyRows/2));this.anchor=all[this.top]?.anchor;}
+     if(this.revealTool&&selectedTool){this.follow=false;this.top=Math.max(0,(toolMarkerRow>=0?toolMarkerRow:0)-Math.floor(bodyRows/2));this.anchor=all[this.top]?.anchor;}
      this.revealTool=false;
      if(this.follow)this.top=Math.max(0,all.length-bodyRows);
-     else {if(this.anchor){const a=this.anchor;const index=all.findIndex(r=>r.anchor.item===a.item&&r.anchor.part===a.part&&r.anchor.offset<=a.offset&&(a.offset<r.end||r.anchor.offset===r.end&&a.offset===r.end));if(index>=0)this.top=index;}this.top=Math.min(this.top,Math.max(0,all.length-bodyRows));if(!this.anchor)this.anchor=all[this.top]?.anchor;}
-     body=all.slice(this.top,this.top+bodyRows);
+     else {if(this.anchor){const a=this.anchor;const index=this.findAnchorRow(a);if(index>=0)this.top=index;}this.top=Math.min(this.top,Math.max(0,all.length-bodyRows));if(!this.anchor)this.anchor=all[this.top]?.anchor;}
+     body=all.slice(this.top,this.top+bodyRows).map((row,i)=>i+this.top===toolMarkerRow&&this.focus==='transcript'?{...row,text:'> '+row.text}:row);
     }
    }
 

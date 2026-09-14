@@ -260,3 +260,7 @@ The preview deterministically enumerates the unchanged 120-slot denominator and 
 ## WorkOrder #53 Kimi Code through the installed product (offline)
 
 [`verify_kimi_consumer.py`](verify_kimi_consumer.py) proves configure kimi-code → restart → the frozen four-exchange task through the REAL PanKimiModelAdapter over scripted wires → fresh replay zero-effect → transport boundary probe → provider-switch fresh-session proof, with canary containment and zero meters. [`demo_kimi.mjs`](demo_kimi.mjs) is the Human two-phase demo; frozen wires and drivers live in [fixtures/kimi/](fixtures/kimi/README.md); [`check_workorder_53_scope.py`](check_workorder_53_scope.py) audits scope and obligations. Design: [preview-kimi](../docs/design/preview-kimi.md). No real Kimi call is made or authorized.
+
+## WorkOrder #62 bounded transcript scroll
+
+[`verify_scroll_pty.py`](verify_scroll_pty.py): installed-package 120×40 PTY proof — 800-line streamed transcript, 20 wheel reports, resizes, Ctrl-End, screen reconstruction, raw timing samples, zero meters. [`demo_scroll.mjs`](demo_scroll.mjs) is the Human trial demo; driver under [fixtures/scroll/](fixtures/scroll/README.md); [`check_workorder_62_scope.py`](check_workorder_62_scope.py) audits scope and obligations. Design: [transcript-scroll-layout](../docs/design/transcript-scroll-layout.md).

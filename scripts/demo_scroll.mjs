@@ -1,0 +1,22 @@
+/** #62 Human scroll demo launcher: installed package, long transcript, wheel/resize/Ctrl-End. */
+import {mkdtemp,mkdir,writeFile,copyFile,realpath} from 'node:fs/promises';
+import {join,resolve,dirname} from 'node:path';
+import {fileURLToPath} from 'node:url';
+import {spawnSync} from 'node:child_process';
+const [packagePath,recordsRoot,forbiddenSource]=process.argv.slice(2);
+if(!packagePath||!recordsRoot)throw Error('usage: demo_scroll.mjs INSTALLED_PACKAGE RECORDS_ROOT [FORBIDDEN_SOURCE]');
+const product=await realpath(resolve(packagePath)),consumer=resolve(product,'../..'),source=dirname(fileURLToPath(import.meta.url));
+const records=await realpath(resolve(recordsRoot));
+const root=await mkdtemp(join(records,'scroll-demo-')),workspace=join(root,'workspace'),memory=join(root,'memory');
+await mkdir(workspace);
+spawnSync('/usr/bin/git',['init','-q',workspace],{env:{PATH:'/usr/bin:/bin',HOME:root,GIT_CONFIG_GLOBAL:'/dev/null',GIT_CONFIG_NOSYSTEM:'1'}});
+const guard=join(root,'guard.mjs'),driver=join(root,'driver.mjs');
+await copyFile(join(source,'wo35-consumer-guard.mjs'),guard);
+await copyFile(join(source,'fixtures/scroll/scroll-pty-driver.mjs'),driver);
+const config=join(root,'guard.json');
+const denied=forbiddenSource?[await realpath(resolve(forbiddenSource))]:[];
+await writeFile(config,JSON.stringify({phase:'human-offline-scroll',consumer,allowed:[consumer,root],denied,report:join(root,'guard-report')}));
+const env={PATH:dirname(process.execPath)+':/usr/bin:/bin',HOME:root,TERM:process.env.TERM??'xterm-256color',LANG:'en_US.UTF-8',NODE_NO_WARNINGS:'1',NODE_OPTIONS:'--import='+guard,WO35_GUARD_CONFIG:config};
+console.log('Records: '+root);
+const child=spawnSync(process.execPath,[driver,product,workspace,memory],{stdio:'inherit',cwd:consumer,env});
+process.exitCode=child.status??1;

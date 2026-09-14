@@ -34,3 +34,5 @@ These are verification clients, not Product implementations or live Provider res
 #52: [preview/](preview/README.md) gains the configure/task/boundary/keychain drivers and the interactive configure helper for first-run settings verification; `preview-first-task-v1.json` is reused unchanged.
 
 #53: [kimi/](kimi/README.md) freezes the Kimi wire transcripts and holds the task/boundary/switch/interactive drivers. `preview-first-task-v1.json` and the #35/#52 fixtures remain unchanged.
+
+#62: [scroll/](scroll/README.md) holds the long-transcript scroll PTY driver. Prior fixtures remain unchanged.
