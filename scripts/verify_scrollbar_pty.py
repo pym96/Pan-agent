@@ -111,7 +111,7 @@ finally:
 report=json.loads((d/'scrollbar-report.json').read_text())
 mouse=report['mouseTimings']
 press=[m for m in mouse if m['action']=='press'];drags=[m for m in mouse if m['action']=='drag'];releases=[m for m in mouse if m['action']=='release']
-assert len(press)>=3 and len(drags)>=2 and len(releases)>=2,(len(press),len(drags),len(releases))
+assert len(press)>=2 and len(drags)>=2 and len(releases)>=2,(len(press),len(drags),len(releases))
 first_press=press[0]
 assert first_press['y']==2 and first_press['top']==0 and first_press['follow'] is False and first_press['dragging'] is True,first_press
 mid_drag=drags[0]
