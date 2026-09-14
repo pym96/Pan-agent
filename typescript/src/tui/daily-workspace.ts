@@ -8,7 +8,8 @@ import type { SessionObservation, TaskRunResult } from '../runtime/session.ts';
 import type { SessionProgress } from '../runtime/agent-kernel.ts';
 import type { TuiOptions } from './tui.ts';
 import { terminalText, attachWorkspace } from './presentation.ts';
-import { DailyEditor, clip, wrap, graphemes, width, sourceRows } from './daily-editor.ts';
+import { DailyEditor, clip, clipCells, wrap, graphemes, width, sourceRows } from './daily-editor.ts';
+import { scrollbarGeometry, scrollbarDragTop, type ScrollbarGeometry } from './scrollbar.ts';
 import { FramedInput } from './framed-input.ts';
 import type { InputKey } from './terminal-input.ts';
 
@@ -26,6 +27,8 @@ export class DailyWorkspace {
  safePaste=false; notice='Confirm provider and trusted-local workspace: type y then Enter';
  toolCursor=0; private revealTool=false;
  anchor?:Anchor;private contentRows:ContentRow[]=[];private bodyHeight=0;
+ // #60 drag state: true between a participating primary press and its release/cancellation.
+ private dragging=false;
  // #62 viewport-bounded layout: per-entry wrap cache keyed by width and per-entry stamps.
  private layoutWidth=0;private layoutRows:ContentRow[]=[];private layoutStarts:number[]=[];private layoutStamps:number[]=[];private entryStamps:number[]=[];private layoutClock=0;
  /** Structural instrumentation for the deterministic scroll harness. */
@@ -46,14 +49,15 @@ export class DailyWorkspace {
   options.presentation!.attach(line=>{if(this.overlay)this.overlay.lines.push(line);else this.notice=line;this.draw();});
   attachWorkspace(options.presentation!,{observe:e=>this.observe(e),progress:e=>this.progress(e),settle:r=>this.settle(r)});
  }
- start():void {this.input.setRawMode(true);this.output.write('\x1b[?1049h\x1b[?2004h\x1b[?1000h\x1b[?1006h\x1b[?25h');this.input.on('data',this.data);this.input.on('end',this.end);this.output.on('resize',this.resize);this.input.resume();this.draw();}
- dispose():void {this.picker?.abort.abort();this.input.off('data',this.data);this.input.off('end',this.end);this.output.off('resize',this.resize);this.input.setRawMode(this.raw);this.input.pause();this.output.write('\x1b[0m\x1b[?1006l\x1b[?1000l\x1b[?2004l\x1b[?25h\x1b[?1049l');this.output.write(`Pan closed · Run ${terminalText(this.runId)} · Archives ${terminalText(this.options.archiveStore?.root??'not configured')}\n`);}
+ start():void {this.input.setRawMode(true);this.output.write('\x1b[?1049h\x1b[?2004h\x1b[?1000h\x1b[?1002h\x1b[?1006h\x1b[?25h');this.input.on('data',this.data);this.input.on('end',this.end);this.output.on('resize',this.resize);this.input.resume();this.draw();}
+ dispose():void {this.picker?.abort.abort();this.input.off('data',this.data);this.input.off('end',this.end);this.output.off('resize',this.resize);this.input.setRawMode(this.raw);this.input.pause();this.output.write('\x1b[0m\x1b[?1006l\x1b[?1002l\x1b[?1000l\x1b[?2004l\x1b[?25h\x1b[?1049l');this.output.write(`Pan closed · Run ${terminalText(this.runId)} · Archives ${terminalText(this.options.archiveStore?.root??'not configured')}\n`);}
  private readonly resize=()=>this.draw();
  private readonly end=()=>{this.closing=true;if(this.phase==='running'||this.phase==='cancelling')this.cancel();else this.finish();};
  private finish():void {this.phase='closed';this.picker?.abort.abort();this.done();}
  private readonly parser=new FramedInput(event=>{
   if(event.type==='key')this.key(event.text,event.key);
   else if(event.type==='wheel')this.wheel(event.delta,event.x,event.y);
+  else if(event.type==='mouse')this.mouse(event.action,event.x,event.y);
   else if(event.type==='paste-start'){this.closePicker(false);this.overlay=undefined;}
   else {this.editor.insert(event.text);this.focus='composer';this.notice='Pasted draft · Not submitted';this.draw();}
  });
@@ -63,13 +67,38 @@ export class DailyWorkspace {
   if(before.pending!==after.pending||(before.mode==='paste')!==(after.mode==='paste'))this.draw();
  };
  private scroll(delta:number):void {
-  if(!this.supported())return;this.ensureLayout((this.output.columns??80)-2);const tail=Math.max(0,this.contentRows.length-this.bodyHeight);
+  if(!this.supported())return;this.ensureLayout((this.output.columns??80)-3);const tail=Math.max(0,this.contentRows.length-this.bodyHeight);
   this.top=Math.max(0,Math.min(tail,this.top+delta));this.follow=delta>0&&this.top===tail;
   this.anchor=this.follow?undefined:this.contentRows[this.top]?.anchor;if(this.follow)this.newOutput=false;this.draw();
  }
  private wheel(delta:number,x:number,y:number):void {
+  // Wheel keeps its #62 behavior unconditionally, including during an active drag (C-SBAR-01);
+  // the drag state itself is only ended by a matching release or Ctrl-G/C.
   if(!this.supported()||x<1||x>(this.output.columns??80)||y<2||y>this.bodyHeight+1)return;
   if(this.overlay){this.overlay.offset=Math.max(0,this.overlay.offset+delta);this.draw();}else this.scroll(delta);
+ }
+ // #60 primary-button track interaction. Participation: x = final column, y inside the body track,
+ // transcript visible (no modal overlay) and overflowing. Everything else is inert for scroll state.
+ private mouse(action:'press'|'drag'|'release',x:number,y:number):void {
+  if(!this.supported())return;
+  const columns=this.output.columns??80;
+  const inside=x===columns&&y>=2&&y<=this.bodyHeight+1;
+  if(action==='release'){const active=this.dragging;this.dragging=false;if(!active||!inside||this.overlay)return;this.dragTo(y);this.draw();return;}
+  if(this.overlay)return;
+  if(action==='press'){
+   if(!inside)return;this.ensureLayout(columns-3);
+   if(!scrollbarGeometry(this.contentRows.length,this.bodyHeight,0))return; // blank track: no thumb to drag
+   this.dragging=true;this.dragTo(y);this.draw();return;
+  }
+  if(!this.dragging||!inside)return;this.dragTo(y);this.draw();
+ }
+ private dragTo(y:number):void {
+  const next=scrollbarDragTop(this.contentRows.length,this.bodyHeight,y);
+  if(next===undefined)return;
+  this.top=next;
+  const tail=Math.max(0,this.contentRows.length-this.bodyHeight);
+  if(this.top>=tail){this.top=tail;this.follow=true;this.anchor=undefined;this.newOutput=false;}
+  else{this.follow=false;this.anchor=this.contentRows[this.top]?.anchor;}
  }
  private restoreHistory():void {
   if(this.stash){this.editor.text=this.stash.text;this.editor.caret=this.stash.caret;this.selected=this.stash.selected;this.chip=this.stash.chip;}
@@ -138,6 +167,7 @@ export class DailyWorkspace {
  private remove():void {this.selected.splice(this.chip,1);this.chip=Math.min(this.chip,Math.max(0,this.selected.length-1));if(!this.selected.length)this.focus='composer';this.notice='Not submitted · attachment removed';this.draw();}
  key(text:string|undefined,key:InputKey={}):void {
   if(this.phase==='closed')return;
+  if(key.ctrl&&(key.name==='g'||key.name==='c'))this.dragging=false; // Cancellation always ends a drag without scrolling.
   const enter=key.name==='return'||key.name==='enter';
   if((enter||key.name==='tab')&&this.barrier)return;
   if(key.ctrl&&key.name==='d'){this.end();return;}
@@ -176,7 +206,7 @@ export class DailyWorkspace {
   const focus=this.focus;this.overlay={title:'View only · '+text.split(' ')[0],lines:[],offset:0,focus};
   try{
    if(text===':details'){this.options.presentation!.details();if(focus==='transcript'){const tool=this.entries.filter(e=>e.role==='Tool')[this.toolCursor];if(tool)this.overlay.offset=Math.max(0,this.overlay.lines.findIndex(line=>line.includes(tool.text)));}}
-   else if(text===':help')this.overlay.lines.push('Enter sends an idle nonblank draft; busy Enter never queues.','Alt-Enter: newline. Ctrl-V: safe paste/edit mode; Ctrl-G exits it.','@ file picker; arrows choose; Tab attaches; Enter only hints; Ctrl-P preview; Ctrl-R remove.','Wheel/PageUp/Down: conversation. Ctrl-End: follow tail. Up/Down: prompt history at draft edges.','Compatibility: raw Esc reserves a frame prefix, never Back. Ctrl-G backs out; pending tails drain before raw typing resumes. Paste enters literal data.','Ctrl-C cancels once; Ctrl-D exits even with pending input; :exit quits. :details / :runs / :replay ID are view only.');
+   else if(text===':help')this.overlay.lines.push('Enter sends an idle nonblank draft; busy Enter never queues.','Alt-Enter: newline. Ctrl-V: safe paste/edit mode; Ctrl-G exits it.','@ file picker; arrows choose; Tab attaches; Enter only hints; Ctrl-P preview; Ctrl-R remove.','Wheel/PageUp/Down: conversation. Ctrl-End: follow tail. Up/Down: prompt history at draft edges.','Scrollbar: the final column is the track; primary press/drag jumps, release ends. A terminal without drag motion still positions on press.','Compatibility: raw Esc reserves a frame prefix, never Back. Ctrl-G backs out; pending tails drain before raw typing resumes. Paste enters literal data.','Ctrl-C cancels once; Ctrl-D exits even with pending input; :exit quits. :details / :runs / :replay ID are view only.');
    else if(text===':context')this.overlay.lines.push(`Context messages ${this.options.session.contextMessageCount}`);
    else if(text===':runs'){const store=this.options.archiveStore;if(!store)this.overlay.lines.push('Archives not configured');else{const entries=await readdir(join(store.root,'runs'),{withFileTypes:true});this.overlay.lines.push('Archived records · view only');if(!entries.length)this.overlay.lines.push('No submitted run yet');for(const e of entries)if(e.isDirectory()&&/^[A-Za-z0-9_-]+$/.test(e.name))this.overlay.lines.push(terminalText(e.name));}}
    else if(text.startsWith(':replay ')){const id=text.slice(8).trim(),store=this.options.archiveStore;if(!store||!/^[A-Za-z0-9_-]+$/.test(id))throw Error();const dir=join(store.root,'runs',id);if(!(await lstat(dir)).isDirectory())throw Error();for(const f of ['manifest.json','events.jsonl'])if(!(await lstat(join(dir,f))).isFile())throw Error();this.options.presentation!.replay(await store.readArchive(id),id);}
@@ -197,18 +227,19 @@ export class DailyWorkspace {
  draw():void {
   if(this.phase==='closed')return;const w=Math.max(1,this.output.columns??80),h=Math.max(1,this.output.rows??24);const view=this.editor.visual(Math.max(1,w-3));const composer=Math.min(view.lines.length,Math.max(1,Math.floor(h/3)));
   const rows:{text:string;kind?:string}[]=[];let cursor={row:h-1,col:0};
+  let trackRows=0;let trackGeom:ScrollbarGeometry|undefined;
   if(!this.supported()){rows.push({text:'Pan · Resize terminal (min 40 x 12)'},{text:'Draft retained · Ctrl-C cancel'});cursor={row:Math.min(h-1,2),col:0};}
   else {
    rows.push({text:`Pan · Compat · ${this.overlay?'preview':this.picker?'picker':this.focus}${this.newOutput?' · New output':''} · ${this.phase} · ${terminalText(this.options.model)}`,kind:'header'});
-   const matches=this.matches(),p=this.picker;const pickerRows=p?Math.min(7,Math.max(3,h-5-composer-1)):0;const bodyRows=h-5-composer-pickerRows;this.bodyHeight=bodyRows;
+   const matches=this.matches(),p=this.picker;const pickerRows=p?Math.min(7,Math.max(3,h-5-composer-1)):0;const bodyRows=h-5-composer-pickerRows;this.bodyHeight=bodyRows;trackRows=bodyRows;
    let body:{text:string;kind?:string}[]=[];
-   if(this.overlay){const lines=[this.overlay.title,...this.overlay.lines].flatMap(s=>wrap(s,w-2).map(t=>'│ '+t));this.overlay.offset=Math.min(this.overlay.offset,Math.max(0,lines.length-bodyRows));body=lines.slice(this.overlay.offset,this.overlay.offset+bodyRows).map(text=>({text}));}
+   if(this.overlay){const lines=[this.overlay.title,...this.overlay.lines].flatMap(s=>wrap(s,w-3).map(t=>'│ '+t));this.overlay.offset=Math.min(this.overlay.offset,Math.max(0,lines.length-bodyRows));body=lines.slice(this.overlay.offset,this.overlay.offset+bodyRows).map(text=>({text}));}
    else {
     const selectedTool=this.entries.filter(e=>e.role==='Tool')[this.toolCursor];
-    this.ensureLayout(w-2);
+    this.ensureLayout(w-3);
     const all=this.contentRows;
     const toolMarkerRow=selectedTool?this.layoutStarts[this.entries.indexOf(selectedTool)]!:-1;
-    if(!all.length){const intro=this.phase==='confirm'?['Confirm provider and trusted-local workspace [y/N]','Provider: '+terminalText(this.options.provider),'Workspace: '+terminalText(this.options.workspace),'Host-user tools; cwd is not an OS sandbox.']:['Write a task. @ opens files; Tab attaches; Enter sends.'];body=intro.flatMap(s=>wrap(s,w-2).map(text=>({text,kind:'Pan'})));}
+    if(!all.length){const intro=this.phase==='confirm'?['Confirm provider and trusted-local workspace [y/N]','Provider: '+terminalText(this.options.provider),'Workspace: '+terminalText(this.options.workspace),'Host-user tools; cwd is not an OS sandbox.']:['Write a task. @ opens files; Tab attaches; Enter sends.'];body=intro.flatMap(s=>wrap(s,w-3).map(text=>({text,kind:'Pan'})));}
     else {
      if(this.revealTool&&selectedTool){this.follow=false;this.top=Math.max(0,(toolMarkerRow>=0?toolMarkerRow:0)-Math.floor(bodyRows/2));this.anchor=all[this.top]?.anchor;}
      this.revealTool=false;
@@ -216,6 +247,7 @@ export class DailyWorkspace {
      else {if(this.anchor){const a=this.anchor;const index=this.findAnchorRow(a);if(index>=0)this.top=index;}this.top=Math.min(this.top,Math.max(0,all.length-bodyRows));if(!this.anchor)this.anchor=all[this.top]?.anchor;}
      body=all.slice(this.top,this.top+bodyRows).map((row,i)=>i+this.top===toolMarkerRow&&this.focus==='transcript'?{...row,text:'> '+row.text}:row);
     }
+    trackGeom=scrollbarGeometry(all.length,bodyRows,this.top);
    }
 
    for(let i=0;i<bodyRows;i++)rows.push(body[i]??{text:''});
@@ -227,7 +259,12 @@ export class DailyWorkspace {
    if(!p)cursor={row:editorRow+view.row-start,col:2+view.col};
    rows.push({text:this.inputState.pending?(this.inputState.mode==='paste'?'Pasting · literal data':'Input sequence pending · Ctrl-G Back'):this.overlay?'Enter/Ctrl-G Close · Up/Down Scroll':p?'Tab Attach · Ctrl-G Back · Enter Hint':this.safePaste?'SAFE PASTE: Enter newline · Ctrl-G exits':this.focus==='attachments'?'Enter Preview · Backspace Remove · Tab Focus':/:exit|denied|failed|Already selected|^Partial response|^Completed/.test(this.notice)?this.notice:'Ctrl-G Back · @ Files · Ctrl-V Paste',kind:'secondary'});
   }
-  let frame='\x1b[?25l';for(let i=0;i<h;i++){const row=rows[i]??{text:''};const style=!this.color?'':row.kind==='You'?'\x1b[48;2;48;48;48m':row.kind==='focus'?'\x1b[38;2;0;215;215m':row.kind==='secondary'?'\x1b[38;2;155;155;155m':'';frame+=`\x1b[${i+1};1H\x1b[0m`+(this.color?'\x1b[48;2;30;30;30m\x1b[38;2;230;230;230m':'')+style+'\x1b[2K'+clip(row.text,w);}
+  let frame='\x1b[?25l';for(let i=0;i<h;i++){const row=rows[i]??{text:''};const style=!this.color?'':row.kind==='You'?'\x1b[48;2;48;48;48m':row.kind==='focus'?'\x1b[38;2;0;215;215m':row.kind==='secondary'?'\x1b[38;2;155;155;155m':'';
+   // #60: at supported viewports the final column is reserved for the body-row scrollbar track.
+   const clipped=clipCells(row.text,this.supported()?w-1:w);
+   const glyph=this.supported()&&trackGeom&&i>=1&&i<=trackRows?(i-1>=trackGeom.thumbStart&&i-1<trackGeom.thumbStart+trackGeom.thumbSize?'█':'│'):'';
+   frame+=`\x1b[${i+1};1H\x1b[0m`+(this.color?'\x1b[48;2;30;30;30m\x1b[38;2;230;230;230m':'')+style+'\x1b[2K'+clipped.text+(glyph?' '.repeat(Math.max(0,w-1-clipped.used))+(this.color?glyph==='█'?'\x1b[38;2;0;215;215m':'\x1b[38;2;155;155;155m':'')+glyph:'');
+  }
   frame+=`\x1b[${Math.max(1,Math.min(h,cursor.row+1))};${Math.max(1,Math.min(w,cursor.col+1))}H\x1b[?25h`;this.output.write(frame);
  }
 }

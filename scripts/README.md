@@ -264,3 +264,7 @@ The preview deterministically enumerates the unchanged 120-slot denominator and 
 ## WorkOrder #62 bounded transcript scroll
 
 [`verify_scroll_pty.py`](verify_scroll_pty.py): installed-package 120×40 PTY proof — 800-line streamed transcript, 20 wheel reports, resizes, Ctrl-End, screen reconstruction, raw timing samples, zero meters. [`demo_scroll.mjs`](demo_scroll.mjs) is the Human trial demo; driver under [fixtures/scroll/](fixtures/scroll/README.md); [`check_workorder_62_scope.py`](check_workorder_62_scope.py) audits scope and obligations. Design: [transcript-scroll-layout](../docs/design/transcript-scroll-layout.md).
+
+## WorkOrder #60 draggable conversation scrollbar
+
+[`verify_scrollbar_pty.py`](verify_scrollbar_pty.py): installed-package 120×40 PTY proof — 800-line streamed transcript, blank track before overflow, wheel detach, primary press/drag/release on the final-column track, no-motion press+release positioning, detached resize anchor preservation, Ctrl-End, screen reconstruction against an independently recomputed frozen geometry, raw timing samples, zero meters. [`demo_scrollbar.mjs`](demo_scrollbar.mjs) is the Human trial demo; driver under [fixtures/scrollbar/](fixtures/scrollbar/README.md); [`check_workorder_60_scope.py`](check_workorder_60_scope.py) audits scope and obligations. Design: [transcript-scrollbar](../docs/design/transcript-scrollbar.md).

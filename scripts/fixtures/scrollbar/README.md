@@ -1,0 +1,3 @@
+# Scrollbar verification fixture
+
+[scrollbar-pty-driver.mjs](scrollbar-pty-driver.mjs): installed-product PTY driver for #60. Real `DailyWorkspace` with an 800-line streamed Faux transcript; records raw PTY output, dimensions, per-`scroll()` and per-`mouse()` timing samples, drag/follow state, layout build/visit counters and final state. [`../../verify_scrollbar_pty.py`](../../verify_scrollbar_pty.py) drives it through wheel reports, primary press/drag/release on the final-column track, a no-motion press+release pair, resizes and Ctrl-End, reconstructs the screen, recomputes the frozen geometry independently, and asserts zero guard meters. [`../../demo_scrollbar.mjs`](../../demo_scrollbar.mjs) is the Human trial launcher. Synthetic offline data, not a Provider result.

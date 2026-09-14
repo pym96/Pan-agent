@@ -5,8 +5,11 @@ export function width(s:string):number {
  if (!s || /^\p{Mark}+$/u.test(s)) return 0;
  return /\p{Extended_Pictographic}|[\u1100-\u115f\u2e80-\ua4cf\uac00-\ud7a3\uf900-\ufaff\ufe10-\ufe6f\uff00-\uff60]/u.test(s)?2:1;
 }
+export function clipCells(s:string,cells:number):{text:string;used:number} {
+ let value='',used=0;for(const g of graphemes(s)){if(used+width(g)>cells)break;value+=g;used+=width(g);}return {text:value,used};
+}
 export function clip(s:string,cells:number):string {
- let value='',used=0;for(const g of graphemes(s)){if(used+width(g)>cells)break;value+=g;used+=width(g);}return value;
+ return clipCells(s,cells).text;
 }
 export function wrap(s:string,columns:number):string[] {
  const lines:string[]=[''];let used=0;

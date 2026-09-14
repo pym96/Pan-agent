@@ -77,3 +77,5 @@ The Human-accepted architecture history remains indexed in [`../adr/README.md`](
 [preview-kimi.md](preview-kimi.md) and [workorder-preview-kimi-obligations.json](workorder-preview-kimi-obligations.json): #53 Pan-owned Kimi Code adapter, frozen official wire contract, offline fixtures, boundary/switch/cancellation proofs.
 
 [transcript-scroll-layout.md](transcript-scroll-layout.md) and [workorder-scroll-layout-obligations.json](workorder-scroll-layout-obligations.json): #62 viewport-bounded transcript layout, per-entry wrap cache, binary-search anchor resolution, timing harness and installed PTY proof.
+
+[transcript-scrollbar.md](transcript-scrollbar.md) and [workorder-scrollbar-obligations.json](workorder-scrollbar-obligations.json): #60 final-column draggable scrollbar, frozen rendered-row geometry, SGR primary press/drag/release framing extension, parser-safety probes, installed PTY proof and supported-terminal limits.

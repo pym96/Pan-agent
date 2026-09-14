@@ -3,6 +3,7 @@ import type { InputKey } from './terminal-input.ts';
 export type FramedEvent =
  | {type:'key';text?:string;key:InputKey}
  | {type:'wheel';delta:number;x:number;y:number}
+ | {type:'mouse';action:'press'|'drag'|'release';x:number;y:number}
  | {type:'paste-start'}
  | {type:'paste';text:string};
 type Mode='ground'|'esc'|'csi'|'mouse'|'ss3'|'string'|'paste';
@@ -12,7 +13,7 @@ const NAV:Record<string,string>={A:'up',B:'down',C:'right',D:'left',H:'home',F:'
 export class FramedInput {
  private mode:Mode='ground';private frame='';private retained=0;private drop=false;private overflow=false;private pastePrefix=0;
  private osc=false;private stringEsc=false;private pasteTail='';private pasteText='';
- private readonly counts={key:0,wheel:0,'paste-start':0,paste:0};
+ private readonly counts={key:0,wheel:0,mouse:0,'paste-start':0,paste:0};
  private readonly emit:(event:FramedEvent)=>void;
  constructor(emit:(event:FramedEvent)=>void){this.emit=event=>{this.counts[event.type]++;emit(event);};}
  get state(){return {mode:this.mode,pending:this.mode!=='ground',retainedBytes:this.retained,quarantined:this.drop,events:{...this.counts}};}
@@ -61,8 +62,20 @@ export class FramedInput {
   if(this.mode==='csi'&&c==='<'){this.mode='mouse';return;}
   if(this.mode==='mouse'){
    if(c!=='M'&&c!=='m')return;
-   const m=!this.drop&&/^\x1b\[<(64|65);([0-9]{1,6});([0-9]{1,6})M$/.exec(this.frame);
-   this.reset();if(m)this.emit({type:'wheel',delta:m[1]==='64'?-3:3,x:Number(m[2]),y:Number(m[3])});return;
+   // #60 extends the framed grammar solely by frozen SGR primary-button reports:
+   // press button=0/M, drag button=32/M, release button=3 with the SGR release terminator m.
+   // Every other button/terminator/coordinate shape remains unmatched and therefore inert.
+   const frame=this.frame,drop=this.drop;
+   const wheel=/^\x1b\[<(64|65);([0-9]{1,6});([0-9]{1,6})M$/.exec(frame);
+   const press=/^\x1b\[<0;([0-9]{1,6});([0-9]{1,6})M$/.exec(frame);
+   const drag=/^\x1b\[<32;([0-9]{1,6});([0-9]{1,6})M$/.exec(frame);
+   const release=/^\x1b\[<3;([0-9]{1,6});([0-9]{1,6})m$/.exec(frame);
+   this.reset();if(drop)return;
+   if(wheel)this.emit({type:'wheel',delta:wheel[1]==='64'?-3:3,x:Number(wheel[2]),y:Number(wheel[3])});
+   else if(press)this.emit({type:'mouse',action:'press',x:Number(press[1]),y:Number(press[2])});
+   else if(drag)this.emit({type:'mouse',action:'drag',x:Number(drag[1]),y:Number(drag[2])});
+   else if(release)this.emit({type:'mouse',action:'release',x:Number(release[1]),y:Number(release[2])});
+   return;
   }
   if(!/[@-~]/.test(c))return;
   const sequence=this.frame,mode=this.mode,drop=this.drop,pasteStart=this.pastePrefix===4;this.reset();

@@ -47,6 +47,8 @@ An external plain JavaScript verifier imports these exports, supplies a four-res
 
 #62 bounds transcript-scroll layout cost in the TUI: per-entry wrap caching and binary-search anchor resolution keep wheel navigation viewport-bounded (design under `docs/design/transcript-scroll-layout.md`).
 
+#60 adds a draggable conversation scrollbar to the TUI: the final column is reserved as the body-row track (rendered-row geometry, blank when the transcript fits), with SGR primary press/drag/release positioning, unchanged wheel/PageUp/PageDown/Ctrl-End behavior, and safe degradation on terminals without drag-motion reports (design under `docs/design/transcript-scrollbar.md`).
+
 #53 makes `kimi-code` selectable: the Pan-owned Kimi adapter speaks Kimi Code's official OpenAI-compatible endpoint (`https://api.kimi.com/coding/v1`, fixed model `kimi-for-coding`, `KIMI_API_KEY` at call time); DeepSeek behavior is unchanged and never delegated to. Offline proof and limits: `docs/design/preview-kimi.md`.
 
 ## Run the TUI

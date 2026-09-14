@@ -36,3 +36,5 @@ These are verification clients, not Product implementations or live Provider res
 #53: [kimi/](kimi/README.md) freezes the Kimi wire transcripts and holds the task/boundary/switch/interactive drivers. `preview-first-task-v1.json` and the #35/#52 fixtures remain unchanged.
 
 #62: [scroll/](scroll/README.md) holds the long-transcript scroll PTY driver. Prior fixtures remain unchanged.
+
+#60: [scrollbar/](scrollbar/README.md) holds the long-transcript scrollbar PTY driver with per-event mouse timing records. Prior fixtures remain unchanged.
