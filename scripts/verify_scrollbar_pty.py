@@ -63,7 +63,7 @@ def drag_top(n,v,y):
 try:
  until('Confirm provider')
  # Empty transcript: the track column stays blank (no glyphs).
- glyphs=track_glyphs(columns,rows);assert all(g not in '█│' for g in glyphs.values()),glyphs
+ glyphs=track_glyphs(columns,rows);assert all(g not in ('█','│') for g in glyphs.values()),glyphs
  deliver('y\n');until('Write a task')
  deliver('demo\n');until('Completed',60)
  pump(1)
