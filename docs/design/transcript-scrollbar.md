@@ -27,7 +27,7 @@ Two frozen sentences required a documented reading:
 
 ## Results (candidate measurements)
 
-Recorded at Handoff in [`/private/tmp/wo60-evidence`](file:///private/tmp/wo60-evidence) (suite logs, scope output, PTY proof, demo bundle, `evidence-sha256.txt`). Headline candidate numbers: C-SBAR-04 harness p95 and the installed PTY per-event samples are reported there as raw data; both are algorithmic layout gates on Node 22.19.0 in this harness, not universal terminal-emulator latency claims.
+Recorded at Handoff under `/private/tmp/wo60-evidence` (suite logs, scope output, PTY proof, demo bundle, `evidence-sha256.txt`; an absolute local Evidence locator, not a repository artifact). Headline candidate numbers: C-SBAR-04 harness p95 and the installed PTY per-event samples are reported there as raw data; both are algorithmic layout gates on Node 22.19.0 in this harness, not universal terminal-emulator latency claims.
 
 ## Criterion map
 
