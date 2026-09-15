@@ -29,7 +29,7 @@ npm install /absolute/path/to/artifacts/pan-agent-0.1.0.tgz \
   --memory-root /absolute/path/to/memory
 ```
 
-The installed executable delegates to the compiled `runCli`. It has the same confirmation and Provider-use boundary described below. Decline confirmation to check startup without a model call. Accepted task submission requires an intentionally configured Provider credential; the #35 offline verifier instead injects the shipped Pan Faux at the existing API seam. No compiler, TS loader, Python, Pi, checkout link or install-time build is needed by the consumer.
+The installed executable delegates to compiled `runCli`. #49 removes startup y: exit from idle to inspect startup without a model call. Task submission requires an intentionally configured Provider credential; offline verification injects shipped Pan Faux at the existing API seam. No compiler, TS loader, Python, Pi, checkout link or install-time build is needed by the consumer.
 
 The ESM exports are:
 
@@ -66,7 +66,9 @@ npm --prefix typescript run agent -- \
   --thinking high
 ```
 
-The initial profile is `deepseek-v4-flash` with `high` thinking. Product tasks must explicitly pass `--kernel native`. Omission fails with exit 2 and `kernel_selection_required`; Pi fails with `kernel_not_in_product`; unknown selectors fail validation. These paths and `--help` perform no setup. `deepseek-v4-pro` and the listed thinking levels are explicit alternatives. `--memory-root` is required and must be disjoint from the workspace; it holds the durable three-lane memory (below). Construction, `--help`, confirmation rejection, blank input, `:help`, `:context`, `:runs`, `:replay RUN_ID`, and `:exit` make no Provider call. The first non-empty task submitted after confirmation is the first Provider call.
+The initial profile is `deepseek-v4-flash` with `high` thinking. Product tasks explicitly pass `--kernel native`; omission fails `kernel_selection_required`, Pi fails `kernel_not_in_product`, and unknown selectors fail validation. These paths and `--help` perform no setup. `deepseek-v4-pro` and listed thinking levels are explicit alternatives. `--memory-root` is required and disjoint from the workspace. Startup, blank input and local commands make no Provider call; the first non-empty submitted task is the first Provider call. There is no startup y.
+
+Ordinary eligible workspace read/write/edit is automatic. Protected/outside file operations and Shell require Allow once, default Deny. Shell alone offers `Trust shell for this session`; `:trust off` revokes it. Settings may add literal `protectedPaths`; restart to apply edits. Without an approval callback, protected/outside and Shell actions are denied. TTY approval uses arrows to choose, Enter to confirm, Ctrl-G to deny, Ctrl-C to cancel, and page keys/wheel to inspect the full escaped operation. See [ADR-0018](../docs/adr/0018-operation-scoped-authorization.md) for exact policy and Criteria 1.1 residual race/partial-effect limits: pathname checks are not atomic with syscalls and do not provide OS containment.
 
 Each task returns control to `Task>` and the next task continues the selected Kernel's typed transcript. `:context` reports the retained message count and owner. Ctrl-C during a task requests Kernel cancellation; Ctrl-C at the prompt closes the TUI.
 

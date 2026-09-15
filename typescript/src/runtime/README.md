@@ -3,6 +3,7 @@
 Runtime consumes protocol contracts and memory; it does not import concrete Providers/Tools or the UI.
 
 - [`session.ts`](session.ts): task admission and memory binding.
+- [`authorization.ts`](authorization.ts): #49 session-owned approval, identity binding, protected-path policy and Shell trust/revocation; see [ADR-0018](../../../docs/adr/0018-operation-scoped-authorization.md).
 - [`agent-kernel.ts`](agent-kernel.ts): Kernel contract, observations and limits.
 - [`native-kernel.ts`](native-kernel.ts): existing iterative model/tool execution.
 

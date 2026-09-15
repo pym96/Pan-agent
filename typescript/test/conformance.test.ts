@@ -145,7 +145,7 @@ async function harness(
 	afterObservation: (observation: SessionObservation) => void = () => {},
 ): Promise<GeneralAgentSession> {
 	const trustedLocal = createPanTrustedLocalTools(workspace);
-	return new GeneralAgentSession({
+	return new GeneralAgentSession({ authorization: { approval: async request => ({ requestId: request.requestId, decision: "allow-once" }) },
 		kernel: "native",
 		adapter,
 		tools: trustedLocal.tools,

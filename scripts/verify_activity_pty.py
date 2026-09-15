@@ -7,6 +7,7 @@ repo=Path(__file__).resolve().parents[1];d=a.output;d.mkdir(parents=True,exist_o
 workspace=d/'workspace';workspace.mkdir();memory=d/'memory';consumer=a.package.parent.parent
 subprocess.run(['/usr/bin/git','init','-q',str(workspace)],check=True)
 for source,target in [('scripts/fixtures/activity-driver.mjs','driver.mjs'),('scripts/wo35-consumer-guard.mjs','guard.mjs')]:shutil.copy2(repo/source,d/target)
+shutil.copy2(repo/'scripts/wo35-consumer-guard.mjs',d/'base-guard.mjs');shutil.copy2(repo/'scripts/wo49-consumer-guard.mjs',d/'guard.mjs')
 (d/'guard.json').write_text(json.dumps({'phase':'activity-pty','consumer':str(consumer),'allowed':[str(consumer),str(d)],'denied':[str(repo)],'report':str(d/'guard-report')}))
 env={'PATH':str(Path(a.node).parent)+':/usr/bin:/bin','HOME':str(d),'TERM':'xterm-256color','LANG':'en_US.UTF-8','NODE_NO_WARNINGS':'1','NODE_OPTIONS':'--import='+str(d/'guard.mjs'),'WO35_GUARD_CONFIG':str(d/'guard.json')}
 master,slave=pty.openpty();fcntl.ioctl(slave,termios.TIOCSWINSZ,struct.pack('HHHH',40,120,0,0))
@@ -38,7 +39,10 @@ def resize(c,r):
  columns,rows=c,r;fcntl.ioctl(slave,termios.TIOCSWINSZ,struct.pack('HHHH',r,c,0,0));os.kill(child.pid,signal.SIGWINCH);pump(.3)
 def archive_hash():return {str(f.relative_to(memory)):hashlib.sha256(f.read_bytes()).hexdigest() for f in sorted(memory.rglob('*')) if f.is_file()}
 try:
- wait(lambda s:s.get('phase')=='confirm');send('y\n');send('demo\n');wait(lambda s:s.get('phase')=='idle' and s.get('exchanges')==2)
+ wait(lambda s:s.get('phase')=='idle');send('demo\n')
+ for _ in range(3):
+  wait(lambda s:s.get('overlay',{}).get('title')=='Approval required');send('\x1b[B\r')
+ wait(lambda s:s.get('phase')=='idle' and s.get('exchanges')==2)
  tail=capture('default-tail-120');assert 'Tools · Activity' in tail and '12 completed · 3 failed' in tail
  send('\x1b[5~');send('\x1b[5~');normal=capture('default-120')
  s=state();digests=[e for e in s['entries'] if e['role']=='Tool'];assert len(digests)==1 and digests[0]['status']=='Activity',digests

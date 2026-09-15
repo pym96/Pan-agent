@@ -1,5 +1,8 @@
 import { spawn, type ChildProcessWithoutNullStreams } from "node:child_process";
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { AsyncLocalStorage } from "node:async_hooks";
+import { lstatSync } from 'node:fs';
+import { AuthorizedFile, workspaceAnchor } from "./authorized-file.ts";
+import { invocationAuthority, authorizationError, AuthorizationFailure, digest } from "../runtime/authorization.ts";
 import { dirname, isAbsolute, resolve } from "node:path";
 import type { AgentTool, AgentToolExecutionResult, ToolValidation } from "../protocol/agent-tool.ts";
 import { assertJsonObject, type JsonObject, type JsonValue } from "../protocol/canonical-protocol.ts";
@@ -29,6 +32,7 @@ type BashArguments = JsonObject & { readonly command: string; readonly timeout?:
 export interface PanTrustedLocalTools {
 	readonly tools: readonly AgentTool[];
 }
+const authorizedFiles = new AsyncLocalStorage<AuthorizedFile>();
 
 function schema(properties: JsonObject, required: readonly string[]): JsonObject {
 	return { type: "object", properties, required, additionalProperties: false };
@@ -128,7 +132,7 @@ function readTool(workspace: string): AgentTool<ReadArguments> {
 			if (signal.aborted) return failure("read_cancelled_before_effect", { status: "cancelled" });
 			const resolvedPath = toolPath(workspace, value.path);
 			try {
-				const source = await readFile(resolvedPath, { encoding: "utf8", signal });
+				const source = authorizedFiles.getStore()!.read();
 				const selected = value.offset === undefined && value.limit === undefined
 					? source
 					: source.split("\n").slice(
@@ -137,6 +141,7 @@ function readTool(workspace: string): AgentTool<ReadArguments> {
 					).join("\n");
 				return success(selected, { path: resolvedPath, bytes: Buffer.byteLength(selected, "utf8") });
 			} catch (error) {
+				if (error instanceof AuthorizationFailure) throw error;
 				return failure(`read_failed:${errorText(error)}`, {
 					path: resolvedPath,
 					status: signal.aborted ? "cancelled" : "failed",
@@ -166,14 +171,14 @@ function writeTool(workspace: string): AgentTool<WriteArguments> {
 			if (signal.aborted) return failure("write_cancelled_before_effect", { status: "cancelled" });
 			const resolvedPath = toolPath(workspace, value.path);
 			try {
-				await mkdir(dirname(resolvedPath), { recursive: true });
 				if (signal.aborted) return failure("write_cancelled_before_effect", { path: resolvedPath, status: "cancelled" });
-				await writeFile(resolvedPath, value.content, { encoding: "utf8", signal });
+				authorizedFiles.getStore()!.write(value.content);
 				return success(`Wrote ${Buffer.byteLength(value.content, "utf8")} bytes to ${value.path}`, {
 					path: resolvedPath,
 					bytes: Buffer.byteLength(value.content, "utf8"),
 				});
 			} catch (error) {
+				if (error instanceof AuthorizationFailure) throw error;
 				return failure(`write_failed:${errorText(error)}`, {
 					path: resolvedPath,
 					status: signal.aborted ? "cancelled" : "failed",
@@ -221,7 +226,7 @@ function editTool(workspace: string): AgentTool<EditArguments> {
 			if (signal.aborted) return failure("edit_cancelled_before_effect", { status: "cancelled" });
 			const resolvedPath = toolPath(workspace, value.path);
 			try {
-				const original = await readFile(resolvedPath, { encoding: "utf8", signal });
+				const original = authorizedFiles.getStore()!.read(true);
 				const matches = value.edits.map((operation) => {
 					const start = original.indexOf(operation.oldText);
 					if (start === -1) throw new Error("edit_target_not_found");
@@ -240,13 +245,14 @@ function editTool(workspace: string): AgentTool<EditArguments> {
 					updated = `${updated.slice(0, match.start)}${match.newText}${updated.slice(match.end)}`;
 				}
 				if (signal.aborted) return failure("edit_cancelled_before_effect", { path: resolvedPath, status: "cancelled" });
-				await writeFile(resolvedPath, updated, { encoding: "utf8", signal });
+				authorizedFiles.getStore()!.write(updated);
 				return success(`Applied ${matches.length} edit(s) to ${value.path}`, {
 					path: resolvedPath,
 					edits: matches.length,
 					bytes: Buffer.byteLength(updated, "utf8"),
 				});
 			} catch (error) {
+				if (error instanceof AuthorizationFailure) throw error;
 				return failure(`edit_failed:${errorText(error)}`, {
 					path: resolvedPath,
 					status: signal.aborted ? "cancelled" : "failed",
@@ -381,13 +387,37 @@ export function createPanTrustedLocalTools(
 	workspace: string,
 	sourceEnvironment: Readonly<NodeJS.ProcessEnv> = process.env,
 ): PanTrustedLocalTools {
-	const resolvedWorkspace = resolve(workspace);
+	const resolvedWorkspace = workspaceAnchor(workspace);
+	const enforce = (tool: AgentTool): AgentTool => ({ ...tool, async execute(invocation) {
+		let file: AuthorizedFile | undefined;
+		let audit: JsonObject | undefined;
+		try {
+			const checked = tool.validate(invocation.arguments);
+			if (!checked.ok) return failure(checked.error);
+			const args = JSON.parse(JSON.stringify(checked.value)) as JsonObject;
+			const authority = invocationAuthority();
+			const shellIdentity = () => { const s=lstatSync(resolvedWorkspace);if(!s.isDirectory()||s.isSymbolicLink())throw new AuthorizationFailure('unsupported_target');return digest(JSON.stringify([resolvedWorkspace,s.dev,s.ino])); };
+			if (invocation.signal.aborted) throw new AuthorizationFailure('approval_invalidated');
+			if (tool.name !== 'bash') file = new AuthorizedFile(toolPath(resolvedWorkspace, String(args.path)), invocation.signal);
+			audit = await authority.authorize(resolvedWorkspace, tool.name, invocation.toolCallId, args, file?.resourceIdentity ?? shellIdentity(), invocation.signal);
+			authority.assertCurrent(audit,invocation.signal);
+			file?.bindAuthorization(()=>authority.assertCurrent(audit!,invocation.signal));
+			if(tool.name==='bash' && audit.resourceIdentity!==shellIdentity())throw new AuthorizationFailure('approval_invalidated');
+			if (invocation.signal.aborted) throw new AuthorizationFailure('approval_invalidated');
+			const run = () => tool.execute({ ...invocation, arguments: args });
+			const result = file ? await authorizedFiles.run(file, run) : await run();
+			return { ...result, details: { ...(result.details as JsonObject ?? {}), authorization: audit, ...(file ? { effects: file.effects } : {}) } };
+		} catch (error) {
+			const result = authorizationError(error);
+			return { ...result, details: { ...(result.details as JsonObject), ...(audit ? { authorization: audit } : {}), ...(file ? { effects: file.effects } : {}) } };
+		} finally { file?.close(); }
+	} });
 	return {
 		tools: [
 			readTool(resolvedWorkspace),
 			writeTool(resolvedWorkspace),
 			editTool(resolvedWorkspace),
 			bashTool(resolvedWorkspace, sourceEnvironment),
-		],
+		].map(tool => enforce(tool as AgentTool)),
 	};
 }

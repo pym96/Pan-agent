@@ -4,6 +4,8 @@ Design documents record contracts and trade-offs; they do not establish implemen
 
 ## Authoritative product
 
+- [ADR-0018](../adr/0018-operation-scoped-authorization.md): #49 Criteria 1.1 operation-scoped authorization and the Human-accepted pure-Node race boundary; candidate verification pending.
+
 - [`native-module-layout.md`](native-module-layout.md): WorkOrder #41 source relocation, resolved dependency graph, public package/type checks and unchanged installed behavior; [`workorder-41-relocations.json`](workorder-41-relocations.json) records all source/import/locator mappings.
 
 - [`packed-product-consumer.md`](packed-product-consumer.md): WorkOrder #35 compiled private tarball, installed executable/exports and Node 22.19.0 offline consumer proof, accepted and landed; historical procedure retained unchanged.

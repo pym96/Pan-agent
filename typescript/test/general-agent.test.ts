@@ -57,7 +57,7 @@ test("C-PFREE-D103 Product help and invalid selectors fail before setup; explici
  const adapter = new FauxModelAdapter([response("injected")]);
  const kernel = new NativeKernel({ adapter, tools: [], limits: { maxModelTurns: 2, maxToolSteps: 2 } });
  const store = await RunArchiveStore.open(join(dir, "injected-memory"));
- const session = new GeneralAgentSession({ kernel, adapterIdentity: {provider: adapter.providerId, modelId: adapter.modelId, thinkingLevel: adapter.reasoningLevel}, systemPrompt: "injected", memory: { archiveStore: store, runbook: async () => ({content: "test", revision}) } });
+ const session = new GeneralAgentSession({ authorization: { approval: async request => ({ requestId: request.requestId, decision: "allow-once" }) }, kernel, adapterIdentity: {provider: adapter.providerId, modelId: adapter.modelId, thinkingLevel: adapter.reasoningLevel}, systemPrompt: "injected", memory: { archiveStore: store, runbook: async () => ({content: "test", revision}) } });
  try { const result = await session.runTask("injected lifecycle"); assert.equal(result.finalText, "injected"); assert.equal(result.archiveSealed, true); } finally { await session.close(); }
  console.log("D103 observed", JSON.stringify(effects));
 });
@@ -77,7 +77,7 @@ test("C-PFREE-D102 explicit Native CLI and real TUI complete write/read/verify w
  });
  const code = await runCli(["--kernel", "native", "--workspace", join(dir,"workspace"), "--memory-root", join(dir,"memory")], {
   output: out.output, createNativeAdapter: () => adapter,
-  startTui: (options) => runTui({...options, input}),
+  startTui: (options) => { options.session.setApprovalChannel(async request => ({ requestId: request.requestId, decision: 'allow-once' })); return runTui({...options, input}); },
  });
  assert.equal(code, 0); assert.equal(await readFile(join(dir, "workspace/proof.txt"), "utf8"), "product-isolated\n");
  assert.equal(adapter.state.exchangeCount, 4);
@@ -94,7 +94,7 @@ test("C-PFREE-D102 explicit Native CLI and real TUI complete write/read/verify w
 async function harness(adapter: ModelAdapter, configure?: (tools: readonly AgentTool[]) => readonly AgentTool[], observe?: (event: SessionObservation, session: GeneralAgentSession) => void) {
  const dir = await root(); const store = await RunArchiveStore.open(join(dir,"memory")); const events: SessionObservation[] = [];
  const tools = createPanTrustedLocalTools(join(dir,"workspace"), {HOME: "/tmp/pan-safe-home", PATH: process.env.PATH, DEEPSEEK_API_KEY: "PROVIDER_SECRET_CANARY", ANTHROPIC_API_KEY: "SECOND_PROVIDER_SECRET_CANARY"}).tools;
- const session = new GeneralAgentSession({kernel: "native", adapter, tools: configure?.(tools) ?? tools, systemPrompt: "offline P-D6", memory: { archiveStore: store, runbook: async () => ({content: "test", revision}) }, onObservation(event) { events.push(event); observe?.(event, session); } });
+ const session = new GeneralAgentSession({ authorization: { approval: async request => ({ requestId: request.requestId, decision: "allow-once" }) },kernel: "native", adapter, tools: configure?.(tools) ?? tools, systemPrompt: "offline P-D6", memory: { archiveStore: store, runbook: async () => ({content: "test", revision}) }, onObservation(event) { events.push(event); observe?.(event, session); } });
  return {dir, store, events, session};
 }
 

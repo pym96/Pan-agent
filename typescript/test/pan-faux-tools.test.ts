@@ -99,7 +99,7 @@ async function sessionFor(
 	} = {},
 ): Promise<{ session: GeneralAgentSession; archiveStore: RunArchiveStore }> {
 	const archiveStore = await RunArchiveStore.open(root.memory);
-	const session = new GeneralAgentSession({
+	const session = new GeneralAgentSession({ authorization: { approval: async request => ({ requestId: request.requestId, decision: "allow-once" }) },
 		kernel: "native",
 		adapter,
 		tools,
@@ -262,7 +262,7 @@ test("C-PFREE-B102/B103 Pan read-write-edit-bash complete through Native Events 
 		);
 		const bashSettlement = observations.find((event) => event.type === "tool.settled" && event.toolCallId === "bash-1");
 		const bashDetails = detailsOf(bashSettlement);
-		assert.equal(bashDetails.cwd, resolve(root.workspace));
+		assert.equal(bashDetails.cwd, await import('node:fs/promises').then(fs => fs.realpath(root.workspace)));
 		assert.equal(bashDetails.stdout, "two\n");
 		assert.equal(bashDetails.stderr, "diagnostic");
 		assert.equal(bashDetails.exitCode, 0);

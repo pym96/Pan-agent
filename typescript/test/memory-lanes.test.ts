@@ -52,7 +52,7 @@ async function sessionWithMemory(
 ): Promise<GeneralAgentSession> {
 	const trustedLocal = createPanTrustedLocalTools(directory);
 	const archiveStore = await RunArchiveStore.open(join(directory, "memory"));
-	return new GeneralAgentSession({
+	return new GeneralAgentSession({ authorization: { approval: async request => ({ requestId: request.requestId, decision: "allow-once" }) },
 		kernel: "native",
 		adapter,
 		tools: trustedLocal.tools,
@@ -176,7 +176,7 @@ test("cancelled and tool-failure runs are durably archived and sealed", async ()
 	const observations2: SessionObservation[] = [];
 	const trustedLocal = createPanTrustedLocalTools(directory2);
 	let session2: GeneralAgentSession;
-	session2 = new GeneralAgentSession({
+	session2 = new GeneralAgentSession({ authorization: { approval: async request => ({ requestId: request.requestId, decision: "allow-once" }) },
 		kernel: "native",
 		adapter: cancelling.adapter,
 		tools: trustedLocal.tools,
@@ -385,7 +385,7 @@ test("TUI :runs and :replay render archives with zero Provider calls and typed c
 	const observations: SessionObservation[] = [];
 	const archiveStore = await RunArchiveStore.open(join(directory, "memory"));
 	const trustedLocal = createPanTrustedLocalTools(directory);
-	const session = new GeneralAgentSession({
+	const session = new GeneralAgentSession({ authorization: { approval: async request => ({ requestId: request.requestId, decision: "allow-once" }) },
 		kernel: "native",
 		adapter,
 		tools: trustedLocal.tools,
@@ -634,7 +634,7 @@ test("runbook revision binding survives later edits and reverts", async () => {
 
 	const store = await RunArchiveStore.open(join(directory, "memory"));
 	const trustedLocal = createPanTrustedLocalTools(directory);
-	const session = new GeneralAgentSession({
+	const session = new GeneralAgentSession({ authorization: { approval: async request => ({ requestId: request.requestId, decision: "allow-once" }) },
 		kernel: "native",
 		adapter,
 		tools: trustedLocal.tools,
@@ -763,7 +763,7 @@ test("TUI :runs renders a typed ARCHIVE_ERROR for a corrupted manifest with zero
 	const { adapter, faux } = fauxAdapter();
 	const archiveStore = await RunArchiveStore.open(root);
 	const trustedLocal = createPanTrustedLocalTools(directory);
-	const session = new GeneralAgentSession({
+	const session = new GeneralAgentSession({ authorization: { approval: async request => ({ requestId: request.requestId, decision: "allow-once" }) },
 		kernel: "native",
 		adapter,
 		tools: trustedLocal.tools,

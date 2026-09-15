@@ -11,7 +11,7 @@ export async function runCompactTui(options: TuiOptions): Promise<number> {
 	if (((options.input ?? process.stdin) as {isTTY?:boolean}).isTTY && ((options.output ?? process.stdout) as {isTTY?:boolean}).isTTY) return runDailyWorkspace(options);
 	const maxAttachmentBytes = validateAttachmentLimit(options.maxAttachmentBytes);
 	const presentation = options.presentation!;
-	let phase: "confirm" | "idle" | "running" | "command" | "closed" = "confirm";
+	let phase: "idle" | "running" | "command" | "closed" = "idle";
 	let cancelled = false, ending = false;
 	let resolveClosed!: () => void;
 	const closed = new Promise<void>(resolve => { resolveClosed = resolve; });
@@ -21,12 +21,13 @@ export async function runCompactTui(options: TuiOptions): Promise<number> {
 	function finish(): void { attachments?.close(); phase = "closed"; terminal.setPrompt(""); resolveClosed(); }
 	function interrupt(): void {
 		if (phase === "running") { cancelled = true; write("Cancellation requested; waiting for settlement."); options.session.cancel(); }
-		else if (phase !== "command") { if (phase === "confirm") write("Cancelled before Provider use."); finish(); }
+		else if (phase !== "command") { finish(); }
 	}
 	function end(): void { ending = true; if (phase === "running") interrupt(); else if (phase !== "command") finish(); }
 	async function command(text: string): Promise<void> {
 		const store = options.archiveStore;
 		if (text === ":exit") { finish(); return; }
+		if (text === ":trust off") { options.session.revokeShellTrust(); write("Shell session trust revoked."); return; }
 		if (text === ":help") { write(":details inspect · :context context · :runs history · :replay RUN_ID replay · :exit quit; Ctrl-C cancels a running task and retains your draft. @ after whitespace: file picker; Esc: literal @query; Ctrl-P: attachment preview; Ctrl-R: remove last; :attachments / :preview / :remove N."); return; }
 		if (text === ":attachments") { attachments.summary(); return; }
 		if (text === ":preview") { attachments.preview(); return; }
@@ -66,11 +67,6 @@ export async function runCompactTui(options: TuiOptions): Promise<number> {
 	terminal = new TerminalInput(options.input ?? process.stdin, options.output ?? process.stdout, text => {
 		if (phase === "running" || phase === "command") { write("Busy — draft retained; press Enter after this task finishes."); return false; }
 		if (phase === "closed") return false;
-		if (phase === "confirm") {
-			if (!["y", "yes"].includes(text.trim().toLowerCase())) { write("Cancelled before Provider use."); finish(); }
-			else { phase = "idle"; write(":help for commands · :details for run details"); terminal.setPrompt("You > "); }
-			return true;
-		}
 		if (!text.trim()) { write("Task must not be blank; no Provider call was made."); return true; }
 		const isCommand = text.trim().startsWith(":");
 		const prepared = isCommand ? text : attachments.prepare(text);
@@ -92,7 +88,8 @@ export async function runCompactTui(options: TuiOptions): Promise<number> {
 	write("SHELL trusted-local: host-user authority; workspace is cwd, not containment or an OS sandbox.");
 	write("The selected model is called only for a confirmed nonblank task; local commands make no model calls.");
 	write(`Attachments: @ picker · Ctrl-P preview · Ctrl-R remove last · ${maxAttachmentBytes} byte aggregate local policy; snapshots are sent and archived only on submit.`);
-	terminal.setPrompt("Confirm provider and trusted-local workspace [y/N]> ");
+	write("Protected/outside file and Shell actions without an approval channel are denied.");
+	terminal.setPrompt("You > ");
 	try { await closed; return 0; }
 	finally { terminal.close(); await options.session.close(); (options.output ?? process.stdout).write("General Agent TUI closed.\n"); }
 }

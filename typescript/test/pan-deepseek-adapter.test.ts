@@ -603,7 +603,7 @@ async function publicHarness(
 	await writeFile(join(workspace, "a.txt"), "A", "utf8");
 	const archiveStore = await RunArchiveStore.open(memory);
 	const observations: SessionObservation[] = [];
-	const session = new GeneralAgentSession({
+	const session = new GeneralAgentSession({ authorization: { approval: async request => ({ requestId: request.requestId, decision: "allow-once" }) },
 		kernel: "native",
 		adapter: new PanDeepSeekModelAdapter(undefined, { transport }),
 		tools: createPanTrustedLocalTools(workspace, { PATH: process.env.PATH }).tools,

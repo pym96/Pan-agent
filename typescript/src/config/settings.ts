@@ -4,6 +4,7 @@ import { homedir } from "node:os";
 import { dirname, join } from "node:path";
 import { isDeepSeekModelId, type DeepSeekModelId, type DeepSeekThinkingLevel } from "../providers/deepseek/deepseek-profile.ts";
 import { KIMI_MODEL_ID, type KimiModelId } from "../providers/kimi/kimi-profile.ts";
+import { validateProtectedPaths } from '../runtime/authorization.ts';
 
 export const PAN_SETTINGS_SCHEMA_VERSION = 1;
 export const PAN_CREDENTIAL_SOURCES = ["environment", "keychain"] as const;
@@ -13,6 +14,7 @@ export type PanProvider = (typeof PAN_PROVIDERS)[number];
 
 /** Ordinary non-secret preferences. No credential value, endpoint or arbitrary provider is representable. */
 export interface PanSettings {
+	readonly protectedPaths?: readonly string[];
 	readonly schemaVersion: typeof PAN_SETTINGS_SCHEMA_VERSION;
 	readonly provider: PanProvider;
 	readonly modelId: DeepSeekModelId | KimiModelId;
@@ -36,7 +38,8 @@ export function parsePanSettings(body: string): PanSettings {
 	}
 	if (typeof value !== "object" || value === null || Array.isArray(value)) throw new Error("settings_invalid: shape");
 	const record = value as Record<string, unknown>;
-	const allowed = new Set(["schemaVersion", "provider", "modelId", "thinkingLevel", "credentialSource"]);
+	const allowed = new Set(["schemaVersion", "provider", "modelId", "thinkingLevel", "credentialSource", "protectedPaths"]);
+	if ('protectedPaths' in record) validateProtectedPaths(record.protectedPaths);
 	for (const key of Object.keys(record)) {
 		if (allowed.has(key)) continue;
 		if (SECRET_OR_ENDPOINT_KEY.test(key)) throw new Error(`settings_invalid: forbidden key ${key}`);
@@ -75,6 +78,7 @@ export async function loadPanSettings(home?: string): Promise<PanSettings | unde
 
 /** Mode 0700 directory, mode 0600 file, atomic rename. Only ordinary preferences are serializable. */
 export async function savePanSettings(settings: PanSettings, home?: string): Promise<string> {
+	if (settings.protectedPaths !== undefined) validateProtectedPaths(settings.protectedPaths);
 	const path = panSettingsPath(home);
 	await mkdir(dirname(path), { recursive: true, mode: 0o700 });
 	await chmod(dirname(path), 0o700).catch(() => undefined);

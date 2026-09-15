@@ -10,6 +10,7 @@ subprocess.run(['/usr/bin/git','init','-q',str(workspace)],check=True)
 master,slave=pty.openpty();fcntl.ioctl(slave,termios.TIOCSWINSZ,struct.pack('HHHH',rows,columns,0,0))
 driver=d/'driver.mjs';guard=d/'guard.mjs';shutil.copy2(root/'scripts/fixtures/scrollbar/scrollbar-pty-driver.mjs',driver);shutil.copy2(root/'scripts/wo35-consumer-guard.mjs',guard)
 consumer=a.package.parent.parent
+shutil.copy2(root/'scripts/wo35-consumer-guard.mjs',d/'base-guard.mjs');shutil.copy2(root/'scripts/wo49-consumer-guard.mjs',guard)
 config=d/'guard.json';config.write_text(json.dumps({'phase':'scrollbar-pty','consumer':str(consumer),'allowed':[str(consumer),str(d)],'denied':[str(root)],'report':str(d/'guard-report')}))
 env={'PATH':str(Path(a.node).parent)+':/usr/bin:/bin','HOME':str(d),'TERM':'xterm-256color','LANG':'en_US.UTF-8','NODE_NO_WARNINGS':'1','NODE_OPTIONS':'--import='+str(guard),'WO35_GUARD_CONFIG':str(config)}
 child=subprocess.Popen([a.node,str(driver),str(a.package),str(workspace),str(memory)],stdin=slave,stdout=slave,stderr=slave,cwd=consumer,env=env)
@@ -66,10 +67,9 @@ def captured_drag_top(n,v,y,grab_offset):
  size,_,max_top=g;p=max(0,min(v-1,y-2));start=max(0,min(v-size,p-grab_offset))
  return 0 if v==size else js_round(start*max_top/(v-size))
 try:
- until('Confirm provider')
+ until('Write a task')  # #49 prospective startup: no session-wide y.
  # Empty transcript: the track column stays blank (no glyphs).
  glyphs=track_glyphs(columns,rows);assert all(g not in ('█','│') for g in glyphs.values()),glyphs
- deliver('y\n');until('Write a task')
  deliver('demo\n');until('Completed',60)
  pump(1)
  # Tail follow: final line visible, thumb at the bottom of the track.

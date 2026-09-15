@@ -10,6 +10,7 @@ subprocess.run(['/usr/bin/git','init','-q',str(workspace)],check=True)
 master,slave=pty.openpty();fcntl.ioctl(slave,termios.TIOCSWINSZ,struct.pack('HHHH',rows,columns,0,0))
 driver=d/'driver.mjs';guard=d/'guard.mjs';shutil.copy2(root/'scripts/fixtures/scroll/scroll-pty-driver.mjs',driver);shutil.copy2(root/'scripts/wo35-consumer-guard.mjs',guard)
 consumer=a.package.parent.parent
+shutil.copy2(root/'scripts/wo35-consumer-guard.mjs',d/'base-guard.mjs');shutil.copy2(root/'scripts/wo49-consumer-guard.mjs',guard)
 config=d/'guard.json';config.write_text(json.dumps({'phase':'scroll-pty','consumer':str(consumer),'allowed':[str(consumer),str(d)],'denied':[str(root)],'report':str(d/'guard-report')}))
 env={'PATH':str(Path(a.node).parent)+':/usr/bin:/bin','HOME':str(d),'TERM':'xterm-256color','LANG':'en_US.UTF-8','NODE_NO_WARNINGS':'1','NODE_OPTIONS':'--import='+str(guard),'WO35_GUARD_CONFIG':str(config)}
 child=subprocess.Popen([a.node,str(driver),str(a.package),str(workspace),str(memory)],stdin=slave,stdout=slave,stderr=slave,cwd=consumer,env=env)
@@ -36,8 +37,7 @@ def resize(cw,rh):
  modes=screen.modes.copy();screen=module.Screen(cw,rh);screen.modes=modes
  fcntl.ioctl(slave,termios.TIOCSWINSZ,struct.pack('HHHH',rh,cw,0,0));os.kill(child.pid,signal.SIGWINCH);pump(.3)
 try:
- until('Confirm provider')
- deliver('y\n');until('Write a task')
+ until('Write a task')  # #49 prospective startup: no session-wide y.
  deliver('demo\n');until('Completed',60)
  pump(.5)
  def screen_text():

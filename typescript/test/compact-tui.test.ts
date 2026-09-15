@@ -124,7 +124,7 @@ test("C-TUI-05 banner and validation diagnostics safely display hostile allowed 
 	assert.equal(await runCli(["--kernel","bad\x1b]52;c;YQ==\x07\r你 › "],{output}),2);
 	assert.doesNotMatch(text,/[\x00-\x09\x0b-\x1f\x7f-\x9f]/);assert.match(text,/\\u001b/);
 	const input=new PassThrough();const view=createCompactPresentation();const session={kernelKind:"native",close:async()=>{}} as GeneralAgentSession;
-	output.on("data",chunk=>{if(String(chunk).includes("[y/N]> "))setImmediate(()=>input.write("n\n"));});
+	output.on("data",chunk=>{if(String(chunk)==="You > ")setImmediate(()=>input.write(":exit\n"));});
 	await runTui({session,presentation:view,provider:"正常\x1b[2J",model:"模型\u202e",thinking:"HIDDEN_THINK",workspace:"目录\r你 › ",input,output});
 	assert.doesNotMatch(text,/HIDDEN_THINK|[\x00-\x09\x0b-\x1f\u202e]/);assert.match(text,/host-user authority/);assert.match(text,/not containment or an OS sandbox/);
 });

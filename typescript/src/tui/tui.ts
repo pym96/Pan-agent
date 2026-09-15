@@ -1,5 +1,6 @@
 import { runCompactTui } from "./compact-tui.ts";
 import type { CompactPresentation } from "./presentation.ts";
+import { createCompactPresentation } from './presentation.ts';
 import { createInterface } from "node:readline/promises";
 import type { Readable, Writable } from "node:stream";
 import type { RunArchiveStore } from "../memory/run-archive.ts";
@@ -85,6 +86,7 @@ export async function runTui(options: TuiOptions): Promise<number> {
 	const output = options.output ?? process.stdout;
 	const inputIsTty = "isTTY" in input && input.isTTY === true;
 	const outputIsTty = "isTTY" in output && output.isTTY === true;
+	if(inputIsTty && outputIsTty) return runCompactTui({...options,presentation:createCompactPresentation(line=>output.write(line+'\n'))});
 	const readline = createInterface({ input, output, terminal: inputIsTty && outputIsTty });
 	let closing = false;
 	let running = false;
@@ -112,19 +114,6 @@ export async function runTui(options: TuiOptions): Promise<number> {
 	writeLine("SHELL trusted-local: host-user authority; workspace is cwd, not containment or an OS sandbox.");
 
 	try {
-		let confirmation: string;
-		try {
-			confirmation = await readline.question("Confirm provider and trusted-local workspace [y/N]> ");
-		} catch (error) {
-			if (!closing && !isReadlineClosedError(error)) throw error;
-			writeLine("Cancelled before Provider use.");
-			return 0;
-		}
-		const confirmed = confirmation.trim().toLowerCase();
-		if (confirmed !== "y" && confirmed !== "yes") {
-			writeLine("Cancelled before Provider use.");
-			return 0;
-		}
 		writeLine("COMMANDS :help | :context | :runs | :replay RUN_ID | :exit");
 		while (!closing) {
 			let task: string;
@@ -140,6 +129,7 @@ export async function runTui(options: TuiOptions): Promise<number> {
 				continue;
 			}
 			if (trimmed === ":exit") break;
+			if (trimmed === ":trust off") { options.session.revokeShellTrust(); writeLine('Shell session trust revoked.'); continue; }
 			if (trimmed === ":help") {
 				writeLine("Submit a task, inspect retained Pi context with :context, list sealed Run Archives with :runs, replay one with :replay RUN_ID (zero Provider calls and zero tool effects), or exit with :exit.");
 				continue;

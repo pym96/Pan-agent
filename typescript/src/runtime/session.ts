@@ -14,6 +14,7 @@ import {
 import { NativeKernel } from "./native-kernel.ts";
 import type { ArchiveSettledState, RunArchiveStore, RunArchiveWriter } from "../memory/run-archive.ts";
 import type { RunbookSnapshot } from "../memory/runbook.ts";
+import { SessionAuthorization, type AuthorizationOptions, type ApprovalChannel } from './authorization.ts';
 
 export type {
 	AgentKernel,
@@ -51,6 +52,7 @@ export interface SessionMemory {
 }
 
 interface GeneralAgentSessionOptionsBase {
+	readonly authorization?: AuthorizationOptions;
 	readonly systemPrompt: string;
 	readonly memory: SessionMemory;
 	readonly limits?: Partial<KernelLimits>;
@@ -77,6 +79,7 @@ export type GeneralAgentSessionOptions = InjectedGeneralAgentSessionOptions | Na
 
 /** Product boundary for admission, Runbook binding and durable Run Archive settlement. */
 export class GeneralAgentSession {
+	private readonly authorization: SessionAuthorization;
 	private readonly kernel: AgentKernel;
 	private readonly onObservation: ObservationSink;
 	private readonly onProgress?: ProgressSink;
@@ -88,8 +91,10 @@ export class GeneralAgentSession {
 	private archiveChain: Promise<void> = Promise.resolve();
 	private archiveError?: unknown;
 	private closed = false;
+	private admitting = false;
 
 	constructor(options: GeneralAgentSessionOptions) {
+		this.authorization = new SessionAuthorization(options.authorization);
 		const selector = (options as { readonly kernel?: unknown }).kernel;
 		if (selector === undefined) throw new Error("kernel_selection_required: select kernel native explicitly");
 		if (selector === "pi") throw new Error("kernel_not_in_product: see references/pi/README.md");
@@ -105,7 +110,7 @@ export class GeneralAgentSession {
 			const nativeOptions = options as NativeGeneralAgentSessionOptions;
 			this.kernel = new NativeKernel({
 				adapter: nativeOptions.adapter,
-				tools: nativeOptions.tools,
+				tools: nativeOptions.tools.map(tool => this.authorization.wrap(tool, () => this.activeWriter?.runId)),
 				limits,
 				initialMessages: nativeOptions.initialMessages,
 			});
@@ -136,7 +141,9 @@ export class GeneralAgentSession {
 	async runTask(task: string): Promise<TaskRunResult> {
 		if (this.closed) throw new Error("GeneralAgentSession is closed");
 		if (task.trim().length === 0) throw new Error("Task must not be blank");
-		if (this.isRunning) throw new Error("A task is already running");
+		if (this.isRunning || this.admitting) throw new Error("A task is already running");
+		this.admitting = true;
+		try {
 
 		const runbook = await this.memory.runbook();
 		const writer = await this.memory.archiveStore.beginRun();
@@ -176,12 +183,17 @@ export class GeneralAgentSession {
 		const sealed = await this.settleArchive(archiveStateFor(outcome.status), outcome.reason);
 		this.activeWriter = undefined;
 		return { runId: writer.runId, ...outcome, archiveSealed: sealed !== undefined };
+		} finally { this.admitting = false; }
 	}
 
 	cancel(): void { this.kernel.cancel(); }
+	/** Trusted application-side UI seam; never obtained from model messages or replay. */
+	setApprovalChannel(channel: ApprovalChannel | undefined): void { this.authorization.setChannel(channel); }
+	revokeShellTrust(): void { this.authorization.revoke(); }
 
 	async close(): Promise<void> {
 		if (this.closed) return;
+		this.authorization.close();
 		await this.kernel.close();
 		await this.cleanup?.();
 		this.closed = true;

@@ -13,6 +13,7 @@ import { scrollbarGeometry, scrollbarDragTop, scrollbarCapturedDragTop, type Scr
 import { FramedInput } from './framed-input.ts';
 import { ToolActivity } from './tool-activity.ts';
 import type { InputKey } from './terminal-input.ts';
+import type { ApprovalRequest, ApprovalDecision, ApprovalChoice } from '../runtime/authorization.ts';
 
 type Focus='composer'|'attachments'|'transcript';
 type Entry={role:'You'|'Pan'|'Tool';text:string;status:string};
@@ -22,10 +23,11 @@ type Picker={editor:DailyEditor;names:readonly string[];index:number;loading:boo
 /** TTY-only projection. Session, capture authority and archive implementation remain external. */
 export class DailyWorkspace {
  readonly editor=new DailyEditor();
- phase:'confirm'|'idle'|'running'|'cancelling'|'command'|'closed'='confirm';
+ phase:'idle'|'running'|'cancelling'|'command'|'closed'='idle';
  focus:Focus='composer'; selected:AttachmentSnapshot[]=[]; chip=0;
  entries:Entry[]=[]; picker?:Picker; overlay?:{title:string;lines:string[];offset:number;focus:Focus};
- safePaste=false; notice='Confirm provider and trusted-local workspace: type y then Enter';
+ safePaste=false; notice='Ready · Operations requiring permission ask before execution';
+ approval?:{request:ApprovalRequest;choice:number;choices:ApprovalChoice[];settle:(choice:ApprovalChoice)=>void};
  toolCursor=0; private revealTool=false;
  private readonly activities=new Map<Entry,ToolActivity>();
  private activityEntry?:Entry;
@@ -54,6 +56,18 @@ export class DailyWorkspace {
   this.limit=validateAttachmentLimit(options.maxAttachmentBytes);this.color=!process.env.NO_COLOR && process.env.TERM!=='dumb';
   options.presentation!.attach(line=>{if(this.replaying)return;if(this.overlay)this.overlay.lines.push(line);else this.notice=line;this.draw();});
   attachWorkspace(options.presentation!,{observe:e=>this.observe(e),progress:e=>this.progress(e),settle:r=>this.settle(r)});
+  options.session.setApprovalChannel?.((request,signal)=>this.requestApproval(request,signal));
+ }
+ private requestApproval(request:ApprovalRequest,signal:AbortSignal):Promise<ApprovalDecision>{
+  if(signal.aborted)return Promise.resolve({requestId:request.requestId,decision:'deny'});
+  const previous=this.overlay,focus=this.focus;this.clearDrag();
+  const choices:ApprovalChoice[]=request.tool==='bash'?['deny','allow-once','trust-shell']:['deny','allow-once'];
+  this.overlay={title:'Approval required',lines:['Choices: Deny / Allow once',...(request.tool==='bash'?['Or: Trust shell for this session']:[]),`Tool: ${terminalText(request.tool)}`,`Workspace: ${terminalText(request.workspace)}`,`Reason: ${request.reason}`,'Operation / target (scroll to inspect all):',terminalText(request.target),...request.metadata,`Request: ${request.requestId}`,...(request.tool==='bash'?['Shell has host-user file/process/network authority, including protected and outside-workspace resources. Session trust applies ONLY to Shell; :trust off revokes it.']:[]),'End of operation details'],offset:0,focus};
+  return new Promise(resolve=>{
+   let settled=false;
+   const settle=(decision:ApprovalChoice)=>{if(settled)return;settled=true;signal.removeEventListener('abort',abort);this.approval=undefined;this.overlay=previous;this.focus=focus;this.barrier=true;resolve({requestId:request.requestId,decision});this.draw();};
+   const abort=()=>settle('deny');this.approval={request,choice:0,choices,settle};signal.addEventListener('abort',abort,{once:true});if(signal.aborted)abort();this.draw();
+  });
  }
  start():void {this.input.setRawMode(true);this.output.write('\x1b[?1049h\x1b[?2004h\x1b[?1000h\x1b[?1002h\x1b[?1006h\x1b[?25h');this.input.on('data',this.data);this.input.on('end',this.end);this.output.on('resize',this.resize);this.input.resume();this.draw();}
  dispose():void {this.clearDrag();this.picker?.abort.abort();this.input.off('data',this.data);this.input.off('end',this.end);this.output.off('resize',this.resize);this.input.setRawMode(this.raw);this.input.pause();this.output.write('\x1b[0m\x1b[?1006l\x1b[?1002l\x1b[?1000l\x1b[?2004l\x1b[?25h\x1b[?1049l');this.output.write(`Pan closed · Run ${terminalText(this.runId)} · Archives ${terminalText(this.options.archiveStore?.root??'not configured')}\n`);}
@@ -64,8 +78,8 @@ export class DailyWorkspace {
   if(event.type==='key')this.key(event.text,event.key);
   else if(event.type==='wheel')this.wheel(event.delta,event.x,event.y);
   else if(event.type==='mouse')this.mouse(event.action,event.x,event.y);
-  else if(event.type==='paste-start'){this.closePicker(false);this.overlay=undefined;}
-  else {this.editor.insert(event.text);this.focus='composer';this.notice='Pasted draft · Not submitted';this.draw();}
+  else if(event.type==='paste-start'){if(!this.approval){this.closePicker(false);this.overlay=undefined;}}
+  else {if(this.approval)return;this.editor.insert(event.text);this.focus='composer';this.notice='Pasted draft · Not submitted';this.draw();}
  });
  get inputState(){return this.parser.state;}
  private readonly data=(data:Buffer|string):void=>{
@@ -198,6 +212,15 @@ export class DailyWorkspace {
   const enter=key.name==='return'||key.name==='enter';
   if((enter||key.name==='tab')&&this.barrier)return;
   if(key.ctrl&&key.name==='d'){this.end();return;}
+  if(this.approval){const p=this.approval;
+   if(key.ctrl&&key.name==='c'){this.cancel();return;}
+   if(key.ctrl&&key.name==='g'){p.settle('deny');return;}
+   if(enter){p.settle(p.choices[p.choice]!);return;}
+   if(key.name==='up'||key.name==='left')p.choice=Math.max(0,p.choice-1);
+   else if(key.name==='down'||key.name==='right')p.choice=Math.min(p.choices.length-1,p.choice+1);
+   else if(this.overlay&&(key.name==='pageup'||key.name==='pagedown'))this.overlay.offset=Math.max(0,this.overlay.offset+(key.name==='pageup'?-5:5));
+   this.draw();return;
+  }
   if(key.ctrl&&key.name==='v'&&!this.picker&&!this.overlay){this.safePaste=!this.safePaste;this.focus='composer';this.draw();return;}
   if(this.overlay){if(enter||key.ctrl&&key.name==='g'||key.ctrl&&key.name==='c'){this.focus=this.overlay.focus;this.overlay=undefined;this.barrier=true;}else if(key.name==='up'||key.name==='pageup')this.overlay.offset=Math.max(0,this.overlay.offset-(key.name==='up'?1:5));else if(key.name==='down'||key.name==='pagedown')this.overlay.offset=Math.min(Math.max(0,this.overlay.lines.length-1),this.overlay.offset+(key.name==='down'?1:5));this.draw();return;}
   if(this.picker){const p=this.picker;if(key.ctrl&&key.name==='g'){this.closePicker(true);return;}if(key.ctrl&&key.name==='c'){this.closePicker(false);return;}if(enter){this.notice='Tab Attach · Ctrl-G Back';this.draw();return;}if(p.capturing)return;if(key.name==='tab'&&!key.shift){this.select();return;}
@@ -226,7 +249,7 @@ export class DailyWorkspace {
  private send():void {
   if(!this.supported()){this.notice='Resize terminal · Not submitted';this.draw();return;}
   if(['running','cancelling','command'].includes(this.phase)){this.notice='Busy — draft retained';this.draw();return;}
-  const text=this.editor.text;if(this.phase==='confirm'){if(text.trim().toLowerCase()==='y'||text.trim().toLowerCase()==='yes'){this.phase='idle';this.editor.clear();this.barrier=true;this.notice='Ready · Not submitted';}else this.notice='Type y to confirm; :exit to quit';if(text.trim()===':exit')this.finish();this.draw();return;}
+  const text=this.editor.text;
   if(!text.trim()){this.notice='Write a task · Not submitted';this.draw();return;}
   this.barrier=true;
   // Pasted multiline colon text is a task on explicit send, never a command script.
@@ -241,7 +264,8 @@ export class DailyWorkspace {
   if(text===':preview'||text===':attachments'){this.preview();return;}
   const focus=this.focus;this.overlay={title:'View only · '+text.split(' ')[0],lines:[],offset:0,focus};
   try{
-   if(text===':details'){this.options.presentation!.details();if(focus==='transcript'){const tool=this.entries.filter(e=>e.role==='Tool')[this.toolCursor];if(tool)this.overlay.offset=Math.max(0,this.overlay.lines.findIndex(line=>line.includes(tool.text)));}}
+   if(text===':trust off'){this.options.session.revokeShellTrust();this.overlay.lines.push('Shell session trust revoked. Next command requires Allow once.');}
+   else if(text===':details'){this.options.presentation!.details();if(focus==='transcript'){const tool=this.entries.filter(e=>e.role==='Tool')[this.toolCursor];if(tool)this.overlay.offset=Math.max(0,this.overlay.lines.findIndex(line=>line.includes(tool.text)));}}
    else if(text===':help')this.overlay.lines.push('Enter sends an idle nonblank draft; busy Enter never queues.','Alt-Enter: newline. Ctrl-V: safe paste/edit mode; Ctrl-G exits it.','@ file picker; arrows choose; Tab attaches; Enter only hints; Ctrl-P preview; Ctrl-R remove.','Wheel/PageUp/Down: conversation. Ctrl-End: follow tail. Up/Down: prompt history at draft edges.','Scrollbar: the final column is the track; primary press/drag jumps, release ends. A terminal without drag motion still positions on press.','Compatibility: raw Esc reserves a frame prefix, never Back. Ctrl-G backs out; pending tails drain before raw typing resumes. Paste enters literal data.','Ctrl-C cancels once; Ctrl-D exits even with pending input; :exit quits. :details / :runs / :replay ID are view only.');
    else if(text===':context')this.overlay.lines.push(`Context messages ${this.options.session.contextMessageCount}`);
    else if(text===':runs'){const store=this.options.archiveStore;if(!store)this.overlay.lines.push('Archives not configured');else{const entries=await readdir(join(store.root,'runs'),{withFileTypes:true});this.overlay.lines.push('Archived records · view only');if(!entries.length)this.overlay.lines.push('No submitted run yet');for(const e of entries)if(e.isDirectory()&&/^[A-Za-z0-9_-]+$/.test(e.name))this.overlay.lines.push(terminalText(e.name));}}
@@ -275,7 +299,7 @@ export class DailyWorkspace {
     this.ensureLayout(w-3);
     const all=this.contentRows;
     const toolMarkerRow=selectedTool?this.layoutStarts[this.entries.indexOf(selectedTool)]!:-1;
-    if(!all.length){const intro=this.phase==='confirm'?['Confirm provider and trusted-local workspace [y/N]','Provider: '+terminalText(this.options.provider),'Workspace: '+terminalText(this.options.workspace),'Host-user tools; cwd is not an OS sandbox.']:['Write a task. @ opens files; Tab attaches; Enter sends.'];body=intro.flatMap(s=>wrap(s,w-3).map(text=>({text,kind:'Pan'})));}
+    if(!all.length){const intro=['Write a task. @ opens files; Tab attaches; Enter sends.','Provider: '+terminalText(this.options.provider),'Workspace: '+terminalText(this.options.workspace),'Host-user tools; cwd is not an OS sandbox.','Protected/outside files and Shell ask before execution.'];body=intro.flatMap(s=>wrap(s,w-3).map(text=>({text,kind:'Pan'})));}
     else {
      if(this.revealTool&&selectedTool){this.follow=false;this.top=Math.max(0,(toolMarkerRow>=0?toolMarkerRow:0)-Math.floor(bodyRows/2));this.anchor=all[this.top]?.anchor;}
      this.revealTool=false;
@@ -290,10 +314,10 @@ export class DailyWorkspace {
    if(p){const safe=terminalText(p.editor.text),before=terminalText(p.editor.text.slice(0,p.editor.caret));const col=graphemes(before).reduce((n,g)=>n+width(g),0);const start=Math.max(0,col-(w-5));let off=0,skipped=0;const visible=graphemes(safe).filter(g=>{const n=off;off+=width(g);if(n<start){skipped=off;return false;}return true;}).join('');rows.push({text:`File ${p.capturing?'Capturing':p.loading?'Loading':`${matches.length? p.index+1:0}/${matches.length}`} · Tab Attach · Ctrl-G Back`});cursor={row:rows.length,col:Math.min(w-1,2+col-skipped)};rows.push({text:'@ '+visible,kind:'focus'});const count=pickerRows-2;const begin=Math.max(0,p.index-count+1);for(let i=0;i<count;i++){const index=begin+i;rows.push({text:matches[index]===undefined?'':`${index===p.index?'>':' '} ${terminalText(matches[index]!)}`,kind:index===p.index?'focus':undefined});}}
    rows.push({text:'─'.repeat(w),kind:'secondary'});
    const chips=this.chips();let chipText=chips.join(' ');if(this.focus==='attachments')chipText=chips.slice(this.chip).join(' ');rows.push({text:chipText?clip(chipText,w-1)+(graphemes(chipText).reduce((n,g)=>n+width(g),0)>w-1?'…':''):'No attachments',kind:this.focus==='attachments'?'focus':'secondary'});
-   const busy=this.phase==='running'||this.phase==='cancelling';rows.push({text:this.phase==='confirm'?this.notice:busy?`${this.phase==='cancelling'?'Cancelling':'Busy'} — draft retained · Ctrl-C cancel`:this.historyIndex!==undefined?'History draft — not submitted':this.safePaste?'SAFE PASTE / EDIT · Ctrl-G exits; then Enter Send':this.editor.text.trim()?'Not submitted · Enter Send':'Not submitted · Write a task',kind:'secondary'});
+   const busy=this.phase==='running'||this.phase==='cancelling';rows.push({text:this.approval?'Selected: '+({'deny':'Deny','allow-once':'Allow once','trust-shell':'Trust shell for this session'}[this.approval.choices[this.approval.choice]!]):busy?`${this.phase==='cancelling'?'Cancelling':'Busy'} — draft retained · Ctrl-C cancel`:this.historyIndex!==undefined?'History draft — not submitted':this.safePaste?'SAFE PASTE / EDIT · Ctrl-G exits; then Enter Send':this.editor.text.trim()?'Not submitted · Enter Send':'Not submitted · Write a task',kind:'secondary'});
    const start=Math.max(0,view.row-composer+1);const editorRow=rows.length;for(let i=0;i<composer;i++)rows.push({text:(i===0?'> ':'  ')+(view.lines[start+i]??''),kind:this.focus==='composer'?'focus':undefined});
    if(!p)cursor={row:editorRow+view.row-start,col:2+view.col};
-   rows.push({text:this.inputState.pending?(this.inputState.mode==='paste'?'Pasting · literal data':'Input sequence pending · Ctrl-G Back'):this.overlay?'Enter/Ctrl-G Close · Up/Down Scroll':p?'Tab Attach · Ctrl-G Back · Enter Hint':this.safePaste?'SAFE PASTE: Enter newline · Ctrl-G exits':this.focus==='attachments'?'Enter Preview · Backspace Remove · Tab Focus':/:exit|denied|failed|Already selected|^Partial response|^Completed/.test(this.notice)?this.notice:'Ctrl-G Back · @ Files · Ctrl-V Paste',kind:'secondary'});
+   rows.push({text:this.approval?'Arrows choose · Enter confirm · PgUp/Dn scroll · Ctrl-G Deny · Ctrl-C Cancel':this.inputState.pending?(this.inputState.mode==='paste'?'Pasting · literal data':'Input sequence pending · Ctrl-G Back'):this.overlay?'Enter/Ctrl-G Close · Up/Down Scroll':p?'Tab Attach · Ctrl-G Back · Enter Hint':this.safePaste?'SAFE PASTE: Enter newline · Ctrl-G exits':this.focus==='attachments'?'Enter Preview · Backspace Remove · Tab Focus':/:exit|denied|failed|Already selected|^Partial response|^Completed/.test(this.notice)?this.notice:'Ctrl-G Back · @ Files · Ctrl-V Paste',kind:'secondary'});
   }
   let frame='\x1b[?25l';for(let i=0;i<h;i++){const row=rows[i]??{text:''};const style=!this.color?'':row.kind==='You'?'\x1b[48;2;48;48;48m':row.kind==='focus'?'\x1b[38;2;0;215;215m':row.kind==='secondary'?'\x1b[38;2;155;155;155m':'';
    // #60: at supported viewports the final column is reserved for the body-row scrollbar track.

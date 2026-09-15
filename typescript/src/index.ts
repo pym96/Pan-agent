@@ -1,6 +1,7 @@
 /** Distribution facade: existing public lifecycle, injection and inspection interfaces. */
 export { runCli, parseCliArgs, CLI_USAGE } from "./cli.ts";
 export type { CliDependencies, CliConfiguration } from "./cli.ts";
+export type { ApprovalRequest, ApprovalDecision, ApprovalChannel, ApprovalChoice, AuthorizationOptions } from './runtime/authorization.ts';
 export { FauxModelAdapter, FAUX_PENDING_EXCHANGE, fauxUserMessage } from "./providers/faux/faux-model-adapter.ts";
 export type { FauxScriptEntry } from "./providers/faux/faux-model-adapter.ts";
 export { GeneralAgentSession, GENERAL_AGENT_SYSTEM_PROMPT } from "./runtime/session.ts";

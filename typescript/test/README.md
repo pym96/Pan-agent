@@ -26,4 +26,10 @@ Run `npm --prefix typescript run check` from the repository root. Reference rema
 [scrollbar.test.ts](scrollbar.test.ts): #60 frozen scrollbar geometry table and rendered-track assertions, primary press/drag/release mapping and inert/cancellation rules, SGR framing split/variant/quarantine safety, hostile-text escaping, sealed-archive/replay invariance and the #62 timing bounds extended over drags. The 141 prior obligations remain unchanged.
 # WorkOrder #61
 
+# WorkOrder #49
+
+[`authorization.test.ts`](authorization.test.ts): Criteria 1.1 policy, identity/cancellation, both race-boundary sides and TUI approval probes. [Expectation migration inventory](../../docs/adr/0018-operation-scoped-authorization.md) identifies prospective startup/permission fixture changes; original frozen snapshots remain intact.
+
+## Retained #61 coverage
+
 [`tool-activity.test.ts`](tool-activity.test.ts) covers digest density, multiple-run selection, safe labels, live overlay updates and missing/inconsistent retained records. The unchanged scrollbar and scroll-layout suites cover #60/#62 regression.

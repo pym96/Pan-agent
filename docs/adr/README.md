@@ -14,3 +14,4 @@ Architecture decisions record target structure and trade-offs; they do not prove
 - [`0016-authoritative-typescript-product-path.md`](0016-authoritative-typescript-product-path.md) is WorkOrder #24's proposed supersession decision: TypeScript/Pi becomes the authoritative/default product, the Python runtime becomes reference-only, experiment lanes remain historical, and language-neutral fixtures preserve selected semantics without a cross-language product dependency.
 
 - [ADR-0017: Product isolation and explicit Native selection](0017-product-isolation-and-frozen-pi.md) — #34 Master transition; candidate verification pending.
+- [ADR-0018: Operation-scoped authorization](0018-operation-scoped-authorization.md) — #49 Criteria 1.1 candidate, named pure-Node race boundary and expectation migration; independent review pending.

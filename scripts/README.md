@@ -270,4 +270,14 @@ The preview deterministically enumerates the unchanged 120-slot denominator and 
 [`verify_scrollbar_pty.py`](verify_scrollbar_pty.py): installed-package 120×40 PTY proof — 800-line streamed transcript, blank track before overflow, wheel detach, primary press/drag/release on the final-column track, no-motion press+release positioning, detached resize anchor preservation, Ctrl-End, screen reconstruction against an independently recomputed frozen geometry, raw timing samples, zero meters. [`demo_scrollbar.mjs`](demo_scrollbar.mjs) is the Human trial demo; driver under [fixtures/scrollbar/](fixtures/scrollbar/README.md); [`check_workorder_60_scope.py`](check_workorder_60_scope.py) audits scope and obligations. Design: [transcript-scrollbar](../docs/design/transcript-scrollbar.md).
 # WorkOrder #61 Tool Activity
 
+## WorkOrder #49 operation-scoped authorization
+
+[`check_workorder_49_scope.py`](check_workorder_49_scope.py) audits the exact committed file allowlist and byte-identical protected baseline, including NativeKernel, Provider implementations, storage, Frozen Reference and Python.
+
+[`verify_authorization_pty.py`](verify_authorization_pty.py): Criteria 1.1 installed Faux approval/deny/trust/revoke/cancel, narrow/long-command safe display and replay evidence. [`demo_authorization.mjs`](demo_authorization.mjs) runs the Human trial against an explicit installed package path. [`wo49-consumer-guard.mjs`](wo49-consumer-guard.mjs) extends the unchanged offline guard only for exact ancestor-directory lstat metadata, never content reads. [ADR-0018](../docs/adr/0018-operation-scoped-authorization.md) records policy, race limits and expectation migration.
+
+The active #60/#61/#62 PTY drivers now start at idle rather than submitting removed startup y. The #61 fixture explicitly approves its three Shell requests through actual PTY input. Prior raw captures and frozen snapshot checks are not changed.
+
+## Retained #61 activity procedure
+
 [`verify_activity_pty.py`](verify_activity_pty.py) runs the installed Faux twelve-call activity demo under the existing consumer guard; [`check_workorder_61_scope.py`](check_workorder_61_scope.py) audits committed scope and protected bytes. See [the design](../docs/design/tool-activity-digest.md) for commands and Human review.
