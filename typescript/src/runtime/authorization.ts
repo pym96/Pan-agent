@@ -69,7 +69,7 @@ export class SessionAuthorization {
    if(decision.decision==='deny')throw new AuthorizationFailure('approval_denied');
    if(decision.decision==='trust-shell'){if(tool!=='bash'||!current)throw new AuthorizationFailure('approval_invalidated');this.trust=true;}
    return {...audit,decision:decision.decision};
-  }catch(error){if(error instanceof AuthorizationFailure){Object.assign(error,{audit:{...audit,decision:error.code}});throw error;}throw new AuthorizationFailure('approval_unavailable');}
+  }catch(error){if(error instanceof AuthorizationFailure){Object.assign(error,{audit:{...audit,decision:error.code}});throw error;}throw Object.assign(new AuthorizationFailure('approval_unavailable'),{audit:{...audit,decision:'approval_unavailable'}});}
   finally{signal.removeEventListener('abort',abort);}
  }
 }

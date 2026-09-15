@@ -22,7 +22,7 @@ const adapter={providerId:'pan-faux',modelId:'pan-faux-v1',reasoningLevel:'off',
  const users=request.context.messages.filter(m=>m.role==='user');
  if(users.length!==runs){runs=users.length;const task=users.at(-1).content.filter(c=>c.type==='text').map(c=>c.text).join('').trim();const calls=(plans[task]??plans.ordinary).map(([name,args],i)=>({type:'tool_call',id:`synthetic-${runs}-${i}`,name,arguments:args}));
   faux=new FauxModelAdapter([response(calls,'tool_calls'),response([{type:'text',text:`FINAL ${task} · view tool outcome for allowed/denied status`}],'stop')]);
-  await new Promise(resolve=>setTimeout(resolve,150));
+  await new Promise(resolve=>setTimeout(resolve,task==='cancel'?1500:150));
  }
  exchanges++;return faux.exchange(request);
 }};

@@ -45,7 +45,7 @@ export class AuthorizedFile {
   }}
   const expected=this.identities.at(-1)!;
   if(expected.missing&&!create)throw new AuthorizationFailure('unsupported_target');
-  const flags=(write?fs.constants.O_RDWR:fs.constants.O_RDONLY)|fs.constants.O_NOFOLLOW|(expected.missing?fs.constants.O_CREAT|fs.constants.O_EXCL:0);
+  const flags=(write?fs.constants.O_RDWR:fs.constants.O_RDONLY)|fs.constants.O_NOFOLLOW|fs.constants.O_NONBLOCK|(expected.missing?fs.constants.O_CREAT|fs.constants.O_EXCL:0);
   this.check();this.fd=fs.openSync(this.path,flags,0o600);
   if(expected.missing){
    this.effects.fileCreated=true;

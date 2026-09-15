@@ -24,6 +24,16 @@ function fixture(approval?:ApprovalChannel,protectedPaths:readonly string[]=[]){
  return {root,workspace,authority,raw,run};
 }
 const allow:ApprovalChannel=async request=>({requestId:request.requestId,decision:'allow-once'});
+test('A-POLICY actual content-read/truncate/write counters stay zero for denied existing files',async()=>{
+ const f=fixture();fs.writeFileSync(join(f.workspace,'.env'),'EXISTING_SYNTHETIC_CANARY');
+ const read=fs.readFileSync,truncate=fs.ftruncateSync,write=fs.writeSync;const counts={reads:0,truncates:0,writes:0};
+ fs.readFileSync=((...args)=>{counts.reads++;return read(...args);}) as typeof fs.readFileSync;
+ fs.ftruncateSync=((...args)=>{counts.truncates++;return truncate(...args);}) as typeof fs.ftruncateSync;
+ fs.writeSync=((...args)=>{counts.writes++;return Reflect.apply(write,fs,args);}) as typeof fs.writeSync;syncBuiltinESMExports();
+ try{for(const [tool,args] of [['read',{path:'.env'}],['write',{path:'.env',content:'BAD'}],['edit',{path:'.env',edits:[{oldText:'EXISTING',newText:'BAD'}]}]] as const)assert.equal((await f.run(tool,args)).isError,true);assert.deepEqual(counts,{reads:0,truncates:0,writes:0});console.log('A-POLICY denied content effects '+JSON.stringify(counts));}
+ finally{fs.readFileSync=read;fs.ftruncateSync=truncate;fs.writeSync=write;syncBuiltinESMExports();}
+ assert.equal(fs.readFileSync(join(f.workspace,'.env'),'utf8'),'EXISTING_SYNTHETIC_CANARY');
+});
 test('A-POLICY C-AUTH-01 ordinary operations, exact protected classes and settings fail closed',async()=>{
  const f=fixture();
  for(const name of ['a.txt','.env.example','.env.sample','.env.template','a.git/file','.ssh-lookalike/file'])assert.equal((await f.run('write',{path:name,content:'ordinary'})).isError,false,name);
