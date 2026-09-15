@@ -39,6 +39,7 @@ def resize(c,r):
 def archive_hash():return {str(f.relative_to(memory)):hashlib.sha256(f.read_bytes()).hexdigest() for f in sorted(memory.rglob('*')) if f.is_file()}
 try:
  wait(lambda s:s.get('phase')=='confirm');send('y\n');send('demo\n');wait(lambda s:s.get('phase')=='idle' and s.get('exchanges')==2)
+ tail=capture('default-tail-120');assert 'Tools · Activity' in tail and '12 completed · 3 failed' in tail
  send('\x1b[5~');send('\x1b[5~');normal=capture('default-120')
  s=state();digests=[e for e in s['entries'] if e['role']=='Tool'];assert len(digests)==1 and digests[0]['status']=='Activity',digests
  assert digests[0]['text']=='12 completed · 3 failed · latest bash · View activity',digests
@@ -46,7 +47,7 @@ try:
  before=archive_hash();send('retained draft');send('\t');send('\r');wait(lambda s:s.get('overlay',{}).get('title')=='Tool activity · view only')
  overlay=capture('activity-120');assert len(state()['overlay']['lines'])==12
  assert all('Running' not in line for line in state()['overlay']['lines'])
- for forbidden in ['HIDDEN_DIRECTORY','HIDDEN_ID','HIDDEN_COMMAND','HIDDEN_RESULT','HIDDEN_REPLACEMENT']:assert forbidden not in normal+overlay,forbidden
+ for forbidden in ['HIDDEN_DIRECTORY','HIDDEN_ID','HIDDEN_COMMAND','HIDDEN_RESULT','HIDDEN_REPLACEMENT']:assert forbidden not in normal+tail+overlay,forbidden
  send('\r');assert state()['focus']=='transcript' and state()['draft']=='retained draft'
  resize(40,12);capture('default-40');send('\r');capture('activity-40');send('\x07');assert state()['draft']=='retained draft'
  resize(120,40);send('\x07');send('\x15');send(':replay '+s['runId']+'\n');wait(lambda s:any('REPLAY' in line for line in s.get('overlay',{}).get('lines',[])))
@@ -54,6 +55,9 @@ try:
  assert not any('HIDDEN_' in line for line in state()['overlay']['lines'])
  assert archive_hash()==before,'view operations changed archive files'
  assert state()['exchanges']==2,'view operations exchanged with model'
+ send('\x07');send('\x15');send(':details\n');wait(lambda s:len(s.get('overlay',{}).get('lines',[]))>0)
+ capture('explicit-details');assert 'HIDDEN_ID' in '\n'.join(state()['overlay']['lines']),'explicit diagnostic selection was lost'
+ assert archive_hash()==before and state()['exchanges']==2
  send('\x07');send('\x15');send(':exit\n')
  deadline=time.monotonic()+10
  while child.poll() is None and time.monotonic()<deadline:pump()
