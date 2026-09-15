@@ -86,7 +86,7 @@ export async function runTui(options: TuiOptions): Promise<number> {
 	const output = options.output ?? process.stdout;
 	const inputIsTty = "isTTY" in input && input.isTTY === true;
 	const outputIsTty = "isTTY" in output && output.isTTY === true;
-	if(inputIsTty && outputIsTty) return runCompactTui({...options,presentation:createCompactPresentation(line=>output.write(line+'\n'))});
+	if(inputIsTty && outputIsTty && options.session.kernelKind !== 'pi') return runCompactTui({...options,presentation:createCompactPresentation(line=>output.write(line+'\n'))});
 	const readline = createInterface({ input, output, terminal: inputIsTty && outputIsTty });
 	let closing = false;
 	let running = false;
@@ -114,6 +114,13 @@ export async function runTui(options: TuiOptions): Promise<number> {
 	writeLine("SHELL trusted-local: host-user authority; workspace is cwd, not containment or an OS sandbox.");
 
 	try {
+		// Frozen Reference retains its historical acknowledgement; Product CLI cannot select Pi.
+		if (options.session.kernelKind === 'pi') {
+			let confirmation:string;
+			try { confirmation=await readline.question('Confirm provider and trusted-local workspace [y/N]> '); }
+			catch(error){if(!closing&&!isReadlineClosedError(error))throw error;writeLine('Cancelled before Provider use.');return 0;}
+			if(!['y','yes'].includes(confirmation.trim().toLowerCase())){writeLine('Cancelled before Provider use.');return 0;}
+		}
 		writeLine("COMMANDS :help | :context | :runs | :replay RUN_ID | :exit");
 		while (!closing) {
 			let task: string;

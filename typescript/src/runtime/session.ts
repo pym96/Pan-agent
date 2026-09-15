@@ -10,6 +10,7 @@ import {
 	resolveKernelLimits,
 	type SessionObservation,
 	type TerminalStatus,
+	EMPTY_USAGE,
 } from "./agent-kernel.ts";
 import { NativeKernel } from "./native-kernel.ts";
 import type { ArchiveSettledState, RunArchiveStore, RunArchiveWriter } from "../memory/run-archive.ts";
@@ -92,6 +93,9 @@ export class GeneralAgentSession {
 	private archiveError?: unknown;
 	private closed = false;
 	private admitting = false;
+	private admissionCancelled = false;
+	private admissionDone?: Promise<void>;
+	private finishAdmission?: () => void;
 
 	constructor(options: GeneralAgentSessionOptions) {
 		this.authorization = new SessionAuthorization(options.authorization);
@@ -143,6 +147,8 @@ export class GeneralAgentSession {
 		if (task.trim().length === 0) throw new Error("Task must not be blank");
 		if (this.isRunning || this.admitting) throw new Error("A task is already running");
 		this.admitting = true;
+		this.admissionCancelled = false;
+		this.admissionDone = new Promise(resolve => { this.finishAdmission = resolve; });
 		try {
 
 		const runbook = await this.memory.runbook();
@@ -161,7 +167,7 @@ export class GeneralAgentSession {
 
 		let outcome;
 		try {
-			outcome = await this.kernel.runTask({
+			outcome = this.admissionCancelled ? {status:'cancelled' as const,reason:'operator_cancelled',finalText:'',modelCalls:0,toolCalls:0,usage:EMPTY_USAGE} : await this.kernel.runTask({
 				runId: writer.runId,
 				task,
 				systemPrompt: `${this.baseSystemPrompt}\n\nRUNBOOK (revision ${runbook.revision}):\n${runbook.content}`,
@@ -183,18 +189,21 @@ export class GeneralAgentSession {
 		const sealed = await this.settleArchive(archiveStateFor(outcome.status), outcome.reason);
 		this.activeWriter = undefined;
 		return { runId: writer.runId, ...outcome, archiveSealed: sealed !== undefined };
-		} finally { this.admitting = false; }
+		} finally { this.admitting = false; this.finishAdmission?.(); this.finishAdmission = undefined; }
 	}
 
-	cancel(): void { this.kernel.cancel(); }
+	cancel(): void { if(this.admitting)this.admissionCancelled = true; this.kernel.cancel(); }
 	/** Trusted application-side UI seam; never obtained from model messages or replay. */
 	setApprovalChannel(channel: ApprovalChannel | undefined): void { this.authorization.setChannel(channel); }
 	revokeShellTrust(): void { this.authorization.revoke(); }
 
 	async close(): Promise<void> {
 		if (this.closed) return;
+		this.closed = true;
+		this.cancel();
 		this.authorization.close();
 		await this.kernel.close();
+		await this.admissionDone;
 		await this.cleanup?.();
 		this.closed = true;
 	}

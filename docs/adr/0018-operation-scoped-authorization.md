@@ -30,6 +30,7 @@ Commands are explicitly disclosed in approval. Arbitrary user secrets embedded i
 - Existing conformance, general-agent, memory-lanes, pan-faux-tools and pan-deepseek-adapter fixture sessions: implicit unrestricted Shell → explicit trusted synthetic Allow-once callback. Tool semantics, environment and process-group cancellation assertions remain. The general-agent CLI fixture installs its callback explicitly. This is not the production default.
 - Pan tool cwd oracle: lexical path → resolved anchor (macOS `/var` versus `/private/var`).
 - Compact hostile-banner test: exit at idle instead of rejecting removed startup confirmation.
+- Shared readline rendering retains the existing acknowledgement only for an explicitly injected Pi Frozen Reference kernel. Product CLI still rejects Pi; no Reference source/fixtures are modified. Cancellation received during asynchronous admission is remembered and seals a cancelled zero-call run before Kernel entry.
 - New `authorization.test.ts`: no-channel/direct entry, policy, forged/late decisions, trust/revocation, cancellation, unsupported links, pre/post-check swaps, partial ancestor creation, opened-handle behavior and safe approval interaction. Frozen historical fixture bytes remain unchanged.
 
 ## Review
