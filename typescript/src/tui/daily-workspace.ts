@@ -11,6 +11,7 @@ import { terminalText, attachWorkspace } from './presentation.ts';
 import { DailyEditor, clip, clipCells, wrap, graphemes, width, sourceRows } from './daily-editor.ts';
 import { scrollbarGeometry, scrollbarDragTop, scrollbarCapturedDragTop, type ScrollbarGeometry } from './scrollbar.ts';
 import { FramedInput } from './framed-input.ts';
+import { ToolActivity } from './tool-activity.ts';
 import type { InputKey } from './terminal-input.ts';
 
 type Focus='composer'|'attachments'|'transcript';
@@ -18,7 +19,6 @@ type Entry={role:'You'|'Pan'|'Tool';text:string;status:string};
 type Anchor={item:number;part:'header'|'text';offset:number};
 type ContentRow={text:string;kind:string;anchor:Anchor;end:number};
 type Picker={editor:DailyEditor;names:readonly string[];index:number;loading:boolean;capturing:boolean;abort:AbortController};
-type ActivityCall={id:string;name:string;safe:string;state:'Running'|'Returned'|'Error'};
 /** TTY-only projection. Session, capture authority and archive implementation remain external. */
 export class DailyWorkspace {
  readonly editor=new DailyEditor();
@@ -27,7 +27,9 @@ export class DailyWorkspace {
  entries:Entry[]=[]; picker?:Picker; overlay?:{title:string;lines:string[];offset:number;focus:Focus};
  safePaste=false; notice='Confirm provider and trusted-local workspace: type y then Enter';
  toolCursor=0; private revealTool=false;
- private activity?:{runId:string;entry:Entry;calls:ActivityCall[]};
+ private readonly activities=new Map<Entry,ToolActivity>();
+ private activityEntry?:Entry;
+ private activityView?:ToolActivity;
  anchor?:Anchor;private contentRows:ContentRow[]=[];private bodyHeight=0;
  // #60 Criteria 1.1 pointer capture: only an in-track primary press starts it.
  private dragging=false;
@@ -41,6 +43,7 @@ export class DailyWorkspace {
  private active?:Entry;private activeIndex=-1;private closing=false;private turnText='';
  private readonly input:ReadStream;private readonly output:WriteStream;
  private barrier=false;private readonly raw:boolean;
+ private replaying=false;
  private done!:()=>void;readonly closed=new Promise<void>(resolve=>{this.done=resolve;});
  private readonly limit:number;private readonly color:boolean;
  private readonly options:TuiOptions;
@@ -49,7 +52,7 @@ export class DailyWorkspace {
   this.options=options;
   this.input=(options.input??process.stdin) as ReadStream;this.output=(options.output??process.stdout) as WriteStream;this.raw=this.input.isRaw===true;
   this.limit=validateAttachmentLimit(options.maxAttachmentBytes);this.color=!process.env.NO_COLOR && process.env.TERM!=='dumb';
-  options.presentation!.attach(line=>{if(this.overlay)this.overlay.lines.push(line);else this.notice=line;this.draw();});
+  options.presentation!.attach(line=>{if(this.replaying)return;if(this.overlay)this.overlay.lines.push(line);else this.notice=line;this.draw();});
   attachWorkspace(options.presentation!,{observe:e=>this.observe(e),progress:e=>this.progress(e),settle:r=>this.settle(r)});
  }
  start():void {this.input.setRawMode(true);this.output.write('\x1b[?1049h\x1b[?2004h\x1b[?1000h\x1b[?1002h\x1b[?1006h\x1b[?25h');this.input.on('data',this.data);this.input.on('end',this.end);this.output.on('resize',this.resize);this.input.resume();this.draw();}
@@ -134,6 +137,7 @@ export class DailyWorkspace {
  private touch(item:number):void{while(this.entryStamps.length<=item)this.entryStamps.push(0);this.entryStamps[item]=++this.layoutClock;}
  private buildEntryRows(e:Entry,item:number,w:number):ContentRow[]{
   const rows:ContentRow[]=[{text:`${e.role==='Tool'&&e.status==='Activity'?'Tools':e.role} · ${e.status}`,kind:e.role,anchor:{item,part:'header' as const,offset:0},end:1}];
+  if(this.activities.has(e)){rows.push({text:'│ '+clip(e.text,w),kind:e.role,anchor:{item,part:'text',offset:0},end:e.text.length});this.layoutStats.builds++;return rows;}
   for(const r of sourceRows(e.text,w)){this.layoutStats.sourceRowVisits++;rows.push({text:'│ '+r.text,kind:e.role,anchor:{item,part:'text' as const,offset:r.start},end:r.end});}
   this.layoutStats.builds++;return rows;
  }
@@ -178,9 +182,8 @@ export class DailyWorkspace {
  private supported():boolean{return (this.output.columns??80)>=40&&(this.output.rows??24)>=12;}
  private cancel():void {if(this.phase==='running'){this.phase='cancelling';this.options.session.cancel();this.notice='Cancelling · draft retained';}else if(this.phase!=='cancelling')this.notice='Draft retained · :exit to quit';this.draw();}
  private cycle(reverse=false):void {const choices:Focus[]=['composer',...(this.selected.length?['attachments' as const]:[]),...(this.entries.length?['transcript' as const]:[])];const i=choices.indexOf(this.focus);this.focus=choices[(i+(reverse?-1:1)+choices.length)%choices.length]!;if(this.focus==='transcript')this.revealTool=true;this.draw();}
- private activityOverlay():void {const a=this.activity;if(!a)return;this.overlay={title:'Tool activity · view only',lines:a.calls.map((c,i)=>`${i+1}. ${terminalText(c.name)} · ${c.safe} · ${c.state}`),offset:0,focus:this.focus};this.draw();}
- private safeToolLabel(name:string,args:unknown):string {if(['read','write','edit'].includes(name)&&args&&typeof args==='object'&&!Array.isArray(args)){const path=(args as Record<string,unknown>).path;if(typeof path==='string'&&path){const base=path.split('/').filter(Boolean).at(-1);if(base)return `${name} · ${terminalText(base)}`;}}return terminalText(name);}
- private updateActivity():void {const a=this.activity;if(!a)return;const settled=a.calls.filter(c=>c.state!=='Running'),errors=a.calls.filter(c=>c.state==='Error');const open=a.calls.find(c=>c.state==='Running');a.entry.text=open?`running ${terminalText(open.name)} · ${settled.length} completed · ${errors.length} failed · View activity`:`${settled.length} completed · ${errors.length} failed · latest ${settled.length?settled.at(-1)!.safe:'unavailable'} · View activity`;this.touch(this.entries.indexOf(a.entry));}
+ private activityOverlay():void {const entry=this.entries.filter(e=>this.activities.has(e))[this.toolCursor];const a=entry&&this.activities.get(entry);if(!a)return;this.activityView=a;this.overlay={title:'Tool activity · view only',lines:a.lines,offset:0,focus:this.focus};this.draw();}
+ private updateActivity():void {const entry=this.activityEntry,a=entry&&this.activities.get(entry);if(!a||!entry)return;entry.text=a.summary;this.touch(this.entries.indexOf(entry));if(this.overlay?.title==='Tool activity · view only'&&this.activityView===a)this.overlay.lines=a.lines;}
  private matches():readonly string[]{return this.picker?.names.filter(n=>n.includes(this.picker!.editor.text))??[];}
  private openPicker():void {const p:Picker={editor:new DailyEditor(),names:[],index:0,loading:true,capturing:false,abort:new AbortController()};this.picker=p;this.draw();void discoverAttachmentPaths(this.options.workspace).then(names=>{if(this.picker!==p)return;p.names=names;p.loading=false;this.draw();},()=>{if(this.picker!==p)return;this.picker=undefined;this.notice='Attachment discovery failed · draft retained';this.draw();});}
  private closePicker(literal:boolean):void {const p=this.picker;if(!p)return;this.picker=undefined;p.abort.abort();if(literal)this.editor.insert('@'+p.editor.text);this.notice='Not submitted · picker closed';this.draw();}
@@ -205,7 +208,16 @@ export class DailyWorkspace {
   if(key.ctrl&&key.name==='end'){this.follow=true;this.anchor=undefined;this.newOutput=false;this.draw();return;}
   if(key.name==='tab'){this.cycle(key.shift);return;}
   if(key.ctrl&&key.name==='p'){this.preview();return;}if(key.ctrl&&key.name==='r'){if(this.selected.length){this.chip=this.selected.length-1;this.remove();}return;}
-  if(this.focus!=='composer'){if(enter){if(this.focus==='attachments')this.preview();else if(this.entries.some(e=>e.role==='Tool'&&e.status==='Activity'))this.activityOverlay();else void this.command(':details');this.barrier=true;}else if(key.name==='backspace'&&this.focus==='attachments')this.remove();else if(key.name==='up'||key.name==='down'){const activity=this.entries.filter(e=>e.role==='Tool'&&e.status==='Activity');if(activity.length){this.toolCursor=Math.max(0,Math.min(activity.length-1,this.toolCursor+(key.name==='up'?-1:1)));this.revealTool=true;}else{const tools=this.entries.filter(e=>e.role==='Tool');if(tools.length){this.toolCursor=Math.max(0,Math.min(tools.length-1,this.toolCursor+(key.name==='up'?-1:1)));this.revealTool=true;}else this.scroll(key.name==='up'?-1:1);}}this.draw();return;}
+  if(this.focus!=='composer'){
+   if(enter){if(this.focus==='attachments')this.preview();else if(this.entries.some(e=>this.activities.has(e)))this.activityOverlay();else void this.command(':details');this.barrier=true;}
+   else if(key.name==='backspace'&&this.focus==='attachments')this.remove();
+   else if(key.name==='up'||key.name==='down'){
+    const delta=key.name==='up'?-1:1;
+    if(this.focus==='attachments')this.chip=Math.max(0,Math.min(this.selected.length-1,this.chip+delta));
+    else {this.follow=false;const tools=this.entries.filter(e=>e.role==='Tool');if(tools.length){this.toolCursor=Math.max(0,Math.min(tools.length-1,this.toolCursor+delta));this.revealTool=true;}else this.scroll(delta);}
+   }
+   this.draw();return;
+  }
   if(enter){if(key.meta||this.safePaste){this.editor.insert('\n');this.draw();return;}this.send();return;}
   if(text==='@'&&!this.safePaste&&!key.meta&&!key.ctrl&&/(?:^|\s)$/.test(this.editor.text.slice(0,this.editor.caret))){this.openPicker();return;}
   if(key.name==='left')this.editor.move(-1);else if(key.name==='right')this.editor.move(1);else if(key.name==='up'||key.name==='down'){const delta=key.name==='up'?-1:1;if(!this.editor.vertical(delta,Math.max(1,(this.output.columns??80)-3)))this.recall(delta);}else if(key.name==='backspace')this.editor.backspace();else if(key.ctrl&&key.name==='u')this.editor.clear();else if(key.name==='home'||key.ctrl&&key.name==='a')this.editor.caret=0;else if(key.name==='end'||key.ctrl&&key.name==='e')this.editor.caret=this.editor.text.length;else if(this.printable(text,key))this.editor.insert(text!);this.draw();
@@ -233,7 +245,7 @@ export class DailyWorkspace {
    else if(text===':help')this.overlay.lines.push('Enter sends an idle nonblank draft; busy Enter never queues.','Alt-Enter: newline. Ctrl-V: safe paste/edit mode; Ctrl-G exits it.','@ file picker; arrows choose; Tab attaches; Enter only hints; Ctrl-P preview; Ctrl-R remove.','Wheel/PageUp/Down: conversation. Ctrl-End: follow tail. Up/Down: prompt history at draft edges.','Scrollbar: the final column is the track; primary press/drag jumps, release ends. A terminal without drag motion still positions on press.','Compatibility: raw Esc reserves a frame prefix, never Back. Ctrl-G backs out; pending tails drain before raw typing resumes. Paste enters literal data.','Ctrl-C cancels once; Ctrl-D exits even with pending input; :exit quits. :details / :runs / :replay ID are view only.');
    else if(text===':context')this.overlay.lines.push(`Context messages ${this.options.session.contextMessageCount}`);
    else if(text===':runs'){const store=this.options.archiveStore;if(!store)this.overlay.lines.push('Archives not configured');else{const entries=await readdir(join(store.root,'runs'),{withFileTypes:true});this.overlay.lines.push('Archived records · view only');if(!entries.length)this.overlay.lines.push('No submitted run yet');for(const e of entries)if(e.isDirectory()&&/^[A-Za-z0-9_-]+$/.test(e.name))this.overlay.lines.push(terminalText(e.name));}}
-   else if(text.startsWith(':replay ')){const id=text.slice(8).trim(),store=this.options.archiveStore;if(!store||!/^[A-Za-z0-9_-]+$/.test(id))throw Error();const dir=join(store.root,'runs',id);if(!(await lstat(dir)).isDirectory())throw Error();for(const f of ['manifest.json','events.jsonl'])if(!(await lstat(join(dir,f))).isFile())throw Error();this.options.presentation!.replay(await store.readArchive(id),id);}
+   else if(text.startsWith(':replay ')){const id=text.slice(8).trim(),store=this.options.archiveStore;if(!store||!/^[A-Za-z0-9_-]+$/.test(id))throw Error();const dir=join(store.root,'runs',id);if(!(await lstat(dir)).isDirectory())throw Error();for(const f of ['manifest.json','events.jsonl'])if(!(await lstat(join(dir,f))).isFile())throw Error();const records=await store.readArchive(id);this.replaying=true;try{this.options.presentation!.replay(records,id);}finally{this.replaying=false;}const activity=ToolActivity.replay(records,id);this.overlay.lines=['REPLAY · view only',activity.summary,...activity.lines];const final=records.filter(e=>e.type==='model.turn_settled'&&typeof e.text==='string').at(-1);if(final)this.overlay.lines.push('Final response',...String(final.text).split('\n').map(terminalText));}
    else this.overlay.lines.push('Unknown command · no execution');
   }catch{if(this.overlay)this.overlay.lines.push('Archive unavailable · no execution');}this.draw();
  }
@@ -241,8 +253,8 @@ export class DailyWorkspace {
   if(event.type==='run.started'){this.runId=event.runId;const decoded=decodeAttachedTask(event.task);this.history.push(decoded?.prompt??event.task);if(this.historyIndex!==undefined)this.restoreHistory();this.entries.push({role:'You',text:decoded?.prompt??event.task,status:decoded?`${decoded.attachments.length} attached snapshot(s)`:''});this.touch(this.entries.length-1);this.active={role:'Pan',text:'',status:'Waiting for model'};this.entries.push(this.active);this.activeIndex=this.entries.length-1;this.touch(this.activeIndex);}
   if(event.type==='model.turn_started'){this.turnText='';if(this.active){this.active.status='Responding · provisional';this.touch(this.activeIndex);}}
   if(event.type==='model.turn_settled'&&this.active){if(!event.failure)this.active.text=event.text;this.active.status=event.failure?'Partial response':'Response received · provisional';this.touch(this.activeIndex);}
-  if(event.type==='tool.started'){if(!this.activity||this.activity.runId!==event.runId){const entry:Entry={role:'Tool',text:'',status:'Activity'};this.entries.push(entry);this.activity={runId:event.runId,entry,calls:[]};}this.activity.calls.push({id:event.toolCallId,name:event.toolName,safe:this.safeToolLabel(event.toolName,event.arguments),state:'Running'});this.updateActivity();}
-  if(event.type==='tool.settled'&&this.activity?.runId===event.runId){const call=this.activity.calls.find(c=>c.id===event.toolCallId);if(call)call.state=event.isError?'Error':'Returned';this.updateActivity();}
+  if(event.type==='tool.started'&&event.runId===this.runId){if(!this.activityEntry||this.activities.get(this.activityEntry)?.runId!==event.runId){const entry:Entry={role:'Tool',text:'',status:'Activity'};this.entries.push(entry);this.activityEntry=entry;this.activities.set(entry,new ToolActivity(event.runId));}this.activities.get(this.activityEntry)!.observe(event);this.updateActivity();}
+  if(event.type==='tool.settled'&&this.activityEntry&&this.activities.get(this.activityEntry)?.runId===event.runId){this.activities.get(this.activityEntry)!.observe(event);this.updateActivity();}
   if(!this.follow)this.newOutput=true;this.draw();
  }
  private progress(event:SessionProgress):void {if(!this.active)return;this.turnText+=event.text;this.active.text=this.turnText;this.touch(this.activeIndex);if(!this.follow)this.newOutput=true;this.draw();}

@@ -24,3 +24,6 @@ Run `npm --prefix typescript run check` from the repository root. Reference rema
 [scroll-layout.test.ts](scroll-layout.test.ts): #62 bounded wheel-layout cost harness (p95/rebuild/visit bounds), scroll/follow semantics, resize invalidation and view-only invariance. The 137 prior obligations remain unchanged.
 
 [scrollbar.test.ts](scrollbar.test.ts): #60 frozen scrollbar geometry table and rendered-track assertions, primary press/drag/release mapping and inert/cancellation rules, SGR framing split/variant/quarantine safety, hostile-text escaping, sealed-archive/replay invariance and the #62 timing bounds extended over drags. The 141 prior obligations remain unchanged.
+# WorkOrder #61
+
+[`tool-activity.test.ts`](tool-activity.test.ts) covers digest density, multiple-run selection, safe labels, live overlay updates and missing/inconsistent retained records. The unchanged scrollbar and scroll-layout suites cover #60/#62 regression.

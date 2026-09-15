@@ -38,3 +38,6 @@ These are verification clients, not Product implementations or live Provider res
 #62: [scroll/](scroll/README.md) holds the long-transcript scroll PTY driver. Prior fixtures remain unchanged.
 
 #60: [scrollbar/](scrollbar/README.md) holds the long-transcript scrollbar PTY driver with per-event mouse timing records. Prior fixtures remain unchanged.
+# WorkOrder #61
+
+[`activity-driver.mjs`](activity-driver.mjs) loads only installed JavaScript, drives twelve Faux tool calls through the actual CLI, and records raw output plus view state for the offline PTY verifier.

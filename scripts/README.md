@@ -268,3 +268,6 @@ The preview deterministically enumerates the unchanged 120-slot denominator and 
 ## WorkOrder #60 draggable conversation scrollbar
 
 [`verify_scrollbar_pty.py`](verify_scrollbar_pty.py): installed-package 120×40 PTY proof — 800-line streamed transcript, blank track before overflow, wheel detach, primary press/drag/release on the final-column track, no-motion press+release positioning, detached resize anchor preservation, Ctrl-End, screen reconstruction against an independently recomputed frozen geometry, raw timing samples, zero meters. [`demo_scrollbar.mjs`](demo_scrollbar.mjs) is the Human trial demo; driver under [fixtures/scrollbar/](fixtures/scrollbar/README.md); [`check_workorder_60_scope.py`](check_workorder_60_scope.py) audits scope and obligations. Design: [transcript-scrollbar](../docs/design/transcript-scrollbar.md).
+# WorkOrder #61 Tool Activity
+
+[`verify_activity_pty.py`](verify_activity_pty.py) runs the installed Faux twelve-call activity demo under the existing consumer guard; [`check_workorder_61_scope.py`](check_workorder_61_scope.py) audits committed scope and protected bytes. See [the design](../docs/design/tool-activity-digest.md) for commands and Human review.
