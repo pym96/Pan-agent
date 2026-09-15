@@ -18,6 +18,7 @@ type Entry={role:'You'|'Pan'|'Tool';text:string;status:string};
 type Anchor={item:number;part:'header'|'text';offset:number};
 type ContentRow={text:string;kind:string;anchor:Anchor;end:number};
 type Picker={editor:DailyEditor;names:readonly string[];index:number;loading:boolean;capturing:boolean;abort:AbortController};
+type ActivityCall={id:string;name:string;safe:string;state:'Running'|'Returned'|'Error'};
 /** TTY-only projection. Session, capture authority and archive implementation remain external. */
 export class DailyWorkspace {
  readonly editor=new DailyEditor();
@@ -26,6 +27,7 @@ export class DailyWorkspace {
  entries:Entry[]=[]; picker?:Picker; overlay?:{title:string;lines:string[];offset:number;focus:Focus};
  safePaste=false; notice='Confirm provider and trusted-local workspace: type y then Enter';
  toolCursor=0; private revealTool=false;
+ private activity?:{runId:string;entry:Entry;calls:ActivityCall[]};
  anchor?:Anchor;private contentRows:ContentRow[]=[];private bodyHeight=0;
  // #60 Criteria 1.1 pointer capture: only an in-track primary press starts it.
  private dragging=false;
@@ -131,7 +133,7 @@ export class DailyWorkspace {
  }
  private touch(item:number):void{while(this.entryStamps.length<=item)this.entryStamps.push(0);this.entryStamps[item]=++this.layoutClock;}
  private buildEntryRows(e:Entry,item:number,w:number):ContentRow[]{
-  const rows:ContentRow[]=[{text:`${e.role} · ${e.status}`,kind:e.role,anchor:{item,part:'header' as const,offset:0},end:1}];
+  const rows:ContentRow[]=[{text:`${e.role==='Tool'&&e.status==='Activity'?'Tools':e.role} · ${e.status}`,kind:e.role,anchor:{item,part:'header' as const,offset:0},end:1}];
   for(const r of sourceRows(e.text,w)){this.layoutStats.sourceRowVisits++;rows.push({text:'│ '+r.text,kind:e.role,anchor:{item,part:'text' as const,offset:r.start},end:r.end});}
   this.layoutStats.builds++;return rows;
  }
@@ -176,6 +178,9 @@ export class DailyWorkspace {
  private supported():boolean{return (this.output.columns??80)>=40&&(this.output.rows??24)>=12;}
  private cancel():void {if(this.phase==='running'){this.phase='cancelling';this.options.session.cancel();this.notice='Cancelling · draft retained';}else if(this.phase!=='cancelling')this.notice='Draft retained · :exit to quit';this.draw();}
  private cycle(reverse=false):void {const choices:Focus[]=['composer',...(this.selected.length?['attachments' as const]:[]),...(this.entries.length?['transcript' as const]:[])];const i=choices.indexOf(this.focus);this.focus=choices[(i+(reverse?-1:1)+choices.length)%choices.length]!;if(this.focus==='transcript')this.revealTool=true;this.draw();}
+ private activityOverlay():void {const a=this.activity;if(!a)return;this.overlay={title:'Tool activity · view only',lines:a.calls.map((c,i)=>`${i+1}. ${terminalText(c.name)} · ${c.safe} · ${c.state}`),offset:0,focus:this.focus};this.draw();}
+ private safeToolLabel(name:string,args:unknown):string {if(['read','write','edit'].includes(name)&&args&&typeof args==='object'&&!Array.isArray(args)){const path=(args as Record<string,unknown>).path;if(typeof path==='string'&&path){const base=path.split('/').filter(Boolean).at(-1);if(base)return `${name} · ${terminalText(base)}`;}}return terminalText(name);}
+ private updateActivity():void {const a=this.activity;if(!a)return;const settled=a.calls.filter(c=>c.state!=='Running'),errors=a.calls.filter(c=>c.state==='Error');const open=a.calls.find(c=>c.state==='Running');a.entry.text=open?`running ${terminalText(open.name)} · ${settled.length} completed · ${errors.length} failed · View activity`:`${settled.length} completed · ${errors.length} failed · latest ${settled.length?settled.at(-1)!.safe:'unavailable'} · View activity`;this.touch(this.entries.indexOf(a.entry));}
  private matches():readonly string[]{return this.picker?.names.filter(n=>n.includes(this.picker!.editor.text))??[];}
  private openPicker():void {const p:Picker={editor:new DailyEditor(),names:[],index:0,loading:true,capturing:false,abort:new AbortController()};this.picker=p;this.draw();void discoverAttachmentPaths(this.options.workspace).then(names=>{if(this.picker!==p)return;p.names=names;p.loading=false;this.draw();},()=>{if(this.picker!==p)return;this.picker=undefined;this.notice='Attachment discovery failed · draft retained';this.draw();});}
  private closePicker(literal:boolean):void {const p=this.picker;if(!p)return;this.picker=undefined;p.abort.abort();if(literal)this.editor.insert('@'+p.editor.text);this.notice='Not submitted · picker closed';this.draw();}
@@ -200,7 +205,7 @@ export class DailyWorkspace {
   if(key.ctrl&&key.name==='end'){this.follow=true;this.anchor=undefined;this.newOutput=false;this.draw();return;}
   if(key.name==='tab'){this.cycle(key.shift);return;}
   if(key.ctrl&&key.name==='p'){this.preview();return;}if(key.ctrl&&key.name==='r'){if(this.selected.length){this.chip=this.selected.length-1;this.remove();}return;}
-  if(this.focus!=='composer'){if(enter){if(this.focus==='attachments')this.preview();else void this.command(':details');this.barrier=true;}else if(key.name==='backspace'&&this.focus==='attachments')this.remove();else if(key.name==='up'||key.name==='down'){if(this.focus==='attachments')this.chip=Math.max(0,Math.min(this.selected.length-1,this.chip+(key.name==='up'?-1:1)));else{this.follow=false;const tools=this.entries.filter(e=>e.role==='Tool');if(tools.length){this.toolCursor=Math.max(0,Math.min(tools.length-1,this.toolCursor+(key.name==='up'?-1:1)));this.revealTool=true;}else this.scroll(key.name==='up'?-1:1);}}this.draw();return;}
+  if(this.focus!=='composer'){if(enter){if(this.focus==='attachments')this.preview();else if(this.entries.some(e=>e.role==='Tool'&&e.status==='Activity'))this.activityOverlay();else void this.command(':details');this.barrier=true;}else if(key.name==='backspace'&&this.focus==='attachments')this.remove();else if(key.name==='up'||key.name==='down'){const activity=this.entries.filter(e=>e.role==='Tool'&&e.status==='Activity');if(activity.length){this.toolCursor=Math.max(0,Math.min(activity.length-1,this.toolCursor+(key.name==='up'?-1:1)));this.revealTool=true;}else{const tools=this.entries.filter(e=>e.role==='Tool');if(tools.length){this.toolCursor=Math.max(0,Math.min(tools.length-1,this.toolCursor+(key.name==='up'?-1:1)));this.revealTool=true;}else this.scroll(key.name==='up'?-1:1);}}this.draw();return;}
   if(enter){if(key.meta||this.safePaste){this.editor.insert('\n');this.draw();return;}this.send();return;}
   if(text==='@'&&!this.safePaste&&!key.meta&&!key.ctrl&&/(?:^|\s)$/.test(this.editor.text.slice(0,this.editor.caret))){this.openPicker();return;}
   if(key.name==='left')this.editor.move(-1);else if(key.name==='right')this.editor.move(1);else if(key.name==='up'||key.name==='down'){const delta=key.name==='up'?-1:1;if(!this.editor.vertical(delta,Math.max(1,(this.output.columns??80)-3)))this.recall(delta);}else if(key.name==='backspace')this.editor.backspace();else if(key.ctrl&&key.name==='u')this.editor.clear();else if(key.name==='home'||key.ctrl&&key.name==='a')this.editor.caret=0;else if(key.name==='end'||key.ctrl&&key.name==='e')this.editor.caret=this.editor.text.length;else if(this.printable(text,key))this.editor.insert(text!);this.draw();
@@ -236,8 +241,8 @@ export class DailyWorkspace {
   if(event.type==='run.started'){this.runId=event.runId;const decoded=decodeAttachedTask(event.task);this.history.push(decoded?.prompt??event.task);if(this.historyIndex!==undefined)this.restoreHistory();this.entries.push({role:'You',text:decoded?.prompt??event.task,status:decoded?`${decoded.attachments.length} attached snapshot(s)`:''});this.touch(this.entries.length-1);this.active={role:'Pan',text:'',status:'Waiting for model'};this.entries.push(this.active);this.activeIndex=this.entries.length-1;this.touch(this.activeIndex);}
   if(event.type==='model.turn_started'){this.turnText='';if(this.active){this.active.status='Responding · provisional';this.touch(this.activeIndex);}}
   if(event.type==='model.turn_settled'&&this.active){if(!event.failure)this.active.text=event.text;this.active.status=event.failure?'Partial response':'Response received · provisional';this.touch(this.activeIndex);}
-  if(event.type==='tool.started'){this.entries.push({role:'Tool',text:terminalText(event.toolName),status:'Running · Enter details'});this.touch(this.entries.length-1);}
-  if(event.type==='tool.settled'){const e=this.entries.at(-1);if(e?.role==='Tool'){e.status=event.isError?'Error · Enter details':'Returned · Enter details';this.touch(this.entries.length-1);}}
+  if(event.type==='tool.started'){if(!this.activity||this.activity.runId!==event.runId){const entry:Entry={role:'Tool',text:'',status:'Activity'};this.entries.push(entry);this.activity={runId:event.runId,entry,calls:[]};}this.activity.calls.push({id:event.toolCallId,name:event.toolName,safe:this.safeToolLabel(event.toolName,event.arguments),state:'Running'});this.updateActivity();}
+  if(event.type==='tool.settled'&&this.activity?.runId===event.runId){const call=this.activity.calls.find(c=>c.id===event.toolCallId);if(call)call.state=event.isError?'Error':'Returned';this.updateActivity();}
   if(!this.follow)this.newOutput=true;this.draw();
  }
  private progress(event:SessionProgress):void {if(!this.active)return;this.turnText+=event.text;this.active.text=this.turnText;this.touch(this.activeIndex);if(!this.follow)this.newOutput=true;this.draw();}
@@ -254,7 +259,7 @@ export class DailyWorkspace {
    let body:{text:string;kind?:string}[]=[];
    if(this.overlay){const lines=[this.overlay.title,...this.overlay.lines].flatMap(s=>wrap(s,w-3).map(t=>'│ '+t));this.overlay.offset=Math.min(this.overlay.offset,Math.max(0,lines.length-bodyRows));body=lines.slice(this.overlay.offset,this.overlay.offset+bodyRows).map(text=>({text}));}
    else {
-    const selectedTool=this.entries.filter(e=>e.role==='Tool')[this.toolCursor];
+    const selectedTool=this.entries.filter(e=>e.role==='Tool'&&e.status==='Activity')[this.toolCursor];
     this.ensureLayout(w-3);
     const all=this.contentRows;
     const toolMarkerRow=selectedTool?this.layoutStarts[this.entries.indexOf(selectedTool)]!:-1;
