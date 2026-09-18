@@ -26,11 +26,12 @@ function fixture(approval?:ApprovalChannel,protectedPaths:readonly string[]=[]){
 const allow:ApprovalChannel=async request=>({requestId:request.requestId,decision:'allow-once'});
 test('A-POLICY actual content-read/truncate/write counters stay zero for denied existing files',async()=>{
  const f=fixture();fs.writeFileSync(join(f.workspace,'.env'),'EXISTING_SYNTHETIC_CANARY');
+ const protectedPath=fs.existsSync(join(f.workspace,'.ENV'))?'.ENV':'.env';
  const read=fs.readFileSync,truncate=fs.ftruncateSync,write=fs.writeSync;const counts={reads:0,truncates:0,writes:0};
  fs.readFileSync=((...args)=>{counts.reads++;return read(...args);}) as typeof fs.readFileSync;
  fs.ftruncateSync=((...args)=>{counts.truncates++;return truncate(...args);}) as typeof fs.ftruncateSync;
  fs.writeSync=((...args)=>{counts.writes++;return Reflect.apply(write,fs,args);}) as typeof fs.writeSync;syncBuiltinESMExports();
- try{for(const [tool,args] of [['read',{path:'.env'}],['write',{path:'.env',content:'BAD'}],['edit',{path:'.env',edits:[{oldText:'EXISTING',newText:'BAD'}]}]] as const)assert.equal((await f.run(tool,args)).isError,true);assert.deepEqual(counts,{reads:0,truncates:0,writes:0});console.log('A-POLICY denied content effects '+JSON.stringify(counts));}
+ try{for(const [tool,args] of [['read',{path:protectedPath}],['write',{path:protectedPath,content:'BAD'}],['edit',{path:protectedPath,edits:[{oldText:'EXISTING',newText:'BAD'}]}]] as const)assert.equal((await f.run(tool,args)).isError,true);assert.deepEqual(counts,{reads:0,truncates:0,writes:0});console.log('A-POLICY denied content effects '+JSON.stringify(counts));}
  finally{fs.readFileSync=read;fs.ftruncateSync=truncate;fs.writeSync=write;syncBuiltinESMExports();}
  assert.equal(fs.readFileSync(join(f.workspace,'.env'),'utf8'),'EXISTING_SYNTHETIC_CANARY');
 });
@@ -120,4 +121,44 @@ test('A-ENTRY-AUDIT C-AUTH-05 actual Session no-channel, correlated audit, cance
  const pendingAdapter=new FauxModelAdapter([toolResponse]);const pendingSession=new GeneralAgentSession({kernel:'native',adapter:pendingAdapter,tools:f.raw,systemPrompt:'offline',memory:{archiveStore:store,runbook:async()=>({content:'offline',revision:'sha256:'+'0'.repeat(64)})},authorization:{approval:async r=>{request=r;return new Promise(resolve=>{release=resolve;});}}});
  const pending=pendingSession.runTask('pending');await assert.rejects(pendingSession.runTask('overlap'),/already running/);
  while(!request)await new Promise(resolve=>setImmediate(resolve));pendingSession.cancel();assert.equal((await pending).status,'cancelled');release({requestId:request.requestId,decision:'allow-once'});await pendingSession.close();assert.equal(fs.existsSync(join(f.workspace,'.env')),false);
+});
+
+
+test('A-POLICY R49-01 resource aliases cannot bypass built-in or configured protection',async()=>{
+ const f=fixture(undefined,['Secret']);
+ fs.writeFileSync(join(f.workspace,'.env'),'SYNTHETIC_ALIAS_CANARY');
+ fs.mkdirSync(join(f.workspace,'Secret'));fs.writeFileSync(join(f.workspace,'Secret/data'),'ORIGINAL');
+ const insensitive=fs.existsSync(join(f.workspace,'.ENV'));
+ console.log('R49-01 case-insensitive filesystem: '+insensitive);
+ if(insensitive){
+  assert.equal(fs.statSync(join(f.workspace,'.env')).ino,fs.statSync(join(f.workspace,'.ENV')).ino);
+  for(const [tool,args] of [['read',{path:'.ENV'}],['write',{path:'secret/data',content:'BAD'}],['write',{path:'secret/new',content:'BAD'}],['edit',{path:'secret/data',edits:[{oldText:'ORIGINAL',newText:'BAD'}]}]] as const){
+   const result=await f.run(tool,args);assert.equal(result.isError,true,JSON.stringify(args));assert.match(JSON.stringify(result),/approval_unavailable/);
+  }
+  assert.equal(fs.readFileSync(join(f.workspace,'Secret/data'),'utf8'),'ORIGINAL');assert.equal(fs.existsSync(join(f.workspace,'Secret/new')),false);
+ }
+});
+
+
+test('A-POLICY R49-01 aliases, missing descendants, exact exceptions and controls',async()=>{
+ const f=fixture(undefined,['Secret','Future/Private','.env.example','Café']);
+ fs.mkdirSync(join(f.workspace,'Secret'));fs.mkdirSync(join(f.workspace,'Café'));
+ fs.writeFileSync(join(f.workspace,'.env'),'SYNTHETIC');
+ const insensitive=fs.existsSync(join(f.workspace,'.ENV'));
+ if(insensitive){
+  for(const path of ['SECRET/deep/new','future/private/new','cafe\u0301/new','.ENV.new','.GIT/new','.SSH/new','.PAN-AGENT/new','.NPMRC','.ENV.EXAMPLE']){
+   const result=await f.run('write',{path,content:'BAD'});assert.equal(result.isError,true,path);assert.match(JSON.stringify(result),/approval_unavailable/);assert.equal(fs.existsSync(join(f.workspace,path)),false,path);
+  }
+  assert.equal((await f.run('write',{path:'.ENV.EXAMPLE',content:'BAD'})).isError,true);
+  for(const path of ['Secret-lookalike/new','ordinary/new','.env.sample','.env.template'])assert.equal((await f.run('write',{path,content:'OK'})).isError,false,path);
+  let calls=0;const g=fixture(async request=>{calls++;return allow(request,new AbortController().signal);},['Secret']);
+  fs.mkdirSync(join(g.workspace,'Secret'));fs.writeFileSync(join(g.workspace,'.env'),'SYNTHETIC');
+  assert.equal((await g.run('read',{path:'.ENV'})).isError,false);
+  assert.equal((await g.run('write',{path:'secret/new',content:'ALLOWED'})).isError,false);assert.equal(calls,2);
+  const raw=f.raw.find(t=>t.name==='read')!;assert.equal((await raw.execute({toolCallId:'raw-alias',arguments:{path:'.ENV'},signal:new AbortController().signal})).isError,true);
+ }else{
+  fs.mkdirSync(join(f.workspace,'secret'));fs.writeFileSync(join(f.workspace,'.ENV'),'DISTINCT');
+  assert.equal((await f.run('read',{path:'.ENV'})).isError,false);
+  assert.equal((await f.run('write',{path:'secret/new',content:'DISTINCT'})).isError,false);
+ }
 });

@@ -10,6 +10,16 @@ The public session accepts optional `authorization: {protectedPaths, approval}`.
 
 File policy uses a resolved workspace anchor and component-boundary matches, not glob/regex secret detection. `.git`, `.ssh`, `.pan-agent`, `.npmrc`, `.env` and `.env.*` are protected; exactly `.env.example`, `.env.sample`, `.env.template` are exceptions. `protectedPaths` adds literal paths and subtrees, snapshotted for the session. Symlink components, nonregular files and multiply linked regular files are unsupported regardless of approval. Classification reads metadata only.
 
+## R49-01 repair — filesystem aliases
+
+The rejected `2275aef69de9a254c61ab549a317e790a22de24f` compared lexical path strings. On the supported case-insensitive Darwin filesystem, `.ENV` reached `.env` and `secret/data` reached configured `Secret/data` without approval. Criteria 1.1 remains unchanged; this is a repair of C-AUTH-01/05, not acceptance.
+
+Policy now compares existing path resources by `lstat` device/inode, including each configured subtree ancestor. Built-in reserved component spellings are checked for actual filesystem equivalence. This preserves distinct existing objects on case-sensitive filesystems and does not read file contents. Exactly spelled `.env.example`, `.env.sample`, and `.env.template` remain exceptions unless configured protection adds them; non-exact spellings never introduce new exceptions. Workspace containment also recognizes equivalent existing anchors.
+
+Missing paths have no inode. Equivalent parents and normalized case variants are checked using a read-only case probe on an existing same-volume directory ancestor under the supported Darwin volume semantics. The probe changes an ASCII letter in that ancestor's name and compares metadata; it creates no files, lists no directories and reads no bodies. It never crosses a mount to infer a volume's behavior. Unresolvable probes and ambiguous missing case variants on other platforms fail closed as unsupported targets; this does not add platform support. Existing target/ancestor revalidation, non-following handles, cancellation and the accepted non-atomic race boundary remain in force.
+
+Regression evidence includes denied alias read/write/edit content-effect counters, existing/new configured descendants, missing configured directories, built-in aliases, Unicode-normalized existing directory aliases, exact exceptions, additive protection and path-boundary controls. The installed consumer repeats the original raw-tool and complete Session/archive counterexample. Human review and same-package trial remain required for the replacement SHA.
+
 ## Named race boundary (1.1)
 
 `AuthorizedFile.check` is the final validation immediately before each synchronous pathname syscall. There is no Human await or unrelated asynchronous work after it. Pre-check swaps invalidate the operation. Existing files open without create/truncate, are checked with fstat before content access, and all reads/truncates/writes use that same validated descriptor. Path renaming does not redirect a descriptor.

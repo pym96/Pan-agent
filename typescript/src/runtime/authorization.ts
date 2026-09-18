@@ -1,6 +1,7 @@
 import { AsyncLocalStorage } from 'node:async_hooks';
 import { createHash, randomUUID } from 'node:crypto';
-import { basename, isAbsolute, relative, resolve, sep } from 'node:path';
+import { basename, dirname, isAbsolute, relative, resolve, sep } from 'node:path';
+import { lstatSync, type Stats } from 'node:fs';
 import type { AgentTool, AgentToolExecutionResult } from '../protocol/agent-tool.ts';
 import type { JsonObject } from '../protocol/canonical-protocol.ts';
 
@@ -19,11 +20,70 @@ export function validateProtectedPaths(value:unknown):asserts value is readonly 
  if(!Array.isArray(value)||value.some(p=>typeof p!=='string'||!p.trim()||p.includes('\0')))throw Error('settings_invalid: protectedPaths');
 }
 const contains=(root:string,path:string):boolean=>{const r=relative(root,path);return !r||(!isAbsolute(r)&&r!=='..'&&!r.startsWith('..'+sep));};
+// Existing aliases are compared by resource identity, never by lowercasing the
+// whole path (which would conflate distinct objects on case-sensitive volumes).
+function pathIdentity(path:string):Stats|undefined {
+ try{return lstatSync(path);}catch(error){if((error as NodeJS.ErrnoException).code==='ENOENT')return undefined;throw error;}
+}
+const sameObject=(a:Stats,b:Stats)=>a.dev===b.dev&&a.ino===b.ino;
+const folded=(name:string)=>name.normalize('NFD').toLowerCase();
+/** Read-only case probe for the supported Darwin volume semantics. No probe files. */
+function insensitiveDirectory(path:string):boolean {
+ let cursor=path;
+ for(;;){
+  const here=pathIdentity(cursor),parent=dirname(cursor);
+  if(here){
+   // A directory's own spelling tests its parent volume. Never cross a mount.
+   const up=pathIdentity(parent);
+   if(!up||up.dev!==here.dev)throw new AuthorizationFailure('unsupported_target');
+   const name=basename(cursor),variant=name.replace(/[a-zA-Z]/,c=>c===c.toLowerCase()?c.toUpperCase():c.toLowerCase());
+   if(variant!==name){const alias=pathIdentity(resolve(parent,variant));return !!alias&&sameObject(here,alias);}
+  }
+  if(parent===cursor)throw new AuthorizationFailure('unsupported_target');
+  cursor=parent;
+ }
+}
+function equivalentPath(left:string,right:string):boolean {
+ if(left===right)return true;
+ const a=pathIdentity(left),b=pathIdentity(right);
+ if(a||b)return !!a&&!!b&&sameObject(a,b);
+ const lp=dirname(left),rp=dirname(right);
+ if(lp===left||rp===right||!equivalentPath(lp,rp))return false;
+ const ln=basename(left),rn=basename(right);
+ if(ln===rn)return true;
+ if(folded(ln)!==folded(rn))return false;
+ // Missing names have no inode. On Darwin, probe the existing same-volume
+ // ancestor. On other hosts refuse an ambiguous alias instead of guessing.
+ if(process.platform!=='darwin')throw new AuthorizationFailure('unsupported_target');
+ return insensitiveDirectory(lp);
+}
 export function protectedReason(workspace:string,path:string,extra:readonly string[]):string|undefined {
  const parts=path.split(sep),name=basename(path);
- if(parts.some(p=>['.git','.ssh','.pan-agent'].includes(p))||name==='.npmrc'||((name==='.env'||name.startsWith('.env.'))&&!['.env.example','.env.sample','.env.template'].includes(name)))return 'protected_path';
- if(extra.some(p=>contains(resolve(workspace,p),path)))return 'configured_protected_path';
- if(!contains(workspace,path))return 'outside_workspace';
+ const protectedName=(n:string)=>n==='.npmrc'||((n==='.env'||n.startsWith('.env.'))&&!['.env.example','.env.sample','.env.template'].includes(n));
+ if(parts.some(p=>['.git','.ssh','.pan-agent'].includes(p))||protectedName(name))return 'protected_path';
+ // Ask the filesystem whether each component aliases a protected spelling.
+ // Preserve exact exception spellings; a non-exact .env suffix is protected.
+ for(let cursor=path;dirname(cursor)!==cursor;cursor=dirname(cursor)){
+  const parent=dirname(cursor),part=basename(cursor);
+  for(const reserved of ['.git','.ssh','.pan-agent'])if(folded(part)===reserved&&equivalentPath(cursor,resolve(parent,reserved)))return 'protected_path';
+ }
+ const lower=name.toLowerCase();
+ if((protectedName(lower)||lower.startsWith('.env.'))&&name!==lower&&equivalentPath(path,resolve(dirname(path),lower)))return 'protected_path';
+ for(const configured of extra){
+  const root=resolve(workspace,configured);
+  if(contains(root,path))return 'configured_protected_path';
+  for(let cursor=path;;cursor=dirname(cursor)){
+   if(equivalentPath(root,cursor))return 'configured_protected_path';
+   if(dirname(cursor)===cursor)break;
+  }
+ }
+ if(!contains(workspace,path)){
+  for(let cursor=path;;cursor=dirname(cursor)){
+   if(equivalentPath(workspace,cursor))return undefined;
+   if(dirname(cursor)===cursor)break;
+  }
+  return 'outside_workspace';
+ }
  return undefined;
 }
 type InvocationContext={authority:SessionAuthorization;runId:string;callId:string;tool:string;argumentsHash:string;live:boolean;consumed:boolean};
