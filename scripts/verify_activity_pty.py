@@ -5,6 +5,9 @@ from pathlib import Path
 p=argparse.ArgumentParser();p.add_argument('--node',required=True);p.add_argument('--package',type=Path,required=True);p.add_argument('--output',type=Path,required=True);a=p.parse_args()
 repo=Path(__file__).resolve().parents[1];d=a.output;d.mkdir(parents=True,exist_ok=False)
 workspace=d/'workspace';workspace.mkdir();memory=d/'memory';consumer=a.package.parent.parent
+# Criteria 1.2: pre-existing ordinary fixtures keep this activity test approval-free for files.
+(workspace/'HIDDEN_DIRECTORY').mkdir()
+for i in range(3):(workspace/'HIDDEN_DIRECTORY'/f'file-{i}.txt').write_text('SEED')
 subprocess.run(['/usr/bin/git','init','-q',str(workspace)],check=True)
 for source,target in [('scripts/fixtures/activity-driver.mjs','driver.mjs'),('scripts/wo35-consumer-guard.mjs','guard.mjs')]:shutil.copy2(repo/source,d/target)
 shutil.copy2(repo/'scripts/wo35-consumer-guard.mjs',d/'base-guard.mjs');shutil.copy2(repo/'scripts/wo49-consumer-guard.mjs',d/'guard.mjs')

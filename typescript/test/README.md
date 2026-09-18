@@ -28,7 +28,7 @@ Run `npm --prefix typescript run check` from the repository root. Reference rema
 
 # WorkOrder #49
 
-[`authorization.test.ts`](authorization.test.ts): Criteria 1.1 policy, identity/cancellation, both race-boundary sides and TUI approval probes. [Expectation migration inventory](../../docs/adr/0018-operation-scoped-authorization.md) identifies prospective startup/permission fixture changes; original frozen snapshots remain intact.
+[`authorization.test.ts`](authorization.test.ts): Criteria 1.2 same/different/unknown policy, Unicode aliases, zero-effect uncertainty, identity/cancellation, both race-boundary sides and TUI approval probes. [Expectation migration inventory](../../docs/adr/0018-operation-scoped-authorization.md) identifies prospective startup/permission fixture changes; original frozen snapshots remain intact.
 
 ## Retained #61 coverage
 

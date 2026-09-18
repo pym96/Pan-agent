@@ -1,7 +1,7 @@
 import { AsyncLocalStorage } from 'node:async_hooks';
 import { createHash, randomUUID } from 'node:crypto';
 import { basename, dirname, isAbsolute, relative, resolve, sep } from 'node:path';
-import { lstatSync, type Stats } from 'node:fs';
+import { lstatSync, realpathSync } from 'node:fs';
 import type { AgentTool, AgentToolExecutionResult } from '../protocol/agent-tool.ts';
 import type { JsonObject } from '../protocol/canonical-protocol.ts';
 
@@ -20,85 +20,107 @@ export function validateProtectedPaths(value:unknown):asserts value is readonly 
  if(!Array.isArray(value)||value.some(p=>typeof p!=='string'||!p.trim()||p.includes('\0')))throw Error('settings_invalid: protectedPaths');
 }
 const contains=(root:string,path:string):boolean=>{const r=relative(root,path);return !r||(!isAbsolute(r)&&r!=='..'&&!r.startsWith('..'+sep));};
-// Existing aliases are compared by resource identity, never by lowercasing the
-// whole path (which would conflate distinct objects on case-sensitive volumes).
-function pathIdentity(path:string):Stats|undefined {
- try{return lstatSync(path);}catch(error){if((error as NodeJS.ErrnoException).code==='ENOENT')return undefined;throw error;}
-}
-const sameObject=(a:Stats,b:Stats)=>a.dev===b.dev&&a.ino===b.ino;
-const folded=(name:string)=>name.normalize('NFD').toLowerCase();
-/** Read-only case probe for the supported Darwin volume semantics. No probe files. */
-function insensitiveDirectory(path:string):boolean {
- let cursor=path;
- for(;;){
-  const here=pathIdentity(cursor),parent=dirname(cursor);
-  if(here){
-   // A directory's own spelling tests its parent volume. Never cross a mount.
-   const up=pathIdentity(parent);
-   if(!up||up.dev!==here.dev)throw new AuthorizationFailure('unsupported_target');
-   const name=basename(cursor),variant=name.replace(/[a-zA-Z]/,c=>c===c.toLowerCase()?c.toUpperCase():c.toLowerCase());
-   if(variant!==name){const alias=pathIdentity(resolve(parent,variant));return !!alias&&sameObject(here,alias);}
+export type ResourceComparison = 'same' | 'different' | 'unknown';
+type Observation = {state:'existing';dev:number;ino:number;mode:number;nlink:number;kind:'file'|'directory'|'other'} | {state:'missing'|'unavailable';code:string};
+export type FileAuthorizationState = {readonly created:readonly {dev:number;ino:number;mode:number;nlink:number}[];readonly opened?:{dev:number;ino:number}};
+type Comparison = {left:string;right:string;outcome:ResourceComparison;basis:string};
+const observe=(path:string):Observation=>{
+ try{const s=lstatSync(path);return {state:'existing',dev:s.dev,ino:s.ino,mode:s.mode,nlink:s.isDirectory()?0:s.nlink,kind:s.isDirectory()?'directory':s.isFile()?'file':'other'};}
+ catch(error){const code=(error as NodeJS.ErrnoException).code??'metadata_error';return {state:code==='ENOENT'||code==='ENOTDIR'?'missing':'unavailable',code};}
+};
+/** Read-only evidence for one pending action; never infers a filesystem fold. */
+export class PathAssessment {
+ readonly comparisons:Comparison[]=[];
+ readonly observations=new Map<string,Observation>();
+ reason:string|undefined;
+ constructor(workspace:string,target:string,extra:readonly string[]){
+  let protectedMatch=false,configuredMatch=false,unknown=false;
+  const compare=(left:string,right:string)=>{const result=this.compare(left,right);if(result==='unknown')unknown=true;return result;};
+  const ancestors:string[]=[];for(let cursor=target;;cursor=dirname(cursor)){ancestors.push(cursor);this.read(cursor);if(dirname(cursor)===cursor)break;}
+  for(const cursor of ancestors){
+   if(dirname(cursor)===cursor)continue;
+   for(const reserved of ['.git','.ssh','.pan-agent'])if(compare(cursor,resolve(dirname(cursor),reserved))==='same')protectedMatch=true;
   }
-  if(parent===cursor)throw new AuthorizationFailure('unsupported_target');
-  cursor=parent;
+  const name=basename(target),parent=dirname(target),exceptions=['.env.example','.env.sample','.env.template'];
+  let storedName:string|undefined;
+  try{const stored=realpathSync.native(target);if(compare(target,stored)==='same')storedName=basename(stored);else unknown=true;}catch{unknown=true;}
+  const lexicalProtected=(n:string)=>n==='.env'||n==='.npmrc'||(n.startsWith('.env.')&&!exceptions.includes(n));
+  if(lexicalProtected(name)||(storedName!==undefined&&lexicalProtected(storedName)))protectedMatch=true;
+  for(const reserved of ['.env','.npmrc'])if(compare(target,resolve(parent,reserved))==='same')protectedMatch=true;
+  // Only an exact requested AND stored exception spelling removes this pattern.
+  // Canonical spelling is obtained from the filesystem and identity checked.
+  if(!(exceptions.includes(name)&&storedName===name)){
+   const patternName=storedName??name;
+   // For an existing ASCII basename, enumerate every possible suffix boundary;
+   // the filesystem, not JS case folding, decides each full-name comparison.
+   for(let offset=0;offset<=patternName.length;offset++){
+    const candidate=resolve(parent,'.env.'+patternName.slice(offset));
+    if(candidate===target&&exceptions.includes(name))continue;
+    if(compare(target,candidate)==='same')protectedMatch=true;
+   }
+   if(storedName===undefined||/[^\x20-\x7e]/.test(patternName)){
+    unknown=true;this.comparisons.push({left:target,right:'.env.*',outcome:'unknown',basis:'unresolved_pattern_semantics'});
+   }
+  }
+
+  for(const configured of extra){
+   const root=resolve(workspace,configured);
+   if(this.read(root).state!=='existing'){unknown=true;this.comparisons.push({left:target,right:root,outcome:'unknown',basis:'missing_or_unavailable_configured_anchor'});}
+   // Pin configured ancestors as well as the final anchor for approval rechecks.
+   for(let cursor=root;;cursor=dirname(cursor)){this.read(cursor);if(dirname(cursor)===cursor)break;}
+   if(contains(root,target))configuredMatch=true;
+   for(const cursor of ancestors)if(compare(root,cursor)==='same')configuredMatch=true;
+  }
+  let inside=contains(workspace,target);
+  if(!inside)for(const cursor of ancestors)if(compare(workspace,cursor)==='same')inside=true;
+  this.reason=protectedMatch?'protected_path':configuredMatch?'configured_protected_path':!inside?'outside_workspace':unknown?'resource_equivalence_uncertain':undefined;
  }
-}
-function equivalentPath(left:string,right:string):boolean {
- if(left===right)return true;
- const a=pathIdentity(left),b=pathIdentity(right);
- if(a||b)return !!a&&!!b&&sameObject(a,b);
- const lp=dirname(left),rp=dirname(right);
- if(lp===left||rp===right||!equivalentPath(lp,rp))return false;
- const ln=basename(left),rn=basename(right);
- if(ln===rn)return true;
- if(folded(ln)!==folded(rn))return false;
- // Missing names have no inode. On Darwin, probe the existing same-volume
- // ancestor. On other hosts refuse an ambiguous alias instead of guessing.
- if(process.platform!=='darwin')throw new AuthorizationFailure('unsupported_target');
- return insensitiveDirectory(lp);
-}
-export function protectedReason(workspace:string,path:string,extra:readonly string[]):string|undefined {
- const parts=path.split(sep),name=basename(path);
- const protectedName=(n:string)=>n==='.npmrc'||((n==='.env'||n.startsWith('.env.'))&&!['.env.example','.env.sample','.env.template'].includes(n));
- if(parts.some(p=>['.git','.ssh','.pan-agent'].includes(p))||protectedName(name))return 'protected_path';
- // Ask the filesystem whether each component aliases a protected spelling.
- // Preserve exact exception spellings; a non-exact .env suffix is protected.
- for(let cursor=path;dirname(cursor)!==cursor;cursor=dirname(cursor)){
-  const parent=dirname(cursor),part=basename(cursor);
-  for(const reserved of ['.git','.ssh','.pan-agent'])if(folded(part)===reserved&&equivalentPath(cursor,resolve(parent,reserved)))return 'protected_path';
+ private read(path:string):Observation {let value=this.observations.get(path);if(!value){value=observe(path);this.observations.set(path,value);}return value;}
+ private compare(left:string,right:string):ResourceComparison {
+  const a=this.read(left),b=this.read(right);let outcome:ResourceComparison,basis:string;
+  if(left===right){outcome='same';basis='exact_lexical_policy_match';}
+  else if(a.state==='existing'&&b.state==='existing'&&a.kind!=='other'&&b.kind!=='other'){
+   outcome=a.dev===b.dev&&a.ino===b.ino?'same':'different';basis='existing_device_inode';
+  }else if((a.state==='existing'&&a.kind!=='other'&&b.state==='missing')||(b.state==='existing'&&b.kind!=='other'&&a.state==='missing')){
+   // One resource already exists. An equivalent spelling would resolve it.
+   // This is never used to distinguish TWO missing names.
+   outcome='different';basis='existing_resource_negative_lookup';
+  }else{outcome='unknown';basis='missing_or_unavailable_comparison';}
+  this.comparisons.push({left,right,outcome,basis});return outcome;
  }
- const lower=name.toLowerCase();
- if((protectedName(lower)||lower.startsWith('.env.'))&&name!==lower&&equivalentPath(path,resolve(dirname(path),lower)))return 'protected_path';
- for(const configured of extra){
-  const root=resolve(workspace,configured);
-  if(contains(root,path))return 'configured_protected_path';
-  for(let cursor=path;;cursor=dirname(cursor)){
-   if(equivalentPath(root,cursor))return 'configured_protected_path';
-   if(dirname(cursor)===cursor)break;
+ evidence():JsonObject {return {comparisons:this.comparisons.map(c=>({...c})),observations:[...this.observations].map(([path,value])=>({path,...value}))};}
+ revalidate(state:FileAuthorizationState={created:[]}):void {
+  for(const [path,previous] of this.observations){
+   // A validated opened handle remains the authorized object after path rename.
+   if(state.opened&&previous.state==='existing'&&previous.dev===state.opened.dev&&previous.ino===state.opened.ino)continue;
+   const now=observe(path);
+   if(JSON.stringify(previous)===JSON.stringify(now))continue;
+   // Only this tool's already-recorded creations may materialize a missing lookup.
+   // Other new/replaced configured anchors still invalidate the decision.
+   if(previous.state==='missing'&&now.state==='existing'&&state.created.some(c=>c.dev===now.dev&&c.ino===now.ino&&c.mode===now.mode&&c.nlink===now.nlink)){
+    this.observations.set(path,now);continue;
+   }
+   throw new AuthorizationFailure('approval_invalidated');
   }
  }
- if(!contains(workspace,path)){
-  for(let cursor=path;;cursor=dirname(cursor)){
-   if(equivalentPath(workspace,cursor))return undefined;
-   if(dirname(cursor)===cursor)break;
-  }
-  return 'outside_workspace';
- }
- return undefined;
 }
+export function protectedReason(workspace:string,path:string,extra:readonly string[]):string|undefined {return new PathAssessment(workspace,path,extra).reason;}
+
 type InvocationContext={authority:SessionAuthorization;runId:string;callId:string;tool:string;argumentsHash:string;live:boolean;consumed:boolean};
 const context=new AsyncLocalStorage<InvocationContext>();
 export class AuthorizationFailure extends Error { readonly code:string;constructor(code:string){super(code);this.code=code;} }
 export class SessionAuthorization {
  readonly sessionId=randomUUID(); readonly protectedPaths:readonly string[];
+ private readonly assessments=new WeakMap<JsonObject,PathAssessment>();
  private channel?:ApprovalChannel;private closed=false;private trust=false;private revision=0;
  constructor(options:AuthorizationOptions={}){validateProtectedPaths(options.protectedPaths??[]);this.protectedPaths=Object.freeze([...(options.protectedPaths??[])]);this.channel=options.approval;}
  setChannel(channel:ApprovalChannel|undefined):void {this.channel=channel;this.revision++;this.trust=false;}
  revoke():void {this.trust=false;this.revision++;}
  close():void {this.closed=true;this.revoke();this.channel=undefined;}
- assertCurrent(audit:JsonObject,signal:AbortSignal):void {
+ assertCurrent(audit:JsonObject,signal:AbortSignal,state?:FileAuthorizationState):void {
   const ctx=context.getStore();
   if(signal.aborted||this.closed||(ctx&&!ctx.live)||audit.policyRevision!==digest(JSON.stringify([audit.workspace,this.protectedPaths,this.revision])))throw new AuthorizationFailure('approval_invalidated');
+  this.assessments.get(audit)?.revalidate(state);
  }
  wrap(tool:AgentTool,runId:()=>string|undefined):AgentTool {
   return {...tool,execute:async invocation=>{
@@ -112,14 +134,20 @@ export class SessionAuthorization {
   if(current){if(current.consumed||current.callId!==callId||current.tool!==tool||current.argumentsHash!==digest(JSON.stringify(args)))throw new AuthorizationFailure('approval_invalidated');current.consumed=true;}
   const policyRevision=digest(JSON.stringify([workspace,this.protectedPaths,this.revision]));
   const target=tool==='bash'?String(args.command):resolve(workspace,String(args.path));
-  const reason=tool==='bash'?'shell_host_authority':protectedReason(workspace,target,this.protectedPaths);
+  const assessment=tool==='bash'?undefined:new PathAssessment(workspace,target,this.protectedPaths);
+  const reason=tool==='bash'?'shell_host_authority':assessment?.reason;
+  const comparisonEvidence=assessment?.evidence();
+  const evidenceHash=comparisonEvidence?digest(JSON.stringify(comparisonEvidence)):undefined;
+  if(evidenceHash)resourceIdentity=digest(JSON.stringify([resourceIdentity,evidenceHash]));
   const metadata:string[]=[];
+  if(reason==='resource_equivalence_uncertain')metadata.push('Resource equivalence is uncertain. This target has not been established as ordinary.');
   for(const key of ['content','edits'])if(args[key]!==undefined){const value=typeof args[key]==='string'?args[key] as string:JSON.stringify(args[key]);metadata.push(`${key}: ${Buffer.byteLength(value)} bytes · SHA-256 ${digest(value)}`);}
   const request:ApprovalRequest=Object.freeze({requestId:randomUUID(),sessionId:this.sessionId,runId,callId,tool,workspace,policyRevision,argumentsHash:digest(JSON.stringify(args)),resourceIdentity,reason:reason??'ordinary_workspace_file',target,metadata:Object.freeze(metadata)});
-  const audit:JsonObject={requestId:request.requestId,sessionId:this.sessionId,runId,callId,tool,workspace,policyRevision,argumentsHash:request.argumentsHash,resourceIdentity,reason:request.reason,scope:tool==='bash'?'shell':'file'};
+  const audit:JsonObject={requestId:request.requestId,sessionId:this.sessionId,runId,callId,tool,workspace,policyRevision,argumentsHash:request.argumentsHash,resourceIdentity,reason:request.reason,scope:tool==='bash'?'shell':'file',classification:tool==='bash'?'shell':!reason?'ordinary':reason==='resource_equivalence_uncertain'?'uncertain':reason==='outside_workspace'?'outside':'protected',...(comparisonEvidence?{comparisonEvidence,comparisonEvidenceHash:evidenceHash!}:{})};
+  const finish=(decision:string):JsonObject=>{const result={...audit,decision};if(assessment)this.assessments.set(result,assessment);return result;};
   const valid=()=>!signal.aborted&&!this.closed&&(!current||current.live)&&policyRevision===digest(JSON.stringify([workspace,this.protectedPaths,this.revision]));
   if(!valid())throw new AuthorizationFailure('approval_invalidated');
-  if(!reason||(tool==='bash'&&this.trust))return {...audit,decision:reason?'session-trust':'automatic'};
+  if(!reason||(tool==='bash'&&this.trust))return finish(reason?'session-trust':'automatic');
   if(!this.channel)throw Object.assign(new AuthorizationFailure('approval_unavailable'),{audit:{...audit,decision:'approval_unavailable'}});
   let abort!:()=>void;
   const cancelled=new Promise<never>((_,reject)=>{abort=()=>reject(new AuthorizationFailure('approval_invalidated'));signal.addEventListener('abort',abort,{once:true});if(signal.aborted)abort();});
@@ -128,7 +156,7 @@ export class SessionAuthorization {
    if(!valid()||!decision||decision.requestId!==request.requestId||!['allow-once','deny','trust-shell'].includes(decision.decision))throw new AuthorizationFailure('approval_invalidated');
    if(decision.decision==='deny')throw new AuthorizationFailure('approval_denied');
    if(decision.decision==='trust-shell'){if(tool!=='bash'||!current)throw new AuthorizationFailure('approval_invalidated');this.trust=true;}
-   return {...audit,decision:decision.decision};
+   return finish(decision.decision);
   }catch(error){if(error instanceof AuthorizationFailure){Object.assign(error,{audit:{...audit,decision:error.code}});throw error;}throw Object.assign(new AuthorizationFailure('approval_unavailable'),{audit:{...audit,decision:'approval_unavailable'}});}
   finally{signal.removeEventListener('abort',abort);}
  }

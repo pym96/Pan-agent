@@ -8,7 +8,11 @@ const {DailyWorkspace}=await import(pathToFileURL(join(product,'dist/tui/daily-w
 const identity={provider:{status:'reported',value:'pan-faux'},model:{status:'reported',value:'pan-faux-v1'},responseId:{status:'unavailable'}};
 const response=(content,stopReason)=>({kind:'response',message:{role:'assistant',timestamp:0,content},stopReason,usage:{status:'unavailable'},identity});
 let ui,exchanges=0,runs=0,faux;const observations=[];
+// Synthetic setup is separate from Product classification. Existing ordinary control.
+fs.writeFileSync(join(workspace,'ordinary.txt'),'SEED');
 const plans={
+ uncertain:[['write',{path:'new-uncertain/file.txt',content:'APPROVED_UNKNOWN'}]],
+ 'uncertain-deny':[['write',{path:'denied-uncertain/file.txt',content:'MUST_NOT_CREATE'}]],
  ordinary:[['write',{path:'ordinary.txt',content:'ORIGINAL'}],['read',{path:'ordinary.txt'}],['edit',{path:'ordinary.txt',edits:[{oldText:'ORIGINAL',newText:'EDITED'}]}]],
  protected:[['write',{path:'.git/authorized-demo.txt',content:'SYNTHETIC_FILE_BODY_CANARY'}]],
  deny:[['write',{path:'.git/denied-demo.txt',content:'SYNTHETIC_FILE_BODY_CANARY'}]],

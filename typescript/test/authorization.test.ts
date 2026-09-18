@@ -2,9 +2,9 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import fs from 'node:fs';
 import { syncBuiltinESMExports } from 'node:module';
-import { join } from 'node:path';
+import { join, dirname } from 'node:path';
 import { PassThrough } from 'node:stream';
-import { SessionAuthorization, protectedReason, type ApprovalChannel, type ApprovalRequest, type ApprovalDecision } from '../src/runtime/authorization.ts';
+import { SessionAuthorization, PathAssessment, protectedReason, type ApprovalChannel, type ApprovalRequest, type ApprovalDecision } from '../src/runtime/authorization.ts';
 import { createPanTrustedLocalTools } from '../src/tools/pan-trusted-local-tools.ts';
 import { parsePanSettings } from '../src/config/settings.ts';
 import { DailyWorkspace } from '../src/tui/daily-workspace.ts';
@@ -37,7 +37,7 @@ test('A-POLICY actual content-read/truncate/write counters stay zero for denied 
 });
 test('A-POLICY C-AUTH-01 ordinary operations, exact protected classes and settings fail closed',async()=>{
  const f=fixture();
- for(const name of ['a.txt','.env.example','.env.sample','.env.template','a.git/file','.ssh-lookalike/file'])assert.equal((await f.run('write',{path:name,content:'ordinary'})).isError,false,name);
+ for(const name of ['a.txt','.env.example','.env.sample','.env.template','a.git/file','.ssh-lookalike/file']){fs.mkdirSync(dirname(join(f.workspace,name)),{recursive:true});fs.writeFileSync(join(f.workspace,name),'seed');const result=await f.run('write',{path:name,content:'ordinary'});assert.equal(result.isError,false,name);assert.equal(((result.details as JsonObject).authorization as JsonObject).decision,'automatic');}
  assert.equal((await f.run('read',{path:'a.txt'})).content[0]?.type,'text');
  assert.equal((await f.run('edit',{path:'a.txt',edits:[{oldText:'ordinary',newText:'edited'}]})).isError,false);
  assert.equal(fs.readFileSync(join(f.workspace,'a.txt'),'utf8'),'edited');
@@ -47,7 +47,7 @@ test('A-POLICY C-AUTH-01 ordinary operations, exact protected classes and settin
  assert.equal((await f.run('bash',{command:'printf hello'})).isError,true);
  assert.equal((await f.run('write',{path:'bad',content:7})).isError,true);assert.equal(fs.existsSync(join(f.workspace,'bad')),false);
  assert.equal(protectedReason(f.workspace,join(f.workspace,'extra/a'),['extra']),'configured_protected_path');
- assert.equal(protectedReason(f.workspace,join(f.workspace,'extra-like/a'),['extra']),undefined);
+ assert.equal(protectedReason(f.workspace,join(f.workspace,'extra-like/a'),['extra']),'resource_equivalence_uncertain');
  const settings={schemaVersion:1,provider:'deepseek',modelId:'deepseek-chat',thinkingLevel:'low',credentialSource:'environment'};
  // Preserve a valid repository model selector, not an external API model name.
  settings.modelId='deepseek-v4-flash';
@@ -74,14 +74,14 @@ test('A-TARGET-CANCEL C-AUTH-03@1.1 unsupported links and pre-final-check swaps 
  const controller=new AbortController();controller.abort();assert.equal((await f.run('write',{path:'cancelled',content:'never'},controller.signal)).isError,true);assert.equal(fs.existsSync(join(f.workspace,'cancelled')),false);
 });
 test('A-TARGET-CANCEL C-AUTH-03@1.1 post-check replacement retained as partial-creation limitation',async()=>{
- const f=fixture();const parent=join(f.workspace,'parent');fs.mkdirSync(parent);
+ const f=fixture(allow);const parent=join(f.workspace,'parent');fs.mkdirSync(parent);
  const open=fs.openSync;let injected=false;
  fs.openSync=((path,...args)=>{if(path===join(parent,'new')&&!injected){injected=true;fs.renameSync(parent,join(f.workspace,'original-parent'));fs.mkdirSync(parent);}return open(path,...args);}) as typeof fs.openSync;syncBuiltinESMExports();
  try{const result=await f.run('write',{path:'parent/new',content:'MUST_NOT_WRITE'});assert.equal(result.isError,true);assert.match(JSON.stringify(result),/approval_invalidated/);assert.match(JSON.stringify(result),/"fileCreated":true/);assert.equal(fs.readFileSync(join(parent,'new'),'utf8'),'');assert.equal(fs.existsSync(join(f.workspace,'original-parent/new')),false);console.log('A-TARGET-CANCEL limitation: post-check replacement created empty file; content write refused; no rollback.');}
  finally{fs.openSync=open;syncBuiltinESMExports();}
 });
 test('A-TARGET-CANCEL C-AUTH-03@1.1 completed ancestor effects and opened-handle identity',async()=>{
- const f=fixture();const mkdir=fs.mkdirSync;let injected=false;
+ const f=fixture(allow);const mkdir=fs.mkdirSync;let injected=false;
  fs.mkdirSync=((path,...args)=>{const result=mkdir(path,...args);if(path===join(f.workspace,'new')&&!injected){injected=true;fs.renameSync(f.workspace,join(f.root,'old-workspace'));mkdir(f.workspace);}return result;}) as typeof fs.mkdirSync;syncBuiltinESMExports();
  try{const result=await f.run('write',{path:'new/child/file',content:'never'});assert.equal(result.isError,true);assert.match(JSON.stringify(result),/directories/);assert.equal(fs.existsSync(join(f.root,'old-workspace/new')),true);assert.equal(fs.existsSync(join(f.workspace,'new/child/file')),false);console.log('A-TARGET-CANCEL partial ancestor creation retained and attributed.');}finally{fs.mkdirSync=mkdir;syncBuiltinESMExports();}
  const g=fixture();const path=join(g.workspace,'file');fs.writeFileSync(path,'original');const read=fs.readFileSync;
@@ -150,7 +150,7 @@ test('A-POLICY R49-01 aliases, missing descendants, exact exceptions and control
    const result=await f.run('write',{path,content:'BAD'});assert.equal(result.isError,true,path);assert.match(JSON.stringify(result),/approval_unavailable/);assert.equal(fs.existsSync(join(f.workspace,path)),false,path);
   }
   assert.equal((await f.run('write',{path:'.ENV.EXAMPLE',content:'BAD'})).isError,true);
-  for(const path of ['Secret-lookalike/new','ordinary/new','.env.sample','.env.template'])assert.equal((await f.run('write',{path,content:'OK'})).isError,false,path);
+  for(const path of ['Secret-lookalike/new','ordinary/new','.env.sample','.env.template']){const r=await f.run('write',{path,content:'OK'});assert.equal(r.isError,true,path);assert.match(JSON.stringify(r),/resource_equivalence_uncertain/);}
   let calls=0;const g=fixture(async request=>{calls++;return allow(request,new AbortController().signal);},['Secret']);
   fs.mkdirSync(join(g.workspace,'Secret'));fs.writeFileSync(join(g.workspace,'.env'),'SYNTHETIC');
   assert.equal((await g.run('read',{path:'.ENV'})).isError,false);
@@ -159,6 +159,82 @@ test('A-POLICY R49-01 aliases, missing descendants, exact exceptions and control
  }else{
   fs.mkdirSync(join(f.workspace,'secret'));fs.writeFileSync(join(f.workspace,'.ENV'),'DISTINCT');
   assert.equal((await f.run('read',{path:'.ENV'})).isError,false);
-  assert.equal((await f.run('write',{path:'secret/new',content:'DISTINCT'})).isError,false);
+  fs.writeFileSync(join(f.workspace,'secret/new'),'seed');assert.equal((await f.run('write',{path:'secret/new',content:'DISTINCT'})).isError,false);
+ }
+});
+
+
+test('C-AUTH-01@1.2 R49-02 existing Unicode aliases and absent aliases require approval',async()=>{
+ const f=fixture(undefined,['Secrets']);fs.mkdirSync(join(f.workspace,'.ssh'));fs.writeFileSync(join(f.workspace,'.ssh/data'),'SYNTHETIC');
+ for(const path of ['.ſſh/data','.sſh/data']){assert.equal(fs.statSync(join(f.workspace,path)).ino,fs.statSync(join(f.workspace,'.ssh/data')).ino);assert.equal((await f.run('read',{path})).isError,true,path);}
+ for(const path of ['ſecrets/file','Secrets/file','ordinary-new/file']){const r=await f.run('write',{path,content:'DENIED'});assert.equal(r.isError,true,path);assert.match(JSON.stringify(r),/approval_unavailable/);assert.equal(fs.existsSync(join(f.workspace,path)),false);}
+});
+
+
+test('C-AUTH-01@1.2 uncertainty is symmetric, approved once, and supported ordinary remains automatic',async()=>{
+ for(const [configured,request] of [['Secrets','ſecrets/file'],['ſecrets','Secrets/file'],['Σ','ς/file'],['ss','ß/file'],['Café','Cafe\u0301/file']]){
+  const f=fixture(undefined,[configured!]);const result=await f.run('write',{path:request!,content:'NO'});
+  assert.equal(result.isError,true);assert.equal(((result.details as JsonObject).authorization as JsonObject).classification,'uncertain');assert.equal(fs.existsSync(join(f.workspace,request!)),false);
+ }
+ let calls=0;const f=fixture(async request=>{calls++;assert.equal(request.reason,'resource_equivalence_uncertain');assert.match(request.metadata.join(' '),/has not been established as ordinary/);return {requestId:request.requestId,decision:'allow-once'};});
+ const created=await f.run('write',{path:'new/deep/file',content:'ALLOWED'});assert.equal(created.isError,false,JSON.stringify(created));assert.equal(calls,1);assert.equal(fs.readFileSync(join(f.workspace,'new/deep/file'),'utf8'),'ALLOWED');
+ const ordinary=await f.run('write',{path:'new/deep/file',content:'EXISTING'});assert.equal(ordinary.isError,false);assert.equal(calls,1);assert.equal(((ordinary.details as JsonObject).authorization as JsonObject).decision,'automatic');
+ const evidence=new PathAssessment(f.workspace,join(f.workspace,'new/deep/file'),[]);assert.equal(evidence.reason,undefined);assert(evidence.comparisons.every(c=>c.outcome!=='unknown'));assert(evidence.comparisons.some(c=>c.basis==='existing_resource_negative_lookup'));
+ fs.mkdirSync(join(f.workspace,'Protected'));const distinct=new PathAssessment(f.workspace,join(f.workspace,'new/deep/file'),['Protected']);assert.equal(distinct.reason,undefined);assert(distinct.comparisons.some(c=>c.basis==='existing_device_inode'&&c.outcome==='different'));
+ const missing=new PathAssessment(f.workspace,join(f.workspace,'new/deep/file'),['Absent']);assert.equal(missing.reason,'resource_equivalence_uncertain');
+ const known=new PathAssessment(f.workspace,join(f.workspace,'.ssh/new'),['Absent']);assert.equal(known.reason,'protected_path','known match precedes unknown');
+});
+
+test('C-AUTH-01/05@1.2 unknown no-channel and denial have zero content or creation effects',async()=>{
+ const f=fixture();fs.writeFileSync(join(f.workspace,'résumé'),'SYNTHETIC');
+ const read=fs.readFileSync,write=fs.writeSync,truncate=fs.ftruncateSync,mkdir=fs.mkdirSync,open=fs.openSync;
+ const counts={reads:0,writes:0,truncates:0,mkdirs:0,creates:0};
+ fs.readFileSync=((...a)=>{counts.reads++;return read(...a);}) as typeof read;
+ fs.writeSync=((...a)=>{counts.writes++;return Reflect.apply(write,fs,a);}) as typeof write;
+ fs.ftruncateSync=((...a)=>{counts.truncates++;return truncate(...a);}) as typeof truncate;
+ fs.mkdirSync=((...a)=>{counts.mkdirs++;return Reflect.apply(mkdir,fs,a);}) as typeof mkdir;
+ fs.openSync=((path,flags,...a)=>{if(typeof flags==='number'&&(flags&fs.constants.O_CREAT))counts.creates++;return open(path,flags,...a);}) as typeof open;syncBuiltinESMExports();
+ try{
+  for(const approval of [undefined,async (r:ApprovalRequest)=>({requestId:r.requestId,decision:'deny' as const})]){
+   f.authority.setChannel(approval);
+   for(const [tool,args] of [['read',{path:'résumé'}],['write',{path:'new/sub/file',content:'RAW_BODY'}],['edit',{path:'résumé',edits:[{oldText:'SYNTHETIC',newText:'RAW_BODY'}]}]] as const){const result=await f.run(tool,args);assert.equal(result.isError,true);assert.match(JSON.stringify(result),/resource_equivalence_uncertain/);assert.doesNotMatch(JSON.stringify(result),/RAW_BODY/);}
+  }
+  assert.deepEqual(counts,{reads:0,writes:0,truncates:0,mkdirs:0,creates:0});console.log('Criteria1.2 uncertain denied effects '+JSON.stringify(counts));
+ }finally{fs.readFileSync=read;fs.writeSync=write;fs.ftruncateSync=truncate;fs.mkdirSync=mkdir;fs.openSync=open;syncBuiltinESMExports();}
+ assert.equal(fs.existsSync(join(f.workspace,'new')),false);
+});
+
+test('C-AUTH-02/03@1.2 configured-anchor changes and target failures invalidate approvals',async()=>{
+ let workspace='';const f=fixture(async r=>{fs.renameSync(join(workspace,'Protected'),join(workspace,'Old'));fs.mkdirSync(join(workspace,'Protected'));return {requestId:r.requestId,decision:'allow-once'};},['Protected']);workspace=f.workspace;fs.mkdirSync(join(workspace,'Protected'));
+ const result=await f.run('write',{path:'new/file',content:'NO'});assert.match(JSON.stringify(result),/approval_invalidated/);assert.equal(fs.existsSync(join(workspace,'new')),false);
+ let gWorkspace='';const g=fixture(async r=>{fs.mkdirSync(join(gWorkspace,'Future'));return {requestId:r.requestId,decision:'allow-once'};},['Future']);gWorkspace=g.workspace;
+ assert.match(JSON.stringify(await g.run('write',{path:'ordinary-new',content:'NO'})),/approval_invalidated/);assert.equal(fs.existsSync(join(gWorkspace,'ordinary-new')),false);
+ let calls=0;const bad=fixture(async r=>{calls++;return allow(r,new AbortController().signal);});fs.symlinkSync('absent',join(bad.workspace,'link'));
+ assert.match(JSON.stringify(await bad.run('write',{path:'link/file',content:'NO'})),/unsupported_target/);assert.equal(calls,0);
+ const lstat=fs.lstatSync;Object.defineProperty(fs,'lstatSync',{value:((p,...a)=>{if(p===join(bad.workspace,'unreadable'))throw Object.assign(Error('synthetic permission'),{code:'EACCES'});return Reflect.apply(lstat,fs,[p,...a]);}) as typeof lstat});syncBuiltinESMExports();
+ try{assert.match(JSON.stringify(await bad.run('write',{path:'unreadable',content:'NO'})),/unsupported_target/);assert.equal(calls,0);}finally{Object.defineProperty(fs,'lstatSync',{value:lstat});syncBuiltinESMExports();}
+});
+
+test('C-AUTH-01@1.2 exact exceptions cannot override protected ancestry, stored aliases or configuration',async()=>{
+ const f=fixture();for(const name of ['.env.example','.env.sample','.env.template']){fs.writeFileSync(join(f.workspace,name),'EXCEPTION');assert.equal((await f.run('read',{path:name})).isError,false);}
+ fs.mkdirSync(join(f.workspace,'.ssh'));fs.writeFileSync(join(f.workspace,'.ssh/.env.example'),'PROTECTED');assert.equal((await f.run('read',{path:'.ſſh/.env.example'})).isError,true);
+ const g=fixture(undefined,['.env.sample']);fs.writeFileSync(join(g.workspace,'.env.sample'),'CONFIGURED');assert.equal((await g.run('read',{path:'.env.sample'})).isError,true);
+ const h=fixture();fs.writeFileSync(join(h.workspace,'.env.EXAMPLE'),'STORED_PROTECTED');assert.equal((await h.run('read',{path:'.env.example'})).isError,true);
+ const q=fixture(undefined,['Future']);fs.writeFileSync(join(q.workspace,'.env.template'),'EXCEPTION');assert.match(JSON.stringify(await q.run('read',{path:'.env.template'})),/resource_equivalence_uncertain/);
+});
+
+test('C-AUTH-02/05@1.2 uncertain cancellation settles and late approval is inert',async()=>{
+ let release!:(d:ApprovalDecision)=>void,request!:ApprovalRequest;const f=fixture(async r=>{request=r;return new Promise(resolve=>{release=resolve;});});
+ const abort=new AbortController();const pending=f.run('write',{path:'new/deep/file',content:'NO'},abort.signal);await new Promise(resolve=>setImmediate(resolve));assert.equal(request.reason,'resource_equivalence_uncertain');abort.abort();assert.match(JSON.stringify(await pending),/approval_invalidated/);release({requestId:request.requestId,decision:'allow-once'});await new Promise(resolve=>setImmediate(resolve));assert.equal(fs.existsSync(join(f.workspace,'new')),false);
+});
+
+test('C-AUTH-01@1.2 filesystem identity distinguishes aliases from ordinary distinct controls',async()=>{
+ for(const [configured,requested] of [['Secrets','ſecrets'],['Σ','ς'],['ff','ﬀ'],['ss','ß'],['Secrets','Ｓecrets'],['i','ı'],['resume','résumé'],['Café','Cafe\u0301']]){
+  const f=fixture(undefined,[configured!]);fs.mkdirSync(join(f.workspace,configured!));
+  if(!fs.existsSync(join(f.workspace,requested!)))fs.mkdirSync(join(f.workspace,requested!));
+  const same=fs.statSync(join(f.workspace,configured!)).ino===fs.statSync(join(f.workspace,requested!)).ino;
+  fs.writeFileSync(join(f.workspace,requested!,'file'),'SYNTHETIC');
+  const r=await f.run('read',{path:requested!+'/file'});assert.equal(!!r.isError,same,configured+' / '+requested);
+  assert.equal(((r.details as JsonObject).authorization as JsonObject).decision,same?'approval_unavailable':'automatic');
  }
 });

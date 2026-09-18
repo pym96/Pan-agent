@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { PassThrough } from 'node:stream';
-import { mkdtemp, rm, readdir, readFile } from 'node:fs/promises';
+import { mkdtemp, rm, readdir, readFile, writeFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -463,6 +463,8 @@ test('C-SBAR-03 painted frame escapes hostile entry text and reserves the final 
 test('C-SBAR-04 view interactions add zero execution; sealed archive and replay stay identical', async () => {
  const directory = await mkdtemp(join(tmpdir(), 'wo60-sbar04-'));
  try {
+  // #49 Criteria 1.2: this view-only regression uses an existing ordinary file.
+  await writeFile(join(directory, 'note.txt'), 'seed');
   const archiveStore = await RunArchiveStore.open(join(directory, 'memory'));
   const { adapter, faux } = scriptedAdapter();
   faux.setResponses([

@@ -274,7 +274,7 @@ The preview deterministically enumerates the unchanged 120-slot denominator and 
 
 [`check_workorder_49_scope.py`](check_workorder_49_scope.py) audits the exact committed file allowlist and byte-identical protected baseline, including NativeKernel, Provider implementations, storage, Frozen Reference and Python.
 
-[`verify_authorization_pty.py`](verify_authorization_pty.py): Criteria 1.1 installed Faux approval/deny/trust/revoke/cancel, narrow/long-command safe display and replay evidence. [`demo_authorization.mjs`](demo_authorization.mjs) runs the Human trial against an explicit installed package path. [`wo49-consumer-guard.mjs`](wo49-consumer-guard.mjs) extends the unchanged offline guard only for exact ancestor-directory lstat metadata, never content reads. [ADR-0018](../docs/adr/0018-operation-scoped-authorization.md) records policy, race limits and expectation migration.
+[`verify_authorization_pty.py`](verify_authorization_pty.py): Criteria 1.2 installed Faux uncertainty/approval/deny/trust/revoke/cancel, narrow/long-command safe display and replay evidence. [`demo_authorization.mjs`](demo_authorization.mjs) runs the Human trial against an explicit installed package path. [`wo49-consumer-guard.mjs`](wo49-consumer-guard.mjs) extends the unchanged offline guard for exact ancestor and policy-comparison lstat metadata, with a separate metadata log and no content-read exception. [ADR-0018](../docs/adr/0018-operation-scoped-authorization.md) records policy, race limits and expectation migration.
 
 The active #60/#61/#62 PTY drivers now start at idle rather than submitting removed startup y. The #61 fixture explicitly approves its three Shell requests through actual PTY input. Prior raw captures and frozen snapshot checks are not changed.
 

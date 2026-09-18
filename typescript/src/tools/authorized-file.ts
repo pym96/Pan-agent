@@ -1,7 +1,7 @@
 /** #49 Criteria 1.1: checks are not atomic with pathname syscalls. No rollback or containment claim. */
 import * as fs from 'node:fs';
 import { dirname, parse, resolve, sep } from 'node:path';
-import { AuthorizationFailure, digest } from '../runtime/authorization.ts';
+import { AuthorizationFailure, digest, type FileAuthorizationState } from '../runtime/authorization.ts';
 type Identity={path:string;dev:number;ino:number;mode:number;nlink:number;missing:boolean};
 const missing=(error:unknown)=> (error as NodeJS.ErrnoException).code==='ENOENT';
 const identity=(path:string):Identity=>{
@@ -13,8 +13,9 @@ export class AuthorizedFile {
  readonly path:string;readonly resourceIdentity:string;private identities:Identity[]=[];private fd?:number;
  readonly effects:{directories:string[];fileCreated:boolean;contentWritten:boolean}={directories:[],fileCreated:false,contentWritten:false};
  private readonly signal:AbortSignal;
- private validateAuthorization:()=>void=()=>{};
- bindAuthorization(validate:()=>void):void {this.validateAuthorization=validate;}
+ private readonly created:Identity[]=[];
+ private validateAuthorization:(state:FileAuthorizationState)=>void=()=>{};
+ bindAuthorization(validate:(state:FileAuthorizationState)=>void):void {this.validateAuthorization=validate;}
  constructor(path:string,signal:AbortSignal){
   this.signal=signal;
   this.path=resolve(path);let cursor=parse(this.path).root;
@@ -26,13 +27,14 @@ export class AuthorizedFile {
  }
  /** Named final validation; each synchronous syscall is dispatched immediately after it. */
  private check():void {
-  this.validateAuthorization();
+  this.validateAuthorization({created:this.created});
   if(this.signal.aborted)throw new AuthorizationFailure('approval_invalidated');
   for(const previous of this.identities){let now:Identity;try{now=identity(previous.path);}catch{throw new AuthorizationFailure('approval_invalidated');}if(!equal(previous,now))throw new AuthorizationFailure('approval_invalidated');}
  }
  private verifyHandle():void {
-  this.validateAuthorization();
-  const s=fs.fstatSync(this.fd!);const expected=this.identities.at(-1)!;
+  const expected=this.identities.at(-1)!;
+  this.validateAuthorization({created:this.created,opened:expected});
+  const s=fs.fstatSync(this.fd!);
   if(!s.isFile()||s.nlink!==1||s.ino!==expected.ino||s.dev!==expected.dev)throw new AuthorizationFailure('approval_invalidated');
   if(this.signal.aborted)throw new AuthorizationFailure('approval_invalidated');
  }
@@ -41,7 +43,7 @@ export class AuthorizedFile {
   if(create){for(let i=0;i<this.identities.length-1;i++){const item=this.identities[i]!;if(!item.missing)continue;
    this.check();fs.mkdirSync(item.path,{mode:0o700});this.effects.directories.push(item.path);
    // Record our completed creation, then verify all earlier recorded identities.
-   this.identities[i]=identity(item.path);this.check();
+   this.identities[i]=identity(item.path);this.created.push(this.identities[i]!);this.check();
   }}
   const expected=this.identities.at(-1)!;
   if(expected.missing&&!create)throw new AuthorizationFailure('unsupported_target');
@@ -51,7 +53,7 @@ export class AuthorizedFile {
    this.effects.fileCreated=true;
    // Do not replace the recorded parent identities. Never write a replacement object.
    const opened=fs.fstatSync(this.fd);this.identities[this.identities.length-1]={path:this.path,dev:opened.dev,ino:opened.ino,mode:opened.mode,nlink:opened.nlink,missing:false};
-   this.check();
+   this.created.push(this.identities.at(-1)!);this.check();
   }
   this.verifyHandle();
  }

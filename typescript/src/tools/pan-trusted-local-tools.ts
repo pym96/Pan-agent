@@ -401,7 +401,7 @@ export function createPanTrustedLocalTools(
 			if (tool.name !== 'bash') file = new AuthorizedFile(toolPath(resolvedWorkspace, String(args.path)), invocation.signal);
 			audit = await authority.authorize(resolvedWorkspace, tool.name, invocation.toolCallId, args, file?.resourceIdentity ?? shellIdentity(), invocation.signal);
 			authority.assertCurrent(audit,invocation.signal);
-			file?.bindAuthorization(()=>authority.assertCurrent(audit!,invocation.signal));
+			file?.bindAuthorization(state=>authority.assertCurrent(audit!,invocation.signal,state));
 			if(tool.name==='bash' && audit.resourceIdentity!==shellIdentity())throw new AuthorizationFailure('approval_invalidated');
 			if (invocation.signal.aborted) throw new AuthorizationFailure('approval_invalidated');
 			const run = () => tool.execute({ ...invocation, arguments: args });
