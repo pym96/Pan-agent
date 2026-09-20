@@ -79,7 +79,7 @@ test('C-K3-02 identical visible messages never borrow private reasoning across s
  assert.equal(refusal.kind,'failure');if(refusal.kind==='failure')assert.equal(refusal.category,'protocol');
 });
 
-async function sessionFor(adapter:PanKimiModelAdapter) {
+async function sessionFor(adapter: Pick<PanKimiModelAdapter, "providerId" | "modelId" | "reasoningLevel" | "exchange" | "dispose">) {
  const archiveStore=await RunArchiveStore.open(await mkdtemp(join(tmpdir(),'k3-memory-')));
  const runbook=await loadRunbook(new URL('../RUNBOOK.md',import.meta.url).pathname);let effects=0;
  const session=new GeneralAgentSession({kernel:'native',adapter,systemPrompt:'offline',tools:[{name:'read',description:'synthetic',parameters:{type:'object'},validate:value=>({ok:true,value:value as never}),execute:async()=>{effects++;return{content:[{type:'text',text:'read result'}]};}}],memory:{archiveStore,runbook:async()=>runbook},cleanup:()=>adapter.dispose()});
@@ -138,4 +138,70 @@ test('C-K3-04 pre-abort, blocked transport/body cancellation, late completion an
  }
  const adapter=fake(bytes(wire('single')));const original=req();const result=await adapter.exchange(original);assert.equal(result.kind,'response');
  adapter.dispose();assert.equal((await adapter.exchange(original)).kind,'failure');
+});
+
+test('R68-01 C-K3-02 request-time lineage rejects in-flight content and object changes', async () => {
+ for (const phase of ['transport', 'stream']) {
+  for (const mutation of ['none', 'content', 'object', 'equal-object', 'append']) {
+   let started!: () => void, release!: () => void;
+   const ready = new Promise<void>(resolve => { started = resolve; });
+   const gate = new Promise<void>(resolve => { release = resolve; });
+   const captures: KimiTransportRequest[] = [];
+   const adapter = new PanKimiModelAdapter(profile, { transport: { async send(request) {
+    captures.push(request);
+    if (captures.length === 1 && phase === 'transport') { started(); await gate; }
+    const text = captures.length === 1 ? wire('single') : wire('final');
+    return { status: 200, body: (async function* () {
+     if (captures.length === 1 && phase === 'stream') {
+      const boundary = text.indexOf('\n\n') + 2;
+      yield Buffer.from(text.slice(0, boundary)); started(); await gate;
+      yield Buffer.from(text.slice(boundary));
+     } else yield Buffer.from(text);
+    })() };
+   } } });
+   const messages: Message[] = [{ role: 'user', content: [{ type: 'text', text: 'ORIGINAL_REQUEST' }], timestamp: 0 }];
+   const request = req(messages);
+   const pending = adapter.exchange(request); await ready;
+   assert.equal(JSON.parse(captures[0]!.body).messages[1].content, 'ORIGINAL_REQUEST');
+   if (mutation === 'content') (messages[0]!.content[0] as { text: string }).text = 'ALTERED_WHILE_PENDING';
+   if (mutation === 'object' || mutation === 'equal-object') messages[0] = { role: 'user', content: [{ type: 'text', text: mutation === 'object' ? 'REPLACED_WHILE_PENDING' : 'ORIGINAL_REQUEST' }], timestamp: 0 };
+   if (mutation === 'append') messages.push({ role: 'user', content: [{ type: 'text', text: 'APPENDED_WHILE_PENDING' }], timestamp: 1 });
+   release(); const first = await pending;
+   if (first.kind === 'response') await adapter.exchange(req([...messages, first.message, ...results(first.message)]));
+   assert.equal(captures.length, mutation === 'none' ? 2 : 1, `${phase}/${mutation}: mismatched continuation must not reach transport`);
+   if (mutation === 'none') assert.equal(first.kind, 'response');
+   else {
+    assert.equal(first.kind, 'failure');
+    if (first.kind === 'failure') { assert.equal(first.category, 'protocol'); assert.equal(first.detail, 'kimi_continuation_unavailable'); }
+   }
+   adapter.dispose();
+  }
+ }
+});
+
+test('R68-01 C-K3-02 GeneralAgentSession rejects changed pending lineage before any Tool effect', async () => {
+ for (const mutation of ['content', 'object']) {
+  let started!: () => void, release!: () => void, active!: ModelExchangeRequest;
+  const ready = new Promise<void>(resolve => { started = resolve; });
+  const gate = new Promise<void>(resolve => { release = resolve; });
+  let transports = 0;
+  const inner = new PanKimiModelAdapter(profile, { transport: { async send() {
+   transports++; started(); await gate;
+   return { status: 200, body: (async function* () { yield Buffer.from(wire('single')); })() };
+  } } });
+  const state = await sessionFor({ providerId: inner.providerId, modelId: inner.modelId, reasoningLevel: inner.reasoningLevel,
+   exchange(request) { active = request; return inner.exchange(request); }, dispose() { inner.dispose(); } });
+  const pending = state.session.runTask('ORIGINAL_REQUEST'); await ready;
+  const messages = active.context.messages as Message[];
+  if (mutation === 'content') (messages[0]!.content[0] as { text: string }).text = 'ALTERED_WHILE_PENDING';
+  else messages[0] = { role: 'user', content: [{ type: 'text', text: 'REPLACED_WHILE_PENDING' }], timestamp: 0 };
+  release(); const result = await pending;
+  assert.equal(result.status, 'model_error'); assert.equal(result.reason, 'kimi_continuation_unavailable');
+  assert.equal(transports, 1); assert.equal(state.effects(), 0);
+  const records = await state.archiveStore.readArchive(result.runId);
+  assert.equal(records.filter(row => row.type === 'tool.started').length, 0);
+  assert.equal(records.filter(row => row.type === 'run.terminal').length, 1);
+  assert.ok(!JSON.stringify(records).includes('PRIVATE'));
+  await state.session.close();
+ }
 });

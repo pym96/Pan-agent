@@ -2,12 +2,14 @@ import { createHash } from "node:crypto";
 import type { AssistantMessage, Message } from "../../protocol/canonical-protocol.ts";
 import type { ModelExchangeRequest } from "../../protocol/model-adapter-contract.ts";
 
-interface Entry {
+export interface KimiRequestLineage {
  readonly sessionId: string;
- readonly digest: string;
  readonly prefix: readonly { ref: WeakRef<Message>; digest: string }[];
- readonly reasoning?: string;
  readonly signal: AbortSignal;
+}
+interface Entry extends KimiRequestLineage {
+ readonly digest: string;
+ readonly reasoning?: string;
 }
 const digest = (message: Message): string => createHash("sha256").update(JSON.stringify(message)).digest("hex");
 
@@ -15,12 +17,22 @@ const digest = (message: Message): string => createHash("sha256").update(JSON.st
 export class KimiContinuation {
  #entries = new WeakMap<AssistantMessage, Entry>();
  #closed = false;
- admit(message: AssistantMessage, request: ModelExchangeRequest, reasoning?: string): void {
-  if (this.#closed || request.signal.aborted) throw new Error("kimi_continuation_unavailable");
+ capture(request: ModelExchangeRequest): KimiRequestLineage {
+  return Object.freeze({
+   sessionId: request.sessionId, signal: request.signal,
+   prefix: Object.freeze(request.context.messages.map(value => Object.freeze({ ref: new WeakRef(value), digest: digest(value) }))),
+  });
+ }
+ unchanged(lineage: KimiRequestLineage, request: ModelExchangeRequest): boolean {
+  return !this.#closed && !lineage.signal.aborted && lineage.sessionId === request.sessionId
+   && lineage.prefix.length === request.context.messages.length
+   && lineage.prefix.every((prior, index) => prior.ref.deref() === request.context.messages[index]
+    && prior.digest === digest(request.context.messages[index]!));
+ }
+ admit(message: AssistantMessage, lineage: KimiRequestLineage, reasoning?: string): void {
+  if (this.#closed || lineage.signal.aborted) throw new Error("kimi_continuation_unavailable");
   this.#entries.set(message, {
-   sessionId: request.sessionId, digest: digest(message),
-   prefix: request.context.messages.map(value => ({ ref: new WeakRef(value), digest: digest(value) })),
-   ...(reasoning === undefined ? {} : { reasoning }), signal: request.signal,
+   ...lineage, digest: digest(message), ...(reasoning === undefined ? {} : { reasoning }),
   });
  }
  resolve(message: AssistantMessage, index: number, request: ModelExchangeRequest): string | undefined {

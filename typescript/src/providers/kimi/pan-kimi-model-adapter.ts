@@ -22,7 +22,7 @@ import {
 	type Usage,
 } from "../../protocol/canonical-protocol.ts";
 import { DEFAULT_KIMI_PROFILE, KIMI_K3_MODEL_ID, validateKimiProfile, type KimiProfile } from "./kimi-profile.ts";
-import { KimiContinuation } from "./kimi-continuation.ts";
+import { KimiContinuation, type KimiRequestLineage } from "./kimi-continuation.ts";
 import {
 	KimiFetchTransport,
 	KimiTransportConfigurationError,
@@ -512,11 +512,14 @@ export class PanKimiModelAdapter implements ModelAdapter {
     private async performExchange(request: ModelExchangeRequest): Promise<ModelOutcome> {
 		if (request.signal.aborted) return failure("cancelled", "kimi_exchange_cancelled", false);
 		let transportRequest: KimiTransportRequest;
+		let lineage: KimiRequestLineage | undefined;
 		try {
 			if (request.sessionId.trim().length === 0) protocol("kimi_session_id_empty");
 			if (typeof request.context.systemPrompt !== "string") protocol("kimi_system_prompt_invalid");
 			validateCanonicalContext(request.context.messages);
 			validateAgentToolDefinitions(request.context.tools);
+			// Capture the exact request lineage synchronously, before encoding or yielding to transport.
+			if (this.profile.modelId === KIMI_K3_MODEL_ID) lineage = this.#continuation.capture(request);
 			transportRequest = buildRequest(this.profile, request, this.profile.modelId === KIMI_K3_MODEL_ID ? this.#continuation : undefined);
 		} catch (error) {
 			return failure("protocol", safeCode(error), false);
@@ -552,9 +555,10 @@ export class PanKimiModelAdapter implements ModelAdapter {
 		try {
 			const { outcome, reasoning } = await assembleSuccessfulResponse(response, request, this.profile.modelId === KIMI_K3_MODEL_ID);
 			if (request.signal.aborted) return failure("cancelled", "kimi_exchange_cancelled", false);
+			if (lineage && !this.#continuation.unchanged(lineage, request)) protocol("kimi_continuation_unavailable");
 			validateModelOutcome(outcome, request.context.messages);
             if (this.#closed) return failure("protocol", "kimi_adapter_disposed", false);
-            if (this.profile.modelId === KIMI_K3_MODEL_ID && outcome.kind === "response") this.#continuation.admit(outcome.message, request, reasoning);
+            if (lineage && outcome.kind === "response") this.#continuation.admit(outcome.message, lineage, reasoning);
 			return outcome;
 		} catch (error) {
 			if (isAbort(error, request.signal)) return failure("cancelled", "kimi_exchange_cancelled", false);
