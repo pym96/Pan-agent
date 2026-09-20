@@ -33,3 +33,5 @@ Run `npm --prefix typescript run check` from the repository root. Reference rema
 ## Retained #61 coverage
 
 [`tool-activity.test.ts`](tool-activity.test.ts) covers digest density, multiple-run selection, safe labels, live overlay updates and missing/inconsistent retained records. The unchanged scrollbar and scroll-layout suites cover #60/#62 regression.
+
+- [kimi-k3.test.ts](kimi-k3.test.ts): #68 synthetic K3 profile/fragmentation/provenance/containment/cancellation checks.

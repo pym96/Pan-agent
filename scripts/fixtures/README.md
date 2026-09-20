@@ -47,3 +47,5 @@ These are verification clients, not Product implementations or live Provider res
 ## Retained #61 driver
 
 [`activity-driver.mjs`](activity-driver.mjs) loads only installed JavaScript, drives twelve Faux tool calls through the actual CLI, and records raw output plus view state for the offline PTY verifier.
+
+- [Kimi K3 synthetic fixtures and installed driver](kimi/README.md): #68 offline-only additions; legacy fixture bytes retained.

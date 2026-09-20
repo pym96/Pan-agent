@@ -1,0 +1,23 @@
+{
+  "id": "kimi-k3-wire/v1",
+  "synthetic": true,
+  "canary_notice": "Private reasoning is synthetic wire evidence only; no real account or provider data.",
+  "valid": [
+    {
+      "name": "final",
+      "wire": "data: {\"object\":\"chat.completion.chunk\",\"created\":1,\"model\":\"observed-k3-build\",\"id\":\"synthetic-k3\",\"choices\":[{\"index\":0,\"delta\":{\"reasoning_content\":\"PRIVATE-FINAL\",\"content\":\"完成\"},\"finish_reason\":null}]}\n\ndata: {\"object\":\"chat.completion.chunk\",\"created\":1,\"model\":\"observed-k3-build\",\"id\":\"synthetic-k3\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"。\"},\"finish_reason\":\"stop\"}]}\n\ndata: [DONE]\n\n"
+    },
+    {
+      "name": "single",
+      "wire": "data: {\"object\":\"chat.completion.chunk\",\"created\":1,\"model\":\"observed-k3-build\",\"id\":\"synthetic-k3\",\"choices\":[{\"index\":0,\"delta\":{\"reasoning_content\":\"PRIVATE-K3-思考-\",\"content\":\"Visible \"},\"finish_reason\":null}]}\n\ndata: {\"object\":\"chat.completion.chunk\",\"created\":1,\"model\":\"observed-k3-build\",\"id\":\"synthetic-k3\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"id\":\"call-0\",\"type\":\"function\",\"function\":{\"name\":\"read\",\"arguments\":\"{\\\"path\\\":\"}}]},\"finish_reason\":null}]}\n\ndata: {\"object\":\"chat.completion.chunk\",\"created\":1,\"model\":\"observed-k3-build\",\"id\":\"synthetic-k3\",\"choices\":[{\"index\":0,\"delta\":{\"reasoning_content\":\"片0\",\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"\\\"sample.txt\\\"}\"}}]},\"finish_reason\":null}]}\n\ndata: {\"object\":\"chat.completion.chunk\",\"created\":1,\"model\":\"observed-k3-build\",\"id\":\"synthetic-k3\",\"choices\":[{\"index\":0,\"delta\":{},\"finish_reason\":\"tool_calls\"}]}\n\ndata: [DONE]\n\n"
+    },
+    {
+      "name": "multiple",
+      "wire": "data: {\"object\":\"chat.completion.chunk\",\"created\":1,\"model\":\"observed-k3-build\",\"id\":\"synthetic-k3\",\"choices\":[{\"index\":0,\"delta\":{\"reasoning_content\":\"PRIVATE-K3-思考-\",\"content\":\"Visible \"},\"finish_reason\":null}]}\n\ndata: {\"object\":\"chat.completion.chunk\",\"created\":1,\"model\":\"observed-k3-build\",\"id\":\"synthetic-k3\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":0,\"id\":\"call-0\",\"type\":\"function\",\"function\":{\"name\":\"read\",\"arguments\":\"{\\\"path\\\":\"}}]},\"finish_reason\":null}]}\n\ndata: {\"object\":\"chat.completion.chunk\",\"created\":1,\"model\":\"observed-k3-build\",\"id\":\"synthetic-k3\",\"choices\":[{\"index\":0,\"delta\":{\"reasoning_content\":\"片0\",\"tool_calls\":[{\"index\":0,\"function\":{\"arguments\":\"\\\"sample.txt\\\"}\"}}]},\"finish_reason\":null}]}\n\ndata: {\"object\":\"chat.completion.chunk\",\"created\":1,\"model\":\"observed-k3-build\",\"id\":\"synthetic-k3\",\"choices\":[{\"index\":0,\"delta\":{\"tool_calls\":[{\"index\":1,\"id\":\"call-1\",\"type\":\"function\",\"function\":{\"name\":\"read\",\"arguments\":\"{\\\"path\\\":\"}}]},\"finish_reason\":null}]}\n\ndata: {\"object\":\"chat.completion.chunk\",\"created\":1,\"model\":\"observed-k3-build\",\"id\":\"synthetic-k3\",\"choices\":[{\"index\":0,\"delta\":{\"reasoning_content\":\"片1\",\"tool_calls\":[{\"index\":1,\"function\":{\"arguments\":\"\\\"sample.txt\\\"}\"}}]},\"finish_reason\":null}]}\n\ndata: {\"object\":\"chat.completion.chunk\",\"created\":1,\"model\":\"observed-k3-build\",\"id\":\"synthetic-k3\",\"choices\":[{\"index\":0,\"delta\":{},\"finish_reason\":\"tool_calls\"}]}\n\ndata: [DONE]\n\n"
+    },
+    {
+      "name": "usage-tail",
+      "wire": "data: {\"object\":\"chat.completion.chunk\",\"created\":1,\"model\":\"observed-k3-build\",\"id\":\"synthetic-k3\",\"choices\":[{\"index\":0,\"delta\":{\"reasoning_content\":\"PRIVATE-FINAL\",\"content\":\"完成\"},\"finish_reason\":null}]}\n\ndata: {\"object\":\"chat.completion.chunk\",\"created\":1,\"model\":\"observed-k3-build\",\"id\":\"synthetic-k3\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"。\"},\"finish_reason\":\"stop\"}]}\n\ndata: {\"object\":\"chat.completion.chunk\",\"created\":1,\"model\":\"observed-k3-build\",\"id\":\"synthetic-k3\",\"choices\":[],\"usage\":{\"prompt_tokens\":7,\"completion_tokens\":3,\"total_tokens\":10}}\n\ndata: [DONE]\n\n"
+    }
+  ]
+}

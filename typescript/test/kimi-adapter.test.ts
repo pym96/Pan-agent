@@ -191,6 +191,6 @@ test("C-KIMI-01 kimi settings select the fixed model; DeepSeek settings are unto
 	const kimi = parsePanSettings(JSON.stringify({ schemaVersion: 1, provider: "kimi-code", modelId: "kimi-for-coding", thinkingLevel: "high", credentialSource: "environment" }));
 	assert.equal(kimi.provider, "kimi-code");
 	assert.equal(kimi.modelId, KIMI_MODEL_ID);
-	assert.throws(() => parsePanSettings(JSON.stringify({ schemaVersion: 1, provider: "kimi-code", modelId: "kimi-other", thinkingLevel: "high", credentialSource: "environment" })), /fixed model/);
+	assert.throws(() => parsePanSettings(JSON.stringify({ schemaVersion: 1, provider: "kimi-code", modelId: "kimi-other", thinkingLevel: "high", credentialSource: "environment" })), /unsupported kimi-code model/);
 	assert.throws(() => parsePanSettings(JSON.stringify({ schemaVersion: 1, provider: "moonshot", modelId: "kimi-for-coding", thinkingLevel: "high", credentialSource: "environment" })), /provider_unavailable/);
 });

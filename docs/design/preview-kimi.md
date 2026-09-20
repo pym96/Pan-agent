@@ -36,3 +36,5 @@ Kimi Code's official **OpenAI-compatible** API only: base `https://api.kimi.com/
 ## Honest limits
 
 macOS + Node 22.19.0, TTY; the Kimi path is proven offline against frozen wires — no real Kimi account, call, balance or fee was contacted or authorized; Anthropic-compatible endpoint out of scope; thinking levels do not apply to `kimi-for-coding`; trusted-local is not a sandbox; no npm publication.
+
+Prospective #68 navigation: [K3 offline compatibility](kimi-k3-offline.md) adds an explicit separate `k3-256k` path. The historical #53 text, pins and fixture identity above remain unchanged; they do not assert current live behavior of the server alias.

@@ -8,3 +8,8 @@ Drivers:
 - [kimi-boundary-driver.mjs](kimi-boundary-driver.mjs): capture-fetch boundary probe; the env canary reaches exactly the authorization header on the frozen official endpoint.
 - [kimi-switch-driver.mjs](kimi-switch-driver.mjs): provider switch starts a fresh session — no DeepSeek history crosses into the first Kimi request; the old run stays replayable with zero effects.
 - [kimi-interactive-driver.mjs](kimi-interactive-driver.mjs): Human demo composition streaming the frozen wires through the real adapter.
+
+## WorkOrder #68
+
+- [kimi-k3-wire-v1.json](kimi-k3-wire-v1.json): new synthetic K3 wires, including private reasoning (test evidence only).
+- [kimi-k3-driver.mjs](kimi-k3-driver.mjs): installed real CLI configure/startup/task/replay/invalid phases.

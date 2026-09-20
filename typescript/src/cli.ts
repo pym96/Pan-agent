@@ -31,8 +31,8 @@ import {
 } from "./config/keychain.ts";
 import { DeepSeekFetchTransport } from "./providers/deepseek/deepseek-transport.ts";
 import { KimiFetchTransport } from "./providers/kimi/kimi-transport.ts";
-import { createPanKimiAdapter } from "./providers/kimi/pan-kimi-model-adapter.ts";
-import { DEFAULT_KIMI_PROFILE, KIMI_MODEL_ID, type KimiProfile } from "./providers/kimi/kimi-profile.ts";
+import { createPanKimiAdapter, PanKimiModelAdapter } from "./providers/kimi/pan-kimi-model-adapter.ts";
+import { DEFAULT_KIMI_PROFILE, KIMI_K3_MODEL_ID, type KimiProfile } from "./providers/kimi/kimi-profile.ts";
 
 export const CLI_USAGE = `Usage:
   npm run agent -- --workspace /absolute/path --memory-root /absolute/path --kernel native [--model deepseek-v4-flash|deepseek-v4-pro] [--thinking low|high|max] [--max-attachment-bytes INTEGER]
@@ -43,7 +43,7 @@ The bash tool is trusted-local: it has host-user authority; --workspace sets cwd
 Every admitted run is durably archived under --memory-root (must be disjoint from the workspace) with the current Runbook revision; :details, :runs and :replay inspect sealed archives with zero Provider calls or tool effects.
 Attachments use selection-time UTF-8 snapshots; default aggregate maxAttachmentBytes=1048576 (1 MiB local byte policy, not a model token limit). Override with --max-attachment-bytes; never truncates.
 Ordinary settings persist at ~/.pan-agent/settings.json (mode 0600; schema version, provider/model/thinking and the literal credential source kind only — never a secret). Run 'configure' to create or replace them; on a TTY first run without settings the same flow is offered. Explicit --model/--thinking flags override persisted values for that run.
-Credential source: environment reads DEEPSEEK_API_KEY (deepseek) or KIMI_API_KEY (kimi-code) only when a Provider call is made; keychain retrieves the macOS Keychain item named by the Pan service/account convention only when a Provider call is made. kimi-code selects the official OpenAI-compatible Kimi Code endpoint with its fixed model kimi-for-coding; arbitrary endpoints and unknown models are rejected.
+Credential source: environment reads DEEPSEEK_API_KEY (deepseek) or KIMI_API_KEY (kimi-code) only when a Provider call is made; keychain retrieves the macOS Keychain item named by the Pan service/account convention only when a Provider call is made. kimi-code selects the official OpenAI-compatible Kimi Code endpoint with explicit kimi-for-coding or k3-256k selection in configure (kimi-code:k3-256k); Kimi --model/--thinking overrides are unsupported; arbitrary endpoints and unknown models are rejected.
 No Provider call occurs for --help, configure, startup, idle cancellation, or TUI commands. Startup has no y; protected/outside/uncertain file operations and Shell require operation-scoped approval.`;
 
 const RUNBOOK_PATH = resolve(dirname(fileURLToPath(import.meta.url)), "..", "RUNBOOK.md");
@@ -236,7 +236,7 @@ export async function runCli(args: readonly string[], dependencies: CliDependenc
 	}
 	const selectedProvider = settings?.provider ?? "deepseek";
 	if (selectedProvider === "kimi-code" && (args.includes("--model") || args.includes("--thinking"))) {
-		writeLine(`Validation failed: kimi-code uses the fixed model ${KIMI_MODEL_ID}; remove --model/--thinking`);
+		writeLine("Validation failed: kimi-code uses saved model/thinking settings; run configure and remove --model/--thinking");
 		return 2;
 	}
 	const profile: DeepSeekProfile = {
@@ -251,7 +251,8 @@ export async function runCli(args: readonly string[], dependencies: CliDependenc
 			const kimiFactory = dependencies.createKimiAdapter ?? ((selected: KimiProfile) => createPanKimiAdapter(selected, credentialSource === "keychain"
 				? { transport: new KimiFetchTransport({ credentialSource: () => readKeychainCredential(keychainReference) }) }
 				: {}));
-			adapter = kimiFactory(DEFAULT_KIMI_PROFILE);
+			adapter = kimiFactory(settings?.modelId === KIMI_K3_MODEL_ID
+				? { modelId: KIMI_K3_MODEL_ID, thinkingLevel: settings.thinkingLevel } : DEFAULT_KIMI_PROFILE);
 		} else {
 			const adapterFactory = dependencies.createNativeAdapter ?? ((selected: DeepSeekProfile) => createPanDeepSeekAdapter(selected, credentialSource === "keychain"
 				? { transport: new DeepSeekFetchTransport({ credentialSource: () => readKeychainCredential(keychainReference) }) }
@@ -265,6 +266,7 @@ export async function runCli(args: readonly string[], dependencies: CliDependenc
 			adapter,
 			tools: trustedLocal.tools,
 			authorization: { protectedPaths: settings?.protectedPaths },
+			...(adapter instanceof PanKimiModelAdapter ? { cleanup: () => adapter.dispose() } : {}),
 		});
 		provider = adapter.providerId;
 		model = adapter.modelId;

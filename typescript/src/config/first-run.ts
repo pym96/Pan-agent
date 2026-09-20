@@ -2,7 +2,7 @@
 import { createInterface } from "node:readline";
 import { Writable, type Readable } from "node:stream";
 import { DEEPSEEK_MODEL_IDS, type DeepSeekModelId, type DeepSeekThinkingLevel } from "../providers/deepseek/deepseek-profile.ts";
-import { KIMI_MODEL_ID, type KimiModelId } from "../providers/kimi/kimi-profile.ts";
+import { KIMI_MODEL_ID, KIMI_K3_MODEL_ID, type KimiModelId } from "../providers/kimi/kimi-profile.ts";
 import { savePanSettings, type PanSettings, type PanCredentialSource, PAN_SETTINGS_SCHEMA_VERSION } from "./settings.ts";
 import { saveKeychainCredential, PAN_KEYCHAIN_SERVICE, PAN_KEYCHAIN_ACCOUNT, type KeychainReference } from "./keychain.ts";
 
@@ -77,16 +77,18 @@ export async function runFirstRunConfiguration(dependencies: FirstRunDependencie
 	try {
 		write("Pan first-run configuration. Settings persist ordinary preferences only; secrets are never written to settings.");
 		let provider: "deepseek" | "kimi-code" | undefined;
+		let selectK3 = false;
 		while (!provider) {
-			const answer = (await ask("Provider [deepseek|kimi-code] (default deepseek): ")).toLowerCase();
+			const answer = (await ask("Provider [deepseek|kimi-code|kimi-code:k3-256k] (default deepseek): ")).toLowerCase();
 			if (answer === "" || answer === "deepseek") provider = "deepseek";
 			else if (answer === "kimi-code" || answer === "kimi") provider = "kimi-code";
+			else if (answer === "kimi-code:k3-256k") { provider = "kimi-code"; selectK3 = true; }
 			else write(`Unknown provider: ${answer}. This build supports deepseek and kimi-code only.`);
 		}
 		let modelId: DeepSeekModelId | KimiModelId;
 		if (provider === "kimi-code") {
-			modelId = KIMI_MODEL_ID;
-			write(`Model fixed: ${KIMI_MODEL_ID} (Kimi Code official coding model).`);
+			modelId = selectK3 ? KIMI_K3_MODEL_ID : KIMI_MODEL_ID;
+			write(selectK3 ? `Model selected: ${modelId}.` : `Model fixed: ${KIMI_MODEL_ID} (Kimi Code official coding model).`);
 		} else {
 			let selected: DeepSeekModelId | undefined;
 			while (!selected) {
@@ -98,7 +100,7 @@ export async function runFirstRunConfiguration(dependencies: FirstRunDependencie
 			modelId = selected;
 		}
 		let thinkingLevel: DeepSeekThinkingLevel = "high";
-		if (provider === "kimi-code") {
+		if (provider === "kimi-code" && !selectK3) {
 			write("Thinking level is not applicable to kimi-for-coding in this build; stored as inert default.");
 		} else {
 			let selectedThinking: DeepSeekThinkingLevel | undefined;

@@ -34,5 +34,5 @@ export { PanKimiModelAdapter, createPanKimiAdapter, KIMI_HTTP_FAILURE_TABLE } fr
 export type { PanKimiModelAdapterOptions } from "./providers/kimi/pan-kimi-model-adapter.ts";
 export { KimiFetchTransport, KimiTransportConfigurationError, abortableKimiBody } from "./providers/kimi/kimi-transport.ts";
 export type { KimiTransport, KimiTransportRequest, KimiTransportResponse, KimiCredentialSource, KimiFetchTransportOptions } from "./providers/kimi/kimi-transport.ts";
-export { DEFAULT_KIMI_PROFILE, KIMI_MODEL_ID, KIMI_OFFICIAL_CONTRACT, isKimiModelId } from "./providers/kimi/kimi-profile.ts";
-export type { KimiProfile, KimiModelId } from "./providers/kimi/kimi-profile.ts";
+export { DEFAULT_KIMI_PROFILE, KIMI_MODEL_ID, KIMI_K3_MODEL_ID, KIMI_OFFICIAL_CONTRACT, isKimiModelId, validateKimiProfile } from "./providers/kimi/kimi-profile.ts";
+export type { KimiProfile, KimiModelId, KimiReasoningEffort } from "./providers/kimi/kimi-profile.ts";

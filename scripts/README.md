@@ -281,3 +281,9 @@ The active #60/#61/#62 PTY drivers now start at idle rather than submitting remo
 ## Retained #61 activity procedure
 
 [`verify_activity_pty.py`](verify_activity_pty.py) runs the installed Faux twelve-call activity demo under the existing consumer guard; [`check_workorder_61_scope.py`](check_workorder_61_scope.py) audits committed scope and protected bytes. See [the design](../docs/design/tool-activity-digest.md) for commands and Human review.
+
+## Kimi K3 offline candidate (#68)
+
+- [verify_kimi_k3_consumer.py](verify_kimi_k3_consumer.py): clean Node 22.19.0 offline install and guarded CLI/Session/Adapter proof.
+- [check_workorder_68_scope.py](check_workorder_68_scope.py): exact scope/protected-byte check.
+- [K3 fixtures](fixtures/kimi/README.md) and [design](../docs/design/kimi-k3-offline.md).

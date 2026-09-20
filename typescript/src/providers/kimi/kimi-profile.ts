@@ -1,16 +1,26 @@
 /** #53 Kimi Code profile: fixed official OpenAI-compatible identity. No DeepSeek reuse. */
 
 export const KIMI_MODEL_ID = "kimi-for-coding";
-export type KimiModelId = typeof KIMI_MODEL_ID;
+export const KIMI_K3_MODEL_ID = "k3-256k";
+export type KimiModelId = typeof KIMI_MODEL_ID | typeof KIMI_K3_MODEL_ID;
+export type KimiReasoningEffort = "low" | "high" | "max";
 
-export interface KimiProfile {
-	readonly modelId: KimiModelId;
+export type KimiProfile =
+ | { readonly modelId: typeof KIMI_MODEL_ID }
+ | { readonly modelId: typeof KIMI_K3_MODEL_ID; readonly thinkingLevel: KimiReasoningEffort };
+
+export function validateKimiProfile(profile: KimiProfile): void {
+ const keys = Object.keys(profile);
+ if (profile.modelId === KIMI_MODEL_ID && keys.every(key => key === "modelId")) return;
+ if (profile.modelId === KIMI_K3_MODEL_ID && keys.every(key => key === "modelId" || key === "thinkingLevel")
+   && ["low", "high", "max"].includes(profile.thinkingLevel)) return;
+ throw new Error("kimi_profile_unsupported");
 }
 
 export const DEFAULT_KIMI_PROFILE: KimiProfile = { modelId: KIMI_MODEL_ID };
 
 export function isKimiModelId(value: string): value is KimiModelId {
-	return value === KIMI_MODEL_ID;
+	return value === KIMI_MODEL_ID || value === KIMI_K3_MODEL_ID;
 }
 
 /** Source-located, hash-pinned official documentation used to define the wire contract. */

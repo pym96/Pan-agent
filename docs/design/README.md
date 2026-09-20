@@ -83,3 +83,5 @@ The Human-accepted architecture history remains indexed in [`../adr/README.md`](
 [transcript-scrollbar.md](transcript-scrollbar.md) and [workorder-scrollbar-obligations.json](workorder-scrollbar-obligations.json): #60 final-column draggable scrollbar, frozen rendered-row geometry, SGR primary press/drag/release framing extension, parser-safety probes, installed PTY proof and supported-terminal limits.
 
 [tool-activity-digest.md](tool-activity-digest.md): #61 one default per-run Tool Activity digest and explicit view-only chronological activity overlay.
+
+- [kimi-k3-offline.md](kimi-k3-offline.md): #68 prospective explicit K3 selection and private continuation; offline candidate only.

@@ -3,7 +3,7 @@ import { chmod, mkdir, readFile, rename, writeFile } from "node:fs/promises";
 import { homedir } from "node:os";
 import { dirname, join } from "node:path";
 import { isDeepSeekModelId, type DeepSeekModelId, type DeepSeekThinkingLevel } from "../providers/deepseek/deepseek-profile.ts";
-import { KIMI_MODEL_ID, type KimiModelId } from "../providers/kimi/kimi-profile.ts";
+import { isKimiModelId, type KimiModelId } from "../providers/kimi/kimi-profile.ts";
 import { validateProtectedPaths } from '../runtime/authorization.ts';
 
 export const PAN_SETTINGS_SCHEMA_VERSION = 1;
@@ -50,7 +50,7 @@ export function parsePanSettings(body: string): PanSettings {
 		throw new Error(`provider_unavailable: ${String(record.provider)} (this build supports deepseek and kimi-code only)`);
 	}
 	if (record.provider === "kimi-code") {
-		if (record.modelId !== KIMI_MODEL_ID) throw new Error(`settings_invalid: kimi-code uses the fixed model ${KIMI_MODEL_ID}`);
+		if (typeof record.modelId !== "string" || !isKimiModelId(record.modelId)) throw new Error("settings_invalid: unsupported kimi-code model");
 	} else if (typeof record.modelId !== "string" || !isDeepSeekModelId(record.modelId)) {
 		throw new Error(`settings_invalid: unsupported model ${String(record.modelId)}`);
 	}

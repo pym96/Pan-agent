@@ -136,3 +136,7 @@ Native CLI explicitly selects the compact TUI: `你 › `, honest tool-result co
 [TUI A daily workspace](../docs/design/native-daily-workspace.md): fixed TTY regions, inline attachments and editable next draft; non-TTY retains explicit line submission.
 
 #47 Criteria-Version 1.2 adds timer-free compatibility framing (Ctrl-G Back, ESC prefix only) and immutable raw-prefix screen evidence. Old 1.1 grids remain historical failed evidence.
+
+## Explicit Kimi K3 configuration (#68 candidate)
+
+Run `configure` and select `kimi-code:k3-256k`, then low/high/max thinking (default high). Restart with `--kernel native`; Kimi model/thinking CLI overrides remain unsupported. Existing `kimi-code` selections retain the legacy identity. See [K3 design, disposal ownership and offline limits](../docs/design/kimi-k3-offline.md).

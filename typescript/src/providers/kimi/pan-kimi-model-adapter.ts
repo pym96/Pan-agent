@@ -1,6 +1,6 @@
 /** #53 Pan-owned Kimi Code ModelAdapter: canonical Context in, one assembled canonical outcome out.
  *  OpenAI-compatible streaming chat completions on the frozen official endpoint.
- *  No DeepSeek delegation, no reasoning_content continuation field, no error-body detail. */
+ *  Legacy remains stateless; K3 continuation is private and exact-message-bound. No raw error detail. */
 import { validateAgentToolDefinitions, type AgentToolDefinition } from "../../protocol/agent-tool.ts";
 import {
 	CanonicalProtocolError,
@@ -21,7 +21,8 @@ import {
 	type ToolCall,
 	type Usage,
 } from "../../protocol/canonical-protocol.ts";
-import { DEFAULT_KIMI_PROFILE, type KimiProfile } from "./kimi-profile.ts";
+import { DEFAULT_KIMI_PROFILE, KIMI_K3_MODEL_ID, validateKimiProfile, type KimiProfile } from "./kimi-profile.ts";
+import { KimiContinuation } from "./kimi-continuation.ts";
 import {
 	KimiFetchTransport,
 	KimiTransportConfigurationError,
@@ -138,7 +139,7 @@ function encodeToolDefinitions(tools: readonly AgentToolDefinition[]): WireRecor
 	}));
 }
 
-function encodeAssistant(message: AssistantMessage): WireRecord {
+function encodeAssistant(message: AssistantMessage, reasoning?: string): WireRecord {
 	const textBlocks = message.content.filter((item) => item.type === "text");
 	if (textBlocks.length > 1) protocol("kimi_assistant_text_blocks_unsupported");
 	const calls = message.content.filter((item): item is ToolCall => item.type === "tool_call");
@@ -146,7 +147,7 @@ function encodeAssistant(message: AssistantMessage): WireRecord {
 		role: "assistant",
 		content: textBlocks[0]?.text ?? "",
 	};
-	// Deliberately no reasoning_content continuation field on this path.
+	if (reasoning !== undefined) encoded.reasoning_content = reasoning;
 	if (calls.length > 0) {
 		encoded.tool_calls = calls.map((call) => ({
 			id: call.id,
@@ -157,15 +158,18 @@ function encodeAssistant(message: AssistantMessage): WireRecord {
 	return encoded;
 }
 
-function encodeMessages(systemPrompt: string, messages: readonly Message[]): WireRecord[] {
+function encodeMessages(systemPrompt: string, messages: readonly Message[], continuation?: KimiContinuation, request?: ModelExchangeRequest): WireRecord[] {
 	const encoded: WireRecord[] = [{ role: "system", content: systemPrompt }];
-	for (const message of messages) {
+	for (const [index, message] of messages.entries()) {
 		if (message.role === "user") {
 			encoded.push({ role: "user", content: encodeSingleText(message.content, "kimi_user_text_blocks_unsupported") });
 			continue;
 		}
 		if (message.role === "assistant") {
-			encoded.push(encodeAssistant(message));
+			let reasoning: string | undefined;
+			try { reasoning = continuation?.resolve(message, index, request!); }
+			catch { protocol("kimi_continuation_unavailable"); }
+			encoded.push(encodeAssistant(message, reasoning));
 			continue;
 		}
 		encoded.push({
@@ -177,13 +181,14 @@ function encodeMessages(systemPrompt: string, messages: readonly Message[]): Wir
 	return encoded;
 }
 
-function buildRequest(profile: KimiProfile, request: ModelExchangeRequest): KimiTransportRequest {
+function buildRequest(profile: KimiProfile, request: ModelExchangeRequest, continuation?: KimiContinuation): KimiTransportRequest {
 	const body: WireRecord = {
 		model: profile.modelId,
-		messages: encodeMessages(request.context.systemPrompt, request.context.messages),
+		messages: encodeMessages(request.context.systemPrompt, request.context.messages, continuation, request),
 		stream: true,
 		stream_options: { include_usage: true },
 	};
+	if (profile.modelId === KIMI_K3_MODEL_ID) body.reasoning_effort = profile.thinkingLevel;
 	if (request.context.tools.length > 0) body.tools = encodeToolDefinitions(request.context.tools);
 	return {
 		method: "POST",
@@ -359,10 +364,12 @@ function completeToolCalls(accumulators: Map<number, WireToolCallAccumulator>): 
 	});
 }
 
-async function assembleSuccessfulResponse(response: KimiTransportResponse, request: ModelExchangeRequest): Promise<ModelOutcome> {
+async function assembleSuccessfulResponse(response: KimiTransportResponse, request: ModelExchangeRequest, k3: boolean): Promise<{ outcome: ModelOutcome; reasoning?: string }> {
 	const events = readSseEvents(abortableKimiBody(response.body, request.signal));
 	const identity = {} as IdentityAccumulator;
 	const content = { value: "", observed: false };
+	const reasoning = { value: "", observed: false };
+	let usageTail = false;
 	const calls = new Map<number, WireToolCallAccumulator>();
 	let finishReason: string | undefined;
 	let usage: Usage = UNAVAILABLE;
@@ -375,7 +382,7 @@ async function assembleSuccessfulResponse(response: KimiTransportResponse, reque
 			continue;
 		}
 		if (doneCount > 0) protocol("kimi_sse_data_after_done");
-		if (finishReason !== undefined) protocol("kimi_sse_data_after_terminal");
+		if (finishReason !== undefined && !k3) protocol("kimi_sse_data_after_terminal");
 		let decoded: unknown;
 		try {
 			decoded = JSON.parse(event);
@@ -387,6 +394,12 @@ async function assembleSuccessfulResponse(response: KimiTransportResponse, reque
 		}
 		observeIdentity(identity, decoded);
 		const choices = decoded.choices;
+        if (k3 && finishReason !== undefined) {
+            if (usageTail || !Array.isArray(choices) || choices.length !== 0 || decoded.usage == null) protocol("kimi_sse_data_after_terminal");
+            const trailing = parseUsage(decoded.usage);
+            if (usage.status === "reported" && JSON.stringify(usage) !== JSON.stringify(trailing)) protocol("kimi_usage_inconsistent");
+            usage = trailing; usageTail = true; continue;
+        }
 		if (!Array.isArray(choices) || choices.length !== 1 || !isRecord(choices[0])) {
 			protocol("kimi_sse_choices_invalid");
 		}
@@ -400,7 +413,8 @@ async function assembleSuccessfulResponse(response: KimiTransportResponse, reque
 		if (typeof delta.content === "string" && delta.content && !request.signal.aborted) {
 			try { request.onProgress?.({ type: "text_delta", text: delta.content }); } catch { /* A display sink cannot change the assembled outcome. */ }
 		}
-		if (delta.reasoning_content !== undefined && delta.reasoning_content !== null) protocol("kimi_reasoning_field_unsupported");
+		if (k3) appendOptionalString(reasoning, delta.reasoning_content, "kimi_reasoning_invalid");
+        else if (delta.reasoning_content !== undefined && delta.reasoning_content !== null) protocol("kimi_reasoning_field_unsupported");
 		if (delta.tool_calls !== undefined && delta.tool_calls !== null) {
 			if (!Array.isArray(delta.tool_calls)) protocol("kimi_sse_tool_calls_invalid");
 			for (const rawCall of delta.tool_calls) appendToolCall(calls, rawCall);
@@ -419,9 +433,10 @@ async function assembleSuccessfulResponse(response: KimiTransportResponse, reque
 	if (identity.created === undefined) protocol("kimi_created_missing");
 	const responseIdentity = identityOf(identity);
 	if (finishReason === "content_filter") {
-		return failure("provider", "kimi_content_filtered", false, responseIdentity, usage);
+		return { outcome: failure("provider", "kimi_content_filtered", false, responseIdentity, usage) };
 	}
 	const toolCalls = completeToolCalls(calls);
+	if (k3 && toolCalls.length && !reasoning.observed) protocol("kimi_reasoning_missing");
 	if (finishReason === "tool_calls" && toolCalls.length === 0) protocol("kimi_tool_calls_missing");
 	if (finishReason !== "tool_calls" && toolCalls.length > 0) protocol("kimi_partial_tool_call_not_admitted");
 	if (finishReason === "stop" && (!content.observed || content.value.length === 0)) {
@@ -439,7 +454,7 @@ async function assembleSuccessfulResponse(response: KimiTransportResponse, reque
 		usage,
 		identity: responseIdentity,
 	};
-	return outcome;
+	return { outcome, ...(reasoning.observed ? { reasoning: reasoning.value } : {}) };
 }
 
 /** Status-only classification: the provider error body is never parsed into detail. */
@@ -463,21 +478,38 @@ export interface PanKimiModelAdapterOptions {
 	readonly transport?: KimiTransport;
 }
 
-/** Pan-owned Kimi adapter: one canonical exchange per call, no cross-call continuation state. */
+/** One canonical exchange per call. K3 state belongs to this adapter and exact session/message lineage. */
 export class PanKimiModelAdapter implements ModelAdapter {
 	readonly providerId = "kimi-code";
 	readonly modelId: KimiProfile["modelId"];
-	readonly reasoningLevel = "off";
+	readonly reasoningLevel: string;
+	#continuation = new KimiContinuation();
+	#closed = false;
+	#active = false;
+	#controller?: AbortController;
 	private readonly profile: KimiProfile;
 	private readonly transport: KimiTransport;
 
 	constructor(profile: KimiProfile = DEFAULT_KIMI_PROFILE, options: PanKimiModelAdapterOptions = {}) {
-		this.profile = { ...profile };
+		validateKimiProfile(profile);
+		this.profile = Object.freeze({ ...profile });
+		this.reasoningLevel = profile.modelId === KIMI_K3_MODEL_ID ? profile.thinkingLevel : "off";
 		this.modelId = profile.modelId;
 		this.transport = options.transport ?? new KimiFetchTransport();
 	}
 
+	dispose(): void { this.#closed = true; this.#controller?.abort(); this.#continuation.dispose(); }
+
 	async exchange(request: ModelExchangeRequest): Promise<ModelOutcome> {
+        if (this.#closed) return failure("protocol", "kimi_adapter_disposed", false);
+        if (this.#active) return failure("protocol", "kimi_exchange_busy", false);
+        this.#active = true;
+        this.#controller = new AbortController();
+        try { return await this.performExchange({ ...request, signal: AbortSignal.any([request.signal, this.#controller.signal]) }); }
+        finally { this.#active = false; this.#controller = undefined; }
+    }
+
+    private async performExchange(request: ModelExchangeRequest): Promise<ModelOutcome> {
 		if (request.signal.aborted) return failure("cancelled", "kimi_exchange_cancelled", false);
 		let transportRequest: KimiTransportRequest;
 		try {
@@ -485,14 +517,21 @@ export class PanKimiModelAdapter implements ModelAdapter {
 			if (typeof request.context.systemPrompt !== "string") protocol("kimi_system_prompt_invalid");
 			validateCanonicalContext(request.context.messages);
 			validateAgentToolDefinitions(request.context.tools);
-			transportRequest = buildRequest(this.profile, request);
+			transportRequest = buildRequest(this.profile, request, this.profile.modelId === KIMI_K3_MODEL_ID ? this.#continuation : undefined);
 		} catch (error) {
 			return failure("protocol", safeCode(error), false);
 		}
 
 		let response: KimiTransportResponse;
 		try {
-			response = await this.transport.send(transportRequest);
+			let abort!: () => void;
+            const cancelled = new Promise<never>((_, reject) => {
+                abort = () => reject(new DOMException("Operation aborted", "AbortError"));
+                request.signal.addEventListener("abort", abort, { once: true });
+                if (request.signal.aborted) abort();
+            });
+            try { response = await Promise.race([this.transport.send(transportRequest), cancelled]); }
+            finally { request.signal.removeEventListener("abort", abort); }
 		} catch (error) {
 			if (isAbort(error, request.signal)) return failure("cancelled", "kimi_exchange_cancelled", false);
 			if (error instanceof KimiTransportConfigurationError) {
@@ -511,9 +550,11 @@ export class PanKimiModelAdapter implements ModelAdapter {
 		}
 
 		try {
-			const outcome = await assembleSuccessfulResponse(response, request);
+			const { outcome, reasoning } = await assembleSuccessfulResponse(response, request, this.profile.modelId === KIMI_K3_MODEL_ID);
 			if (request.signal.aborted) return failure("cancelled", "kimi_exchange_cancelled", false);
 			validateModelOutcome(outcome, request.context.messages);
+            if (this.#closed) return failure("protocol", "kimi_adapter_disposed", false);
+            if (this.profile.modelId === KIMI_K3_MODEL_ID && outcome.kind === "response") this.#continuation.admit(outcome.message, request, reasoning);
 			return outcome;
 		} catch (error) {
 			if (isAbort(error, request.signal)) return failure("cancelled", "kimi_exchange_cancelled", false);
