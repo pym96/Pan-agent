@@ -4,14 +4,14 @@ import argparse, hashlib, json, os, shutil, subprocess, tarfile
 from pathlib import Path
 p=argparse.ArgumentParser();p.add_argument('--node',type=Path,required=True);p.add_argument('--output',type=Path,required=True);a=p.parse_args()
 repo=Path(__file__).resolve().parents[1];out=a.output.resolve();out.mkdir(parents=True,exist_ok=False)
-node=a.node.resolve();npm=node.parent.parent/'lib/node_modules/npm/bin/npm-cli.js'
+node=a.node.resolve();npm=Path(shutil.which('npm')).resolve()
 def git(*args):return subprocess.check_output(['git',*args],cwd=repo,text=True).strip()
 assert not git('status','--porcelain'),'committed clean candidate required'
 sha=git('rev-parse','HEAD');assert subprocess.check_output([node,'--version'],text=True).strip()=='v22.19.0'
 h=lambda path:hashlib.sha256(Path(path).read_bytes()).hexdigest()
 def save(name,data):(out/name).write_text(json.dumps(data,indent=2)+'\n')
 (out/'home').mkdir();(out/'npm-user.conf').write_text('');(out/'npm-global.conf').write_text('')
-env={'PATH':str(node.parent)+':/usr/bin:/bin','HOME':str(out/'home'),'TMPDIR':str(out),'LANG':'en_US.UTF-8','NPM_CONFIG_CACHE':str(out/'cache'),'NPM_CONFIG_USERCONFIG':str(out/'npm-user.conf'),'NPM_CONFIG_GLOBALCONFIG':str(out/'npm-global.conf'),'NPM_CONFIG_UPDATE_NOTIFIER':'false'}
+env={'PATH':str(node.parent)+':'+str(Path(shutil.which('npm')).parent)+':/usr/bin:/bin','HOME':str(out/'home'),'TMPDIR':str(out),'LANG':'en_US.UTF-8','NPM_CONFIG_CACHE':str(out/'cache'),'NPM_CONFIG_USERCONFIG':str(out/'npm-user.conf'),'NPM_CONFIG_GLOBALCONFIG':str(out/'npm-global.conf'),'NPM_CONFIG_UPDATE_NOTIFIER':'false'}
 commands=[]
 def run(command,cwd,name,environment=None,expected=0):
  with (out/(name+'.log')).open('w') as log:r=subprocess.run(list(map(str,command)),cwd=cwd,env=environment or env,stdout=log,stderr=subprocess.STDOUT,timeout=120)
@@ -38,7 +38,7 @@ for source,name in [('scripts/wo35-consumer-guard.mjs','base-guard.mjs'),('scrip
 archive=consumer/'pan.tgz';shutil.copy2(packs[0],archive)
 def guarded(phase,install=False):
  config=out/(phase+'-guard.json');allowed=[str(out)]
- if install:allowed.append(str(node.parent.parent))
+ if install:allowed.extend([str(node.parent.parent),str(npm.parent.parent)])
  config.write_text(json.dumps(dict(phase=phase,consumer=str(consumer),allowed=allowed,denied=[str(repo)],report=str(out/(phase+'-meter')))))
  return {**env,'NODE_OPTIONS':'--import='+str(consumer/'guard.mjs'),'WO35_GUARD_CONFIG':str(config)}
 run([node,npm,'install',archive,'--offline','--omit=dev','--ignore-scripts','--no-audit','--no-fund'],consumer,'install',guarded('install',True))
