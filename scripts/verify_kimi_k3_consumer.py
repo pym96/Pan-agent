@@ -57,7 +57,8 @@ source=(repo/'typescript/test/kimi-k3.test.ts').read_text().replace('"../src/ind
 source=source.replace("new URL('../../scripts/fixtures/kimi/kimi-k3-wire-v1.json', import.meta.url)",json.dumps(str(consumer/'high/kimi-k3-wire-v1.json')))
 source=source.replace("new URL('../RUNBOOK.md',import.meta.url).pathname",json.dumps(str(product/'RUNBOOK.md')))
 (consumer/'installed-matrix.test.ts').write_text(source)
-run([node,'--experimental-strip-types','--test',consumer/'installed-matrix.test.ts'],consumer,'installed-matrix',guarded('installed-matrix'))
+run([node,'--input-type=module','-e',"import {stripTypeScriptTypes} from 'node:module'; import fs from 'node:fs'; fs.writeFileSync('installed-matrix.test.mjs',stripTypeScriptTypes(fs.readFileSync('installed-matrix.test.ts','utf8')));"],consumer,'prepare-matrix')
+run([node,'--test',consumer/'installed-matrix.test.mjs'],consumer,'installed-matrix',guarded('installed-matrix'))
 # Guard negative control: accidental real transport cannot escape the offline harness.
 run([node,'--input-type=module','-e',"try { await fetch('https://example.invalid/forbidden'); } catch {}"],consumer,'caught-network',guarded('caught-network'),1)
 nominal=[]
