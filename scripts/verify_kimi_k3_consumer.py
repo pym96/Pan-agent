@@ -41,7 +41,7 @@ def guarded(phase,install=False):
  if install:allowed.extend([str(node.parent.parent),str(npm.parent.parent)])
  config.write_text(json.dumps(dict(phase=phase,consumer=str(consumer),allowed=allowed,denied=[str(repo)],report=str(out/(phase+'-meter')))))
  return {**env,'NODE_OPTIONS':'--import='+str(consumer/'guard.mjs'),'WO35_GUARD_CONFIG':str(config)}
-run([node,npm,'install',archive,'--offline','--omit=dev','--ignore-scripts','--no-audit','--no-fund'],consumer,'install',guarded('install',True))
+run([node,npm,'--prefix',consumer,'install',archive,'--offline','--omit=dev','--ignore-scripts','--no-audit','--no-fund'],consumer,'install',guarded('install',True))
 product=consumer/'node_modules/pan-agent'
 def installed():
  actual=sorted(str(path.relative_to(product)) for path in product.rglob('*') if path.is_file());assert actual==[row['path'] for row in files]
