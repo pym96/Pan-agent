@@ -19,3 +19,18 @@ cmp scripts/benchmark-membership/observations.json /tmp/wo73-observations.json
 ```
 
 Raw README prose stays in retained evidence, not in model-visible excerpts or the repository. Closed-vocabulary presence and filenames do not establish complete source semantics or missingness. Review needs a disposition of the concrete questions below before membership work can resume.
+
+## Criteria1.1 continuation
+
+Historical artifacts above remain intact. [SC-73-02](../../docs/design/benchmark-membership-resolution.md#criteria11-continuation--sc-73-02-pending) records two remaining source questions and the conservative excerpt-budget accounting gap. This is still partial work.
+
+- [reader.py](reader.py) / [test_reader.py](test_reader.py): bounded, source-role-verified input sections; explicit Solution sections withheld.
+- [excerpt_budget.py](excerpt_budget.py) / [test_excerpt_budget.py](test_excerpt_budget.py): append-only pre-display byte accounting, including AST inventories; adopted after the reported gap.
+- [overlay.py](overlay.py) / [test_overlay.py](test_overlay.py): original-selector reuse, fixed base, restricted mutations and fail-closed incomplete-decision handling.
+- [decisions-v11.json](decisions-v11.json): 8 excluded, 6 eligible, 2 unresolved Builder judgments; no real overlay or selection.
+- [continuation-lock.json](continuation-lock.json): base/decision/selector integrity identities.
+- [source-provenance-v11.json](source-provenance-v11.json): all 35 acquired metadata/code files.
+
+`python3 scripts/benchmark-membership/overlay.py --output /tmp/wo73-result` must currently refuse because the real ledger is unresolved. Do not change unknowns to exclusions just to make it run. Synthetic test results are not actual selected tasks.
+
+- [audit_v11.py](audit_v11.py): verify all retained source identities and frozen decision bytes offline, without source display.

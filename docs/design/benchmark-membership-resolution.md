@@ -27,3 +27,24 @@ These are static source observations only. Complete dependency/export closure, r
 No final eligible/excluded decisions, pool overlay, 15+15 selection or feasibility matrix is claimed. All 16 observations are unresolved, and every accepted #72 artifact remains byte-identical. No model call, credential lookup, task execution, Docker access, package install, scorer execution, gold/data payload acquisition or new activation occurred. This is a concrete new ScopeChallenge, not the old blocked report offered as completion.
 
 See [evidence](../evidence/benchmark-membership-73.md) and [reconstruction tools](../../scripts/benchmark-membership/README.md).
+
+## Criteria1.1 continuation — SC-73-02 (pending)
+
+The historical Criteria1.0 section above and rejected SHA remain intact. Master disposed of SC-73-01 prospectively in Criteria1.1. The new [decision ledger](../../scripts/benchmark-membership/decisions-v11.json) records eight exclusion judgments under `required_input_unprovided_in_pinned_distribution`, six structural-eligibility judgments and two unresolved rows. These are Builder judgments for independent review, not an accepted subset. No overlay has been applied to the real pool.
+
+| IDs | Builder judgment | Basis / remaining question |
+|---|---|---|
+| data-sa-026/028/029/031/039/043 | excluded | Required observations are absent from the finite supplied source distribution; normal README context does not specify a dataset asset, exact provider or complete generation recipe. The ledger distinguishes output-format artifacts from requested observations. |
+| ml-multi-003 | excluded | Task requires test.csv; neither that fixed split nor postings.csv described by README is supplied, and no split-generation/provision instruction is identified. |
+| plot-bar-007 | excluded | Required movie-duration data and plot.yaml are absent; README only describes the dataset and exploratory ideas. |
+| plot-bar-004/005/006/015, plot-pie-005/008 | eligible | Required supplied inputs have inventory/description provenance; official plot_process produces the post-task capture artifacts. Runtime execution remains unverified. |
+| plot-line-006 | unresolved | Required plot.yaml is absent, but the instruction also refers to supplied tips.txt. Criteria1.1 A names README.md/guidance.txt/plot.yaml for reading. Clarify whether the explicit-reference universe in B authorizes reading the tips metadata, or obtain Human metadata-only interpretation: does it specify/provide generation of plot.yaml? Do not infer absence from an unread named input. |
+| plot-scatter-002 | unresolved | Source README describes California data-science job listings; inventory filenames indicate odds-series assets. No schema conclusion is drawn from filenames. Guidance line 1 is marked Solution; its entire section is withheld. Human is asked only whether it supplies an exact order-stage/city-sales data provision locator or an upstream override, with path/URL and line numbers, never solution content. Scorer-property enforcement/override audit is incomplete; scatter metadata alone is not an exclusion. |
+
+### Source excerpt accounting boundary
+
+The revised reader tests ran before real use, and allowed README/guidance snippets were charged to an append-only ledger. A conservative 32,768-byte reservation covered prior source display. The accounted reservation plus subsequent guarded excerpts is 64,296 bytes. A later static AST inventory used an ad-hoc display path outside that gate. Charging an additional conservative 8,192 bytes for those inventories raises the upper bound to **72,488**, above Criteria1.1's 65,536-byte limit. This does not establish an actual answer leak; no gold/eval payload was acquired or shown. It does mean Builder cannot certify C-MEM-03's excerpt limit. The first guard refusal and later accounting gap are retained, not hidden.
+
+Further source display is stopped. Master must dispose of this accounting gap and decide a prospective source-display allowance (98,304 total bytes was requested); original download/time/disk use is not reset. A larger future limit would not retroactively turn the earlier accounting gap into compliance. [excerpt_budget.py](../../scripts/benchmark-membership/excerpt_budget.py) provides a shared pre-display UTF-8 gate, including repeated displays and AST symbol inventories; its negative tests preserve rejected attempts without payloads. It does not retroactively guard prior tool output.
+
+The unresolved source questions and accounting disposition are required before the complete 16-row ledger can be frozen. The new overlay imports the original #72 selector, locks the base pool, changes only membership/reason fields and refuses unresolved/missing/duplicate/extra decisions. Synthetic selection tests do not constitute a real selected subset. H-MEM-DECISIONS remains premature; no Human acceptance gate is requested now.
