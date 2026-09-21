@@ -29,3 +29,7 @@ class ReaderTests(unittest.TestCase):
   result=read('# Data\nDataset provisioning description.\n\nAnswer: '+C+'\n# Other\nSchema description.')
   self.assertNotIn('Dataset provisioning',json.dumps(result))
   self.assertNotIn(C,json.dumps(result))
+
+ def test_only_one_new_tips_path_allowed(self):
+  self.assertTrue(read('Input configuration metadata.','da_code/source/plot-line-006/tips.txt')['excerpts'])
+  with self.assertRaises(ValueError):read('Input metadata.','da_code/source/plot-bar-004/tips.txt')

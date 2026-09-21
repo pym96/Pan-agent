@@ -33,3 +33,15 @@ Artifacts added: source-role reader and negatives, append-only display-budget ga
 Continuation starts with 1,320 seconds charged (992.6804506778717 measured plus 327.3195493221283 conservative final-packaging/handoff allowance), retaining all 71,466 prior response bytes. New cumulative response bytes: 113,757. Original failed request and absent requirements.txt stop remain in historical records. Human/review idle time is excluded; active continuation and final conservative allowances are retained in the new resource ledger. No budget is renewed on contract revision.
 
 The real overlay/selection command refuses the two unresolved decisions before writing outputs. No actual 15+15 subset, selection delta, final feasibility matrix or accepted completion exists. C-MEM-01/02/05 remain incomplete. New source excerpts stop pending the requested interpretation and resource disposition. Human H-MEM-DECISIONS is not requested. Candidate-bound host-check results, when available, accompany the full-SHA Handoff; they cannot resolve these source/criteria gaps.
+
+## Criteria1.2 additive checkpoint
+
+Contract: https://github.com/pym96/Pan-agent/issues/73#issuecomment-5760752276. Historical Criteria1.1 Verdict remains rejected; SHA256 `2eb69ecc56bee1da41258ddc3c61cf01750c7e1b56f377e85afb18d14d130f9d`. No historical evidence/archive is replaced.
+
+37 local offline tests pass. The new shared source-view tests verify exact saved-payload/stdout/charged-byte equality, repeat charging, 40-line/8192-byte boundaries, zero stdout on exhaustion, carried-budget reset refusal, negative-charge refusal, denied-path refusal before source open, and separation of the original1.1 and new1.2 decision locks. These are Builder checks; independent bypass testing remains Regulator responsibility.
+
+`audit_v12.py` verifies 36 pinned acquired files. The new tips file whole SHA256 is `8a0be255331171b48f7cc347527de4b7c3e17a4a9a3a36e7e6c4dce919c323d4`. Tips input and static scorer views used the new shared gate. New exact payload coverage is retained under receipts/display-v12/ and display-v12.jsonl; reconstruction emits only totals, coverage and whole-record hashes. The incident record explicitly keeps historical actual total and ungated AST bytes unknown.
+
+Decision status: 9 excluded, 6 eligible, 1 unresolved, all Builder judgments. The Human-only scatter Solution interpretation is pending, so the real overlay refuses before output creation. C-MEM-01/02/04 completion and C-MEM-05 stimulus remain incomplete. Criteria1.2 C-MEM-03 remediation evidence is supplied for independent evaluation under the prospective incident disposition; Builder does not self-award PASS.
+
+A fresh candidate-bound isolated host run and original host BLOCK are retained with the new full-SHA Handoff. No task/scorer/model/Docker/install/credential operation occurred. Final cumulative resource figures and exact changed paths are in that Handoff; earlier resource ledgers and conservative allowances are retained without reset. Host SOURCE_OF_TRUTH navigation is returned to Master, outside Builder write scope.

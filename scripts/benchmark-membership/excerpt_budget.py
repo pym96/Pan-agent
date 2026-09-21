@@ -1,5 +1,5 @@
 """Single append-only gate for any future source excerpt or AST-symbol display."""
-import json
+import json,os
 from pathlib import Path
 
 
@@ -9,9 +9,22 @@ def reserve(ledger, payload, *, initial_bytes, cap_bytes, source_path):
         raise ValueError('invalid excerpt budget input')
     ledger=Path(ledger)
     records=[json.loads(line) for line in ledger.read_text().splitlines()] if ledger.exists() else []
-    used=initial_bytes+sum(r['charged_bytes'] for r in records)
+    if records and any(r['cap_bytes']!=cap_bytes for r in records):
+        raise ValueError('budget ceiling changed without ledger migration')
+    if records and records[0]['prior_bytes']!=initial_bytes:
+        raise ValueError('carried budget reset refused')
+    running=initial_bytes
+    for r in records:
+        if type(r.get('charged_bytes')) is not int or r['charged_bytes']<0 or type(r.get('attempted_bytes')) is not int or r['attempted_bytes']<r['charged_bytes'] or r.get('prior_bytes')!=running:
+            raise ValueError('invalid excerpt ledger chain')
+        if r.get('allowed') is True and (r['charged_bytes']!=r['attempted_bytes'] or running+r['charged_bytes']>cap_bytes):
+            raise ValueError('invalid excerpt ledger allowance')
+        if r.get('allowed') is False and r['charged_bytes']!=0:raise ValueError('invalid refused charge')
+        running+=r['charged_bytes']
+    used=running
     size=len(payload.encode('utf8'));allowed=used+size<=cap_bytes
     record={'source_path':source_path,'attempted_bytes':size,'charged_bytes':size if allowed else 0,'prior_bytes':used,'cap_bytes':cap_bytes,'allowed':allowed}
-    with ledger.open('a') as f:f.write(json.dumps(record,sort_keys=True)+'\n')
+    with ledger.open('a') as f:
+        f.write(json.dumps(record,sort_keys=True)+'\n');f.flush();os.fsync(f.fileno())
     if not allowed:raise ValueError('source excerpt cap reached; no display authorized')
     return payload

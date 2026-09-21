@@ -1,0 +1,166 @@
+{
+  "criteria": "1.2",
+  "historical_verdict": "rejected Criteria1.1; never retroactively compliant",
+  "verdict_sha256": "2eb69ecc56bee1da41258ddc3c61cf01750c7e1b56f377e85afb18d14d130f9d",
+  "known_guarded_record_count": 19,
+  "known_reported_bytes": 31528,
+  "old_reservation": 32768,
+  "ungated_ast_exact_bytes": null,
+  "complete_historical_actual_bytes": null,
+  "carried_reservation": 72488,
+  "prospective_ceiling": 98304,
+  "root_cause": "Ad-hoc static AST print paths bypassed reader ledger; complete stdout history not retained.",
+  "coverage": [
+    {
+      "path": "da_code/source/data-sa-026/README.md",
+      "reported_bytes": 1310,
+      "reconstructed_bytes": 1310,
+      "record_sha256": "0421391140ba70d199d3693f70c2ab0f04ba9e0f97503059fdb5666cb30a1636",
+      "matches_reported_bytes": true,
+      "coverage": "reconstructed from retained projection and selector; not proof of complete stdout capture"
+    },
+    {
+      "path": "da_code/source/data-sa-028/README.md",
+      "reported_bytes": 755,
+      "reconstructed_bytes": 755,
+      "record_sha256": "3f44ff9404d9e511635587327ba195cff4c1e2f46fb58a91468e9837acf147a5",
+      "matches_reported_bytes": true,
+      "coverage": "reconstructed from retained projection and selector; not proof of complete stdout capture"
+    },
+    {
+      "path": "da_code/source/data-sa-029/README.md",
+      "reported_bytes": 1062,
+      "reconstructed_bytes": 1062,
+      "record_sha256": "2ab178fde92d9b9fcf861b6212b61f2c843acf0b3926419db9099d3d9563de9b",
+      "matches_reported_bytes": true,
+      "coverage": "reconstructed from retained projection and selector; not proof of complete stdout capture"
+    },
+    {
+      "path": "da_code/source/data-sa-031/README.md",
+      "reported_bytes": 702,
+      "reconstructed_bytes": 702,
+      "record_sha256": "77147f49792e5ff2df40d6205c90594f800cb901ac98127989d5ef754f05236d",
+      "matches_reported_bytes": true,
+      "coverage": "reconstructed from retained projection and selector; not proof of complete stdout capture"
+    },
+    {
+      "path": "da_code/source/data-sa-039/README.md",
+      "reported_bytes": 1062,
+      "reconstructed_bytes": 1062,
+      "record_sha256": "34fa70705b771adb3709e3c79a77a4354adec37f2b22ddbb070eaf9419b868e1",
+      "matches_reported_bytes": true,
+      "coverage": "reconstructed from retained projection and selector; not proof of complete stdout capture"
+    },
+    {
+      "path": "da_code/source/data-sa-043/README.md",
+      "reported_bytes": 1185,
+      "reconstructed_bytes": 1185,
+      "record_sha256": "9d1554de405db2fe2f41bd18a340fd106077c3a9d181eb5ddd4f61e1d16a118c",
+      "matches_reported_bytes": true,
+      "coverage": "reconstructed from retained projection and selector; not proof of complete stdout capture"
+    },
+    {
+      "path": "da_code/source/ml-multi-003/README.md",
+      "reported_bytes": 5967,
+      "reconstructed_bytes": 5967,
+      "record_sha256": "b4c3d59c6fe71ffa72c121ce282b201d993f1997596072f0a8a4b4f85986dae9",
+      "matches_reported_bytes": true,
+      "coverage": "reconstructed from retained projection and selector; not proof of complete stdout capture"
+    },
+    {
+      "path": "da_code/source/plot-bar-004/README.md",
+      "reported_bytes": 785,
+      "reconstructed_bytes": 785,
+      "record_sha256": "f2f4eb60ad7ff20f44ced8fee936b924efc3fb92eef83f54fba5f118d3c2d035",
+      "matches_reported_bytes": true,
+      "coverage": "reconstructed from retained projection and selector; not proof of complete stdout capture"
+    },
+    {
+      "path": "da_code/source/plot-bar-005/README.md",
+      "reported_bytes": 1132,
+      "reconstructed_bytes": 1132,
+      "record_sha256": "c9fd5f6410b01a3308a306409d12f4ac4265a8f72757a345ffdfa51d98fea418",
+      "matches_reported_bytes": true,
+      "coverage": "reconstructed from retained projection and selector; not proof of complete stdout capture"
+    },
+    {
+      "path": "da_code/source/plot-bar-006/README.md",
+      "reported_bytes": 3265,
+      "reconstructed_bytes": 3265,
+      "record_sha256": "0c2fb91d141ee853e8b78fa577d19b56d4fe3dfa0160e30dbc116e75c6c1aff5",
+      "matches_reported_bytes": true,
+      "coverage": "reconstructed from retained projection and selector; not proof of complete stdout capture"
+    },
+    {
+      "path": "da_code/source/plot-bar-007/README.md",
+      "reported_bytes": 1411,
+      "reconstructed_bytes": 1411,
+      "record_sha256": "d42139172d0b1121f509ec5cbe975f1188af177537760af2fd55890f8ae99a0a",
+      "matches_reported_bytes": true,
+      "coverage": "reconstructed from retained projection and selector; not proof of complete stdout capture"
+    },
+    {
+      "path": "da_code/source/plot-bar-015/README.md",
+      "reported_bytes": 4085,
+      "reconstructed_bytes": 4085,
+      "record_sha256": "3476c00d60d31c5feb28dcd231b9abd50ea0ce23f95810dd21cec5978c38248e",
+      "matches_reported_bytes": true,
+      "coverage": "reconstructed from retained projection and selector; not proof of complete stdout capture"
+    },
+    {
+      "path": "da_code/source/plot-line-006/README.md",
+      "reported_bytes": 4514,
+      "reconstructed_bytes": 4514,
+      "record_sha256": "cd546c6841d69d5188f3b9d80db4fae6a40c6215cb71f9355711c6d6ef68d566",
+      "matches_reported_bytes": true,
+      "coverage": "reconstructed from retained projection and selector; not proof of complete stdout capture"
+    },
+    {
+      "path": "da_code/source/plot-pie-005/README.md",
+      "reported_bytes": 833,
+      "reconstructed_bytes": 833,
+      "record_sha256": "b90ec050c7932851b099ff4878e8ff037b228ee2dfb198ad9509c3b7987837d3",
+      "matches_reported_bytes": true,
+      "coverage": "reconstructed from retained projection and selector; not proof of complete stdout capture"
+    },
+    {
+      "path": "da_code/source/plot-pie-008/README.md",
+      "reported_bytes": 2183,
+      "reconstructed_bytes": 2183,
+      "record_sha256": "db341b26ebd03b441fc996cca2963c32f752ddfdb16c1175a4b219074a3f43f7",
+      "matches_reported_bytes": true,
+      "coverage": "reconstructed from retained projection and selector; not proof of complete stdout capture"
+    },
+    {
+      "path": "da_code/source/plot-scatter-002/README.md",
+      "reported_bytes": 357,
+      "reconstructed_bytes": 357,
+      "record_sha256": "e986751d450c1d22833ebac18f21419dc5593d319c7b04cf8ed878f03ace3f52",
+      "matches_reported_bytes": true,
+      "coverage": "reconstructed from retained projection and selector; not proof of complete stdout capture"
+    },
+    {
+      "path": "da_code/source/plot-scatter-002/guidance.txt",
+      "reported_bytes": 0,
+      "reconstructed_bytes": 0,
+      "record_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "matches_reported_bytes": true,
+      "coverage": "reconstructed from retained projection and selector; not proof of complete stdout capture"
+    },
+    {
+      "path": "da_code/source/plot-pie-005/guidance.txt",
+      "reported_bytes": 676,
+      "reconstructed_bytes": 676,
+      "record_sha256": "ef5c2ada82ed9b6b9acddf2cb0899b215e837fe5cdb3ff45ce71390dcc8816fb",
+      "matches_reported_bytes": true,
+      "coverage": "reconstructed from retained projection and selector; not proof of complete stdout capture"
+    },
+    {
+      "path": "da_agent/evaluators/metrics/image.py",
+      "reported_bytes": 244,
+      "coverage": "exact emitted output not retained; ledger byte count only"
+    }
+  ],
+  "remediation": "All new source displays/errors/repeats/AST views use source_view.py and shared append-only pre-display ledger; no direct cat/rg/raw print of upstream inputs.",
+  "limitation": "No established new answer leak per independent Verdict; absent historical output coverage cannot establish leak absence."
+}

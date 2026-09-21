@@ -34,14 +34,17 @@ def derive(pool,decisions):
     new=apply(pool,decisions);selection=selector.select(new)
     if selection['blockers'] or len(selection['selected'])!=30:raise ValueError('selection incomplete')
     selection['status']='structural_subset_frozen_pending_environment_and_activation'
-    selection['population_boundary']='Structurally complete and instruction/scorer-consistent subset of pinned available distribution under #73 Criteria1.1.'
+    selection['population_boundary']='Structurally complete and instruction/scorer-consistent subset of pinned available distribution under #73 Criteria1.2.'
     return new,selection
 
-def load_frozen():
+def load_frozen(criteria="1.2"):
+    if criteria not in {"1.1","1.2"}:raise ValueError("unsupported criteria")
+    lock_file="continuation-lock-v12.json" if criteria=="1.2" else "continuation-lock.json"
+    decision_file="decisions-v12.json" if criteria=="1.2" else "decisions-v11.json"
     data=(ROOT.parent/'benchmark-subset/generated/pool.json').read_bytes()
-    lock=json.loads((ROOT/'continuation-lock.json').read_text())
+    lock=json.loads((ROOT/lock_file).read_text())
     if hashlib.sha256(data).hexdigest()!=lock['base_pool_sha256']:raise ValueError('base pool integrity mismatch')
-    source=(ROOT/'decisions-v11.json').read_bytes()
+    source=(ROOT/decision_file).read_bytes()
     if hashlib.sha256(source).hexdigest()!=lock['decisions_sha256']:raise ValueError('decision freeze integrity mismatch')
     return json.loads(data),json.loads(source)['decisions']
 

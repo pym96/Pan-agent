@@ -1,0 +1,13 @@
+{
+  "criteria": "1.2",
+  "status": "awaiting_human",
+  "reporter_role": "Human_required_not_yet_received",
+  "source_revision": "b211daf51fdc9b52d5087c9df28ac50191bcabed",
+  "source_path": "da_code/source/plot-scatter-002/guidance.txt",
+  "source_sha256": "243972816d5b4be638bc39304a623e4b34c469b7562610d59e56ed0f2ae9f4b5",
+  "order_stage_city_sales_provision": null,
+  "bar_scatter_override": null,
+  "locators": [],
+  "not_H_MEM_DECISIONS": true,
+  "rule": "Only yes/no/unclear plus provision/override metadata locators and line numbers; no answer or solving content."
+}

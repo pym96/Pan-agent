@@ -34,3 +34,20 @@ Historical artifacts above remain intact. [SC-73-02](../../docs/design/benchmark
 `python3 scripts/benchmark-membership/overlay.py --output /tmp/wo73-result` must currently refuse because the real ledger is unresolved. Do not change unknowns to exclusions just to make it run. Synthetic test results are not actual selected tasks.
 
 - [audit_v11.py](audit_v11.py): verify all retained source identities and frozen decision bytes offline, without source display.
+
+## Criteria1.2 current checkpoint
+
+Current ledger: 15 Builder judgments and one Human-dependent unresolved row; no real subset. Keep all historical1.0/1.1 records and rejected Verdicts.
+
+- [incident-v12.json](incident-v12.json): known/unknown historical measurements, reconstruction coverage and prospective carry.
+- [source_view.py](source_view.py) / [test_source_view.py](test_source_view.py): sole new upstream display path, durable shared charge and bounded saved payloads. Do not use ad-hoc raw cat/rg/AST printing on upstream sources.
+- [decisions-v12.json](decisions-v12.json), [continuation-lock-v12.json](continuation-lock-v12.json): current frozen Builder judgments; the overlay defaults to these and must refuse while any row is unresolved.
+- [human-metadata-v12.json](human-metadata-v12.json): pending Human-only metadata input, not acceptance or a fabricated reply.
+- [source-provenance-v12.json](source-provenance-v12.json) and [audit_v12.py](audit_v12.py): 36-file integrity reconstruction without displaying raw sources. Historical audit_v11 explicitly loads the old1.1 ledger.
+
+```sh
+PYTHONDONTWRITEBYTECODE=1 python3 scripts/benchmark-membership/audit_v12.py --inputs /path/to/retained/inputs
+PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s scripts/benchmark-membership -v
+```
+
+Source inspection uses `source_view.py --inputs ... --receipts ... --path <authorized-pinned-path>`; static implementation views also require explicit `--functions`. All new views share the same retained receipts directory and fixed carry/ceiling. Synthetic tests use isolated temporary ledgers. Reading hidden Solution content is not authorized by this tool.

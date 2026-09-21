@@ -9,7 +9,7 @@ YAML_KEYS={'title','xlabel','ylabel','x_label','y_label','figsize','dpi','fontsi
 def read_input(data,path,entry):
     try:
         p=PurePosixPath(path)
-        if len(p.parts)!=4 or p.parts[:2]!=('da_code','source') or p.parts[2] not in TARGETS or p.name not in {'README.md','guidance.txt','plot.yaml'}:raise ValueError()
+        if len(p.parts)!=4 or p.parts[:2]!=('da_code','source') or p.parts[2] not in TARGETS or (p.name not in {'README.md','guidance.txt','plot.yaml'} and path!='da_code/source/plot-line-006/tips.txt'):raise ValueError()
         blob=hashlib.sha1(b'blob '+str(len(data)).encode()+b'\0'+data).hexdigest()
         if entry['mode']!='100644' or entry['type']!='blob' or entry['sha']!=blob or entry['size']!=len(data):raise ValueError()
         lines=data.decode('utf8').splitlines()
