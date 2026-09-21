@@ -24,3 +24,5 @@ Raw artifacts remain at their stable source, Git, Trace, Test, evaluator, or ext
 - [`kimi-k3-live-smoke-70.md`](kimi-k3-live-smoke-70.md) records #70 Criteria1.0’s single authorized live K3 smoke, original two-dispatch/one-tool outcome and immutable evidence identities. Pending independent Regulator; no benchmark, VPF or resume claim.
 
 - [`benchmark-env-71.md`](benchmark-env-71.md): #71 Criteria1.1 Builder environment/control evidence; independent review pending.
+
+- [`benchmark-subset-72.md`](benchmark-subset-72.md): #72 Builder blocked-proposal evidence, exposure incident, raw input identities and deterministic checks; pending independent Regulator/Human review.

@@ -1,0 +1,428 @@
+{
+  "different": true,
+  "included_unknowns": [
+    {
+      "domain": "da",
+      "instance_id": "ml-competition-003",
+      "rank": 1,
+      "rank_sha256": "21577a4be1316d1940d8dd9164bc83f1b356200c942af9fa2b3cdd550e5322d9",
+      "stratum": "compare_competition_ml"
+    },
+    {
+      "domain": "da",
+      "instance_id": "ml-competition-009",
+      "rank": 2,
+      "rank_sha256": "62bf74879683beb40e54551431f57dbd114c74b3f2161501d40d31c906e49044",
+      "stratum": "compare_competition_ml"
+    },
+    {
+      "domain": "da",
+      "instance_id": "data-sa-029",
+      "rank": 1,
+      "rank_sha256": "1486e3df88365b35911da3da99002520d039654dd8bc91b1043d5d884c26437f",
+      "stratum": "compare_csv"
+    },
+    {
+      "domain": "da",
+      "instance_id": "dm-csv-011",
+      "rank": 2,
+      "rank_sha256": "3453cbdbb08fde3cc55388d3a592d709bbf91c7c18ff2a632b47a8d43a97678f",
+      "stratum": "compare_csv"
+    },
+    {
+      "domain": "da",
+      "instance_id": "dm-csv-009",
+      "rank": 3,
+      "rank_sha256": "6d87ebd5857c9947fdccc449fbadb635d5c672bc621270e942866e8c6e5e1064",
+      "stratum": "compare_csv"
+    },
+    {
+      "domain": "da",
+      "instance_id": "data-sa-039",
+      "rank": 4,
+      "rank_sha256": "784a42cadca922e2d50904a64d771149e05ad3628078ae51c1a99ca2a392c081",
+      "stratum": "compare_csv"
+    },
+    {
+      "domain": "da",
+      "instance_id": "dm-csv-044",
+      "rank": 5,
+      "rank_sha256": "7e409795a101f785964bfc9e4da17099cc7bc92619d1c2313ed5b37c5e32cb5d",
+      "stratum": "compare_csv"
+    },
+    {
+      "domain": "da",
+      "instance_id": "plot-bar-005",
+      "rank": 1,
+      "rank_sha256": "265988134d57c065866bfcd03f3c74138991dea2d0eeafbfd365fea6ec78a8d0",
+      "stratum": "compare_image"
+    },
+    {
+      "domain": "da",
+      "instance_id": "plot-bar-007",
+      "rank": 2,
+      "rank_sha256": "2b6a847e5621ec73b75c9b4f6b81cd74b6e3ea4a2ffc28c143a45ef7d596cfac",
+      "stratum": "compare_image"
+    },
+    {
+      "domain": "da",
+      "instance_id": "plot-scatter-002",
+      "rank": 3,
+      "rank_sha256": "2f28185de410fb43e31589c34cadcbda2e70d2b1fddc1c00460a2036115ff6e5",
+      "stratum": "compare_image"
+    },
+    {
+      "domain": "da",
+      "instance_id": "ml-regression-012",
+      "rank": 1,
+      "rank_sha256": "0b60099983727f5a0c7c75cd0a1e2ce2ce685d9b6d18338c965b4ca8ff6e8093",
+      "stratum": "compare_ml"
+    },
+    {
+      "domain": "da",
+      "instance_id": "ml-regression-002",
+      "rank": 2,
+      "rank_sha256": "0f97354046bbeab9ef3f6606a9c6edd95f042f1635740ea063b3b1379109eaab",
+      "stratum": "compare_ml"
+    },
+    {
+      "domain": "da",
+      "instance_id": "ml-cluster-010",
+      "rank": 3,
+      "rank_sha256": "13db25c2244f4005902b6af833def243f08f2143b8a8a42ebacea09441c5eec2",
+      "stratum": "compare_ml"
+    },
+    {
+      "domain": "da",
+      "instance_id": "ml-regression-015",
+      "rank": 4,
+      "rank_sha256": "1c977fb52fd238f048157e054ec21a59ecac3e2bfff38ee6c8e4090402d87708",
+      "stratum": "compare_ml"
+    },
+    {
+      "domain": "da",
+      "instance_id": "ml-cluster-019",
+      "rank": 5,
+      "rank_sha256": "2cb51bd67c0b1425e23b0d7646ccce108290bff2e463f2de0ecd87a70792ae8e",
+      "stratum": "compare_ml"
+    },
+    {
+      "domain": "swe",
+      "instance_id": "astropy__astropy-14995",
+      "rank": 1,
+      "rank_sha256": "1cbbff8b7eb07462f9fdfd76839dd8ee8efd6b913e87f9396bdc8057bafb8299",
+      "stratum": "astropy/astropy"
+    },
+    {
+      "domain": "swe",
+      "instance_id": "django__django-12453",
+      "rank": 1,
+      "rank_sha256": "026c390d33c5185d564cff476026af297093981a82c95e2cf28cc8797a1982db",
+      "stratum": "django/django"
+    },
+    {
+      "domain": "swe",
+      "instance_id": "django__django-12983",
+      "rank": 2,
+      "rank_sha256": "048dc71c2096c9f61f948a59dee191b34395b9d044935a3c3e9b2f3dfb8cb3bb",
+      "stratum": "django/django"
+    },
+    {
+      "domain": "swe",
+      "instance_id": "django__django-16820",
+      "rank": 3,
+      "rank_sha256": "06269371af6ea47ac477f694c8b1ba6c5d25b3f54475cb7edc8fa1657bf88883",
+      "stratum": "django/django"
+    },
+    {
+      "domain": "swe",
+      "instance_id": "django__django-15790",
+      "rank": 4,
+      "rank_sha256": "076ec8ce939fcb5af3d710fb77c04e21fb6e98a56278ef4bdff3525d147e6bd8",
+      "stratum": "django/django"
+    },
+    {
+      "domain": "swe",
+      "instance_id": "django__django-14017",
+      "rank": 5,
+      "rank_sha256": "0b224571e44f4afb6cd741e114f48ecdb363c79213c2242b0ff41a8be8c1df62",
+      "stratum": "django/django"
+    },
+    {
+      "domain": "swe",
+      "instance_id": "django__django-11049",
+      "rank": 6,
+      "rank_sha256": "0e068e7f9d047143aa65be385849285ab401f6bfd6f74778bbc4fd3c703830b7",
+      "stratum": "django/django"
+    },
+    {
+      "domain": "swe",
+      "instance_id": "matplotlib__matplotlib-23562",
+      "rank": 1,
+      "rank_sha256": "047158a6fb93f8f243bd7b5e74ec1e3f26d7953f4b69c5172f7a208f3cd79a9a",
+      "stratum": "matplotlib/matplotlib"
+    },
+    {
+      "domain": "swe",
+      "instance_id": "pytest-dev__pytest-7373",
+      "rank": 1,
+      "rank_sha256": "091e73e995614dab7fb71f1516d954b0f421ee81160eb3f0f04cdc53ec027eae",
+      "stratum": "pytest-dev/pytest"
+    },
+    {
+      "domain": "swe",
+      "instance_id": "scikit-learn__scikit-learn-25570",
+      "rank": 1,
+      "rank_sha256": "062b6c322eb4c09c784547f815c9781f283ca67eeec9cd899ff3ebe3a2b52665",
+      "stratum": "scikit-learn/scikit-learn"
+    },
+    {
+      "domain": "swe",
+      "instance_id": "sphinx-doc__sphinx-8627",
+      "rank": 1,
+      "rank_sha256": "107354332fbbff3a43bd9edde6e32d601ea58e932d7486c7d672e5c38057c399",
+      "stratum": "sphinx-doc/sphinx"
+    },
+    {
+      "domain": "swe",
+      "instance_id": "sympy__sympy-20154",
+      "rank": 1,
+      "rank_sha256": "022d18ab4d7cb66da36fd9821e448db8dd14c7d359816cbd92180224d1a51fe4",
+      "stratum": "sympy/sympy"
+    },
+    {
+      "domain": "swe",
+      "instance_id": "sympy__sympy-18057",
+      "rank": 2,
+      "rank_sha256": "0d3787d76de56f8c94b5ed072b70f13944da783ca5368cc34869c0f04091aebf",
+      "stratum": "sympy/sympy"
+    },
+    {
+      "domain": "swe",
+      "instance_id": "sympy__sympy-13471",
+      "rank": 3,
+      "rank_sha256": "11bbae4ed14af6518faef48babeeb67328c3983db0f09f7a7c0bc145b7869f9b",
+      "stratum": "sympy/sympy"
+    },
+    {
+      "domain": "swe",
+      "instance_id": "sympy__sympy-12171",
+      "rank": 4,
+      "rank_sha256": "13b2b1b63514c2131a05032f6322f4b4e8c39b4939c79b729b3995f77fe12c0d",
+      "stratum": "sympy/sympy"
+    }
+  ],
+  "label": "diagnostic sensitivity only; membership not adjudicated",
+  "withheld_unknowns": [
+    {
+      "domain": "da",
+      "instance_id": "ml-competition-003",
+      "rank": 1,
+      "rank_sha256": "21577a4be1316d1940d8dd9164bc83f1b356200c942af9fa2b3cdd550e5322d9",
+      "stratum": "compare_competition_ml"
+    },
+    {
+      "domain": "da",
+      "instance_id": "ml-competition-009",
+      "rank": 2,
+      "rank_sha256": "62bf74879683beb40e54551431f57dbd114c74b3f2161501d40d31c906e49044",
+      "stratum": "compare_competition_ml"
+    },
+    {
+      "domain": "da",
+      "instance_id": "ml-competition-006",
+      "rank": 3,
+      "rank_sha256": "c13188307eb74524312b1cf5253b32e00a8529adbeca560b59311bc86249eff3",
+      "stratum": "compare_competition_ml"
+    },
+    {
+      "domain": "da",
+      "instance_id": "dm-csv-011",
+      "rank": 1,
+      "rank_sha256": "3453cbdbb08fde3cc55388d3a592d709bbf91c7c18ff2a632b47a8d43a97678f",
+      "stratum": "compare_csv"
+    },
+    {
+      "domain": "da",
+      "instance_id": "dm-csv-009",
+      "rank": 2,
+      "rank_sha256": "6d87ebd5857c9947fdccc449fbadb635d5c672bc621270e942866e8c6e5e1064",
+      "stratum": "compare_csv"
+    },
+    {
+      "domain": "da",
+      "instance_id": "dm-csv-044",
+      "rank": 3,
+      "rank_sha256": "7e409795a101f785964bfc9e4da17099cc7bc92619d1c2313ed5b37c5e32cb5d",
+      "stratum": "compare_csv"
+    },
+    {
+      "domain": "da",
+      "instance_id": "dm-csv-043",
+      "rank": 4,
+      "rank_sha256": "853f236a1a3dfc12502b75f514f9c55221ac75c3d5fbec0837e42bd5b9be448a",
+      "stratum": "compare_csv"
+    },
+    {
+      "domain": "da",
+      "instance_id": "dm-csv-052",
+      "rank": 5,
+      "rank_sha256": "957139011974fb7ea202f873c810f738bfcbc1db0a2a3cc2663b7962c570bc3c",
+      "stratum": "compare_csv"
+    },
+    {
+      "domain": "da",
+      "instance_id": "ml-regression-012",
+      "rank": 1,
+      "rank_sha256": "0b60099983727f5a0c7c75cd0a1e2ce2ce685d9b6d18338c965b4ca8ff6e8093",
+      "stratum": "compare_ml"
+    },
+    {
+      "domain": "da",
+      "instance_id": "ml-regression-002",
+      "rank": 2,
+      "rank_sha256": "0f97354046bbeab9ef3f6606a9c6edd95f042f1635740ea063b3b1379109eaab",
+      "stratum": "compare_ml"
+    },
+    {
+      "domain": "da",
+      "instance_id": "ml-cluster-010",
+      "rank": 3,
+      "rank_sha256": "13db25c2244f4005902b6af833def243f08f2143b8a8a42ebacea09441c5eec2",
+      "stratum": "compare_ml"
+    },
+    {
+      "domain": "da",
+      "instance_id": "ml-regression-015",
+      "rank": 4,
+      "rank_sha256": "1c977fb52fd238f048157e054ec21a59ecac3e2bfff38ee6c8e4090402d87708",
+      "stratum": "compare_ml"
+    },
+    {
+      "domain": "da",
+      "instance_id": "ml-cluster-019",
+      "rank": 5,
+      "rank_sha256": "2cb51bd67c0b1425e23b0d7646ccce108290bff2e463f2de0ecd87a70792ae8e",
+      "stratum": "compare_ml"
+    },
+    {
+      "domain": "da",
+      "instance_id": "ml-cluster-014",
+      "rank": 6,
+      "rank_sha256": "353c7ae1c41c83f4a71243c96e939bc199af22aa6cea8d5c776f2831d20836f0",
+      "stratum": "compare_ml"
+    },
+    {
+      "domain": "da",
+      "instance_id": "ml-regression-004",
+      "rank": 7,
+      "rank_sha256": "4f2ff0763112d5a6723f7e2f179e7c494ced73665dbfdc4d3f15513b388100b1",
+      "stratum": "compare_ml"
+    },
+    {
+      "domain": "swe",
+      "instance_id": "astropy__astropy-14995",
+      "rank": 1,
+      "rank_sha256": "1cbbff8b7eb07462f9fdfd76839dd8ee8efd6b913e87f9396bdc8057bafb8299",
+      "stratum": "astropy/astropy"
+    },
+    {
+      "domain": "swe",
+      "instance_id": "django__django-12453",
+      "rank": 1,
+      "rank_sha256": "026c390d33c5185d564cff476026af297093981a82c95e2cf28cc8797a1982db",
+      "stratum": "django/django"
+    },
+    {
+      "domain": "swe",
+      "instance_id": "django__django-12983",
+      "rank": 2,
+      "rank_sha256": "048dc71c2096c9f61f948a59dee191b34395b9d044935a3c3e9b2f3dfb8cb3bb",
+      "stratum": "django/django"
+    },
+    {
+      "domain": "swe",
+      "instance_id": "django__django-16820",
+      "rank": 3,
+      "rank_sha256": "06269371af6ea47ac477f694c8b1ba6c5d25b3f54475cb7edc8fa1657bf88883",
+      "stratum": "django/django"
+    },
+    {
+      "domain": "swe",
+      "instance_id": "django__django-15790",
+      "rank": 4,
+      "rank_sha256": "076ec8ce939fcb5af3d710fb77c04e21fb6e98a56278ef4bdff3525d147e6bd8",
+      "stratum": "django/django"
+    },
+    {
+      "domain": "swe",
+      "instance_id": "django__django-14017",
+      "rank": 5,
+      "rank_sha256": "0b224571e44f4afb6cd741e114f48ecdb363c79213c2242b0ff41a8be8c1df62",
+      "stratum": "django/django"
+    },
+    {
+      "domain": "swe",
+      "instance_id": "django__django-11049",
+      "rank": 6,
+      "rank_sha256": "0e068e7f9d047143aa65be385849285ab401f6bfd6f74778bbc4fd3c703830b7",
+      "stratum": "django/django"
+    },
+    {
+      "domain": "swe",
+      "instance_id": "matplotlib__matplotlib-23562",
+      "rank": 1,
+      "rank_sha256": "047158a6fb93f8f243bd7b5e74ec1e3f26d7953f4b69c5172f7a208f3cd79a9a",
+      "stratum": "matplotlib/matplotlib"
+    },
+    {
+      "domain": "swe",
+      "instance_id": "pytest-dev__pytest-7373",
+      "rank": 1,
+      "rank_sha256": "091e73e995614dab7fb71f1516d954b0f421ee81160eb3f0f04cdc53ec027eae",
+      "stratum": "pytest-dev/pytest"
+    },
+    {
+      "domain": "swe",
+      "instance_id": "scikit-learn__scikit-learn-25570",
+      "rank": 1,
+      "rank_sha256": "062b6c322eb4c09c784547f815c9781f283ca67eeec9cd899ff3ebe3a2b52665",
+      "stratum": "scikit-learn/scikit-learn"
+    },
+    {
+      "domain": "swe",
+      "instance_id": "sphinx-doc__sphinx-8627",
+      "rank": 1,
+      "rank_sha256": "107354332fbbff3a43bd9edde6e32d601ea58e932d7486c7d672e5c38057c399",
+      "stratum": "sphinx-doc/sphinx"
+    },
+    {
+      "domain": "swe",
+      "instance_id": "sympy__sympy-20154",
+      "rank": 1,
+      "rank_sha256": "022d18ab4d7cb66da36fd9821e448db8dd14c7d359816cbd92180224d1a51fe4",
+      "stratum": "sympy/sympy"
+    },
+    {
+      "domain": "swe",
+      "instance_id": "sympy__sympy-18057",
+      "rank": 2,
+      "rank_sha256": "0d3787d76de56f8c94b5ed072b70f13944da783ca5368cc34869c0f04091aebf",
+      "stratum": "sympy/sympy"
+    },
+    {
+      "domain": "swe",
+      "instance_id": "sympy__sympy-13471",
+      "rank": 3,
+      "rank_sha256": "11bbae4ed14af6518faef48babeeb67328c3983db0f09f7a7c0bc145b7869f9b",
+      "stratum": "sympy/sympy"
+    },
+    {
+      "domain": "swe",
+      "instance_id": "sympy__sympy-12171",
+      "rank": 4,
+      "rank_sha256": "13b2b1b63514c2131a05032f6322f4b4e8c39b4939c79b729b3995f77fe12c0d",
+      "stratum": "sympy/sympy"
+    }
+  ]
+}

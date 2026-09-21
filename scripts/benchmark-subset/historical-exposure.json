@@ -1,0 +1,554 @@
+{
+  "additional_candidates": {},
+  "historical": [
+    {
+      "domain": "da",
+      "instance_id": "data-sa-001",
+      "reasons": [
+        "tracked historical execution/gold/debug exposure"
+      ],
+      "sources": [
+        "docs/design/benchmark-env-tracer.md"
+      ]
+    },
+    {
+      "domain": "swe",
+      "instance_id": "marshmallow-code__marshmallow-1343",
+      "reasons": [
+        "tracked historical execution/gold/debug exposure"
+      ],
+      "sources": [
+        "docs/evidence/react-mvp-30-slot-candidate-2026-08-23.md",
+        "docs/evidence/react-mvp-docker-gold-gate-2026-08-20.md",
+        "workspace_agent_harness/benchmark_configs/react-mvp-5-v1.json"
+      ]
+    },
+    {
+      "domain": "swe",
+      "instance_id": "pydicom__pydicom-1694",
+      "reasons": [
+        "tracked historical execution/gold/debug exposure"
+      ],
+      "sources": [
+        "docs/evidence/react-mvp-30-slot-candidate-2026-08-23.md",
+        "docs/evidence/react-mvp-docker-gold-gate-2026-08-20.md",
+        "workspace_agent_harness/benchmark_configs/react-mvp-5-v1.json"
+      ]
+    },
+    {
+      "domain": "swe",
+      "instance_id": "pydicom__pydicom-901",
+      "reasons": [
+        "tracked historical execution/gold/debug exposure"
+      ],
+      "sources": [
+        "docs/evidence/react-mvp-30-slot-candidate-2026-08-23.md",
+        "docs/evidence/react-mvp-docker-gold-gate-2026-08-20.md",
+        "workspace_agent_harness/benchmark_configs/react-mvp-5-v1.json"
+      ]
+    },
+    {
+      "domain": "swe",
+      "instance_id": "pylint-dev__astroid-1196",
+      "reasons": [
+        "tracked historical execution/gold/debug exposure"
+      ],
+      "sources": [
+        "docs/evidence/react-mvp-30-slot-candidate-2026-08-23.md",
+        "docs/evidence/react-mvp-docker-gold-gate-2026-08-20.md",
+        "workspace_agent_harness/benchmark_configs/react-mvp-5-v1.json"
+      ]
+    },
+    {
+      "domain": "swe",
+      "instance_id": "sqlfluff__sqlfluff-2419",
+      "reasons": [
+        "tracked historical execution/gold/debug exposure"
+      ],
+      "sources": [
+        "docs/evidence/react-mvp-30-slot-candidate-2026-08-23.md",
+        "docs/evidence/react-mvp-docker-gold-gate-2026-08-20.md",
+        "workspace_agent_harness/benchmark_configs/react-mvp-5-v1.json"
+      ]
+    },
+    {
+      "domain": "swe",
+      "instance_id": "sympy__sympy-20590",
+      "reasons": [
+        "tracked historical execution/gold/debug exposure"
+      ],
+      "sources": [
+        "docs/evidence/react-mvp-docker-gold-gate-2026-08-20.md"
+      ]
+    }
+  ],
+  "limitations": "Tracked records plus their declared inventories; no model pretraining cleanliness claim. Five-case protocol corpus references the same react-mvp-5 inventory. No unrelated private directories scanned.",
+  "scan": [
+    {
+      "ids": [],
+      "path": "docs/design/README.md",
+      "sha256": "6867727057187a8172195065283d6f66f33b712df95234d5155925326a6ae10f"
+    },
+    {
+      "ids": [],
+      "path": "docs/design/agent-loop-behavioral-eval-v0.md",
+      "sha256": "a6a9ace623763feb895309ce6f1189cb63279b51ef74ac8a05cabd67aa53eeff"
+    },
+    {
+      "ids": [],
+      "path": "docs/design/behavioral-eval-runtime-v0.md",
+      "sha256": "c505d763d05bf99181525abc1c89a095e578d7ea8ba56b9ce96d84692189e684"
+    },
+    {
+      "ids": [
+        "data-sa-001"
+      ],
+      "path": "docs/design/benchmark-env-tracer.md",
+      "sha256": "89396df241c83bc3118e0423115c4eac760662c604f1434501be31bae4c3069b"
+    },
+    {
+      "ids": [],
+      "path": "docs/design/benchmark-strategy.md",
+      "sha256": "48a32006dec733aea739e52e3a80754a9cbdf84ccfc83918ca9a4f1cab17ce74"
+    },
+    {
+      "ids": [],
+      "path": "docs/design/deepseek-live-behavioral-eval-stage-a.md",
+      "sha256": "75431f64bb9e76027630c721e0cde92af8ca261c61447fe021788297a949c315"
+    },
+    {
+      "ids": [],
+      "path": "docs/design/deepseek-live-budgeted-serial-runner.md",
+      "sha256": "4bb5348825c701e36539290d06dd33c0536febe0e3bdce8fb887b17270ffa8e6"
+    },
+    {
+      "ids": [],
+      "path": "docs/design/deepseek-live-tui.md",
+      "sha256": "ffb07125ae277f63fca0ca4daae34ad992ba11b8878f7ea127459b43183215db"
+    },
+    {
+      "ids": [],
+      "path": "docs/design/deepseek-live-v3-adapter-stage-a.md",
+      "sha256": "a60245d93f9e59f0b4ffd94ce97cbaaf935d3481cf97bb7c6c9c08438a7aaab3"
+    },
+    {
+      "ids": [],
+      "path": "docs/design/deerflow-mechanism-map.md",
+      "sha256": "a25430c6d56d24db84b0875d0a2732cc393fc4285fad578f1df54ce87c372d64"
+    },
+    {
+      "ids": [],
+      "path": "docs/design/evented-tui-tracer.md",
+      "sha256": "3c45fcc816761d98051c037472e8bf7b446eef86c748d03603109df6002d4976"
+    },
+    {
+      "ids": [],
+      "path": "docs/design/general-vertical-system.md",
+      "sha256": "24b6558c7f491c085d273248375ea36414a80ab3f55cfe549f71519b6e8915ac"
+    },
+    {
+      "ids": [],
+      "path": "docs/design/kimi-bounded-smoke.md",
+      "sha256": "fc2baf9a1ffcf5117994fa1224d8075077fdb36efd863fe6f33402dc934a3dc9"
+    },
+    {
+      "ids": [],
+      "path": "docs/design/kimi-k3-offline.md",
+      "sha256": "54ff29bdfc82dd62acabefda13ffbaf45bd50928085417857c86939b8604050d"
+    },
+    {
+      "ids": [],
+      "path": "docs/design/native-agent-kernel-v0.md",
+      "sha256": "186982ea4a9e9a564557e3f2e616b1038919ec0c45b36fa22ee713db031e74e6"
+    },
+    {
+      "ids": [],
+      "path": "docs/design/native-compact-tui.md",
+      "sha256": "b3a9d14d637d4ac49ed4d580fb7367e57deeee3be3962b6d115fea2f7e114571"
+    },
+    {
+      "ids": [],
+      "path": "docs/design/native-daily-workspace.md",
+      "sha256": "14a7745481cc6d80fe7ce4d940a4d72a32351ee7f1c51c526202d2da7067a547"
+    },
+    {
+      "ids": [],
+      "path": "docs/design/native-file-input-repair.md",
+      "sha256": "f70e5228e9615f74a9a850a36d6a5d1e14fb54d68c4d6d6f066a530c681a837c"
+    },
+    {
+      "ids": [],
+      "path": "docs/design/native-file-input.md",
+      "sha256": "0bac63efcd0c2771eb89e5d1a8d8c3fc09f3bf43a489815aa411a518c7ae039b"
+    },
+    {
+      "ids": [],
+      "path": "docs/design/native-module-layout.md",
+      "sha256": "a55b65f410afed18176a7399e48008f208d73ebda332401beccfbabd5fdb7c9c"
+    },
+    {
+      "ids": [],
+      "path": "docs/design/native-streaming-tui.md",
+      "sha256": "380e4eb7c04b5dd8e7dbb968fee110fd0afe3d5df8ed6de0d8105592d95fac88"
+    },
+    {
+      "ids": [],
+      "path": "docs/design/overnight-handoff.md",
+      "sha256": "8b6f0c129951b5cbf8d711b44b75b42eaa0c3891b3fb58ac92ee1cf840006201"
+    },
+    {
+      "ids": [],
+      "path": "docs/design/packed-product-consumer.md",
+      "sha256": "a64020342fb7d9efc154bd7f3ef497b71fe1a7ae14f5e9f24936813aef8d55d1"
+    },
+    {
+      "ids": [],
+      "path": "docs/design/pan-deepseek-model-adapter.md",
+      "sha256": "19cf9b805b301b04ce89d8223099d0b1712deb043b2d4855dc77e701ec26eee8"
+    },
+    {
+      "ids": [],
+      "path": "docs/design/pan-faux-and-trusted-local-tools.md",
+      "sha256": "91f37f9efbfdf1c199fb8c3a246e7af68539e1546b071ba53da8f06a9d9a8e16"
+    },
+    {
+      "ids": [],
+      "path": "docs/design/pan-owned-canonical-protocol.md",
+      "sha256": "993fc640c9323156a275613c085b427c227d0cdfcc5022783875c50cf77d2644"
+    },
+    {
+      "ids": [],
+      "path": "docs/design/preview-config.md",
+      "sha256": "77189ebcaa6225178f0fad2238669f845d9728f9c51de45d93ba2fc5e7615a57"
+    },
+    {
+      "ids": [],
+      "path": "docs/design/preview-first-task.md",
+      "sha256": "e03e92673380f8897f4ea416ca336058dbb6a4c6500d38b72c08a04662b64ffe"
+    },
+    {
+      "ids": [],
+      "path": "docs/design/preview-kimi.md",
+      "sha256": "69ddfb3498d3bdd187c08a26b1c946a1b16879d89ac0f08f8b115293b26e2334"
+    },
+    {
+      "ids": [],
+      "path": "docs/design/proactive-semantic-compaction.md",
+      "sha256": "4e0a0f47643b6f6852cb16ff4c39e4afba2a1b53c30ea5fdb9c1437b56091d93"
+    },
+    {
+      "ids": [],
+      "path": "docs/design/product-isolation.md",
+      "sha256": "5a88c5b5f3426cacb3bcea79a8e7abce0cb84edf022370d8570e05c7c60d49fd"
+    },
+    {
+      "ids": [],
+      "path": "docs/design/proof-domains.md",
+      "sha256": "66455dd23c1747508e2c311d6e14dd5f693e55294666ff406e55bae2f230a07d"
+    },
+    {
+      "ids": [],
+      "path": "docs/design/protocol-reliability-v1.1-max-token-sensitivity.md",
+      "sha256": "eb5ea87254518dfad7afa57242c2d12f40bb6efe3748ec85a59b6c6a5bdabd19"
+    },
+    {
+      "ids": [],
+      "path": "docs/design/protocol-reliability-v1.2-max-token-16k-extension.md",
+      "sha256": "333e8dda899bfe22eec76a3c1f4a9fa04b011c8e4a4977f9ab3a8a568b385550"
+    },
+    {
+      "ids": [],
+      "path": "docs/design/protocol-reliability-v1.md",
+      "sha256": "4475e7d37153384e1516831a5bddf35a5f227d20044428d448b9bf1e5282bed2"
+    },
+    {
+      "ids": [],
+      "path": "docs/design/provider-context-overflow-recovery.md",
+      "sha256": "bf1eb26f75d24012ae6c8cc09ad64cd898caa1fb0d96dceb2c8806a0f70e12a2"
+    },
+    {
+      "ids": [],
+      "path": "docs/design/react-to-swe-mvp.md",
+      "sha256": "00d41e7bf58da76530e09c21bcf5f4e23ebbbffacb27416eb98e131cba53eab6"
+    },
+    {
+      "ids": [],
+      "path": "docs/design/tool-activity-digest.md",
+      "sha256": "f584e69b2a7423789a7a861fa988892c079268fbc25e7a3fc15b8864eae05b9d"
+    },
+    {
+      "ids": [],
+      "path": "docs/design/transcript-scroll-layout.md",
+      "sha256": "7957dc7fae4c3355e3c0fa2b584d4e1a3464439505e14c07ab36c503c27dca77"
+    },
+    {
+      "ids": [],
+      "path": "docs/design/transcript-scrollbar.md",
+      "sha256": "bb04eb306a450d335b34e2b019b0cb76ef8b9f0928dad234dd6e01807e83139a"
+    },
+    {
+      "ids": [],
+      "path": "docs/design/translation-adapter.md",
+      "sha256": "6532c42416f7a51d6f1bc7a591d0055c622ed7e8350d7057a97aefc0eab21156"
+    },
+    {
+      "ids": [],
+      "path": "docs/design/tui-three-view-projections.md",
+      "sha256": "eb764eb4e4f55b20e92c75fa02cf36302994a48d8969d48da3790c96620cf62c"
+    },
+    {
+      "ids": [],
+      "path": "docs/design/typescript-pi-general-agent-working-stack.md",
+      "sha256": "da124c4ff9c99b74573b5a74c739d14794426f0d2975fead065b3fb73e07bc21"
+    },
+    {
+      "ids": [],
+      "path": "docs/design/workorder-34-coverage.json",
+      "sha256": "9d3d65a56f14423e67afcd7a2ba2ebe9ccede5269f807e91f81089314081c98f"
+    },
+    {
+      "ids": [],
+      "path": "docs/design/workorder-41-relocations.json",
+      "sha256": "aaee47ac5ee543ef11d4e58f93b1eb8e96a861138ba4c00d8cdcc479120250ac"
+    },
+    {
+      "ids": [],
+      "path": "docs/design/workorder-42-obligations.json",
+      "sha256": "34dc6e81d2cdcf60ec300412de912f3d4ce68f55ec8e2f81b9feb127fece0dee"
+    },
+    {
+      "ids": [],
+      "path": "docs/design/workorder-43-obligations.json",
+      "sha256": "605b84afc263f53a5664bc7bc6be8943a2bd1dc65fc06600add49fad3554e00f"
+    },
+    {
+      "ids": [],
+      "path": "docs/design/workorder-43-repair-obligations.json",
+      "sha256": "23b30d6c60f3b12a869aa70c752567062f996a2bc1078b5217a14bb8f8729656"
+    },
+    {
+      "ids": [],
+      "path": "docs/design/workorder-44-obligations.json",
+      "sha256": "96fb94674ca04bb0d4b28ced8d82628c33d5041124a86d50c8a50660972ae043"
+    },
+    {
+      "ids": [],
+      "path": "docs/design/workorder-45-obligations.json",
+      "sha256": "3b0fb7b45522c520386dbab3fcbba144619a2bcc88475ae9bc9ebc411f4983e3"
+    },
+    {
+      "ids": [],
+      "path": "docs/design/workorder-preview-config-obligations.json",
+      "sha256": "52155641f8cd0a70239e4a33efa04efb45f1ddae33c308a21bcff1653a21e458"
+    },
+    {
+      "ids": [],
+      "path": "docs/design/workorder-preview-entry-obligations.json",
+      "sha256": "b1069a80daaa49c7357efd10a621fb096600fcc5e00b7630c40da3b0f2dfb33b"
+    },
+    {
+      "ids": [],
+      "path": "docs/design/workorder-preview-kimi-obligations.json",
+      "sha256": "35c00b18166342377a8c71aae264e60adcaf8a67f45fca48d2ed3c41a2700e5d"
+    },
+    {
+      "ids": [],
+      "path": "docs/design/workorder-scroll-layout-obligations.json",
+      "sha256": "412969083c999e655a28c1fd257a03a9b37bf846890fab20223084e32849a497"
+    },
+    {
+      "ids": [],
+      "path": "docs/design/workorder-scrollbar-obligations.json",
+      "sha256": "f7fdb46973e009edcf50da94fdf784cb2937ed74705ac7617f602037e1801c35"
+    },
+    {
+      "ids": [],
+      "path": "docs/design/workorder-tui-a-obligations.json",
+      "sha256": "ea3357bce74066ded67267a73e209a8d2b0362778fb6e63c48c3555582d7b6e8"
+    },
+    {
+      "ids": [],
+      "path": "docs/evidence/README.md",
+      "sha256": "bffee35af096e662f12711f5d6ba98e7c5a162c5d417b2e639eb93a41396a2dd"
+    },
+    {
+      "ids": [],
+      "path": "docs/evidence/agent-loop-behavioral-eval-v0-candidate-2026-08-27.md",
+      "sha256": "70efce254666bfb17e7393d69dbbb174ae1d3d46bbac4fe260c4daf7c4e12b4b"
+    },
+    {
+      "ids": [],
+      "path": "docs/evidence/benchmark-env-71.md",
+      "sha256": "9877822cc992d56d7ae8d7f2f7b88889bd6873b67c8827954d68c687c2d2b560"
+    },
+    {
+      "ids": [],
+      "path": "docs/evidence/deepseek-live-behavioral-eval-stage-a-candidate-2026-08-28.md",
+      "sha256": "b50d957a73d8712397a0b90826087286848f23898e950508cc68c84d3e111bf8"
+    },
+    {
+      "ids": [],
+      "path": "docs/evidence/deepseek-live-stage-a-r-candidate-2026-08-29.md",
+      "sha256": "37bed8cd992b5a23b31af88507e2aaa9c5a22afdbdae41057513e2477f57fb96"
+    },
+    {
+      "ids": [],
+      "path": "docs/evidence/deepseek-live-stage-b-terminal-2026-08-29.md",
+      "sha256": "1b4e978de901c48901c7429ea39fc696463c441a5cd346922631290e9e868520"
+    },
+    {
+      "ids": [],
+      "path": "docs/evidence/deepseek-live-trusted-local-smoke-candidate-2026-09-02.md",
+      "sha256": "8f9d26d26faf0a41dbf2c335cc675b4a65c314fd04007cf945019bdd7de4d9b8"
+    },
+    {
+      "ids": [],
+      "path": "docs/evidence/deepseek-live-tui-smoke-candidate-2026-08-31.md",
+      "sha256": "d5b483a88315308c49d7c25354c60766b27cccea193f5b5f9e5712bd4ff6f531"
+    },
+    {
+      "ids": [],
+      "path": "docs/evidence/deepseek-live-v3-stage-a-candidate-2026-08-29.md",
+      "sha256": "f1a1cdaf8136969841f9b86a57c693ef7426f6cba8329d83b50a4e71a072469e"
+    },
+    {
+      "ids": [],
+      "path": "docs/evidence/deepseek-live-v3-stage-b-candidate-2026-08-30.md",
+      "sha256": "34b239a5ed1f16579aa6416a1f2c3eb5a38a0ba0d73e6208912ca2d7ca067076"
+    },
+    {
+      "ids": [],
+      "path": "docs/evidence/kimi-k3-live-smoke-70.md",
+      "sha256": "5fa1b204b65a57143985efdc8ef9223f07879480b9e7ad15ee87f07e437a532c"
+    },
+    {
+      "ids": [],
+      "path": "docs/evidence/overnight-handoff-offline-candidate.md",
+      "sha256": "9d3485bf69269708efbca060369c5664ce62404a8332ae03a3663d160208a695"
+    },
+    {
+      "ids": [],
+      "path": "docs/evidence/proactive-semantic-compaction-candidate-2026-08-26.md",
+      "sha256": "7b260b82a7d543bb2ebbbf711fe22eade8e08df1d4bafe1b7faf252aa075e48b"
+    },
+    {
+      "ids": [],
+      "path": "docs/evidence/protocol-max-token-sensitivity-candidate-2026-08-24.md",
+      "sha256": "f05a0beb96db7d7739fd881334639508a7dbb08c13ff5819e74efff68138ae6b"
+    },
+    {
+      "ids": [],
+      "path": "docs/evidence/protocol-reliability-v1-candidate-2026-08-23.md",
+      "sha256": "5e8f433bae1dd228892bcc5c9b26d859911e78fc7966bfe3b36299650f589cf1"
+    },
+    {
+      "ids": [],
+      "path": "docs/evidence/provider-context-overflow-recovery-candidate-2026-08-27.md",
+      "sha256": "a19636d6d7c6018c2e03a40236f34eac635dc3f14395531ec473ab300c49a146"
+    },
+    {
+      "ids": [
+        "marshmallow-code__marshmallow-1343",
+        "pydicom__pydicom-1694",
+        "pydicom__pydicom-901",
+        "pylint-dev__astroid-1196",
+        "sqlfluff__sqlfluff-2419"
+      ],
+      "path": "docs/evidence/react-mvp-30-slot-candidate-2026-08-23.md",
+      "sha256": "07d29b1abbbbf86e15e636af39cb0a823cfde005f226ab7f7a2ba2c4665086f9"
+    },
+    {
+      "ids": [],
+      "path": "docs/evidence/react-mvp-deepseek-smoke-2026-08-20.md",
+      "sha256": "c9933fec3553949ddbe4f34f0eca9b18b3642398570bf90f077f053d85fc4d35"
+    },
+    {
+      "ids": [
+        "marshmallow-code__marshmallow-1343",
+        "pydicom__pydicom-1694",
+        "pydicom__pydicom-901",
+        "pylint-dev__astroid-1196",
+        "sqlfluff__sqlfluff-2419",
+        "sympy__sympy-20590"
+      ],
+      "path": "docs/evidence/react-mvp-docker-gold-gate-2026-08-20.md",
+      "sha256": "fa20930d30b71e4bef9bbdfb19fc9068e788021da8f7f1ac70dfa98b59869d30"
+    },
+    {
+      "ids": [],
+      "path": "docs/evidence/tui-three-view-projections-candidate-2026-08-27.md",
+      "sha256": "8973f4e63adfade33c2260e98f1438b767be07e6ee7b16c61e66717c824dac9d"
+    },
+    {
+      "ids": [],
+      "path": "docs/evidence/verified-project-facts.md",
+      "sha256": "0aac99b9c9501d54cd492c59cdbeb76b095ce52bb9a31d00aa64e260b60379a1"
+    },
+    {
+      "ids": [],
+      "path": "workspace_agent_harness/benchmark_configs/README.md",
+      "sha256": "ff55ba8899a3be9f8111432da11a61efde9b1672b8351917860cce34a9c2121e"
+    },
+    {
+      "ids": [],
+      "path": "workspace_agent_harness/benchmark_configs/agent-loop-behavioral-eval-v0.json",
+      "sha256": "90f8bae80e5f4afa4fa7fb5a077709437c2f9c8b15791a1ae072a6c3864ff5a6"
+    },
+    {
+      "ids": [],
+      "path": "workspace_agent_harness/benchmark_configs/deepseek-live-behavioral-eval-v0.json",
+      "sha256": "1e225f5d1d053e4df8811b560fbb723563918ab15e3afdf6b67abf60d9491695"
+    },
+    {
+      "ids": [],
+      "path": "workspace_agent_harness/benchmark_configs/deepseek-live-behavioral-eval-v3.json",
+      "sha256": "b15f153017213e7381bf20778ddef430453474575fd34b59d35e74243228ea2f"
+    },
+    {
+      "ids": [],
+      "path": "workspace_agent_harness/benchmark_configs/pinchbench-core-v2.0.0.json",
+      "sha256": "699beb9e61bde076ab408bc580c053960de68f51f2dad1cdd2846a919a6bf318"
+    },
+    {
+      "ids": [],
+      "path": "workspace_agent_harness/benchmark_configs/pinchbench-full-v2.0.0.json",
+      "sha256": "1d048df96809cb635532ee8aee61b3fbb63e8c5557e81f993b9268a0895f0796"
+    },
+    {
+      "ids": [],
+      "path": "workspace_agent_harness/benchmark_configs/protocol-reliability-v1-contexts.json",
+      "sha256": "017416035b162437b429816f1ef7f0fdb55db512aecb63efe95553d901f6224c"
+    },
+    {
+      "ids": [],
+      "path": "workspace_agent_harness/benchmark_configs/protocol-reliability-v1.1-max-token-sensitivity.json",
+      "sha256": "2b994e55234091bb7a6d439d79bee98f5d9617f362b82f55a65e9586e07cb1a7"
+    },
+    {
+      "ids": [],
+      "path": "workspace_agent_harness/benchmark_configs/protocol-reliability-v1.2-max-token-16k-extension.json",
+      "sha256": "1d118efe03ffcbcc4a42e8fa2d9a969f55cafe7e9d38b6f8c8ee7928dd81504f"
+    },
+    {
+      "ids": [],
+      "path": "workspace_agent_harness/benchmark_configs/protocol-reliability-v1.json",
+      "sha256": "d92473f70353d3e9bf096ceec082913fcc48e056069393dc945ba18efae11314"
+    },
+    {
+      "ids": [
+        "marshmallow-code__marshmallow-1343",
+        "pydicom__pydicom-1694",
+        "pydicom__pydicom-901",
+        "pylint-dev__astroid-1196",
+        "sqlfluff__sqlfluff-2419"
+      ],
+      "path": "workspace_agent_harness/benchmark_configs/react-mvp-5-v1.json",
+      "sha256": "71e1fa240053b8d20bdbf93320bdaf5e5c275c1d047b199d425753b7b844fe12"
+    },
+    {
+      "ids": [],
+      "path": "workspace_agent_harness/benchmark_configs/vertical-evidence-v1.json",
+      "sha256": "cd47060630e5397e5bcb577f5251bec422b6cf254635e34ef5529fba4a66d7be"
+    }
+  ]
+}

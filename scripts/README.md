@@ -291,3 +291,5 @@ The active #60/#61/#62 PTY drivers now start at idle rather than submitting remo
 - [Kimi bounded smoke preparation](kimi-smoke/README.md): #69 Stage A external runner, immutable lock and synthetic-only verification.
 
 - [`benchmark-env/README.md`](benchmark-env/README.md): #71 Criteria1.1 two-domain environment controls; zero model calls, restricted official evaluators.
+
+- [`benchmark-subset/`](benchmark-subset/README.md): #72 deterministic public metadata selection and blocked, unactivated campaign proposal; no model/task execution.

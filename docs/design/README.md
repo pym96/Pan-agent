@@ -89,3 +89,5 @@ The Human-accepted architecture history remains indexed in [`../adr/README.md`](
 - [Kimi bounded smoke preparation](kimi-bounded-smoke.md): #69 Stage A installed Product runner, resource guards and separate live-activation boundary.
 
 - [`benchmark-env-tracer.md`](benchmark-env-tracer.md): #71 installed Pan/SWE-ReX tracer and restricted evaluator deployment.
+
+- [`benchmark-subset-preregistration.md`](benchmark-subset-preregistration.md): #72 frozen selection method, membership/exposure blockers, official scoring and proposed budgets; no campaign activation.

@@ -1,0 +1,256 @@
+{
+  "SWE_columns_not_read": [
+    "patch",
+    "test_patch",
+    "eval_script",
+    "hints_text"
+  ],
+  "files": [
+    {
+      "acquisition": "retained source reused, no new network",
+      "bytes": 143653,
+      "path": "da-code-tree.json",
+      "sha256": "e39b7ff47ec81b28a564f4de31a9d7bb3abdf68ee500ca570d1558d75c664d2f",
+      "url": null
+    },
+    {
+      "acquisition": "retained source reused, no new network",
+      "bytes": 168831,
+      "path": "da-full-tree.json",
+      "sha256": "8cc89d3f55bdce97219a32d27d98c5669c5da57c2bf3fa91708f304f9e9d3b46",
+      "url": "https://api.github.com/repos/yiyihum/da-code/git/trees/b211daf51fdc9b52d5087c9df28ac50191bcabed?recursive=1"
+    },
+    {
+      "acquisition": "retained source reused, no new network",
+      "bytes": 1159,
+      "path": "sources/SWE-bench/LICENSE",
+      "sha256": "2bd2e08df7147f67a69b42c10efae09bd4bf119df397371036187d5dd1b02f57",
+      "url": "https://raw.githubusercontent.com/SWE-bench/SWE-bench/7a21e05772954cc81471ae19d56f436cecf43c54/LICENSE"
+    },
+    {
+      "acquisition": "retained source reused, no new network",
+      "bytes": 14144,
+      "path": "sources/SWE-bench/swebench/harness/grading.py",
+      "sha256": "a095273010175001a6779e365b3b77abb8657c7ac2e4f80b4bc360faa6f09483",
+      "url": "https://raw.githubusercontent.com/SWE-bench/SWE-bench/7a21e05772954cc81471ae19d56f436cecf43c54/swebench/harness/grading.py"
+    },
+    {
+      "acquisition": "retained source reused, no new network",
+      "bytes": 7017,
+      "path": "sources/SWE-bench/swebench/harness/reporting.py",
+      "sha256": "0e0eb5be4ebec061cd7e3839c0cc3001923fea36016ad9a417a3b70efbc8a902",
+      "url": "https://raw.githubusercontent.com/SWE-bench/SWE-bench/7a21e05772954cc81471ae19d56f436cecf43c54/swebench/harness/reporting.py"
+    },
+    {
+      "acquisition": "retained source reused, no new network",
+      "bytes": 1067,
+      "path": "sources/da-code/LICENSE",
+      "sha256": "7b141bb4da87b3021141169b23f842f84c0ed313be30d035f18b00bede93f69f",
+      "url": "https://raw.githubusercontent.com/yiyihum/da-code/b211daf51fdc9b52d5087c9df28ac50191bcabed/LICENSE"
+    },
+    {
+      "acquisition": "retained source reused, no new network",
+      "bytes": 0,
+      "path": "sources/da-code/da_agent/evaluators/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "url": "https://raw.githubusercontent.com/yiyihum/da-code/b211daf51fdc9b52d5087c9df28ac50191bcabed/da_agent/evaluators/__init__.py"
+    },
+    {
+      "acquisition": "retained source reused, no new network",
+      "bytes": 14258,
+      "path": "sources/da-code/da_agent/evaluators/evaluation.py",
+      "sha256": "339935eaf5720d2f7e363997a77a085a9ff3f5ff592e816079db755650e6c06c",
+      "url": "https://raw.githubusercontent.com/yiyihum/da-code/b211daf51fdc9b52d5087c9df28ac50191bcabed/da_agent/evaluators/evaluation.py"
+    },
+    {
+      "acquisition": "retained source reused, no new network",
+      "bytes": 277,
+      "path": "sources/da-code/da_agent/evaluators/getters/__init__.py",
+      "sha256": "b16d1997134c625ebdb72f4c258cd7583915c690ce68ba16e4b029aec7327344",
+      "url": "https://raw.githubusercontent.com/yiyihum/da-code/b211daf51fdc9b52d5087c9df28ac50191bcabed/da_agent/evaluators/getters/__init__.py"
+    },
+    {
+      "acquisition": "retained source reused, no new network",
+      "bytes": 3284,
+      "path": "sources/da-code/da_agent/evaluators/getters/bigquery.py",
+      "sha256": "f50dde85b3093afd47cfa9a678e38008c38839ac8d1a1141037f65ed8ebe66df",
+      "url": "https://raw.githubusercontent.com/yiyihum/da-code/b211daf51fdc9b52d5087c9df28ac50191bcabed/da_agent/evaluators/getters/bigquery.py"
+    },
+    {
+      "acquisition": "retained source reused, no new network",
+      "bytes": 1132,
+      "path": "sources/da-code/da_agent/evaluators/getters/dbt.py",
+      "sha256": "1d114d7c75a4bd1514b11799983a2fc19f49a8af74c6fd51cd6b9d9587d8555f",
+      "url": "https://raw.githubusercontent.com/yiyihum/da-code/b211daf51fdc9b52d5087c9df28ac50191bcabed/da_agent/evaluators/getters/dbt.py"
+    },
+    {
+      "acquisition": "retained source reused, no new network",
+      "bytes": 2865,
+      "path": "sources/da-code/da_agent/evaluators/getters/file.py",
+      "sha256": "b6ad850ef3f16dba0659dc0a900d834c02e068de303ca84dcbc7b740397db840",
+      "url": "https://raw.githubusercontent.com/yiyihum/da-code/b211daf51fdc9b52d5087c9df28ac50191bcabed/da_agent/evaluators/getters/file.py"
+    },
+    {
+      "acquisition": "retained source reused, no new network",
+      "bytes": 564,
+      "path": "sources/da-code/da_agent/evaluators/getters/general.py",
+      "sha256": "3143814ee3c058794e50c38d4f66b48535aeaf8918a21ab36d53455861cd36be",
+      "url": "https://raw.githubusercontent.com/yiyihum/da-code/b211daf51fdc9b52d5087c9df28ac50191bcabed/da_agent/evaluators/getters/general.py"
+    },
+    {
+      "acquisition": "retained source reused, no new network",
+      "bytes": 101,
+      "path": "sources/da-code/da_agent/evaluators/getters/misc.py",
+      "sha256": "54b7056b5ba3623dacb7d0d45de145e77f50a06f70dd25c75737d17ce61c8b34",
+      "url": "https://raw.githubusercontent.com/yiyihum/da-code/b211daf51fdc9b52d5087c9df28ac50191bcabed/da_agent/evaluators/getters/misc.py"
+    },
+    {
+      "acquisition": "retained source reused, no new network",
+      "bytes": 848,
+      "path": "sources/da-code/da_agent/evaluators/getters/postgre.py",
+      "sha256": "ff5252cf46d9c6b7b34b68b5e98544aebd41db6ceed83c447bddd6d10744533e",
+      "url": "https://raw.githubusercontent.com/yiyihum/da-code/b211daf51fdc9b52d5087c9df28ac50191bcabed/da_agent/evaluators/getters/postgre.py"
+    },
+    {
+      "acquisition": "retained source reused, no new network",
+      "bytes": 351,
+      "path": "sources/da-code/da_agent/evaluators/metrics/__init__.py",
+      "sha256": "2c75576e50b4440d16fb3d00015f648967a4451a1115ac4a264595a410b781b9",
+      "url": "https://raw.githubusercontent.com/yiyihum/da-code/b211daf51fdc9b52d5087c9df28ac50191bcabed/da_agent/evaluators/metrics/__init__.py"
+    },
+    {
+      "acquisition": "retained source reused, no new network",
+      "bytes": 2225,
+      "path": "sources/da-code/da_agent/evaluators/metrics/dbt.py",
+      "sha256": "5c6c25fc36a5dfe0225b861ec0688394f805d1ae458f87a70ee91dfa1948c796",
+      "url": "https://raw.githubusercontent.com/yiyihum/da-code/b211daf51fdc9b52d5087c9df28ac50191bcabed/da_agent/evaluators/metrics/dbt.py"
+    },
+    {
+      "acquisition": "retained source reused, no new network",
+      "bytes": 547,
+      "path": "sources/da-code/da_agent/evaluators/metrics/general.py",
+      "sha256": "09e69e2988193f86ea7794449c8e754e26c2ad4c83b4a7d8073e962785c45944",
+      "url": "https://raw.githubusercontent.com/yiyihum/da-code/b211daf51fdc9b52d5087c9df28ac50191bcabed/da_agent/evaluators/metrics/general.py"
+    },
+    {
+      "acquisition": "retained source reused, no new network",
+      "bytes": 9933,
+      "path": "sources/da-code/da_agent/evaluators/metrics/image.py",
+      "sha256": "29e6acdba8ea52cc3bb0acb29080db86a4ef78791a5d53bd89af59eff15af047",
+      "url": "https://raw.githubusercontent.com/yiyihum/da-code/b211daf51fdc9b52d5087c9df28ac50191bcabed/da_agent/evaluators/metrics/image.py"
+    },
+    {
+      "acquisition": "retained source reused, no new network",
+      "bytes": 7138,
+      "path": "sources/da-code/da_agent/evaluators/metrics/ml.py",
+      "sha256": "2bf425d7eb35175ce3f9be7d98dc1608cf1aa4d3de8e9a0d3943f1b0aac1f7e0",
+      "url": "https://raw.githubusercontent.com/yiyihum/da-code/b211daf51fdc9b52d5087c9df28ac50191bcabed/da_agent/evaluators/metrics/ml.py"
+    },
+    {
+      "acquisition": "retained source reused, no new network",
+      "bytes": 0,
+      "path": "sources/da-code/da_agent/evaluators/metrics/script/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "url": "https://raw.githubusercontent.com/yiyihum/da-code/b211daf51fdc9b52d5087c9df28ac50191bcabed/da_agent/evaluators/metrics/script/__init__.py"
+    },
+    {
+      "acquisition": "retained source reused, no new network",
+      "bytes": 1891,
+      "path": "sources/da-code/da_agent/evaluators/metrics/script/derector.py",
+      "sha256": "e2b008d773f85aee170d822a9fbaa2d79c07dc7a002ed8f8826da06869dd56ed",
+      "url": "https://raw.githubusercontent.com/yiyihum/da-code/b211daf51fdc9b52d5087c9df28ac50191bcabed/da_agent/evaluators/metrics/script/derector.py"
+    },
+    {
+      "acquisition": "retained source reused, no new network",
+      "bytes": 32196,
+      "path": "sources/da-code/da_agent/evaluators/metrics/script/ml_script.py",
+      "sha256": "688609d5b7d3cf38e57b42eca6ac1aab5872d810a253c05b07d0e5ae3d82e8e8",
+      "url": "https://raw.githubusercontent.com/yiyihum/da-code/b211daf51fdc9b52d5087c9df28ac50191bcabed/da_agent/evaluators/metrics/script/ml_script.py"
+    },
+    {
+      "acquisition": "retained source reused, no new network",
+      "bytes": 2474,
+      "path": "sources/da-code/da_agent/evaluators/metrics/script/params_process.py",
+      "sha256": "49443d2846b00f4006fc8103e45279043cd49fe3bdeba93d6422ab6321d754d5",
+      "url": "https://raw.githubusercontent.com/yiyihum/da-code/b211daf51fdc9b52d5087c9df28ac50191bcabed/da_agent/evaluators/metrics/script/params_process.py"
+    },
+    {
+      "acquisition": "retained source reused, no new network",
+      "bytes": 14136,
+      "path": "sources/da-code/da_agent/evaluators/metrics/table.py",
+      "sha256": "f0744c718797510f0353feee4ada52a45a33d667c2bf6d99fa1f49cbba872f9c",
+      "url": "https://raw.githubusercontent.com/yiyihum/da-code/b211daf51fdc9b52d5087c9df28ac50191bcabed/da_agent/evaluators/metrics/table.py"
+    },
+    {
+      "acquisition": "retained source reused, no new network",
+      "bytes": 8292,
+      "path": "sources/da-code/da_agent/evaluators/metrics/text.py",
+      "sha256": "3ddaf9a3257bb423ceb5181869f5928bc6ba1afeb2ff00ca8096b453a8cf4844",
+      "url": "https://raw.githubusercontent.com/yiyihum/da-code/b211daf51fdc9b52d5087c9df28ac50191bcabed/da_agent/evaluators/metrics/text.py"
+    },
+    {
+      "acquisition": "retained source reused, no new network",
+      "bytes": 5013,
+      "path": "sources/da-code/da_agent/evaluators/metrics/text_outdated.py",
+      "sha256": "00a8b71ccd487af0ed3e27b52fa36d9c564d507456d0f7becac2de5ec2b2f28f",
+      "url": "https://raw.githubusercontent.com/yiyihum/da-code/b211daf51fdc9b52d5087c9df28ac50191bcabed/da_agent/evaluators/metrics/text_outdated.py"
+    },
+    {
+      "acquisition": "retained source reused, no new network",
+      "bytes": 156,
+      "path": "sources/da-code/da_agent/evaluators/metrics/utils.py",
+      "sha256": "8cdcf262e921ca463cc3ec191c0806d4529e01b5493ca51a59af41f2377fc088",
+      "url": "https://raw.githubusercontent.com/yiyihum/da-code/b211daf51fdc9b52d5087c9df28ac50191bcabed/da_agent/evaluators/metrics/utils.py"
+    },
+    {
+      "acquisition": "retained source reused, no new network",
+      "bytes": 637,
+      "path": "sources/da-code/da_agent/images/da_agent-image/Dockerfile",
+      "sha256": "9474430cf03db28071782e81b95dc2d4696f8d1ed93e9c6f1c5fea8eabb6f0aa",
+      "url": "https://raw.githubusercontent.com/yiyihum/da-code/b211daf51fdc9b52d5087c9df28ac50191bcabed/da_agent/images/da_agent-image/Dockerfile"
+    },
+    {
+      "acquisition": "retained source reused, no new network",
+      "bytes": 125241,
+      "path": "sources/da-code/da_code/configs/eval/eval_all.jsonl",
+      "sha256": "cf9dbfa90e4c3a022430ae5c2351e2b2bce6920eb918cc2cd1fd5f75090801f6",
+      "url": "https://raw.githubusercontent.com/yiyihum/da-code/b211daf51fdc9b52d5087c9df28ac50191bcabed/da_code/configs/eval/eval_all.jsonl"
+    },
+    {
+      "acquisition": "retained source reused, no new network",
+      "bytes": 193132,
+      "path": "sources/da-code/da_code/configs/task/all.jsonl",
+      "sha256": "272c8ebcb8cec9390a3f09fd45aa94ea7293274f38c7e905ea69499b55488d43",
+      "url": "https://raw.githubusercontent.com/yiyihum/da-code/b211daf51fdc9b52d5087c9df28ac50191bcabed/da_code/configs/task/all.jsonl"
+    },
+    {
+      "acquisition": "retained source reused, no new network",
+      "bytes": 3528,
+      "path": "sources/da-code/evaluate.py",
+      "sha256": "40656b5135e35abeb862ebf88c4cc6ec57496ee70d561f87883a7deed9a87b15",
+      "url": "https://raw.githubusercontent.com/yiyihum/da-code/b211daf51fdc9b52d5087c9df28ac50191bcabed/evaluate.py"
+    },
+    {
+      "acquisition": "new bounded response",
+      "bytes": 2702170,
+      "path": "swe-test.parquet",
+      "sha256": "438e281d80587aa7be470896ce410557002fde02d2ceee3e099331d308f62dd3",
+      "url": "https://huggingface.co/datasets/SWE-bench/SWE-bench_Lite/resolve/b0dde1093fe417d83b7184254edf8199c1f0dff5/data/test-00000-of-00001.parquet"
+    },
+    {
+      "acquisition": "new bounded response",
+      "bytes": 1754,
+      "path": "swe-tree.json",
+      "sha256": "4db9caba4e886713b5758d99f26ae3eb6a7c2733e9551b73beee9fc371e12537",
+      "url": "https://huggingface.co/api/datasets/SWE-bench/SWE-bench_Lite/tree/b0dde1093fe417d83b7184254edf8199c1f0dff5/data?expand=true"
+    }
+  ],
+  "license_attribution": "Retained upstream LICENSE files accompany external sources; no upstream implementation or dataset is vendored in candidate.",
+  "public_source_pins": {
+    "DA-Code": "b211daf51fdc9b52d5087c9df28ac50191bcabed",
+    "SWE-ReX": "5c995c365dfb1fd5bc56fda688be5d8538f9931f",
+    "SWE-bench": "7a21e05772954cc81471ae19d56f436cecf43c54",
+    "SWE-bench_Lite": "b0dde1093fe417d83b7184254edf8199c1f0dff5"
+  },
+  "version": "72/Criteria1.0"
+}

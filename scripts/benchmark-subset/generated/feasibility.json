@@ -1,0 +1,2829 @@
+[
+  {
+    "assets": {
+      "gold": [
+        {
+          "git_blob": "0ca1bbf21424e88101147f69edf0882d4cbd482d",
+          "mode": "100644",
+          "path": "da_code/gold/data-sa-029/result.csv",
+          "published_bytes": 123
+        }
+      ],
+      "source": [
+        {
+          "git_blob": "4e3d7f2701837f5ca9d9b075a678aba24277840b",
+          "mode": "100644",
+          "path": "da_code/source/data-sa-029/README.md",
+          "published_bytes": 668
+        },
+        {
+          "git_blob": "9b1ee7296e4d6c7c9e5aeb5ff5843bb21fc1bce6",
+          "mode": "100644",
+          "path": "da_code/source/data-sa-029/result.csv",
+          "published_bytes": 36
+        }
+      ]
+    },
+    "decision": "unresolved",
+    "domain": "da",
+    "environment_gaps": [
+      "task-specific dependency/image lock",
+      "dataset provenance/license and external acquisition",
+      "verify source README/instruction asset requirements",
+      "official scorer fresh-environment preflight"
+    ],
+    "exposure_reasons": [],
+    "image_digest": null,
+    "instance_id": "data-sa-029",
+    "instruction": {
+      "id": "data-sa-029",
+      "rewritten": false,
+      "sha256": "b5063828795f5f43071ab1be4b9a4612c0ec701a102ad05ced7c661f4ec68503",
+      "source": "sources/da-code/da_code/configs/task/all.jsonl"
+    },
+    "license": "DA-Code code MIT; per-dataset rights/provenance unresolved; tree presence is not download permission",
+    "official_scoring": {
+      "config": {
+        "hardness": "Medium",
+        "task": "statistical analysis",
+        "type": "csv"
+      },
+      "conj": "avg",
+      "func": [
+        "compare_csv"
+      ],
+      "id": "data-sa-029",
+      "options": [
+        {
+          "conditon_cols": [
+            1,
+            2
+          ],
+          "ignore_order": true
+        }
+      ],
+      "requirements": [
+        {
+          "gold_basename": "result.csv",
+          "kind": "file",
+          "multi": false,
+          "output_path": "result.csv"
+        }
+      ],
+      "source": "sources/da-code/da_code/configs/eval/eval_all.jsonl"
+    },
+    "post_process": [],
+    "runtime_status": "not_validated",
+    "source_revision": "b211daf51fdc9b52d5087c9df28ac50191bcabed",
+    "split": "official all.jsonl (no upstream split field)",
+    "static_instruction_references": [
+      {
+        "name": "result.csv",
+        "status": "source_inventory"
+      },
+      {
+        "name": "sample_result.csv",
+        "status": "unresolved_input_or_generated_artifact"
+      }
+    ],
+    "stratum": "compare_csv",
+    "structural_missing": [],
+    "unresolved": [
+      "instruction file reference not statically classified",
+      "source inventory has no recognized data payload; external/dynamic requirements unresolved"
+    ]
+  },
+  {
+    "assets": {
+      "gold": [
+        {
+          "git_blob": "2b7cc2f58b89397c6b772f871dcd209e17fd57d3",
+          "mode": "100644",
+          "path": "da_code/gold/data-sa-039/result.csv",
+          "published_bytes": 14
+        }
+      ],
+      "source": [
+        {
+          "git_blob": "4e3d7f2701837f5ca9d9b075a678aba24277840b",
+          "mode": "100644",
+          "path": "da_code/source/data-sa-039/README.md",
+          "published_bytes": 668
+        }
+      ]
+    },
+    "decision": "unresolved",
+    "domain": "da",
+    "environment_gaps": [
+      "task-specific dependency/image lock",
+      "dataset provenance/license and external acquisition",
+      "verify source README/instruction asset requirements",
+      "official scorer fresh-environment preflight"
+    ],
+    "exposure_reasons": [],
+    "image_digest": null,
+    "instance_id": "data-sa-039",
+    "instruction": {
+      "id": "data-sa-039",
+      "rewritten": false,
+      "sha256": "d67fc8b159c97e66804f2228922ce3cf66d65f3098f214aa7cb3af58034be485",
+      "source": "sources/da-code/da_code/configs/task/all.jsonl"
+    },
+    "license": "DA-Code code MIT; per-dataset rights/provenance unresolved; tree presence is not download permission",
+    "official_scoring": {
+      "config": {
+        "hardness": "Easy",
+        "task": "statistical analysis",
+        "type": "csv"
+      },
+      "conj": "avg",
+      "func": [
+        "compare_csv"
+      ],
+      "id": "data-sa-039",
+      "options": [
+        {
+          "ignore_order": true
+        }
+      ],
+      "requirements": [
+        {
+          "gold_basename": "result.csv",
+          "kind": "file",
+          "multi": false,
+          "output_path": "result.csv"
+        }
+      ],
+      "source": "sources/da-code/da_code/configs/eval/eval_all.jsonl"
+    },
+    "post_process": [],
+    "runtime_status": "not_validated",
+    "source_revision": "b211daf51fdc9b52d5087c9df28ac50191bcabed",
+    "split": "official all.jsonl (no upstream split field)",
+    "static_instruction_references": [
+      {
+        "name": "result.csv",
+        "status": "output_requirement"
+      },
+      {
+        "name": "sample_result.csv",
+        "status": "unresolved_input_or_generated_artifact"
+      }
+    ],
+    "stratum": "compare_csv",
+    "structural_missing": [],
+    "unresolved": [
+      "instruction file reference not statically classified",
+      "source inventory has no recognized data payload; external/dynamic requirements unresolved"
+    ]
+  },
+  {
+    "assets": {
+      "gold": [
+        {
+          "git_blob": "ec66f0f1b10056644a32b57fe379306a1aed72e4",
+          "mode": "100644",
+          "path": "da_code/gold/dm-csv-009/author.csv",
+          "published_bytes": 531
+        }
+      ],
+      "source": [
+        {
+          "git_blob": "b550b5a6cb67ef2e497c3258cd6c94e0a9a95956",
+          "mode": "100644",
+          "path": "da_code/source/dm-csv-009/Books_df.csv",
+          "published_bytes": 2375914
+        },
+        {
+          "git_blob": "9bf9a85af32fceac8364ea5bf14a6a2ae93c030c",
+          "mode": "100644",
+          "path": "da_code/source/dm-csv-009/Genre_df.csv",
+          "published_bytes": 2727
+        },
+        {
+          "git_blob": "fd9ee04389473255e0a18df27654825cd2dcdd85",
+          "mode": "100644",
+          "path": "da_code/source/dm-csv-009/README.md",
+          "published_bytes": 2860
+        },
+        {
+          "git_blob": "b32f1c2764cdfe635f6ce8f228a362a633aed8f2",
+          "mode": "100644",
+          "path": "da_code/source/dm-csv-009/Sub_Genre_df.csv",
+          "published_bytes": 31590
+        },
+        {
+          "git_blob": "0d05bda4af5b96f50bb5ce08036c3363b73c160d",
+          "mode": "100644",
+          "path": "da_code/source/dm-csv-009/guidance.txt",
+          "published_bytes": 756
+        },
+        {
+          "git_blob": "f5e3e7bd6bbe6b78c374538a56ff6702e368de73",
+          "mode": "100644",
+          "path": "da_code/source/dm-csv-009/sample_result.csv",
+          "published_bytes": 110
+        }
+      ]
+    },
+    "decision": "eligible",
+    "domain": "da",
+    "environment_gaps": [
+      "task-specific dependency/image lock",
+      "dataset provenance/license and external acquisition",
+      "verify source README/instruction asset requirements",
+      "official scorer fresh-environment preflight"
+    ],
+    "exposure_reasons": [],
+    "image_digest": null,
+    "instance_id": "dm-csv-009",
+    "instruction": {
+      "id": "dm-csv-009",
+      "rewritten": false,
+      "sha256": "751d873097fc58e16418ada1f4e59d370849e65948f32b114df571f98623f920",
+      "source": "sources/da-code/da_code/configs/task/all.jsonl"
+    },
+    "license": "DA-Code code MIT; per-dataset rights/provenance unresolved; tree presence is not download permission",
+    "official_scoring": {
+      "config": {
+        "hardness": "Hard",
+        "task": "data manipulation",
+        "type": "csv"
+      },
+      "conj": "avg",
+      "func": [
+        "compare_csv"
+      ],
+      "id": "dm-csv-009",
+      "options": [
+        {
+          "condition_cols": [
+            1,
+            2,
+            3
+          ]
+        }
+      ],
+      "requirements": [
+        {
+          "gold_basename": "author.csv",
+          "kind": "file",
+          "multi": false,
+          "output_path": "author.csv"
+        }
+      ],
+      "source": "sources/da-code/da_code/configs/eval/eval_all.jsonl"
+    },
+    "post_process": [],
+    "runtime_status": "not_validated",
+    "source_revision": "b211daf51fdc9b52d5087c9df28ac50191bcabed",
+    "split": "official all.jsonl (no upstream split field)",
+    "static_instruction_references": [
+      {
+        "name": "author.csv",
+        "status": "output_requirement"
+      },
+      {
+        "name": "sample_result.csv",
+        "status": "source_inventory"
+      }
+    ],
+    "stratum": "compare_csv",
+    "structural_missing": [],
+    "unresolved": []
+  },
+  {
+    "assets": {
+      "gold": [
+        {
+          "git_blob": "20df43c6fa34248faecaf6801995e8869d9a7b38",
+          "mode": "100644",
+          "path": "da_code/gold/dm-csv-011/result.csv",
+          "published_bytes": 266
+        }
+      ],
+      "source": [
+        {
+          "git_blob": "71bfad904538557842ef4dea460b0829997051f4",
+          "mode": "100644",
+          "path": "da_code/source/dm-csv-011/README.md",
+          "published_bytes": 498
+        },
+        {
+          "git_blob": "1d1083aa169b635aa7bd421242248df611096159",
+          "mode": "100644",
+          "path": "da_code/source/dm-csv-011/brands.csv",
+          "published_bytes": 120
+        },
+        {
+          "git_blob": "56808d8d895c87b7e72f989d6d5a1e34c2adee74",
+          "mode": "100644",
+          "path": "da_code/source/dm-csv-011/categories.csv",
+          "published_bytes": 162
+        },
+        {
+          "git_blob": "34636515f84698aed523b3f57ffb35b82d97caf0",
+          "mode": "100644",
+          "path": "da_code/source/dm-csv-011/customers.csv",
+          "published_bytes": 127671
+        },
+        {
+          "git_blob": "e1f9c1e10e603c65ece8fbc3963be4360ecbe505",
+          "mode": "100644",
+          "path": "da_code/source/dm-csv-011/order_items.csv",
+          "published_bytes": 112937
+        },
+        {
+          "git_blob": "e8238eff2d944d1b004f5115f5be20ca7a542dbc",
+          "mode": "100644",
+          "path": "da_code/source/dm-csv-011/orders.csv",
+          "published_bytes": 77286
+        },
+        {
+          "git_blob": "eff91b719ac2ae9a269e46866ce0e41c8706cacc",
+          "mode": "100644",
+          "path": "da_code/source/dm-csv-011/products.csv",
+          "published_bytes": 17390
+        },
+        {
+          "git_blob": "c456f65803619652dad8f7203acc0ef649effdfd",
+          "mode": "100644",
+          "path": "da_code/source/dm-csv-011/sample_result.csv",
+          "published_bytes": 175
+        },
+        {
+          "git_blob": "7f48b2001b0850da03d0edc361c4268d3776a293",
+          "mode": "100644",
+          "path": "da_code/source/dm-csv-011/sql.png",
+          "published_bytes": 285801
+        },
+        {
+          "git_blob": "b15bb027c7b787b2f3aa39d48e98d19e37b120c5",
+          "mode": "100644",
+          "path": "da_code/source/dm-csv-011/staffs.csv",
+          "published_bytes": 726
+        },
+        {
+          "git_blob": "d8ad0305cd80df50e6780a5e15c6a6d465de8f69",
+          "mode": "100644",
+          "path": "da_code/source/dm-csv-011/stocks.csv",
+          "published_bytes": 8773
+        },
+        {
+          "git_blob": "888ed603173b3f32031223c8553cb18ad62e5b61",
+          "mode": "100644",
+          "path": "da_code/source/dm-csv-011/stores.csv",
+          "published_bytes": 330
+        }
+      ]
+    },
+    "decision": "eligible",
+    "domain": "da",
+    "environment_gaps": [
+      "task-specific dependency/image lock",
+      "dataset provenance/license and external acquisition",
+      "verify source README/instruction asset requirements",
+      "official scorer fresh-environment preflight"
+    ],
+    "exposure_reasons": [],
+    "image_digest": null,
+    "instance_id": "dm-csv-011",
+    "instruction": {
+      "id": "dm-csv-011",
+      "rewritten": false,
+      "sha256": "80f1606c12d2db0c838b7113b8a4157da92f4451ba3c6868d910be1fc3d4d827",
+      "source": "sources/da-code/da_code/configs/task/all.jsonl"
+    },
+    "license": "DA-Code code MIT; per-dataset rights/provenance unresolved; tree presence is not download permission",
+    "official_scoring": {
+      "config": {
+        "hardness": "Hard",
+        "task": "data manipulation",
+        "type": "csv"
+      },
+      "conj": "avg",
+      "func": [
+        "compare_csv"
+      ],
+      "id": "dm-csv-011",
+      "options": [
+        {
+          "condition_cols": [
+            0,
+            1
+          ]
+        }
+      ],
+      "requirements": [
+        {
+          "gold_basename": "result.csv",
+          "kind": "file",
+          "multi": false,
+          "output_path": "result.csv"
+        }
+      ],
+      "source": "sources/da-code/da_code/configs/eval/eval_all.jsonl"
+    },
+    "post_process": [],
+    "runtime_status": "not_validated",
+    "source_revision": "b211daf51fdc9b52d5087c9df28ac50191bcabed",
+    "split": "official all.jsonl (no upstream split field)",
+    "static_instruction_references": [
+      {
+        "name": "result.csv",
+        "status": "output_requirement"
+      },
+      {
+        "name": "sample_result.csv",
+        "status": "source_inventory"
+      }
+    ],
+    "stratum": "compare_csv",
+    "structural_missing": [],
+    "unresolved": []
+  },
+  {
+    "assets": {
+      "gold": [
+        {
+          "git_blob": "f74bee9245260ee2c4b5afa7bcff12d0f852b6bd",
+          "mode": "100644",
+          "path": "da_code/gold/dm-csv-043/retension.csv",
+          "published_bytes": 1700
+        }
+      ],
+      "source": [
+        {
+          "git_blob": "63d2212f25e68184abfcfbfbaa702cde8c1e0736",
+          "mode": "100644",
+          "path": "da_code/source/dm-csv-043/README.md",
+          "published_bytes": 919
+        },
+        {
+          "git_blob": "f5de07874fc1789d0401216c21d2bda03b59248c",
+          "mode": "100644",
+          "path": "da_code/source/dm-csv-043/average_quantity.csv",
+          "published_bytes": 1938
+        },
+        {
+          "git_blob": "8447af78a8c3c078bb9df573939a618f44a2c5a2",
+          "mode": "100644",
+          "path": "da_code/source/dm-csv-043/cohort_counts.csv",
+          "published_bytes": 748
+        },
+        {
+          "git_blob": "4372d49c79fb9458b4c8fc04ea1fd3a3c9110d36",
+          "mode": "100644",
+          "path": "da_code/source/dm-csv-043/online.csv",
+          "published_bytes": 6804165
+        },
+        {
+          "git_blob": "18824feb95b7e5f6b47a47bd1f4b6ce5623d34a8",
+          "mode": "100644",
+          "path": "da_code/source/dm-csv-043/tips.txt",
+          "published_bytes": 381
+        }
+      ]
+    },
+    "decision": "eligible",
+    "domain": "da",
+    "environment_gaps": [
+      "task-specific dependency/image lock",
+      "dataset provenance/license and external acquisition",
+      "verify source README/instruction asset requirements",
+      "official scorer fresh-environment preflight"
+    ],
+    "exposure_reasons": [],
+    "image_digest": null,
+    "instance_id": "dm-csv-043",
+    "instruction": {
+      "id": "dm-csv-043",
+      "rewritten": false,
+      "sha256": "1be74ef754de45814fbb327787aea342e9b02b857d2a812289806a95cd4f106f",
+      "source": "sources/da-code/da_code/configs/task/all.jsonl"
+    },
+    "license": "DA-Code code MIT; per-dataset rights/provenance unresolved; tree presence is not download permission",
+    "official_scoring": {
+      "config": {
+        "hardness": "Hard",
+        "task": "data manipulation",
+        "type": "csv"
+      },
+      "conj": "avg",
+      "func": [
+        "compare_csv"
+      ],
+      "id": "dm-csv-043",
+      "options": [
+        {
+          "ignore_order": true
+        }
+      ],
+      "requirements": [
+        {
+          "gold_basename": "retension.csv",
+          "kind": "file",
+          "multi": false,
+          "output_path": "retension.csv"
+        }
+      ],
+      "source": "sources/da-code/da_code/configs/eval/eval_all.jsonl"
+    },
+    "post_process": [],
+    "runtime_status": "not_validated",
+    "source_revision": "b211daf51fdc9b52d5087c9df28ac50191bcabed",
+    "split": "official all.jsonl (no upstream split field)",
+    "static_instruction_references": [
+      {
+        "name": "retension.csv",
+        "status": "output_requirement"
+      }
+    ],
+    "stratum": "compare_csv",
+    "structural_missing": [],
+    "unresolved": []
+  },
+  {
+    "assets": {
+      "gold": [
+        {
+          "git_blob": "356f53665431887ba44a059888b7d4b3a1abf8d8",
+          "mode": "100644",
+          "path": "da_code/gold/dm-csv-044/average_price.csv",
+          "published_bytes": 1958
+        }
+      ],
+      "source": [
+        {
+          "git_blob": "63d2212f25e68184abfcfbfbaa702cde8c1e0736",
+          "mode": "100644",
+          "path": "da_code/source/dm-csv-044/README.md",
+          "published_bytes": 919
+        },
+        {
+          "git_blob": "f69cd2ee9ca3ad85cc2471dc31a15bfa06f79598",
+          "mode": "100644",
+          "path": "da_code/source/dm-csv-044/average_price.csv",
+          "published_bytes": 353
+        },
+        {
+          "git_blob": "f5de07874fc1789d0401216c21d2bda03b59248c",
+          "mode": "100644",
+          "path": "da_code/source/dm-csv-044/average_quantity.csv",
+          "published_bytes": 1938
+        },
+        {
+          "git_blob": "8447af78a8c3c078bb9df573939a618f44a2c5a2",
+          "mode": "100644",
+          "path": "da_code/source/dm-csv-044/cohort_counts.csv",
+          "published_bytes": 748
+        },
+        {
+          "git_blob": "4372d49c79fb9458b4c8fc04ea1fd3a3c9110d36",
+          "mode": "100644",
+          "path": "da_code/source/dm-csv-044/online.csv",
+          "published_bytes": 6804165
+        },
+        {
+          "git_blob": "f682973a92bed126ab5bb6a8a409e63814fa071e",
+          "mode": "100644",
+          "path": "da_code/source/dm-csv-044/tips.txt",
+          "published_bytes": 415
+        }
+      ]
+    },
+    "decision": "eligible",
+    "domain": "da",
+    "environment_gaps": [
+      "task-specific dependency/image lock",
+      "dataset provenance/license and external acquisition",
+      "verify source README/instruction asset requirements",
+      "official scorer fresh-environment preflight"
+    ],
+    "exposure_reasons": [],
+    "image_digest": null,
+    "instance_id": "dm-csv-044",
+    "instruction": {
+      "id": "dm-csv-044",
+      "rewritten": false,
+      "sha256": "0154dba16a923fe408cb10692c6d2181add47da29a51b4e40ef138c538a0e6aa",
+      "source": "sources/da-code/da_code/configs/task/all.jsonl"
+    },
+    "license": "DA-Code code MIT; per-dataset rights/provenance unresolved; tree presence is not download permission",
+    "official_scoring": {
+      "config": {
+        "hardness": "Hard",
+        "task": "data manipulation",
+        "type": "csv"
+      },
+      "conj": "avg",
+      "func": [
+        "compare_csv"
+      ],
+      "id": "dm-csv-044",
+      "options": [
+        {
+          "condition_cols": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13
+          ]
+        }
+      ],
+      "requirements": [
+        {
+          "gold_basename": "average_price.csv",
+          "kind": "file",
+          "multi": false,
+          "output_path": "average_price.csv"
+        }
+      ],
+      "source": "sources/da-code/da_code/configs/eval/eval_all.jsonl"
+    },
+    "post_process": [],
+    "runtime_status": "not_validated",
+    "source_revision": "b211daf51fdc9b52d5087c9df28ac50191bcabed",
+    "split": "official all.jsonl (no upstream split field)",
+    "static_instruction_references": [
+      {
+        "name": "average_price.csv",
+        "status": "source_inventory"
+      }
+    ],
+    "stratum": "compare_csv",
+    "structural_missing": [],
+    "unresolved": []
+  },
+  {
+    "assets": {
+      "gold": [
+        {
+          "git_blob": "b0b0bf6fe52013004161e04055cf641f0538714f",
+          "mode": "100644",
+          "path": "da_code/gold/dm-csv-052/result.csv",
+          "published_bytes": 41092
+        }
+      ],
+      "source": [
+        {
+          "git_blob": "63d2212f25e68184abfcfbfbaa702cde8c1e0736",
+          "mode": "100644",
+          "path": "da_code/source/dm-csv-052/README.md",
+          "published_bytes": 919
+        },
+        {
+          "git_blob": "c6b855f9e2010a90c672649d33cea7f9137975d5",
+          "mode": "100644",
+          "path": "da_code/source/dm-csv-052/datamart.csv",
+          "published_bytes": 46
+        },
+        {
+          "git_blob": "f46639fd4346ef1832259708ecf30056e1b7693d",
+          "mode": "100644",
+          "path": "da_code/source/dm-csv-052/datamart_rfm.csv",
+          "published_bytes": 87905
+        },
+        {
+          "git_blob": "b4941443e3064bc6f66b5e00a31eb66c7175dff8",
+          "mode": "100644",
+          "path": "da_code/source/dm-csv-052/datamart_rfm_and_scores.csv",
+          "published_bytes": 139956
+        },
+        {
+          "git_blob": "85d4f833a43c9330fcf7593f492b5fc5df109081",
+          "mode": "100644",
+          "path": "da_code/source/dm-csv-052/datamart_rfm_scores_named_segment.csv",
+          "published_bytes": 151731
+        },
+        {
+          "git_blob": "7b909a81db461e3e1e827e9bc5efa3f4e2132bd1",
+          "mode": "100644",
+          "path": "da_code/source/dm-csv-052/online12M.csv",
+          "published_bytes": 6004134
+        },
+        {
+          "git_blob": "1b4d9947c6aa58c905e9e504e3620ec5862ce901",
+          "mode": "100644",
+          "path": "da_code/source/dm-csv-052/sample_result.csv",
+          "published_bytes": 36451
+        },
+        {
+          "git_blob": "1603e1186cde61d759f8a1d667ec1d3bcbc4c941",
+          "mode": "100644",
+          "path": "da_code/source/dm-csv-052/tips.md",
+          "published_bytes": 1341
+        }
+      ]
+    },
+    "decision": "eligible",
+    "domain": "da",
+    "environment_gaps": [
+      "task-specific dependency/image lock",
+      "dataset provenance/license and external acquisition",
+      "verify source README/instruction asset requirements",
+      "official scorer fresh-environment preflight"
+    ],
+    "exposure_reasons": [],
+    "image_digest": null,
+    "instance_id": "dm-csv-052",
+    "instruction": {
+      "id": "dm-csv-052",
+      "rewritten": false,
+      "sha256": "437a82d204d991b4303e230aacbf5b27b3bcd821480232e3fc4a2c903d29e207",
+      "source": "sources/da-code/da_code/configs/task/all.jsonl"
+    },
+    "license": "DA-Code code MIT; per-dataset rights/provenance unresolved; tree presence is not download permission",
+    "official_scoring": {
+      "config": {
+        "hardness": "Hard",
+        "task": "data manipulation",
+        "type": "csv"
+      },
+      "conj": "avg",
+      "func": [
+        "compare_csv"
+      ],
+      "id": "dm-csv-052",
+      "options": [
+        {
+          "ignore_order": true
+        }
+      ],
+      "requirements": [
+        {
+          "gold_basename": "result.csv",
+          "kind": "file",
+          "multi": false,
+          "output_path": "result.csv"
+        }
+      ],
+      "source": "sources/da-code/da_code/configs/eval/eval_all.jsonl"
+    },
+    "post_process": [],
+    "runtime_status": "not_validated",
+    "source_revision": "b211daf51fdc9b52d5087c9df28ac50191bcabed",
+    "split": "official all.jsonl (no upstream split field)",
+    "static_instruction_references": [
+      {
+        "name": "result.csv",
+        "status": "output_requirement"
+      }
+    ],
+    "stratum": "compare_csv",
+    "structural_missing": [],
+    "unresolved": []
+  },
+  {
+    "assets": {
+      "gold": [
+        {
+          "git_blob": "78061f13e84f5cf226eea851ea851c062bbeed9b",
+          "mode": "100644",
+          "path": "da_code/gold/ml-cluster-010/cluster.csv",
+          "published_bytes": 1855479
+        }
+      ],
+      "source": [
+        {
+          "git_blob": "17260e82143037a2d6d08ce9c7166f94b6c82ca7",
+          "mode": "100644",
+          "path": "da_code/source/ml-cluster-010/README.md",
+          "published_bytes": 450
+        },
+        {
+          "git_blob": "be17ec0cce727591e9bcb9c47aefb617260aeda2",
+          "mode": "100644",
+          "path": "da_code/source/ml-cluster-010/covtype.csv",
+          "published_bytes": 647569
+        }
+      ]
+    },
+    "decision": "eligible",
+    "domain": "da",
+    "environment_gaps": [
+      "task-specific dependency/image lock",
+      "dataset provenance/license and external acquisition",
+      "verify source README/instruction asset requirements",
+      "official scorer fresh-environment preflight"
+    ],
+    "exposure_reasons": [],
+    "image_digest": null,
+    "instance_id": "ml-cluster-010",
+    "instruction": {
+      "id": "ml-cluster-010",
+      "rewritten": false,
+      "sha256": "7e430ff4614363c65ee69f4be7d2808a0068bb5ebb415e4564301b98835da337",
+      "source": "sources/da-code/da_code/configs/task/all.jsonl"
+    },
+    "license": "DA-Code code MIT; per-dataset rights/provenance unresolved; tree presence is not download permission",
+    "official_scoring": {
+      "config": {
+        "hardness": "Hard",
+        "lower_bound": 0.0,
+        "metric": "silhouette",
+        "task": "machine learning",
+        "type": "cluster",
+        "upper_bound": 0.7999999999999999
+      },
+      "conj": "avg",
+      "func": [
+        "compare_ml"
+      ],
+      "id": "ml-cluster-010",
+      "options": [
+        {}
+      ],
+      "requirements": [
+        {
+          "gold_basename": "cluster.csv",
+          "kind": "file",
+          "multi": false,
+          "output_path": "cluster.csv"
+        }
+      ],
+      "source": "sources/da-code/da_code/configs/eval/eval_all.jsonl"
+    },
+    "post_process": [],
+    "runtime_status": "not_validated",
+    "source_revision": "b211daf51fdc9b52d5087c9df28ac50191bcabed",
+    "split": "official all.jsonl (no upstream split field)",
+    "static_instruction_references": [
+      {
+        "name": "cluster.csv",
+        "status": "output_requirement"
+      }
+    ],
+    "stratum": "compare_ml",
+    "structural_missing": [],
+    "unresolved": []
+  },
+  {
+    "assets": {
+      "gold": [
+        {
+          "git_blob": "fb7067de12165d3499180c9f6768cd6073ce8c40",
+          "mode": "100644",
+          "path": "da_code/gold/ml-cluster-014/cluster.csv",
+          "published_bytes": 133145
+        }
+      ],
+      "source": [
+        {
+          "git_blob": "0caab9fb5b7bb7ef4f9c09dd8d205bb1fa469dc0",
+          "mode": "100644",
+          "path": "da_code/source/ml-cluster-014/README.md",
+          "published_bytes": 2118
+        },
+        {
+          "git_blob": "8e84a342f1853195993ed30399e728ae776dace4",
+          "mode": "100644",
+          "path": "da_code/source/ml-cluster-014/marketing_campaign.csv",
+          "published_bytes": 220188
+        }
+      ]
+    },
+    "decision": "eligible",
+    "domain": "da",
+    "environment_gaps": [
+      "task-specific dependency/image lock",
+      "dataset provenance/license and external acquisition",
+      "verify source README/instruction asset requirements",
+      "official scorer fresh-environment preflight"
+    ],
+    "exposure_reasons": [],
+    "image_digest": null,
+    "instance_id": "ml-cluster-014",
+    "instruction": {
+      "id": "ml-cluster-014",
+      "rewritten": false,
+      "sha256": "55878e3f124a7afb04dd190f519234e26068cf857c75a24a6f1d48cfef906cac",
+      "source": "sources/da-code/da_code/configs/task/all.jsonl"
+    },
+    "license": "DA-Code code MIT; per-dataset rights/provenance unresolved; tree presence is not download permission",
+    "official_scoring": {
+      "config": {
+        "hardness": "Medium",
+        "lower_bound": 0.0,
+        "metric": "silhouette",
+        "task": "machine learning",
+        "type": "cluster",
+        "upper_bound": 0.37554444444444446
+      },
+      "conj": "avg",
+      "func": [
+        "compare_ml"
+      ],
+      "id": "ml-cluster-014",
+      "options": [
+        {}
+      ],
+      "requirements": [
+        {
+          "gold_basename": "cluster.csv",
+          "kind": "file",
+          "multi": false,
+          "output_path": "cluster.csv"
+        }
+      ],
+      "source": "sources/da-code/da_code/configs/eval/eval_all.jsonl"
+    },
+    "post_process": [],
+    "runtime_status": "not_validated",
+    "source_revision": "b211daf51fdc9b52d5087c9df28ac50191bcabed",
+    "split": "official all.jsonl (no upstream split field)",
+    "static_instruction_references": [
+      {
+        "name": "cluster.csv",
+        "status": "output_requirement"
+      }
+    ],
+    "stratum": "compare_ml",
+    "structural_missing": [],
+    "unresolved": []
+  },
+  {
+    "assets": {
+      "gold": [
+        {
+          "git_blob": "1919d507bf6705aa5bc429f1a12a79b11b4ad00b",
+          "mode": "100644",
+          "path": "da_code/gold/ml-cluster-019/cluster.csv",
+          "published_bytes": 250065
+        }
+      ],
+      "source": [
+        {
+          "git_blob": "f4a45ef1470f5ae347b7180b0416505d2334782e",
+          "mode": "100644",
+          "path": "da_code/source/ml-cluster-019/README.md",
+          "published_bytes": 1244
+        },
+        {
+          "git_blob": "b39a868402f57edb9b1e047ef1047136c028bf7b",
+          "mode": "100644",
+          "path": "da_code/source/ml-cluster-019/Year 2009-2010.csv",
+          "published_bytes": 44383224
+        },
+        {
+          "git_blob": "e7c542315b30fc078484fc5888a7442f8b75677f",
+          "mode": "100644",
+          "path": "da_code/source/ml-cluster-019/Year 2010-2011.csv",
+          "published_bytes": 45580688
+        },
+        {
+          "git_blob": "52c50aa71b9a23d85848eed6c76de4525552590a",
+          "mode": "100644",
+          "path": "da_code/source/ml-cluster-019/online_retail_II.xlsx",
+          "published_bytes": 45628546
+        }
+      ]
+    },
+    "decision": "eligible",
+    "domain": "da",
+    "environment_gaps": [
+      "task-specific dependency/image lock",
+      "dataset provenance/license and external acquisition",
+      "verify source README/instruction asset requirements",
+      "official scorer fresh-environment preflight"
+    ],
+    "exposure_reasons": [],
+    "image_digest": null,
+    "instance_id": "ml-cluster-019",
+    "instruction": {
+      "id": "ml-cluster-019",
+      "rewritten": false,
+      "sha256": "8ee9a03a379c0bfb67827f69a23f3b5379ab279da70486c2a7bc642e76b233e3",
+      "source": "sources/da-code/da_code/configs/task/all.jsonl"
+    },
+    "license": "DA-Code code MIT; per-dataset rights/provenance unresolved; tree presence is not download permission",
+    "official_scoring": {
+      "config": {
+        "hardness": "Hard",
+        "lower_bound": 0.0,
+        "metric": "silhouette",
+        "task": "machine learning",
+        "type": "cluster",
+        "upper_bound": 0.5847
+      },
+      "conj": "avg",
+      "func": [
+        "compare_ml"
+      ],
+      "id": "ml-cluster-019",
+      "options": [
+        {}
+      ],
+      "requirements": [
+        {
+          "gold_basename": "cluster.csv",
+          "kind": "file",
+          "multi": false,
+          "output_path": "cluster.csv"
+        }
+      ],
+      "source": "sources/da-code/da_code/configs/eval/eval_all.jsonl"
+    },
+    "post_process": [],
+    "runtime_status": "not_validated",
+    "source_revision": "b211daf51fdc9b52d5087c9df28ac50191bcabed",
+    "split": "official all.jsonl (no upstream split field)",
+    "static_instruction_references": [
+      {
+        "name": "cluster.csv",
+        "status": "output_requirement"
+      }
+    ],
+    "stratum": "compare_ml",
+    "structural_missing": [],
+    "unresolved": []
+  },
+  {
+    "assets": {
+      "gold": [
+        {
+          "git_blob": "7ab78f2b7229e513a91a023406fe3c086033affc",
+          "mode": "100644",
+          "path": "da_code/gold/ml-competition-003/submission.csv",
+          "published_bytes": 1294
+        }
+      ],
+      "source": [
+        {
+          "git_blob": "1d3e275c9795b505970ba640a27e12ebc18ceb5d",
+          "mode": "100644",
+          "path": "da_code/source/ml-competition-003/README.md",
+          "published_bytes": 2133
+        },
+        {
+          "git_blob": "9a49f6e7555eb67ce38c5f2dc5fe8096b939843f",
+          "mode": "100644",
+          "path": "da_code/source/ml-competition-003/greeks.csv",
+          "published_bytes": 18853
+        },
+        {
+          "git_blob": "0817df7ce2d15e6798ef1d37884a38b7a8a5e271",
+          "mode": "100644",
+          "path": "da_code/source/ml-competition-003/sample_submission.csv",
+          "published_bytes": 124
+        },
+        {
+          "git_blob": "182397d8c11ec60e5cc46f176b711ef0244a597a",
+          "mode": "100644",
+          "path": "da_code/source/ml-competition-003/test.csv",
+          "published_bytes": 40979
+        },
+        {
+          "git_blob": "d680fea078624112b1e23df71416b152c161940a",
+          "mode": "100644",
+          "path": "da_code/source/ml-competition-003/train.csv",
+          "published_bytes": 302650
+        }
+      ]
+    },
+    "decision": "eligible",
+    "domain": "da",
+    "environment_gaps": [
+      "task-specific dependency/image lock",
+      "dataset provenance/license and external acquisition",
+      "verify source README/instruction asset requirements",
+      "official scorer fresh-environment preflight"
+    ],
+    "exposure_reasons": [],
+    "image_digest": null,
+    "instance_id": "ml-competition-003",
+    "instruction": {
+      "id": "ml-competition-003",
+      "rewritten": false,
+      "sha256": "9269ec48ef9e181040c9de127c175e7340fbc041e05a5654f061ef090c8f0ee5",
+      "source": "sources/da-code/da_code/configs/task/all.jsonl"
+    },
+    "license": "DA-Code code MIT; per-dataset rights/provenance unresolved; tree presence is not download permission",
+    "official_scoring": {
+      "config": {
+        "hardness": "Hard",
+        "lower_bound": 0.24804,
+        "metric": "logloss_class",
+        "task": "machine learning competition",
+        "type": "binary classification",
+        "upper_bound": 4.7274192
+      },
+      "conj": "avg",
+      "func": [
+        "compare_competition_ml"
+      ],
+      "id": "ml-competition-003",
+      "options": [
+        {}
+      ],
+      "requirements": [
+        {
+          "gold_basename": "submission.csv",
+          "kind": "file",
+          "multi": false,
+          "output_path": "submission.csv"
+        }
+      ],
+      "source": "sources/da-code/da_code/configs/eval/eval_all.jsonl"
+    },
+    "post_process": [],
+    "runtime_status": "not_validated",
+    "source_revision": "b211daf51fdc9b52d5087c9df28ac50191bcabed",
+    "split": "official all.jsonl (no upstream split field)",
+    "static_instruction_references": [
+      {
+        "name": "sample_submission.csv",
+        "status": "source_inventory"
+      },
+      {
+        "name": "submission.csv",
+        "status": "output_requirement"
+      },
+      {
+        "name": "test.csv",
+        "status": "source_inventory"
+      }
+    ],
+    "stratum": "compare_competition_ml",
+    "structural_missing": [],
+    "unresolved": []
+  },
+  {
+    "assets": {
+      "gold": [
+        {
+          "git_blob": "08f6e3a4df4a1581d4390f2020543bbc92ecfa39",
+          "mode": "100644",
+          "path": "da_code/gold/ml-competition-006/submission.csv",
+          "published_bytes": 2012
+        }
+      ],
+      "source": [
+        {
+          "git_blob": "baddd922e9b2b39d6a5f6e939840ac50bd19ec30",
+          "mode": "100644",
+          "path": "da_code/source/ml-competition-006/README.md",
+          "published_bytes": 1645
+        },
+        {
+          "git_blob": "215185e3980dc1820298c659cb38e395068824f4",
+          "mode": "100644",
+          "path": "da_code/source/ml-competition-006/WineQT.csv",
+          "published_bytes": 78057
+        },
+        {
+          "git_blob": "d34f0dd57be43cff2ee3361d64218487e5c65be0",
+          "mode": "100644",
+          "path": "da_code/source/ml-competition-006/sample_submission.csv",
+          "published_bytes": 9615
+        },
+        {
+          "git_blob": "534f11cda5d28aae8f5e834fd43eca551f809a7e",
+          "mode": "100644",
+          "path": "da_code/source/ml-competition-006/test.csv",
+          "published_bytes": 19191
+        },
+        {
+          "git_blob": "c32d632a910a4da150336cc27672c369e39f36ce",
+          "mode": "100644",
+          "path": "da_code/source/ml-competition-006/train.csv",
+          "published_bytes": 111194
+        }
+      ]
+    },
+    "decision": "eligible",
+    "domain": "da",
+    "environment_gaps": [
+      "task-specific dependency/image lock",
+      "dataset provenance/license and external acquisition",
+      "verify source README/instruction asset requirements",
+      "official scorer fresh-environment preflight"
+    ],
+    "exposure_reasons": [],
+    "image_digest": null,
+    "instance_id": "ml-competition-006",
+    "instruction": {
+      "id": "ml-competition-006",
+      "rewritten": false,
+      "sha256": "c5e745decd2732cb48732e87884cb225041631b7d1a925940800cb8f730442b6",
+      "source": "sources/da-code/da_code/configs/task/all.jsonl"
+    },
+    "license": "DA-Code code MIT; per-dataset rights/provenance unresolved; tree presence is not download permission",
+    "official_scoring": {
+      "config": {
+        "hardness": "Hard",
+        "lower_bound": 0.49517,
+        "metric": "quadratic_weighted_kappa",
+        "task": "machine learning competition",
+        "type": "multi classification",
+        "upper_bound": 0.59674
+      },
+      "conj": "avg",
+      "func": [
+        "compare_competition_ml"
+      ],
+      "id": "ml-competition-006",
+      "options": [
+        {}
+      ],
+      "requirements": [
+        {
+          "gold_basename": "submission.csv",
+          "kind": "file",
+          "multi": false,
+          "output_path": "submission.csv"
+        }
+      ],
+      "source": "sources/da-code/da_code/configs/eval/eval_all.jsonl"
+    },
+    "post_process": [],
+    "runtime_status": "not_validated",
+    "source_revision": "b211daf51fdc9b52d5087c9df28ac50191bcabed",
+    "split": "official all.jsonl (no upstream split field)",
+    "static_instruction_references": [
+      {
+        "name": "sample_submission.csv",
+        "status": "source_inventory"
+      },
+      {
+        "name": "submission.csv",
+        "status": "output_requirement"
+      },
+      {
+        "name": "test.csv",
+        "status": "source_inventory"
+      }
+    ],
+    "stratum": "compare_competition_ml",
+    "structural_missing": [],
+    "unresolved": []
+  },
+  {
+    "assets": {
+      "gold": [
+        {
+          "git_blob": "8915ca3d1207497fa76177466500c1f056da64cb",
+          "mode": "100644",
+          "path": "da_code/gold/ml-competition-009/submission.csv",
+          "published_bytes": 112974
+        }
+      ],
+      "source": [
+        {
+          "git_blob": "0796401fdefadd27752449a62521873670e5c870",
+          "mode": "100644",
+          "path": "da_code/source/ml-competition-009/Index",
+          "published_bytes": 114
+        },
+        {
+          "git_blob": "68e2d2e348c8d102ac7c71bfb246f31d9fe4a853",
+          "mode": "100644",
+          "path": "da_code/source/ml-competition-009/README.md",
+          "published_bytes": 1289
+        },
+        {
+          "git_blob": "bf8a2dbbcc1744cc17dae707cd170b42220b5419",
+          "mode": "100644",
+          "path": "da_code/source/ml-competition-009/abalone.data",
+          "published_bytes": 191873
+        },
+        {
+          "git_blob": "8fbe142d461b59963e5eda82fd05f21048bd8017",
+          "mode": "100644",
+          "path": "da_code/source/ml-competition-009/abalone.names",
+          "published_bytes": 4319
+        },
+        {
+          "git_blob": "0bd8b1f9d80b8c7265d93c0deb930f5499c93174",
+          "mode": "100644",
+          "path": "da_code/source/ml-competition-009/sample_submission.csv",
+          "published_bytes": 594734
+        },
+        {
+          "git_blob": "3af09ca15ae2d6013bd5116c6d3f3642997f9cf0",
+          "mode": "100644",
+          "path": "da_code/source/ml-competition-009/test.csv",
+          "published_bytes": 677746
+        },
+        {
+          "git_blob": "6272245bb4db8e62eddf4b9c8a79d44e59421ce5",
+          "mode": "100644",
+          "path": "da_code/source/ml-competition-009/train.csv",
+          "published_bytes": 4027159
+        }
+      ]
+    },
+    "decision": "eligible",
+    "domain": "da",
+    "environment_gaps": [
+      "task-specific dependency/image lock",
+      "dataset provenance/license and external acquisition",
+      "verify source README/instruction asset requirements",
+      "official scorer fresh-environment preflight"
+    ],
+    "exposure_reasons": [],
+    "image_digest": null,
+    "instance_id": "ml-competition-009",
+    "instruction": {
+      "id": "ml-competition-009",
+      "rewritten": false,
+      "sha256": "2dbd8ead79fa9002987c83d483297239fb7d465bb9150ec37fabae6646c906a5",
+      "source": "sources/da-code/da_code/configs/task/all.jsonl"
+    },
+    "license": "DA-Code code MIT; per-dataset rights/provenance unresolved; tree presence is not download permission",
+    "official_scoring": {
+      "config": {
+        "hardness": "Hard",
+        "lower_bound": 0.143739,
+        "metric": "rmsle",
+        "task": "machine learning competition",
+        "type": "regression",
+        "upper_bound": 0.155808
+      },
+      "conj": "avg",
+      "func": [
+        "compare_competition_ml"
+      ],
+      "id": "ml-competition-009",
+      "options": [
+        {}
+      ],
+      "requirements": [
+        {
+          "gold_basename": "submission.csv",
+          "kind": "file",
+          "multi": false,
+          "output_path": "submission.csv"
+        }
+      ],
+      "source": "sources/da-code/da_code/configs/eval/eval_all.jsonl"
+    },
+    "post_process": [],
+    "runtime_status": "not_validated",
+    "source_revision": "b211daf51fdc9b52d5087c9df28ac50191bcabed",
+    "split": "official all.jsonl (no upstream split field)",
+    "static_instruction_references": [
+      {
+        "name": "README.md",
+        "status": "source_inventory"
+      },
+      {
+        "name": "sample_submission.csv",
+        "status": "source_inventory"
+      },
+      {
+        "name": "submission.csv",
+        "status": "output_requirement"
+      }
+    ],
+    "stratum": "compare_competition_ml",
+    "structural_missing": [],
+    "unresolved": []
+  },
+  {
+    "assets": {
+      "gold": [
+        {
+          "git_blob": "928129f9c020836d83257cdb5558051f55458874",
+          "mode": "100644",
+          "path": "da_code/gold/ml-regression-002/result.csv",
+          "published_bytes": 41385
+        }
+      ],
+      "source": [
+        {
+          "git_blob": "f41c593d382740022b3fbe60077b07efa1e519ab",
+          "mode": "100644",
+          "path": "da_code/source/ml-regression-002/README.md",
+          "published_bytes": 710
+        },
+        {
+          "git_blob": "45b0965224f3150b97a18a280cc24e45f34ba4c0",
+          "mode": "100644",
+          "path": "da_code/source/ml-regression-002/energy_dataset.csv",
+          "published_bytes": 5018148
+        },
+        {
+          "git_blob": "6fece534158907dbc4a13249ae13252a3d4b7a04",
+          "mode": "100644",
+          "path": "da_code/source/ml-regression-002/test.csv",
+          "published_bytes": 1214202
+        },
+        {
+          "git_blob": "d37d0fc2d24ec7374f5698656463a2a093a17022",
+          "mode": "100644",
+          "path": "da_code/source/ml-regression-002/weather_features.csv",
+          "published_bytes": 19918887
+        }
+      ]
+    },
+    "decision": "eligible",
+    "domain": "da",
+    "environment_gaps": [
+      "task-specific dependency/image lock",
+      "dataset provenance/license and external acquisition",
+      "verify source README/instruction asset requirements",
+      "official scorer fresh-environment preflight"
+    ],
+    "exposure_reasons": [],
+    "image_digest": null,
+    "instance_id": "ml-regression-002",
+    "instruction": {
+      "id": "ml-regression-002",
+      "rewritten": false,
+      "sha256": "cec047738d9390232a3201779421edb98b721c85c1368388c91c8ac1acc8b3e0",
+      "source": "sources/da-code/da_code/configs/task/all.jsonl"
+    },
+    "license": "DA-Code code MIT; per-dataset rights/provenance unresolved; tree presence is not download permission",
+    "official_scoring": {
+      "config": {
+        "hardness": "Hard",
+        "lower_bound": 0.5,
+        "metric": "r2",
+        "task": "machine learning",
+        "type": "regression",
+        "upper_bound": 0.9
+      },
+      "conj": "avg",
+      "func": [
+        "compare_ml"
+      ],
+      "id": "ml-regression-002",
+      "options": [
+        {}
+      ],
+      "requirements": [
+        {
+          "gold_basename": "result.csv",
+          "kind": "file",
+          "multi": false,
+          "output_path": "result.csv"
+        }
+      ],
+      "source": "sources/da-code/da_code/configs/eval/eval_all.jsonl"
+    },
+    "post_process": [],
+    "runtime_status": "not_validated",
+    "source_revision": "b211daf51fdc9b52d5087c9df28ac50191bcabed",
+    "split": "official all.jsonl (no upstream split field)",
+    "static_instruction_references": [
+      {
+        "name": "result.csv",
+        "status": "output_requirement"
+      },
+      {
+        "name": "test.csv",
+        "status": "source_inventory"
+      }
+    ],
+    "stratum": "compare_ml",
+    "structural_missing": [],
+    "unresolved": []
+  },
+  {
+    "assets": {
+      "gold": [
+        {
+          "git_blob": "e9303363d87f2486a3699b0d4601ad6f7ca8a77c",
+          "mode": "100644",
+          "path": "da_code/gold/ml-regression-004/popularity.csv",
+          "published_bytes": 3255
+        }
+      ],
+      "source": [
+        {
+          "git_blob": "7576946dcfa0226fa34682581aa995e6234f8f9e",
+          "mode": "100644",
+          "path": "da_code/source/ml-regression-004/README.md",
+          "published_bytes": 1115
+        },
+        {
+          "git_blob": "8645ef1592e954182ffd3712a675d1d2d816dcad",
+          "mode": "100644",
+          "path": "da_code/source/ml-regression-004/test.csv",
+          "published_bytes": 788907
+        },
+        {
+          "git_blob": "6c5c7535c6ada47038982f315f5c9578808edb34",
+          "mode": "100644",
+          "path": "da_code/source/ml-regression-004/top_10000_1960-now.csv",
+          "published_bytes": 4503484
+        }
+      ]
+    },
+    "decision": "eligible",
+    "domain": "da",
+    "environment_gaps": [
+      "task-specific dependency/image lock",
+      "dataset provenance/license and external acquisition",
+      "verify source README/instruction asset requirements",
+      "official scorer fresh-environment preflight"
+    ],
+    "exposure_reasons": [],
+    "image_digest": null,
+    "instance_id": "ml-regression-004",
+    "instruction": {
+      "id": "ml-regression-004",
+      "rewritten": false,
+      "sha256": "d11328361c55837f947d1619cd6f6b89885d524f47ff673cb83a7fa6809d00bf",
+      "source": "sources/da-code/da_code/configs/task/all.jsonl"
+    },
+    "license": "DA-Code code MIT; per-dataset rights/provenance unresolved; tree presence is not download permission",
+    "official_scoring": {
+      "config": {
+        "hardness": "Hard",
+        "lower_bound": 0.5,
+        "metric": "r2",
+        "task": "machine learning",
+        "type": "regression",
+        "upper_bound": 0.9
+      },
+      "conj": "avg",
+      "func": [
+        "compare_ml"
+      ],
+      "id": "ml-regression-004",
+      "options": [
+        {}
+      ],
+      "requirements": [
+        {
+          "gold_basename": "popularity.csv",
+          "kind": "file",
+          "multi": false,
+          "output_path": "popularity.csv"
+        }
+      ],
+      "source": "sources/da-code/da_code/configs/eval/eval_all.jsonl"
+    },
+    "post_process": [],
+    "runtime_status": "not_validated",
+    "source_revision": "b211daf51fdc9b52d5087c9df28ac50191bcabed",
+    "split": "official all.jsonl (no upstream split field)",
+    "static_instruction_references": [
+      {
+        "name": "popularity.csv",
+        "status": "output_requirement"
+      },
+      {
+        "name": "test.csv",
+        "status": "source_inventory"
+      }
+    ],
+    "stratum": "compare_ml",
+    "structural_missing": [],
+    "unresolved": []
+  },
+  {
+    "assets": {
+      "gold": [
+        {
+          "git_blob": "2a2faa5798a8e099a8c65565f2dbbfc3065facbf",
+          "mode": "100644",
+          "path": "da_code/gold/ml-regression-012/result.csv",
+          "published_bytes": 196896
+        }
+      ],
+      "source": [
+        {
+          "git_blob": "b73c7b8fc8e50059d6e401a8ff9a8d9460b819fd",
+          "mode": "100644",
+          "path": "da_code/source/ml-regression-012/Car_Rates.csv",
+          "published_bytes": 346604
+        },
+        {
+          "git_blob": "e3560f9baf7b70ec155dcbc8cf94950ea333a375",
+          "mode": "100644",
+          "path": "da_code/source/ml-regression-012/New_York_cars.csv",
+          "published_bytes": 54767328
+        },
+        {
+          "git_blob": "9ce9fd63a3ed030b462b57bdaf3432b04d70b62b",
+          "mode": "100644",
+          "path": "da_code/source/ml-regression-012/README.md",
+          "published_bytes": 368
+        },
+        {
+          "git_blob": "cbd8fc8fbb1510bc09cc3fbbf908ad234774dc24",
+          "mode": "100644",
+          "path": "da_code/source/ml-regression-012/test.csv",
+          "published_bytes": 9476412
+        }
+      ]
+    },
+    "decision": "eligible",
+    "domain": "da",
+    "environment_gaps": [
+      "task-specific dependency/image lock",
+      "dataset provenance/license and external acquisition",
+      "verify source README/instruction asset requirements",
+      "official scorer fresh-environment preflight"
+    ],
+    "exposure_reasons": [],
+    "image_digest": null,
+    "instance_id": "ml-regression-012",
+    "instruction": {
+      "id": "ml-regression-012",
+      "rewritten": false,
+      "sha256": "8ba5e07af33fa69e6f8306f74637d937e59bc4f9f96a56e8c2c308af2da67c2b",
+      "source": "sources/da-code/da_code/configs/task/all.jsonl"
+    },
+    "license": "DA-Code code MIT; per-dataset rights/provenance unresolved; tree presence is not download permission",
+    "official_scoring": {
+      "config": {
+        "hardness": "Hard",
+        "lower_bound": 0.5,
+        "metric": "r2",
+        "task": "machine learning",
+        "type": "regression",
+        "upper_bound": 0.9
+      },
+      "conj": "avg",
+      "func": [
+        "compare_ml"
+      ],
+      "id": "ml-regression-012",
+      "options": [
+        {}
+      ],
+      "requirements": [
+        {
+          "gold_basename": "result.csv",
+          "kind": "file",
+          "multi": false,
+          "output_path": "result.csv"
+        }
+      ],
+      "source": "sources/da-code/da_code/configs/eval/eval_all.jsonl"
+    },
+    "post_process": [],
+    "runtime_status": "not_validated",
+    "source_revision": "b211daf51fdc9b52d5087c9df28ac50191bcabed",
+    "split": "official all.jsonl (no upstream split field)",
+    "static_instruction_references": [
+      {
+        "name": "result.csv",
+        "status": "output_requirement"
+      },
+      {
+        "name": "test.csv",
+        "status": "source_inventory"
+      }
+    ],
+    "stratum": "compare_ml",
+    "structural_missing": [],
+    "unresolved": []
+  },
+  {
+    "assets": {
+      "gold": [
+        {
+          "git_blob": "c2323bd6184bf8a23641ac6c5740e24ac10aaa3a",
+          "mode": "100644",
+          "path": "da_code/gold/ml-regression-015/appliance.csv",
+          "published_bytes": 9673
+        }
+      ],
+      "source": [
+        {
+          "git_blob": "bc28808bc19631d7ba90d48d3063eaadbad74650",
+          "mode": "100644",
+          "path": "da_code/source/ml-regression-015/KAG_energydata_complete.csv",
+          "published_bytes": 4763330
+        },
+        {
+          "git_blob": "52373209e939f3373fd10f3128b13de517b8b479",
+          "mode": "100644",
+          "path": "da_code/source/ml-regression-015/test.csv",
+          "published_bytes": 831822
+        }
+      ]
+    },
+    "decision": "eligible",
+    "domain": "da",
+    "environment_gaps": [
+      "task-specific dependency/image lock",
+      "dataset provenance/license and external acquisition",
+      "verify source README/instruction asset requirements",
+      "official scorer fresh-environment preflight"
+    ],
+    "exposure_reasons": [],
+    "image_digest": null,
+    "instance_id": "ml-regression-015",
+    "instruction": {
+      "id": "ml-regression-015",
+      "rewritten": false,
+      "sha256": "6b34f540bbab5288b927a6f260eff627ffa677790e868930c56ed793c98daa1b",
+      "source": "sources/da-code/da_code/configs/task/all.jsonl"
+    },
+    "license": "DA-Code code MIT; per-dataset rights/provenance unresolved; tree presence is not download permission",
+    "official_scoring": {
+      "config": {
+        "hardness": "Hard",
+        "lower_bound": 0.5,
+        "metric": "r2",
+        "task": "machine learning",
+        "type": "regression",
+        "upper_bound": 0.9
+      },
+      "conj": "avg",
+      "func": [
+        "compare_ml"
+      ],
+      "id": "ml-regression-015",
+      "options": [
+        {}
+      ],
+      "requirements": [
+        {
+          "gold_basename": "appliance.csv",
+          "kind": "file",
+          "multi": false,
+          "output_path": "appliance.csv"
+        }
+      ],
+      "source": "sources/da-code/da_code/configs/eval/eval_all.jsonl"
+    },
+    "post_process": [],
+    "runtime_status": "not_validated",
+    "source_revision": "b211daf51fdc9b52d5087c9df28ac50191bcabed",
+    "split": "official all.jsonl (no upstream split field)",
+    "static_instruction_references": [
+      {
+        "name": "appliance.csv",
+        "status": "output_requirement"
+      },
+      {
+        "name": "test.csv",
+        "status": "source_inventory"
+      }
+    ],
+    "stratum": "compare_ml",
+    "structural_missing": [],
+    "unresolved": []
+  },
+  {
+    "assets": {
+      "gold": [
+        {
+          "git_blob": "eacc6ce9852a31e12ede8d95ff0236eeb2af8560",
+          "mode": "100644",
+          "path": "da_code/gold/plot-bar-005/plot.json",
+          "published_bytes": 383
+        },
+        {
+          "git_blob": "161085dda2d7bf6eaf53394abc53f195327fc20f",
+          "mode": "100644",
+          "path": "da_code/gold/plot-bar-005/result.npy",
+          "published_bytes": 224
+        },
+        {
+          "git_blob": "5f854ec30cd89cfbccb5f624f00ccbd58ba602f0",
+          "mode": "100644",
+          "path": "da_code/gold/plot-bar-005/result.png",
+          "published_bytes": 21443
+        }
+      ],
+      "source": [
+        {
+          "git_blob": "10e2bdfebf1904a14680e9b345dc28ab5ea7137d",
+          "mode": "100644",
+          "path": "da_code/source/plot-bar-005/AgeGroup.md",
+          "published_bytes": 318
+        },
+        {
+          "git_blob": "53459e8c991b16d23d24fa49ebd7c58156c57908",
+          "mode": "100644",
+          "path": "da_code/source/plot-bar-005/README.md",
+          "published_bytes": 668
+        },
+        {
+          "git_blob": "ecfd6d8b6e014d30ef1c46dd3209b1bf3f9a1811",
+          "mode": "100644",
+          "path": "da_code/source/plot-bar-005/SurveySchema.csv",
+          "published_bytes": 8449
+        },
+        {
+          "git_blob": "2993ff423ba7dfb6fffa52fbbc2da703cb091faf",
+          "mode": "100644",
+          "path": "da_code/source/plot-bar-005/freeFormResponses.csv",
+          "published_bytes": 1360985
+        },
+        {
+          "git_blob": "3e8cfd4f0134f4b274f6978b074cd85a3223f2d2",
+          "mode": "100644",
+          "path": "da_code/source/plot-bar-005/multipleChoiceResponses.csv",
+          "published_bytes": 41189695
+        },
+        {
+          "git_blob": "871d04c302bde5cd2503b797c486504f36f73103",
+          "mode": "100644",
+          "path": "da_code/source/plot-bar-005/plot.yaml",
+          "published_bytes": 250
+        }
+      ]
+    },
+    "decision": "unresolved",
+    "domain": "da",
+    "environment_gaps": [
+      "task-specific dependency/image lock",
+      "dataset provenance/license and external acquisition",
+      "verify source README/instruction asset requirements",
+      "official scorer fresh-environment preflight"
+    ],
+    "exposure_reasons": [],
+    "image_digest": null,
+    "instance_id": "plot-bar-005",
+    "instruction": {
+      "id": "plot-bar-005",
+      "rewritten": false,
+      "sha256": "6583787f2fe0ca7f3344862c35a9b657ca166fb7619412f7e0b67ce2b09801b6",
+      "source": "sources/da-code/da_code/configs/task/all.jsonl"
+    },
+    "license": "DA-Code code MIT; per-dataset rights/provenance unresolved; tree presence is not download permission",
+    "official_scoring": {
+      "config": {
+        "hardness": "Hard",
+        "metric": "",
+        "task": "data visualization",
+        "threshold": 0.0,
+        "type": "bar"
+      },
+      "conj": "avg",
+      "func": [
+        "compare_image"
+      ],
+      "id": "plot-bar-005",
+      "options": [
+        {
+          "keys": [
+            "graph_title",
+            "x_label",
+            "y_label",
+            "xtick_labels",
+            "graph_title",
+            "figsize"
+          ]
+        }
+      ],
+      "requirements": [
+        {
+          "gold_basename": "result.png",
+          "kind": "file",
+          "multi": true,
+          "output_path": "result.png"
+        },
+        {
+          "gold_basename": "plot.json",
+          "kind": "file",
+          "multi": true,
+          "output_path": "dabench/plot.json"
+        },
+        {
+          "gold_basename": "result.npy",
+          "kind": "file",
+          "multi": true,
+          "output_path": "dabench/result.npy"
+        }
+      ],
+      "source": "sources/da-code/da_code/configs/eval/eval_all.jsonl"
+    },
+    "post_process": [
+      "plot_process"
+    ],
+    "runtime_status": "not_validated",
+    "source_revision": "b211daf51fdc9b52d5087c9df28ac50191bcabed",
+    "split": "official all.jsonl (no upstream split field)",
+    "static_instruction_references": [
+      {
+        "name": "AgeGroup.md",
+        "status": "source_inventory"
+      },
+      {
+        "name": "result.png",
+        "status": "output_requirement"
+      }
+    ],
+    "stratum": "compare_image",
+    "structural_missing": [],
+    "unresolved": [
+      "official post-processing prerequisites unresolved: plot_process"
+    ]
+  },
+  {
+    "assets": {
+      "gold": [
+        {
+          "git_blob": "11efe61df724a11ed9ce0d158242df502194b324",
+          "mode": "100644",
+          "path": "da_code/gold/plot-bar-007/plot.json",
+          "published_bytes": 370
+        },
+        {
+          "git_blob": "2342333f1a41934a99d49d0d17b7e35940a9f12f",
+          "mode": "100644",
+          "path": "da_code/gold/plot-bar-007/result.npy",
+          "published_bytes": 192
+        },
+        {
+          "git_blob": "1dba59acfb1ab6db4010273de6b72feb78284709",
+          "mode": "100644",
+          "path": "da_code/gold/plot-bar-007/result.png",
+          "published_bytes": 32525
+        }
+      ],
+      "source": [
+        {
+          "git_blob": "891b63d092d91594c1de09f1f5ed55bd2d3fd5a7",
+          "mode": "100644",
+          "path": "da_code/source/plot-bar-007/README.md",
+          "published_bytes": 824
+        }
+      ]
+    },
+    "decision": "unresolved",
+    "domain": "da",
+    "environment_gaps": [
+      "task-specific dependency/image lock",
+      "dataset provenance/license and external acquisition",
+      "verify source README/instruction asset requirements",
+      "official scorer fresh-environment preflight"
+    ],
+    "exposure_reasons": [],
+    "image_digest": null,
+    "instance_id": "plot-bar-007",
+    "instruction": {
+      "id": "plot-bar-007",
+      "rewritten": false,
+      "sha256": "23a078366c927eb9b7033d55c22ac5cb898e82909d97b83c2d7e9891f759de20",
+      "source": "sources/da-code/da_code/configs/task/all.jsonl"
+    },
+    "license": "DA-Code code MIT; per-dataset rights/provenance unresolved; tree presence is not download permission",
+    "official_scoring": {
+      "config": {
+        "hardness": "Hard",
+        "metric": "",
+        "task": "data visualization",
+        "threshold": 0.0,
+        "type": "bar"
+      },
+      "conj": "avg",
+      "func": [
+        "compare_image"
+      ],
+      "id": "plot-bar-007",
+      "options": [
+        {
+          "keys": [
+            "figsize",
+            "graph_title",
+            "x_label",
+            "y_label",
+            "xtick_labels",
+            "color"
+          ]
+        }
+      ],
+      "requirements": [
+        {
+          "gold_basename": "result.png",
+          "kind": "file",
+          "multi": true,
+          "output_path": "result.png"
+        },
+        {
+          "gold_basename": "plot.json",
+          "kind": "file",
+          "multi": true,
+          "output_path": "dabench/plot.json"
+        },
+        {
+          "gold_basename": "result.npy",
+          "kind": "file",
+          "multi": true,
+          "output_path": "dabench/result.npy"
+        }
+      ],
+      "source": "sources/da-code/da_code/configs/eval/eval_all.jsonl"
+    },
+    "post_process": [
+      "plot_process"
+    ],
+    "runtime_status": "not_validated",
+    "source_revision": "b211daf51fdc9b52d5087c9df28ac50191bcabed",
+    "split": "official all.jsonl (no upstream split field)",
+    "static_instruction_references": [
+      {
+        "name": "plot.yaml",
+        "status": "unresolved_input_or_generated_artifact"
+      },
+      {
+        "name": "result.png",
+        "status": "output_requirement"
+      }
+    ],
+    "stratum": "compare_image",
+    "structural_missing": [],
+    "unresolved": [
+      "instruction file reference not statically classified",
+      "official post-processing prerequisites unresolved: plot_process",
+      "source inventory has no recognized data payload; external/dynamic requirements unresolved"
+    ]
+  },
+  {
+    "assets": {
+      "gold": [
+        {
+          "git_blob": "7f88ab0d8d7ad0c7b7faf7178e9db0233213fe54",
+          "mode": "100644",
+          "path": "da_code/gold/plot-scatter-002/plot.json",
+          "published_bytes": 394
+        },
+        {
+          "git_blob": "20939344f60bb38aa0554dc394fe313461b10604",
+          "mode": "100644",
+          "path": "da_code/gold/plot-scatter-002/result.npy",
+          "published_bytes": 3968
+        },
+        {
+          "git_blob": "a4773404b7bf67c778b6e1cdf572e7931ca0a9cd",
+          "mode": "100644",
+          "path": "da_code/gold/plot-scatter-002/result.png",
+          "published_bytes": 23578
+        }
+      ],
+      "source": [
+        {
+          "git_blob": "0c3dfdcd258866babb836e63e37497427433b003",
+          "mode": "100644",
+          "path": "da_code/source/plot-scatter-002/README.md",
+          "published_bytes": 2198
+        },
+        {
+          "git_blob": "f53e4af4b103f400cbb5dd197ddfb9cee4440936",
+          "mode": "100644",
+          "path": "da_code/source/plot-scatter-002/closing_odds.csv.gz",
+          "published_bytes": 19457496
+        },
+        {
+          "git_blob": "28fcff2406dcf583888b5228d06c5018769d4050",
+          "mode": "100644",
+          "path": "da_code/source/plot-scatter-002/guidance.txt",
+          "published_bytes": 2240
+        },
+        {
+          "git_blob": "185d4b8941dc903831efc789f2a0cdaaa902c520",
+          "mode": "100644",
+          "path": "da_code/source/plot-scatter-002/odds_series.csv.gz",
+          "published_bytes": 22306334
+        },
+        {
+          "git_blob": "eaf86d5b68b1975b4229e6ba26732874f9d16f7b",
+          "mode": "100644",
+          "path": "da_code/source/plot-scatter-002/odds_series_b.csv.gz",
+          "published_bytes": 43789920
+        },
+        {
+          "git_blob": "a7c9c4848bc794002597ceb0b6de4b1052091044",
+          "mode": "100644",
+          "path": "da_code/source/plot-scatter-002/odds_series_b_matches.csv.gz",
+          "published_bytes": 1804654
+        },
+        {
+          "git_blob": "fa9943a7f69fe7eeb5697496236a55f399d3319d",
+          "mode": "100644",
+          "path": "da_code/source/plot-scatter-002/odds_series_matches.csv.gz",
+          "published_bytes": 1074970
+        },
+        {
+          "git_blob": "646c7c20a884f3af9d4fd9e2ad52756088ec44a8",
+          "mode": "100644",
+          "path": "da_code/source/plot-scatter-002/plot.yaml",
+          "published_bytes": 99
+        }
+      ]
+    },
+    "decision": "unresolved",
+    "domain": "da",
+    "environment_gaps": [
+      "task-specific dependency/image lock",
+      "dataset provenance/license and external acquisition",
+      "verify source README/instruction asset requirements",
+      "official scorer fresh-environment preflight"
+    ],
+    "exposure_reasons": [],
+    "image_digest": null,
+    "instance_id": "plot-scatter-002",
+    "instruction": {
+      "id": "plot-scatter-002",
+      "rewritten": false,
+      "sha256": "fba0dce73a9c853c2f107a7e03f1981190d5f3155609cb4edc5d43e2d245f778",
+      "source": "sources/da-code/da_code/configs/task/all.jsonl"
+    },
+    "license": "DA-Code code MIT; per-dataset rights/provenance unresolved; tree presence is not download permission",
+    "official_scoring": {
+      "config": {
+        "hardness": "Hard",
+        "metric": "",
+        "task": "data visualization",
+        "threshold": 0.0,
+        "type": "scatter"
+      },
+      "conj": "avg",
+      "func": [
+        "compare_image"
+      ],
+      "id": "plot-scatter-002",
+      "options": [
+        {
+          "keys": [
+            "x_label",
+            "y_label",
+            "labels"
+          ]
+        }
+      ],
+      "requirements": [
+        {
+          "gold_basename": "result.png",
+          "kind": "file",
+          "multi": true,
+          "output_path": "result.png"
+        },
+        {
+          "gold_basename": "plot.json",
+          "kind": "file",
+          "multi": true,
+          "output_path": "dabench/plot.json"
+        },
+        {
+          "gold_basename": "result.npy",
+          "kind": "file",
+          "multi": true,
+          "output_path": "dabench/result.npy"
+        }
+      ],
+      "source": "sources/da-code/da_code/configs/eval/eval_all.jsonl"
+    },
+    "post_process": [
+      "plot_process"
+    ],
+    "runtime_status": "not_validated",
+    "source_revision": "b211daf51fdc9b52d5087c9df28ac50191bcabed",
+    "split": "official all.jsonl (no upstream split field)",
+    "static_instruction_references": [
+      {
+        "name": "plot.yaml",
+        "status": "source_inventory"
+      },
+      {
+        "name": "result.png",
+        "status": "output_requirement"
+      }
+    ],
+    "stratum": "compare_image",
+    "structural_missing": [],
+    "unresolved": [
+      "official post-processing prerequisites unresolved: plot_process"
+    ]
+  },
+  {
+    "base_commit": "b16c7d12ccbc7b2d20364b89fb44285bcbfede54",
+    "decision": "eligible",
+    "domain": "swe",
+    "environment_gaps": [
+      "resolve public image digest and platform",
+      "task-specific dependencies/data sizes unknown",
+      "per-task restricted evaluator preflight; no #71 control transfer"
+    ],
+    "environment_setup_commit": "362f6df12abf9bd769d4915fabf955c993ea22cf",
+    "exposure_reasons": [],
+    "image_digest": null,
+    "instance_id": "astropy__astropy-14995",
+    "instruction": {
+      "id": "astropy__astropy-14995",
+      "rewritten": false,
+      "sha256": "2eb1c507dd3ad67acc74872966e4bb5e14d571e20e67f246fc454ed9461f5745",
+      "source": "swe-test.parquet:problem_statement"
+    },
+    "license": "SWE-bench code MIT; per-repository code/data rights must be checked before staging",
+    "official_scoring": {
+      "eval_type": "pass_and_fail",
+      "log_parser": "parse_log_astropy",
+      "metric": "resolved",
+      "runner_revision": "7a21e05772954cc81471ae19d56f436cecf43c54",
+      "test_counts": {
+        "FAIL_TO_PASS": 1,
+        "PASS_TO_PASS": 179
+      },
+      "version": "5.2"
+    },
+    "published_image": "swebench/sweb.eval.x86_64.astropy_1776_astropy-14995:latest",
+    "published_size": null,
+    "repo": "astropy/astropy",
+    "required_artifact": "model_patch against exact base_commit",
+    "runtime_status": "not_validated",
+    "source_revision": "b0dde1093fe417d83b7184254edf8199c1f0dff5",
+    "split": "test",
+    "stratum": "astropy/astropy",
+    "structural_missing": [],
+    "unresolved": []
+  },
+  {
+    "base_commit": "17455e924e243e7a55e8a38f45966d8cbb27c273",
+    "decision": "eligible",
+    "domain": "swe",
+    "environment_gaps": [
+      "resolve public image digest and platform",
+      "task-specific dependencies/data sizes unknown",
+      "per-task restricted evaluator preflight; no #71 control transfer"
+    ],
+    "environment_setup_commit": "419a78300f7cd27611196e1e464d50fd0385ff27",
+    "exposure_reasons": [],
+    "image_digest": null,
+    "instance_id": "django__django-11049",
+    "instruction": {
+      "id": "django__django-11049",
+      "rewritten": false,
+      "sha256": "0d2a24b61aacc12201b1d99062d80a2f3faf045d2ed25120075f418236d6a4a7",
+      "source": "swe-test.parquet:problem_statement"
+    },
+    "license": "SWE-bench code MIT; per-repository code/data rights must be checked before staging",
+    "official_scoring": {
+      "eval_type": "pass_and_fail",
+      "log_parser": "parse_log_django",
+      "metric": "resolved",
+      "runner_revision": "7a21e05772954cc81471ae19d56f436cecf43c54",
+      "test_counts": {
+        "FAIL_TO_PASS": 1,
+        "PASS_TO_PASS": 8
+      },
+      "version": "3.0"
+    },
+    "published_image": "swebench/sweb.eval.x86_64.django_1776_django-11049:latest",
+    "published_size": null,
+    "repo": "django/django",
+    "required_artifact": "model_patch against exact base_commit",
+    "runtime_status": "not_validated",
+    "source_revision": "b0dde1093fe417d83b7184254edf8199c1f0dff5",
+    "split": "test",
+    "stratum": "django/django",
+    "structural_missing": [],
+    "unresolved": []
+  },
+  {
+    "base_commit": "b330b918e979ea39a21d47b61172d112caf432c3",
+    "decision": "eligible",
+    "domain": "swe",
+    "environment_gaps": [
+      "resolve public image digest and platform",
+      "task-specific dependencies/data sizes unknown",
+      "per-task restricted evaluator preflight; no #71 control transfer"
+    ],
+    "environment_setup_commit": "0668164b4ac93a5be79f5b87fae83c657124d9ab",
+    "exposure_reasons": [],
+    "image_digest": null,
+    "instance_id": "django__django-12453",
+    "instruction": {
+      "id": "django__django-12453",
+      "rewritten": false,
+      "sha256": "3398a139b609305f0982aed672d2ca96b64a1670ec8990a9db0d09f3192c1633",
+      "source": "swe-test.parquet:problem_statement"
+    },
+    "license": "SWE-bench code MIT; per-repository code/data rights must be checked before staging",
+    "official_scoring": {
+      "eval_type": "pass_and_fail",
+      "log_parser": "parse_log_django",
+      "metric": "resolved",
+      "runner_revision": "7a21e05772954cc81471ae19d56f436cecf43c54",
+      "test_counts": {
+        "FAIL_TO_PASS": 1,
+        "PASS_TO_PASS": 5
+      },
+      "version": "3.1"
+    },
+    "published_image": "swebench/sweb.eval.x86_64.django_1776_django-12453:latest",
+    "published_size": null,
+    "repo": "django/django",
+    "required_artifact": "model_patch against exact base_commit",
+    "runtime_status": "not_validated",
+    "source_revision": "b0dde1093fe417d83b7184254edf8199c1f0dff5",
+    "split": "test",
+    "stratum": "django/django",
+    "structural_missing": [],
+    "unresolved": []
+  },
+  {
+    "base_commit": "3bc4240d979812bd11365ede04c028ea13fdc8c6",
+    "decision": "eligible",
+    "domain": "swe",
+    "environment_gaps": [
+      "resolve public image digest and platform",
+      "task-specific dependencies/data sizes unknown",
+      "per-task restricted evaluator preflight; no #71 control transfer"
+    ],
+    "environment_setup_commit": "65dfb06a1ab56c238cc80f5e1c31f61210c4577d",
+    "exposure_reasons": [],
+    "image_digest": null,
+    "instance_id": "django__django-12983",
+    "instruction": {
+      "id": "django__django-12983",
+      "rewritten": false,
+      "sha256": "ca1a9bcb7cc171c0c3b552c22d9265870babb2138c29532c011af17b8934725b",
+      "source": "swe-test.parquet:problem_statement"
+    },
+    "license": "SWE-bench code MIT; per-repository code/data rights must be checked before staging",
+    "official_scoring": {
+      "eval_type": "pass_and_fail",
+      "log_parser": "parse_log_django",
+      "metric": "resolved",
+      "runner_revision": "7a21e05772954cc81471ae19d56f436cecf43c54",
+      "test_counts": {
+        "FAIL_TO_PASS": 1,
+        "PASS_TO_PASS": 15
+      },
+      "version": "3.2"
+    },
+    "published_image": "swebench/sweb.eval.x86_64.django_1776_django-12983:latest",
+    "published_size": null,
+    "repo": "django/django",
+    "required_artifact": "model_patch against exact base_commit",
+    "runtime_status": "not_validated",
+    "source_revision": "b0dde1093fe417d83b7184254edf8199c1f0dff5",
+    "split": "test",
+    "stratum": "django/django",
+    "structural_missing": [],
+    "unresolved": []
+  },
+  {
+    "base_commit": "466920f6d726eee90d5566e0a9948e92b33a122e",
+    "decision": "eligible",
+    "domain": "swe",
+    "environment_gaps": [
+      "resolve public image digest and platform",
+      "task-specific dependencies/data sizes unknown",
+      "per-task restricted evaluator preflight; no #71 control transfer"
+    ],
+    "environment_setup_commit": "475cffd1d64c690cdad16ede4d5e81985738ceb4",
+    "exposure_reasons": [],
+    "image_digest": null,
+    "instance_id": "django__django-14017",
+    "instruction": {
+      "id": "django__django-14017",
+      "rewritten": false,
+      "sha256": "a9b1b917d84ea9f7230d9dd8a0e81fe9261b0a878979d52423fa24cbb574acba",
+      "source": "swe-test.parquet:problem_statement"
+    },
+    "license": "SWE-bench code MIT; per-repository code/data rights must be checked before staging",
+    "official_scoring": {
+      "eval_type": "pass_and_fail",
+      "log_parser": "parse_log_django",
+      "metric": "resolved",
+      "runner_revision": "7a21e05772954cc81471ae19d56f436cecf43c54",
+      "test_counts": {
+        "FAIL_TO_PASS": 2,
+        "PASS_TO_PASS": 147
+      },
+      "version": "4.0"
+    },
+    "published_image": "swebench/sweb.eval.x86_64.django_1776_django-14017:latest",
+    "published_size": null,
+    "repo": "django/django",
+    "required_artifact": "model_patch against exact base_commit",
+    "runtime_status": "not_validated",
+    "source_revision": "b0dde1093fe417d83b7184254edf8199c1f0dff5",
+    "split": "test",
+    "stratum": "django/django",
+    "structural_missing": [],
+    "unresolved": []
+  },
+  {
+    "base_commit": "c627226d05dd52aef59447dcfb29cec2c2b11b8a",
+    "decision": "eligible",
+    "domain": "swe",
+    "environment_gaps": [
+      "resolve public image digest and platform",
+      "task-specific dependencies/data sizes unknown",
+      "per-task restricted evaluator preflight; no #71 control transfer"
+    ],
+    "environment_setup_commit": "0fbdb9784da915fce5dcc1fe82bac9b4785749e5",
+    "exposure_reasons": [],
+    "image_digest": null,
+    "instance_id": "django__django-15790",
+    "instruction": {
+      "id": "django__django-15790",
+      "rewritten": false,
+      "sha256": "4a5a49422b64fc0b9d61f28875545c9d8d7ce8e234919b21db9ac2c8c56959fc",
+      "source": "swe-test.parquet:problem_statement"
+    },
+    "license": "SWE-bench code MIT; per-repository code/data rights must be checked before staging",
+    "official_scoring": {
+      "eval_type": "pass_and_fail",
+      "log_parser": "parse_log_django",
+      "metric": "resolved",
+      "runner_revision": "7a21e05772954cc81471ae19d56f436cecf43c54",
+      "test_counts": {
+        "FAIL_TO_PASS": 1,
+        "PASS_TO_PASS": 12
+      },
+      "version": "4.2"
+    },
+    "published_image": "swebench/sweb.eval.x86_64.django_1776_django-15790:latest",
+    "published_size": null,
+    "repo": "django/django",
+    "required_artifact": "model_patch against exact base_commit",
+    "runtime_status": "not_validated",
+    "source_revision": "b0dde1093fe417d83b7184254edf8199c1f0dff5",
+    "split": "test",
+    "stratum": "django/django",
+    "structural_missing": [],
+    "unresolved": []
+  },
+  {
+    "base_commit": "c61219a7ae051d2baab53f041e00592011fc550c",
+    "decision": "eligible",
+    "domain": "swe",
+    "environment_gaps": [
+      "resolve public image digest and platform",
+      "task-specific dependencies/data sizes unknown",
+      "per-task restricted evaluator preflight; no #71 control transfer"
+    ],
+    "environment_setup_commit": "4a72da71001f154ea60906a2f74898d32b7322a7",
+    "exposure_reasons": [],
+    "image_digest": null,
+    "instance_id": "django__django-16820",
+    "instruction": {
+      "id": "django__django-16820",
+      "rewritten": false,
+      "sha256": "d152e4cbbc90c2d106992dcd3f906b2c38f698c8fcef7d6e5f906e221104ea7e",
+      "source": "swe-test.parquet:problem_statement"
+    },
+    "license": "SWE-bench code MIT; per-repository code/data rights must be checked before staging",
+    "official_scoring": {
+      "eval_type": "pass_and_fail",
+      "log_parser": "parse_log_django",
+      "metric": "resolved",
+      "runner_revision": "7a21e05772954cc81471ae19d56f436cecf43c54",
+      "test_counts": {
+        "FAIL_TO_PASS": 7,
+        "PASS_TO_PASS": 203
+      },
+      "version": "5.0"
+    },
+    "published_image": "swebench/sweb.eval.x86_64.django_1776_django-16820:latest",
+    "published_size": null,
+    "repo": "django/django",
+    "required_artifact": "model_patch against exact base_commit",
+    "runtime_status": "not_validated",
+    "source_revision": "b0dde1093fe417d83b7184254edf8199c1f0dff5",
+    "split": "test",
+    "stratum": "django/django",
+    "structural_missing": [],
+    "unresolved": []
+  },
+  {
+    "base_commit": "29a86636a9c45ab5ac4d80ac76eaee497f460dce",
+    "decision": "eligible",
+    "domain": "swe",
+    "environment_gaps": [
+      "resolve public image digest and platform",
+      "task-specific dependencies/data sizes unknown",
+      "per-task restricted evaluator preflight; no #71 control transfer"
+    ],
+    "environment_setup_commit": "de98877e3dc45de8dd441d008f23d88738dc015d",
+    "exposure_reasons": [],
+    "image_digest": null,
+    "instance_id": "matplotlib__matplotlib-23562",
+    "instruction": {
+      "id": "matplotlib__matplotlib-23562",
+      "rewritten": false,
+      "sha256": "68263cc1318505f1c918734a4f7a07788f0da1b83cb25123054b7e031ed08cab",
+      "source": "swe-test.parquet:problem_statement"
+    },
+    "license": "SWE-bench code MIT; per-repository code/data rights must be checked before staging",
+    "official_scoring": {
+      "eval_type": "pass_and_fail",
+      "log_parser": "parse_log_matplotlib",
+      "metric": "resolved",
+      "runner_revision": "7a21e05772954cc81471ae19d56f436cecf43c54",
+      "test_counts": {
+        "FAIL_TO_PASS": 2,
+        "PASS_TO_PASS": 136
+      },
+      "version": "3.5"
+    },
+    "published_image": "swebench/sweb.eval.x86_64.matplotlib_1776_matplotlib-23562:latest",
+    "published_size": null,
+    "repo": "matplotlib/matplotlib",
+    "required_artifact": "model_patch against exact base_commit",
+    "runtime_status": "not_validated",
+    "source_revision": "b0dde1093fe417d83b7184254edf8199c1f0dff5",
+    "split": "test",
+    "stratum": "matplotlib/matplotlib",
+    "structural_missing": [],
+    "unresolved": []
+  },
+  {
+    "base_commit": "7b77fc086aab8b3a8ebc890200371884555eea1e",
+    "decision": "eligible",
+    "domain": "swe",
+    "environment_gaps": [
+      "resolve public image digest and platform",
+      "task-specific dependencies/data sizes unknown",
+      "per-task restricted evaluator preflight; no #71 control transfer"
+    ],
+    "environment_setup_commit": "678c1a0745f1cf175c442c719906a1f13e496910",
+    "exposure_reasons": [],
+    "image_digest": null,
+    "instance_id": "pytest-dev__pytest-7373",
+    "instruction": {
+      "id": "pytest-dev__pytest-7373",
+      "rewritten": false,
+      "sha256": "cd8053cca6079b776ea53538580a40f748a5813c82f42208d250af90a2cc5797",
+      "source": "swe-test.parquet:problem_statement"
+    },
+    "license": "SWE-bench code MIT; per-repository code/data rights must be checked before staging",
+    "official_scoring": {
+      "eval_type": "pass_and_fail",
+      "log_parser": "parse_log_pytest",
+      "metric": "resolved",
+      "runner_revision": "7a21e05772954cc81471ae19d56f436cecf43c54",
+      "test_counts": {
+        "FAIL_TO_PASS": 1,
+        "PASS_TO_PASS": 81
+      },
+      "version": "5.4"
+    },
+    "published_image": "swebench/sweb.eval.x86_64.pytest-dev_1776_pytest-7373:latest",
+    "published_size": null,
+    "repo": "pytest-dev/pytest",
+    "required_artifact": "model_patch against exact base_commit",
+    "runtime_status": "not_validated",
+    "source_revision": "b0dde1093fe417d83b7184254edf8199c1f0dff5",
+    "split": "test",
+    "stratum": "pytest-dev/pytest",
+    "structural_missing": [],
+    "unresolved": []
+  },
+  {
+    "base_commit": "cd25abee0ad0ac95225d4a9be8948eff69f49690",
+    "decision": "eligible",
+    "domain": "swe",
+    "environment_gaps": [
+      "resolve public image digest and platform",
+      "task-specific dependencies/data sizes unknown",
+      "per-task restricted evaluator preflight; no #71 control transfer"
+    ],
+    "environment_setup_commit": "1e8a5b833d1b58f3ab84099c4582239af854b23a",
+    "exposure_reasons": [],
+    "image_digest": null,
+    "instance_id": "scikit-learn__scikit-learn-25570",
+    "instruction": {
+      "id": "scikit-learn__scikit-learn-25570",
+      "rewritten": false,
+      "sha256": "0323e47ba4ba20a78b8251fd152f12f641662c29cc3f0782bf296ad9ae1198df",
+      "source": "swe-test.parquet:problem_statement"
+    },
+    "license": "SWE-bench code MIT; per-repository code/data rights must be checked before staging",
+    "official_scoring": {
+      "eval_type": "pass_and_fail",
+      "log_parser": "parse_log_scikit",
+      "metric": "resolved",
+      "runner_revision": "7a21e05772954cc81471ae19d56f436cecf43c54",
+      "test_counts": {
+        "FAIL_TO_PASS": 3,
+        "PASS_TO_PASS": 184
+      },
+      "version": "1.3"
+    },
+    "published_image": "swebench/sweb.eval.x86_64.scikit-learn_1776_scikit-learn-25570:latest",
+    "published_size": null,
+    "repo": "scikit-learn/scikit-learn",
+    "required_artifact": "model_patch against exact base_commit",
+    "runtime_status": "not_validated",
+    "source_revision": "b0dde1093fe417d83b7184254edf8199c1f0dff5",
+    "split": "test",
+    "stratum": "scikit-learn/scikit-learn",
+    "structural_missing": [],
+    "unresolved": []
+  },
+  {
+    "base_commit": "332d80ba8433aea41c3709fa52737ede4405072b",
+    "decision": "eligible",
+    "domain": "swe",
+    "environment_gaps": [
+      "resolve public image digest and platform",
+      "task-specific dependencies/data sizes unknown",
+      "per-task restricted evaluator preflight; no #71 control transfer"
+    ],
+    "environment_setup_commit": "4f8cb861e3b29186b38248fe81e4944fd987fcce",
+    "exposure_reasons": [],
+    "image_digest": null,
+    "instance_id": "sphinx-doc__sphinx-8627",
+    "instruction": {
+      "id": "sphinx-doc__sphinx-8627",
+      "rewritten": false,
+      "sha256": "d08f16dc5e84539eb5bc270ed17d993f17488b63fa2d388f9216a849758e2c71",
+      "source": "swe-test.parquet:problem_statement"
+    },
+    "license": "SWE-bench code MIT; per-repository code/data rights must be checked before staging",
+    "official_scoring": {
+      "eval_type": "pass_and_fail",
+      "log_parser": "parse_log_sphinx",
+      "metric": "resolved",
+      "runner_revision": "7a21e05772954cc81471ae19d56f436cecf43c54",
+      "test_counts": {
+        "FAIL_TO_PASS": 2,
+        "PASS_TO_PASS": 17
+      },
+      "version": "3.5"
+    },
+    "published_image": "swebench/sweb.eval.x86_64.sphinx-doc_1776_sphinx-8627:latest",
+    "published_size": null,
+    "repo": "sphinx-doc/sphinx",
+    "required_artifact": "model_patch against exact base_commit",
+    "runtime_status": "not_validated",
+    "source_revision": "b0dde1093fe417d83b7184254edf8199c1f0dff5",
+    "split": "test",
+    "stratum": "sphinx-doc/sphinx",
+    "structural_missing": [],
+    "unresolved": []
+  },
+  {
+    "base_commit": "ca6ef27272be31c9dc3753ede9232c39df9a75d8",
+    "decision": "eligible",
+    "domain": "swe",
+    "environment_gaps": [
+      "resolve public image digest and platform",
+      "task-specific dependencies/data sizes unknown",
+      "per-task restricted evaluator preflight; no #71 control transfer"
+    ],
+    "environment_setup_commit": "50b81f9f6be151014501ffac44e5dc6b2416938f",
+    "exposure_reasons": [],
+    "image_digest": null,
+    "instance_id": "sympy__sympy-12171",
+    "instruction": {
+      "id": "sympy__sympy-12171",
+      "rewritten": false,
+      "sha256": "ba93a7f790815a6d01ea439b81197ec776c0d712c3e7cc2c22c8b64fb9c6fe29",
+      "source": "swe-test.parquet:problem_statement"
+    },
+    "license": "SWE-bench code MIT; per-repository code/data rights must be checked before staging",
+    "official_scoring": {
+      "eval_type": "pass_and_fail",
+      "log_parser": "parse_log_sympy",
+      "metric": "resolved",
+      "runner_revision": "7a21e05772954cc81471ae19d56f436cecf43c54",
+      "test_counts": {
+        "FAIL_TO_PASS": 1,
+        "PASS_TO_PASS": 8
+      },
+      "version": "1.0"
+    },
+    "published_image": "swebench/sweb.eval.x86_64.sympy_1776_sympy-12171:latest",
+    "published_size": null,
+    "repo": "sympy/sympy",
+    "required_artifact": "model_patch against exact base_commit",
+    "runtime_status": "not_validated",
+    "source_revision": "b0dde1093fe417d83b7184254edf8199c1f0dff5",
+    "split": "test",
+    "stratum": "sympy/sympy",
+    "structural_missing": [],
+    "unresolved": []
+  },
+  {
+    "base_commit": "3546ac7ed78e1780c1a76929864bb33330055740",
+    "decision": "eligible",
+    "domain": "swe",
+    "environment_gaps": [
+      "resolve public image digest and platform",
+      "task-specific dependencies/data sizes unknown",
+      "per-task restricted evaluator preflight; no #71 control transfer"
+    ],
+    "environment_setup_commit": "ec9e3c0436fbff934fa84e22bf07f1b3ef5bfac3",
+    "exposure_reasons": [],
+    "image_digest": null,
+    "instance_id": "sympy__sympy-13471",
+    "instruction": {
+      "id": "sympy__sympy-13471",
+      "rewritten": false,
+      "sha256": "fe7215ee31180abe3764b506afc7d7886c0cad7bb8309d4facff25204ebcdd84",
+      "source": "swe-test.parquet:problem_statement"
+    },
+    "license": "SWE-bench code MIT; per-repository code/data rights must be checked before staging",
+    "official_scoring": {
+      "eval_type": "pass_and_fail",
+      "log_parser": "parse_log_sympy",
+      "metric": "resolved",
+      "runner_revision": "7a21e05772954cc81471ae19d56f436cecf43c54",
+      "test_counts": {
+        "FAIL_TO_PASS": 1,
+        "PASS_TO_PASS": 82
+      },
+      "version": "1.1"
+    },
+    "published_image": "swebench/sweb.eval.x86_64.sympy_1776_sympy-13471:latest",
+    "published_size": null,
+    "repo": "sympy/sympy",
+    "required_artifact": "model_patch against exact base_commit",
+    "runtime_status": "not_validated",
+    "source_revision": "b0dde1093fe417d83b7184254edf8199c1f0dff5",
+    "split": "test",
+    "stratum": "sympy/sympy",
+    "structural_missing": [],
+    "unresolved": []
+  },
+  {
+    "base_commit": "62000f37b8821573ba00280524ffb4ac4a380875",
+    "decision": "eligible",
+    "domain": "swe",
+    "environment_gaps": [
+      "resolve public image digest and platform",
+      "task-specific dependencies/data sizes unknown",
+      "per-task restricted evaluator preflight; no #71 control transfer"
+    ],
+    "environment_setup_commit": "28b41c73c12b70d6ad9f6e45109a80649c4456da",
+    "exposure_reasons": [],
+    "image_digest": null,
+    "instance_id": "sympy__sympy-18057",
+    "instruction": {
+      "id": "sympy__sympy-18057",
+      "rewritten": false,
+      "sha256": "e6123af2c04c44fa1728b05a34d72f619b8fd01f33b20afef9a5b3f19a4620f0",
+      "source": "swe-test.parquet:problem_statement"
+    },
+    "license": "SWE-bench code MIT; per-repository code/data rights must be checked before staging",
+    "official_scoring": {
+      "eval_type": "pass_and_fail",
+      "log_parser": "parse_log_sympy",
+      "metric": "resolved",
+      "runner_revision": "7a21e05772954cc81471ae19d56f436cecf43c54",
+      "test_counts": {
+        "FAIL_TO_PASS": 1,
+        "PASS_TO_PASS": 98
+      },
+      "version": "1.6"
+    },
+    "published_image": "swebench/sweb.eval.x86_64.sympy_1776_sympy-18057:latest",
+    "published_size": null,
+    "repo": "sympy/sympy",
+    "required_artifact": "model_patch against exact base_commit",
+    "runtime_status": "not_validated",
+    "source_revision": "b0dde1093fe417d83b7184254edf8199c1f0dff5",
+    "split": "test",
+    "stratum": "sympy/sympy",
+    "structural_missing": [],
+    "unresolved": []
+  },
+  {
+    "base_commit": "bdb49c4abfb35554a3c8ce761696ffff3bb837fe",
+    "decision": "eligible",
+    "domain": "swe",
+    "environment_gaps": [
+      "resolve public image digest and platform",
+      "task-specific dependencies/data sizes unknown",
+      "per-task restricted evaluator preflight; no #71 control transfer"
+    ],
+    "environment_setup_commit": "cffd4e0f86fefd4802349a9f9b19ed70934ea354",
+    "exposure_reasons": [],
+    "image_digest": null,
+    "instance_id": "sympy__sympy-20154",
+    "instruction": {
+      "id": "sympy__sympy-20154",
+      "rewritten": false,
+      "sha256": "16cda9e1dbc96941a98fa2f54a1545709b1a3aefe133b20841f69d6391bef6dd",
+      "source": "swe-test.parquet:problem_statement"
+    },
+    "license": "SWE-bench code MIT; per-repository code/data rights must be checked before staging",
+    "official_scoring": {
+      "eval_type": "pass_and_fail",
+      "log_parser": "parse_log_sympy",
+      "metric": "resolved",
+      "runner_revision": "7a21e05772954cc81471ae19d56f436cecf43c54",
+      "test_counts": {
+        "FAIL_TO_PASS": 2,
+        "PASS_TO_PASS": 40
+      },
+      "version": "1.7"
+    },
+    "published_image": "swebench/sweb.eval.x86_64.sympy_1776_sympy-20154:latest",
+    "published_size": null,
+    "repo": "sympy/sympy",
+    "required_artifact": "model_patch against exact base_commit",
+    "runtime_status": "not_validated",
+    "source_revision": "b0dde1093fe417d83b7184254edf8199c1f0dff5",
+    "split": "test",
+    "stratum": "sympy/sympy",
+    "structural_missing": [],
+    "unresolved": []
+  }
+]
