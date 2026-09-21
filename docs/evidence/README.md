@@ -22,3 +22,5 @@ Raw artifacts remain at their stable source, Git, Trace, Test, evaluator, or ext
 - [Overnight handoff offline candidate](overnight-handoff-offline-candidate.md): #45 evidence navigation; independent review pending.
 
 - [`kimi-k3-live-smoke-70.md`](kimi-k3-live-smoke-70.md) records #70 Criteria1.0’s single authorized live K3 smoke, original two-dispatch/one-tool outcome and immutable evidence identities. Pending independent Regulator; no benchmark, VPF or resume claim.
+
+- [`benchmark-env-71.md`](benchmark-env-71.md): #71 Criteria1.1 Builder environment/control evidence; independent review pending.

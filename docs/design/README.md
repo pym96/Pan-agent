@@ -87,3 +87,5 @@ The Human-accepted architecture history remains indexed in [`../adr/README.md`](
 - [kimi-k3-offline.md](kimi-k3-offline.md): #68 prospective explicit K3 selection and private continuation; offline candidate only.
 
 - [Kimi bounded smoke preparation](kimi-bounded-smoke.md): #69 Stage A installed Product runner, resource guards and separate live-activation boundary.
+
+- [`benchmark-env-tracer.md`](benchmark-env-tracer.md): #71 installed Pan/SWE-ReX tracer and restricted evaluator deployment.
