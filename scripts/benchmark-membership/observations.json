@@ -1,0 +1,843 @@
+{
+  "execution_authorized": false,
+  "observations": [
+    {
+      "id": "data-sa-026",
+      "instruction": "Calculate the Pearson correlation matrix for the columns 'Overall Rating', 'Seat Comfort', 'Staff Service', and 'Food & Beverages' in the Airline Reviews Dataset. Before computing, convert these columns to numeric data types and remove any rows with missing values in these columns. Save the resulting correlation matrix to a file named result.csv, ensuring it follows the same format as the provided sample_result.csv",
+      "inventory": [
+        {
+          "bytes": 600,
+          "git_blob": "62da3b24716e95b8cfc9caddd27781cc99116a85",
+          "path": "da_code/source/data-sa-026/README.md"
+        }
+      ],
+      "membership_decision": "unresolved",
+      "post_process": [],
+      "readme": {
+        "limitation": "Closed-vocabulary presence only; not full semantic review, provision proof, or universal redaction.",
+        "observations": [],
+        "source_sha256": "faf3fec8d92068b4cc42cd4ecd2a8eb331654f259feeecc583a25e757fcdaf54"
+      },
+      "readme_text_withheld": true,
+      "reason": "No final decision: dependent selection stopped at ScopeChallenge."
+    },
+    {
+      "id": "data-sa-028",
+      "instruction": "It is observed that the beaks of G. scandens birds on Daphne Major appear to have become deeper. Assuming that the means of two groups of data are the same, you need to calculate the probability of observing the difference in means as per the instructions in tips.md. Under the null hypothesis that the means of the two groups are equal, calculate the probability (p-value) of observing the actual difference in means or a more extreme value.Write the calculated results in the format specified in sample_result.csv into the result.csv file.",
+      "inventory": [
+        {
+          "bytes": 362,
+          "git_blob": "3f5f2a8cec59c72cc3b18209064ff2423c710d97",
+          "path": "da_code/source/data-sa-028/README.md"
+        }
+      ],
+      "membership_decision": "unresolved",
+      "post_process": [],
+      "readme": {
+        "limitation": "Closed-vocabulary presence only; not full semantic review, provision proof, or universal redaction.",
+        "observations": [
+          {
+            "concepts": [
+              "birds_domain"
+            ],
+            "line": 1
+          }
+        ],
+        "source_sha256": "70f161d0f4babb3bc832b20725fbf2741ca39edf8de2bfc03a2de92cf1e0abbb"
+      },
+      "readme_text_withheld": true,
+      "reason": "No final decision: dependent selection stopped at ScopeChallenge."
+    },
+    {
+      "id": "data-sa-029",
+      "instruction": "Using the beak length and depth data of G. scandens birds from Daphne Major in 1975 and 2012, compute the beak length-to-depth ratios for each bird in both years. Calculate the mean ratio for each year and compute the 99% confidence intervals using bootstrap replicates (size = 10,000). Finally, write the results into result.csv, following the format specified in sample_result.csv.",
+      "inventory": [
+        {
+          "bytes": 668,
+          "git_blob": "4e3d7f2701837f5ca9d9b075a678aba24277840b",
+          "path": "da_code/source/data-sa-029/README.md"
+        },
+        {
+          "bytes": 36,
+          "git_blob": "9b1ee7296e4d6c7c9e5aeb5ff5843bb21fc1bce6",
+          "path": "da_code/source/data-sa-029/result.csv"
+        }
+      ],
+      "membership_decision": "unresolved",
+      "post_process": [],
+      "readme": {
+        "limitation": "Closed-vocabulary presence only; not full semantic review, provision proof, or universal redaction.",
+        "observations": [
+          {
+            "concepts": [
+              "birds_domain"
+            ],
+            "line": 1
+          }
+        ],
+        "source_sha256": "59ee801aaca38226cf5659e10fd2629fea001c2d591cd4ebdbdcdf6675f3c999"
+      },
+      "readme_text_withheld": true,
+      "reason": "No final decision: dependent selection stopped at ScopeChallenge."
+    },
+    {
+      "id": "data-sa-031",
+      "instruction": "Please perform a Bootstrap analysis to determine the 95% confidence interval for the reduction in deaths due to handwashing. Enter your findings into `result.csv`, following the provided format.\n",
+      "inventory": [
+        {
+          "bytes": 285,
+          "git_blob": "0c4c1fa97c34da372abb4c2474b77e9027000a68",
+          "path": "da_code/source/data-sa-031/README.md"
+        },
+        {
+          "bytes": 27,
+          "git_blob": "685df74dc412d6a6cc029982ec4925fb322db52e",
+          "path": "da_code/source/data-sa-031/result.csv"
+        }
+      ],
+      "membership_decision": "unresolved",
+      "post_process": [],
+      "readme": {
+        "limitation": "Closed-vocabulary presence only; not full semantic review, provision proof, or universal redaction.",
+        "observations": [
+          {
+            "concepts": [
+              "handwashing_domain"
+            ],
+            "line": 1
+          },
+          {
+            "concepts": [
+              "handwashing_domain"
+            ],
+            "line": 3
+          }
+        ],
+        "source_sha256": "489f12d254056c4ddb9e62a59d2b046d161181897dfe3e3a1c0101f3b5e87a38"
+      },
+      "readme_text_withheld": true,
+      "reason": "No final decision: dependent selection stopped at ScopeChallenge."
+    },
+    {
+      "id": "data-sa-039",
+      "instruction": "Determine if Frog D and Frog E have similar impact forces. Compute the corresponding p-value and save the result in the format of sample_result.csv to a file named result.csv. (Set the random seed to 42)",
+      "inventory": [
+        {
+          "bytes": 668,
+          "git_blob": "4e3d7f2701837f5ca9d9b075a678aba24277840b",
+          "path": "da_code/source/data-sa-039/README.md"
+        }
+      ],
+      "membership_decision": "unresolved",
+      "post_process": [],
+      "readme": {
+        "limitation": "Closed-vocabulary presence only; not full semantic review, provision proof, or universal redaction.",
+        "observations": [
+          {
+            "concepts": [
+              "birds_domain"
+            ],
+            "line": 1
+          }
+        ],
+        "source_sha256": "59ee801aaca38226cf5659e10fd2629fea001c2d591cd4ebdbdcdf6675f3c999"
+      },
+      "readme_text_withheld": true,
+      "reason": "No final decision: dependent selection stopped at ScopeChallenge."
+    },
+    {
+      "id": "data-sa-043",
+      "instruction": "Calculate the sum of squared residuals (SSR) from a regression analysis predicting quarterly minimum portfolio returns based on mortgage delinquencies using data from 2005 to 2010. Save the results in result.csv",
+      "inventory": [
+        {
+          "bytes": 768,
+          "git_blob": "1364c13af694c85c8966933beec657a0aee1d38c",
+          "path": "da_code/source/data-sa-043/README.md"
+        },
+        {
+          "bytes": 29,
+          "git_blob": "1cd48b1cb4bf32a3e7aee6621f046c0749b48fdf",
+          "path": "da_code/source/data-sa-043/sample_result.csv"
+        }
+      ],
+      "membership_decision": "unresolved",
+      "post_process": [],
+      "readme": {
+        "limitation": "Closed-vocabulary presence only; not full semantic review, provision proof, or universal redaction.",
+        "observations": [
+          {
+            "concepts": [
+              "simulated_data_description"
+            ],
+            "line": 3
+          }
+        ],
+        "source_sha256": "f1694627da6e310bf8ddbe4d6b23c1c7424f8086dbefe0129aa9ddb49b894109"
+      },
+      "readme_text_withheld": true,
+      "reason": "No final decision: dependent selection stopped at ScopeChallenge."
+    },
+    {
+      "id": "ml-multi-003",
+      "instruction": "Predict the experience level of job positions using the provided dataset. Use test.csv to generate your predictions. Save your results in result.csv with the column name \"formatted_experience_level\".",
+      "inventory": [
+        {
+          "bytes": 4109,
+          "git_blob": "2afccc4e8828a16f435f4a665d23bbb2e1c9cc32",
+          "path": "da_code/source/ml-multi-003/README.md"
+        },
+        {
+          "bytes": 23196843,
+          "git_blob": "044dbcb88bacba5917900cf8e1978c983abfa4fe",
+          "path": "da_code/source/ml-multi-003/companies/companies.csv"
+        },
+        {
+          "bytes": 782404,
+          "git_blob": "f7ed99712d5773d987a423e72c27cfaeab8b0245",
+          "path": "da_code/source/ml-multi-003/companies/company_industries.csv"
+        },
+        {
+          "bytes": 4431117,
+          "git_blob": "e1a2e5ca8a510bfa402bde8c5fc172a3fbc99327",
+          "path": "da_code/source/ml-multi-003/companies/company_specialities.csv"
+        },
+        {
+          "bytes": 1044625,
+          "git_blob": "68aa0a1b6722405a565ca49edcdc7176e2b399cd",
+          "path": "da_code/source/ml-multi-003/companies/employee_counts.csv"
+        },
+        {
+          "bytes": 2506014,
+          "git_blob": "822d695e457c7c392fb50a2075251096e29e56c5",
+          "path": "da_code/source/ml-multi-003/jobs/job_industries.csv"
+        },
+        {
+          "bytes": 3506651,
+          "git_blob": "2df6c4c957fe0a5e7c9f1871e69786b04c1d2632",
+          "path": "da_code/source/ml-multi-003/jobs/job_skills.csv"
+        },
+        {
+          "bytes": 2252264,
+          "git_blob": "640cb960b222e603e2d59a9655734c87ec4f3b54",
+          "path": "da_code/source/ml-multi-003/jobs/salaries.csv"
+        },
+        {
+          "bytes": 12734,
+          "git_blob": "1e4c520c81e8b6f786365e0b10cb9c25b5faeb86",
+          "path": "da_code/source/ml-multi-003/mappings/industries.csv"
+        },
+        {
+          "bytes": 679,
+          "git_blob": "44128cff1d4d95e1a15c5a3bb3e3577fd5ac34c4",
+          "path": "da_code/source/ml-multi-003/mappings/skills.csv"
+        }
+      ],
+      "membership_decision": "unresolved",
+      "post_process": [],
+      "readme": {
+        "limitation": "Closed-vocabulary presence only; not full semantic review, provision proof, or universal redaction.",
+        "observations": [
+          {
+            "concepts": [
+              "external_locator"
+            ],
+            "line": 11
+          }
+        ],
+        "source_sha256": "23a052b774f4e6a0082ead79cc4e84132cb95cee8fa207bd6744d9678455eb18"
+      },
+      "readme_text_withheld": true,
+      "reason": "No final decision: dependent selection stopped at ScopeChallenge."
+    },
+    {
+      "id": "plot-bar-004",
+      "instruction": "Enhance the provided analysis.py, correct any potential errors, plot the images and save them in 'result.png' following the form of 'plot.yaml'",
+      "inventory": [
+        {
+          "bytes": 298,
+          "git_blob": "e0b911a38d68fe7f49aeb472fb5723506a6a8a18",
+          "path": "da_code/source/plot-bar-004/README.md"
+        },
+        {
+          "bytes": 411,
+          "git_blob": "18519206ec50384a1e0e17c4ba95e3dd31ff9831",
+          "path": "da_code/source/plot-bar-004/analysis.py"
+        },
+        {
+          "bytes": 195,
+          "git_blob": "a0e71991710547b653cfa876b9be299609ede515",
+          "path": "da_code/source/plot-bar-004/plot.yaml"
+        },
+        {
+          "bytes": 61194,
+          "git_blob": "63b68ab0ba98c667f515c52f08c0bbd5573d5330",
+          "path": "da_code/source/plot-bar-004/train.csv"
+        }
+      ],
+      "membership_decision": "unresolved",
+      "post_process": [
+        "plot_process"
+      ],
+      "readme": {
+        "limitation": "Closed-vocabulary presence only; not full semantic review, provision proof, or universal redaction.",
+        "observations": [],
+        "source_sha256": "ee92d90df75ba9e40ce813d392e34eabb7941a89cc24f513f4676737e29e6188"
+      },
+      "readme_text_withheld": true,
+      "reason": "No final decision: dependent selection stopped at ScopeChallenge."
+    },
+    {
+      "id": "plot-bar-005",
+      "instruction": "Draw a bar chart showing the number of people in each age group who filled out the survey. Follow the method for dividing age groups as outlined in AgeGroup.md. Save the bar chart as 'result.png' with the title 'Age Group Distribution', the x-axis labeled as 'Age Group', and the y-axis labeled as 'Count'.",
+      "inventory": [
+        {
+          "bytes": 318,
+          "git_blob": "10e2bdfebf1904a14680e9b345dc28ab5ea7137d",
+          "path": "da_code/source/plot-bar-005/AgeGroup.md"
+        },
+        {
+          "bytes": 668,
+          "git_blob": "53459e8c991b16d23d24fa49ebd7c58156c57908",
+          "path": "da_code/source/plot-bar-005/README.md"
+        },
+        {
+          "bytes": 8449,
+          "git_blob": "ecfd6d8b6e014d30ef1c46dd3209b1bf3f9a1811",
+          "path": "da_code/source/plot-bar-005/SurveySchema.csv"
+        },
+        {
+          "bytes": 1360985,
+          "git_blob": "2993ff423ba7dfb6fffa52fbbc2da703cb091faf",
+          "path": "da_code/source/plot-bar-005/freeFormResponses.csv"
+        },
+        {
+          "bytes": 41189695,
+          "git_blob": "3e8cfd4f0134f4b274f6978b074cd85a3223f2d2",
+          "path": "da_code/source/plot-bar-005/multipleChoiceResponses.csv"
+        },
+        {
+          "bytes": 250,
+          "git_blob": "871d04c302bde5cd2503b797c486504f36f73103",
+          "path": "da_code/source/plot-bar-005/plot.yaml"
+        }
+      ],
+      "membership_decision": "unresolved",
+      "post_process": [
+        "plot_process"
+      ],
+      "readme": {
+        "limitation": "Closed-vocabulary presence only; not full semantic review, provision proof, or universal redaction.",
+        "observations": [],
+        "source_sha256": "b3c1f4c37f08f305014de14fc320db25afb30c5db9a03fcfe6798e6bd96a6c94"
+      },
+      "readme_text_withheld": true,
+      "reason": "No final decision: dependent selection stopped at ScopeChallenge."
+    },
+    {
+      "id": "plot-bar-006",
+      "instruction": "Plot a bar chart for a clearer visual representation of each team's performance over the specified period. Save the resulting chart as 'team.png', adhering to the settings specified in 'plot.yaml'.",
+      "inventory": [
+        {
+          "bytes": 2508,
+          "git_blob": "7df0aaad34c3ea5613c0533c455ee0f06818d55d",
+          "path": "da_code/source/plot-bar-006/README.md"
+        },
+        {
+          "bytes": 3016253,
+          "git_blob": "17e1c5f4814c2a609cd5b7ed1b693bf271481c60",
+          "path": "da_code/source/plot-bar-006/goalscorers.csv"
+        },
+        {
+          "bytes": 798,
+          "git_blob": "a0c72d89f473a804556aef67deecc0c3b902228d",
+          "path": "da_code/source/plot-bar-006/overall_score.txt"
+        },
+        {
+          "bytes": 258,
+          "git_blob": "a0309e4d37536e5585b39085aace5b105b79f359",
+          "path": "da_code/source/plot-bar-006/plot.yaml"
+        },
+        {
+          "bytes": 3486329,
+          "git_blob": "9bb0d184dd97d1588dfac8bd7b74f6855d9ec3c3",
+          "path": "da_code/source/plot-bar-006/results.csv"
+        },
+        {
+          "bytes": 26128,
+          "git_blob": "c5e09e2727b4a5bfe9cb53245c00448b18eea26e",
+          "path": "da_code/source/plot-bar-006/shootouts.csv"
+        }
+      ],
+      "membership_decision": "unresolved",
+      "post_process": [
+        "plot_process"
+      ],
+      "readme": {
+        "limitation": "Closed-vocabulary presence only; not full semantic review, provision proof, or universal redaction.",
+        "observations": [
+          {
+            "concepts": [
+              "football_domain"
+            ],
+            "line": 5
+          },
+          {
+            "concepts": [
+              "football_domain"
+            ],
+            "line": 9
+          }
+        ],
+        "source_sha256": "eeb6e8fb104477b5321fddd9167ba88555b7ebd3ecdd99e20f2a660020c77ea9"
+      },
+      "readme_text_withheld": true,
+      "reason": "No final decision: dependent selection stopped at ScopeChallenge."
+    },
+    {
+      "id": "plot-bar-007",
+      "instruction": "Create a bar chart showing the distribution of Amazon Prime movies grouped by duration, displaying the number of movies in each duration range. The chart should be formatted according to the specifications given in plot.yaml and saved as result.png.",
+      "inventory": [
+        {
+          "bytes": 824,
+          "git_blob": "891b63d092d91594c1de09f1f5ed55bd2d3fd5a7",
+          "path": "da_code/source/plot-bar-007/README.md"
+        }
+      ],
+      "membership_decision": "unresolved",
+      "post_process": [
+        "plot_process"
+      ],
+      "readme": {
+        "limitation": "Closed-vocabulary presence only; not full semantic review, provision proof, or universal redaction.",
+        "observations": [],
+        "source_sha256": "241740d3c24e93db6fba08fb9740069cdb8011bda6af689ffad607943e41e77b"
+      },
+      "readme_text_withheld": true,
+      "reason": "No final decision: dependent selection stopped at ScopeChallenge."
+    },
+    {
+      "id": "plot-bar-015",
+      "instruction": "Collect sales data for each product size, quantified in increments of $10,000 units. Create a bar chart to visualize this data, sorting the sizes in ascending order with 'free size' considered the smallest. Save the chart to 'result.png'",
+      "inventory": [
+        {
+          "bytes": 68923428,
+          "git_blob": "8ed76b337d448263dd65a45ea989ffa12ab4680b",
+          "path": "da_code/source/plot-bar-015/Amazon Sale Report.csv"
+        },
+        {
+          "bytes": 4528,
+          "git_blob": "1dbfb81ba9e2bccf74bd04b37c5f76671ce28c3c",
+          "path": "da_code/source/plot-bar-015/Cloud Warehouse Compersion Chart.csv"
+        },
+        {
+          "bytes": 496,
+          "git_blob": "c78d9e8afbeec5bea6eca0ffed667391cb70ae51",
+          "path": "da_code/source/plot-bar-015/Expense IIGF.csv"
+        },
+        {
+          "bytes": 3112676,
+          "git_blob": "ab38eb080af6e8795570d862f955ee4979705d5b",
+          "path": "da_code/source/plot-bar-015/International sale Report.csv"
+        },
+        {
+          "bytes": 126617,
+          "git_blob": "1d7eadf80e136e599b79757068fcbc0d8d3bfef5",
+          "path": "da_code/source/plot-bar-015/May-2022.csv"
+        },
+        {
+          "bytes": 135938,
+          "git_blob": "155bf08c936fe6e1d87ce4ade75e6eed3ddf6d5c",
+          "path": "da_code/source/plot-bar-015/P  L March 2021.csv"
+        },
+        {
+          "bytes": 3256,
+          "git_blob": "940790bc7ca9111a7395b88b7b65e1d78d1c4029",
+          "path": "da_code/source/plot-bar-015/README.md"
+        },
+        {
+          "bytes": 433643,
+          "git_blob": "037dbdac021970c3dab96f5a945a9accdd468494",
+          "path": "da_code/source/plot-bar-015/Sale Report.csv"
+        },
+        {
+          "bytes": 192,
+          "git_blob": "fcb60922cd0a3863d11f57a85c0148f143737dc1",
+          "path": "da_code/source/plot-bar-015/currency.txt"
+        }
+      ],
+      "membership_decision": "unresolved",
+      "post_process": [
+        "plot_process"
+      ],
+      "readme": {
+        "limitation": "Closed-vocabulary presence only; not full semantic review, provision proof, or universal redaction.",
+        "observations": [
+          {
+            "concepts": [
+              "sales_domain"
+            ],
+            "line": 5
+          },
+          {
+            "concepts": [
+              "sales_domain"
+            ],
+            "line": 13
+          },
+          {
+            "concepts": [
+              "sales_domain"
+            ],
+            "line": 17
+          },
+          {
+            "concepts": [
+              "sales_domain"
+            ],
+            "line": 21
+          },
+          {
+            "concepts": [
+              "generation_description"
+            ],
+            "line": 24
+          },
+          {
+            "concepts": [
+              "orders_domain"
+            ],
+            "line": 25
+          },
+          {
+            "concepts": [
+              "sales_domain"
+            ],
+            "line": 29
+          },
+          {
+            "concepts": [
+              "sales_domain"
+            ],
+            "line": 30
+          },
+          {
+            "concepts": [
+              "sales_domain"
+            ],
+            "line": 31
+          }
+        ],
+        "source_sha256": "ad8fb5122413b1c1fc22d99fd71663773d61a03d7a835f26f25a5c53a8ce39b3"
+      },
+      "readme_text_withheld": true,
+      "reason": "No final decision: dependent selection stopped at ScopeChallenge."
+    },
+    {
+      "id": "plot-line-006",
+      "instruction": "From the Climate Change Dataset, create a line graph showing global seasonal average temperature changes as instructed in tips.txt and formatted according to plot.yaml. Save the graph as result.png.",
+      "inventory": [
+        {
+          "bytes": 22680393,
+          "git_blob": "c6492227e231a513217a2ab6bcc0e8ced1c2a932",
+          "path": "da_code/source/plot-line-006/GlobalLandTemperaturesByCountry.csv"
+        },
+        {
+          "bytes": 14138385,
+          "git_blob": "d81ee7ae4c2b6a13d554d5257c03511300f67b5c",
+          "path": "da_code/source/plot-line-006/GlobalLandTemperaturesByMajorCity.csv"
+        },
+        {
+          "bytes": 30770160,
+          "git_blob": "0450b49de4f00959bf43e230b22efb5f195fa3cb",
+          "path": "da_code/source/plot-line-006/GlobalLandTemperaturesByState.csv"
+        },
+        {
+          "bytes": 205875,
+          "git_blob": "d7d2477bfacb16f01877f3cf0d5948bcb99f58d2",
+          "path": "da_code/source/plot-line-006/GlobalTemperatures.csv"
+        },
+        {
+          "bytes": 3460,
+          "git_blob": "5e2b6e78d484869fe38b4206147563a44f2c3150",
+          "path": "da_code/source/plot-line-006/README.md"
+        },
+        {
+          "bytes": 340,
+          "git_blob": "67795f4ad57d4d83a840605d2d40fc1198517625",
+          "path": "da_code/source/plot-line-006/tips.txt"
+        }
+      ],
+      "membership_decision": "unresolved",
+      "post_process": [
+        "plot_process"
+      ],
+      "readme": {
+        "limitation": "Closed-vocabulary presence only; not full semantic review, provision proof, or universal redaction.",
+        "observations": [
+          {
+            "concepts": [
+              "football_domain"
+            ],
+            "line": 6
+          },
+          {
+            "concepts": [
+              "football_domain"
+            ],
+            "line": 10
+          },
+          {
+            "concepts": [
+              "football_domain"
+            ],
+            "line": 48
+          },
+          {
+            "concepts": [
+              "football_domain"
+            ],
+            "line": 55
+          },
+          {
+            "concepts": [
+              "football_domain"
+            ],
+            "line": 56
+          },
+          {
+            "concepts": [
+              "football_domain"
+            ],
+            "line": 57
+          },
+          {
+            "concepts": [
+              "football_domain"
+            ],
+            "line": 62
+          }
+        ],
+        "source_sha256": "82e0b89a1b49b9aee75b72d66008f680db464fde52196d1a779d97b720f597ed"
+      },
+      "readme_text_withheld": true,
+      "reason": "No final decision: dependent selection stopped at ScopeChallenge."
+    },
+    {
+      "id": "plot-pie-005",
+      "instruction": "Implement the analysis.py script as per guidance.txt to tally the number of games across the four major genres in the Mobile Strategy Game dataset. Generate a pie chart depicting genre proportions, sized (12, 8), with Green, Orange, Blue, and Red used as pie colors. Include genre names in the legend and save the image as result.png.",
+      "inventory": [
+        {
+          "bytes": 392,
+          "git_blob": "1c798d5da51b03d7d45ec20a4788c501e07261c7",
+          "path": "da_code/source/plot-pie-005/README.md"
+        },
+        {
+          "bytes": 343,
+          "git_blob": "4b0e6da01a86333c75e6401ace4f86d14bd571ad",
+          "path": "da_code/source/plot-pie-005/analysis.py"
+        },
+        {
+          "bytes": 23948849,
+          "git_blob": "ebe6ea82c655674c49f0f272fd1f9e9ac3c7d882",
+          "path": "da_code/source/plot-pie-005/appstore_games.csv"
+        },
+        {
+          "bytes": 646,
+          "git_blob": "d9429fc316afb79e817fa6bb7ac9a7cf34ce1522",
+          "path": "da_code/source/plot-pie-005/guidance.txt"
+        }
+      ],
+      "membership_decision": "unresolved",
+      "post_process": [
+        "plot_process"
+      ],
+      "readme": {
+        "limitation": "Closed-vocabulary presence only; not full semantic review, provision proof, or universal redaction.",
+        "observations": [],
+        "source_sha256": "57eebd8e871748251127b264e23b4fc70a7fa22779d857cb094ec10006b72dfd"
+      },
+      "readme_text_withheld": true,
+      "reason": "No final decision: dependent selection stopped at ScopeChallenge."
+    },
+    {
+      "id": "plot-pie-008",
+      "instruction": "Please find out which hub city has the largest biker average delivery distance. Then, generate a pie chart illustrating the distribution of order deliveries by driver modes in that city, adhering to the guidelines in 'plot.yaml', and save the chart in `result.jpg`",
+      "inventory": [
+        {
+          "bytes": 1521,
+          "git_blob": "757663d5a052f3ae7972d8a86a5c3592a08bdf80",
+          "path": "da_code/source/plot-pie-008/README.md"
+        },
+        {
+          "bytes": 1152,
+          "git_blob": "708c925f725115eea9448277bde0a28c81f02e19",
+          "path": "da_code/source/plot-pie-008/channels.csv"
+        },
+        {
+          "bytes": 14491794,
+          "git_blob": "8be32bc1041af5a5b15e28d46b990b74b70b49d6",
+          "path": "da_code/source/plot-pie-008/deliveries.csv"
+        },
+        {
+          "bytes": 123374,
+          "git_blob": "7299fb170d2b0f5df1df1978ffa47eb7b9829665",
+          "path": "da_code/source/plot-pie-008/drivers.csv"
+        },
+        {
+          "bytes": 1866,
+          "git_blob": "2cf5cf0d39c4d9dbbf4b2da883eff53ebe01b4f1",
+          "path": "da_code/source/plot-pie-008/hubs.csv"
+        },
+        {
+          "bytes": 90250303,
+          "git_blob": "791d9a0576ffe61544f0fd315da465f305aa78da",
+          "path": "da_code/source/plot-pie-008/orders.csv"
+        },
+        {
+          "bytes": 16072813,
+          "git_blob": "abe761f1f8c30a25d7b114a39c24b5a570d0a146",
+          "path": "da_code/source/plot-pie-008/payments.csv"
+        },
+        {
+          "bytes": 125,
+          "git_blob": "0ce30061fccc1cb4e3d85fb7c23c8c47e9f449b8",
+          "path": "da_code/source/plot-pie-008/plot.yaml"
+        },
+        {
+          "bytes": 48440,
+          "git_blob": "c0080ab895e91bf93c1a05b0e8a47658b314d848",
+          "path": "da_code/source/plot-pie-008/stores.csv"
+        }
+      ],
+      "membership_decision": "unresolved",
+      "post_process": [
+        "plot_process"
+      ],
+      "readme": {
+        "limitation": "Closed-vocabulary presence only; not full semantic review, provision proof, or universal redaction.",
+        "observations": [
+          {
+            "concepts": [
+              "orders_domain"
+            ],
+            "line": 3
+          },
+          {
+            "concepts": [
+              "orders_domain"
+            ],
+            "line": 5
+          },
+          {
+            "concepts": [
+              "sales_domain"
+            ],
+            "line": 11
+          },
+          {
+            "concepts": [
+              "orders_domain"
+            ],
+            "line": 12
+          },
+          {
+            "concepts": [
+              "orders_domain"
+            ],
+            "line": 13
+          },
+          {
+            "concepts": [
+              "orders_domain"
+            ],
+            "line": 14
+          },
+          {
+            "concepts": [
+              "orders_domain",
+              "sales_domain"
+            ],
+            "line": 15
+          },
+          {
+            "concepts": [
+              "orders_domain"
+            ],
+            "line": 16
+          },
+          {
+            "concepts": [
+              "orders_domain"
+            ],
+            "line": 17
+          }
+        ],
+        "source_sha256": "8081605b532b04c703781c9c15c025161dab4004e6ea1e9e56981b9ab3c824e9"
+      },
+      "readme_text_withheld": true,
+      "reason": "No final decision: dependent selection stopped at ScopeChallenge."
+    },
+    {
+      "id": "plot-scatter-002",
+      "instruction": "Create a stacked horizontal bar chart, which illustrates the average days per order stage forthe top 10 cities by sales. Save the chart as \"result.png\" with settings from \"plot.yaml\".",
+      "inventory": [
+        {
+          "bytes": 2198,
+          "git_blob": "0c3dfdcd258866babb836e63e37497427433b003",
+          "path": "da_code/source/plot-scatter-002/README.md"
+        },
+        {
+          "bytes": 19457496,
+          "git_blob": "f53e4af4b103f400cbb5dd197ddfb9cee4440936",
+          "path": "da_code/source/plot-scatter-002/closing_odds.csv.gz"
+        },
+        {
+          "bytes": 2240,
+          "git_blob": "28fcff2406dcf583888b5228d06c5018769d4050",
+          "path": "da_code/source/plot-scatter-002/guidance.txt"
+        },
+        {
+          "bytes": 22306334,
+          "git_blob": "185d4b8941dc903831efc789f2a0cdaaa902c520",
+          "path": "da_code/source/plot-scatter-002/odds_series.csv.gz"
+        },
+        {
+          "bytes": 43789920,
+          "git_blob": "eaf86d5b68b1975b4229e6ba26732874f9d16f7b",
+          "path": "da_code/source/plot-scatter-002/odds_series_b.csv.gz"
+        },
+        {
+          "bytes": 1804654,
+          "git_blob": "a7c9c4848bc794002597ceb0b6de4b1052091044",
+          "path": "da_code/source/plot-scatter-002/odds_series_b_matches.csv.gz"
+        },
+        {
+          "bytes": 1074970,
+          "git_blob": "fa9943a7f69fe7eeb5697496236a55f399d3319d",
+          "path": "da_code/source/plot-scatter-002/odds_series_matches.csv.gz"
+        },
+        {
+          "bytes": 99,
+          "git_blob": "646c7c20a884f3af9d4fd9e2ad52756088ec44a8",
+          "path": "da_code/source/plot-scatter-002/plot.yaml"
+        }
+      ],
+      "membership_decision": "unresolved",
+      "post_process": [
+        "plot_process"
+      ],
+      "readme": {
+        "limitation": "Closed-vocabulary presence only; not full semantic review, provision proof, or universal redaction.",
+        "observations": [],
+        "source_sha256": "607b866a0b2beb5edc736da505cd247f63ca4ea20d5c306bc0bd7b0a9e86037c"
+      },
+      "readme_text_withheld": true,
+      "reason": "No final decision: dependent selection stopped at ScopeChallenge."
+    }
+  ],
+  "pool_overlay_performed": false,
+  "selection_performed": false,
+  "source_revision": "b211daf51fdc9b52d5087c9df28ac50191bcabed",
+  "status": "scope_challenge_pending",
+  "task_source_sha256": "272c8ebcb8cec9390a3f09fd45aa94ea7293274f38c7e905ea69499b55488d43"
+}

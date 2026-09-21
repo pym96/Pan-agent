@@ -26,3 +26,5 @@ Raw artifacts remain at their stable source, Git, Trace, Test, evaluator, or ext
 - [`benchmark-env-71.md`](benchmark-env-71.md): #71 Criteria1.1 Builder environment/control evidence; independent review pending.
 
 - [`benchmark-subset-72.md`](benchmark-subset-72.md): #72 Builder blocked-proposal evidence, exposure incident, raw input identities and deterministic checks; pending independent Regulator/Human review.
+
+- [#73 partial evidence](benchmark-membership-73.md): pinned records and ScopeChallenge; Criteria1.0 incomplete.

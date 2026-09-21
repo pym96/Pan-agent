@@ -293,3 +293,5 @@ The active #60/#61/#62 PTY drivers now start at idle rather than submitting remo
 - [`benchmark-env/README.md`](benchmark-env/README.md): #71 Criteria1.1 two-domain environment controls; zero model calls, restricted official evaluators.
 
 - [`benchmark-subset/`](benchmark-subset/README.md): #72 deterministic public metadata selection and blocked, unactivated campaign proposal; no model/task execution.
+
+- [#73 membership investigation](benchmark-membership/README.md): partial source evidence and ScopeChallenge; selection stopped.

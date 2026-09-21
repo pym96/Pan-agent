@@ -91,3 +91,5 @@ The Human-accepted architecture history remains indexed in [`../adr/README.md`](
 - [`benchmark-env-tracer.md`](benchmark-env-tracer.md): #71 installed Pan/SWE-ReX tracer and restricted evaluator deployment.
 
 - [`benchmark-subset-preregistration.md`](benchmark-subset-preregistration.md): #72 frozen selection method, membership/exposure blockers, official scoring and proposed budgets; no campaign activation.
+
+- [#73 membership ScopeChallenge](benchmark-membership-resolution.md): source discrepancies and safe interpretation boundary.
