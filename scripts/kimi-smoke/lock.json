@@ -1,0 +1,22 @@
+{
+  "version": "69/Criteria1.0",
+  "product_sha": "c9fd25d7337ae9426c22b2829e365451b237d2e6",
+  "package_sha256": "98b190d97cce81a53706c0766dd94626c6a406f4b291764bfb919e2c70da345f",
+  "runtime_sha256": "6d9b75058698a2db046af1ea0462313ae4fce0c9b7118a97708d239df8c57f6b",
+  "provider": "kimi-code",
+  "model": "k3-256k",
+  "reasoning": "high",
+  "kernel": "native",
+  "endpoint": "https://api.kimi.com/coding/v1/chat/completions",
+  "task": "Call get_smoke_fixture exactly once with {}. Then reply with only the returned marker. Do not call any other tool.",
+  "tool": "get_smoke_fixture",
+  "marker": "PAN_K3_SMOKE_OK_20260921",
+  "attempts": 1,
+  "dispatches": 2,
+  "tool_executions": 1,
+  "max_tokens": 4096,
+  "request_bytes": 131072,
+  "response_bytes": 524288,
+  "dispatch_ms": 120000,
+  "attempt_ms": 300000
+}

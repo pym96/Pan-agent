@@ -287,3 +287,5 @@ The active #60/#61/#62 PTY drivers now start at idle rather than submitting remo
 - [verify_kimi_k3_consumer.py](verify_kimi_k3_consumer.py): clean Node 22.19.0 offline install and guarded CLI/Session/Adapter proof.
 - [check_workorder_68_scope.py](check_workorder_68_scope.py): exact scope/protected-byte check.
 - [K3 fixtures](fixtures/kimi/README.md) and [design](../docs/design/kimi-k3-offline.md).
+
+- [Kimi bounded smoke preparation](kimi-smoke/README.md): #69 Stage A external runner, immutable lock and synthetic-only verification.

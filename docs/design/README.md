@@ -85,3 +85,5 @@ The Human-accepted architecture history remains indexed in [`../adr/README.md`](
 [tool-activity-digest.md](tool-activity-digest.md): #61 one default per-run Tool Activity digest and explicit view-only chronological activity overlay.
 
 - [kimi-k3-offline.md](kimi-k3-offline.md): #68 prospective explicit K3 selection and private continuation; offline candidate only.
+
+- [Kimi bounded smoke preparation](kimi-bounded-smoke.md): #69 Stage A installed Product runner, resource guards and separate live-activation boundary.
