@@ -299,3 +299,5 @@ The active #60/#61/#62 PTY drivers now start at idle rather than submitting remo
 - [#74 Criteria1.2 prefetch/preparation scripts and blocked identity](harbor/README.md).
 
 - [#74 Criteria1.3 apt index repair and preparation ledger](harbor/README.md).
+
+- [WO75 Terminal-Bench pilot](harbor/pilot/README.md): fixed public five-task manifest, default-closed runner and offline boundary tests.

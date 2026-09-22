@@ -1,0 +1,33 @@
+import test from 'node:test';import assert from 'node:assert/strict';
+import {generateKeyPairSync,sign,randomUUID} from 'node:crypto';
+import {mkdtempSync,readFileSync,writeFileSync} from 'node:fs';import {tmpdir} from 'node:os';import {join} from 'node:path';import {spawn} from 'node:child_process';
+import {MODEL,LIMITS,canonical,authorize,Ledger} from './policy.mjs';import {childEnvironment} from './broker.mjs';import {dryRun,main} from './cli.mjs';import {summary} from './report.mjs';
+function fixture(budget=LIMITS){const keys=generateKeyPairSync('ed25519'),binding={runnerSha:'a'.repeat(40),panHash:'b'.repeat(64),manifestHash:'c'.repeat(64),model:MODEL,budget,taskIds:['a','b','c','d','e','f'],images:{}};let now=2000;const activation={authorized:true,runId:randomUUID(),humanAuthorizationId:'offline-only',notBefore:new Date(1000).toISOString(),expiresAt:new Date(3000).toISOString(),binding};const resign=()=>activation.signature=sign(null,Buffer.from(canonical(Object.fromEntries(Object.entries(activation).filter(([k])=>k!=='signature')))),keys.privateKey).toString('base64');resign();const authority={publicKey:keys.publicKey,acceptedRunnerSha:binding.runnerSha};return {activation,authority,binding,resign,clock:()=>now,setClock:v=>now=v};}
+const admit=f=>authorize(f.activation,f.authority,f.binding,{clock:f.clock});
+const root=()=>mkdtempSync(join(tmpdir(),'wo75-policy-'));
+test('authorization rejects missing, expired, future, identity/signature tampering and raises before effects',()=>{
+ let credentials=0,dispatches=0;const effect=f=>{admit(f);credentials++;dispatches++;};
+ for(const mutation of [f=>f.activation.authorized=false,f=>f.setClock(3000),f=>f.setClock(999),f=>f.activation.humanAuthorizationId='tamper',f=>f.binding={...f.binding,runnerSha:'d'.repeat(40)},f=>f.binding={...f.binding,manifestHash:'d'.repeat(64)},f=>f.binding={...f.binding,panHash:'d'.repeat(64)},f=>f.binding={...f.binding,model:{...MODEL,endpoint:'https://invalid.example'}},f=>{f.activation.binding.budget={...LIMITS,dispatchesPerTask:21};f.resign();},f=>{f.activation.runId='../escape';f.resign();}]){const f=fixture();mutation(f);assert.throws(()=>effect(f));}
+ assert.throws(()=>authorize(null,{},{}));assert.equal(credentials,0);assert.equal(dispatches,0);
+});
+test('expiry/cancellation and frozen budget guard subsequent reservations',()=>{
+ const f=fixture(),gate=admit(f),ledger=new Ledger(root(),gate);ledger.start('a');assert.throws(()=>gate.binding.budget.maxTokens=9000);assert.throws(()=>gate.binding.taskIds.push('injected'));
+ f.setClock(3000);assert.throws(()=>ledger.reserve('a','dispatch'),/expired/);f.setClock(2000);const c=new AbortController();c.abort();assert.throws(()=>ledger.reserve('a','dispatch',c.signal),/cancelled/);ledger.close();
+});
+test('durable exact 20/task, 100/campaign, 40/tools; failed calls never refund',()=>{
+ const gate=admit(fixture()),ledger=new Ledger(root(),gate);for(const id of ['a','b','c','d','e']){ledger.start(id);for(let i=0;i<20;i++)ledger.reserve(id,'dispatch');assert.throws(()=>ledger.reserve(id,'dispatch'),/budget/);for(let i=0;i<40;i++)ledger.reserve(id,'tool');assert.throws(()=>ledger.reserve(id,'tool'),/budget/);ledger.usage(id,null);ledger.finish(id,'simulated_failure');assert.throws(()=>ledger.start(id));}ledger.start('f');assert.throws(()=>ledger.reserve('f','dispatch'),/budget/);ledger.close();const rows=readFileSync(ledger.path,'utf8').trim().split('\n').map(JSON.parse);assert.equal(rows.filter(r=>r.event==='dispatch_reserved').length,100);assert(rows.filter(r=>r.event==='usage').every(r=>r.input===null&&r.output===null));
+});
+function child(code,args){return new Promise((resolve,reject)=>{const p=spawn(process.execPath,['--input-type=module','-e',code,...args],{env:childEnvironment(tmpdir(),tmpdir()),stdio:'ignore'});p.on('error',reject);p.on('exit',c=>resolve(c));});}
+test('concurrent processes reserve one run; abrupt process exit cannot restart',async()=>{
+ const dir=root(),runId=randomUUID(),module=new URL('./policy.mjs',import.meta.url).href;
+ const code=`import {Ledger} from ${JSON.stringify(module)};const l=new Ledger(process.argv[1],{assert(){},runId:process.argv[2],binding:{taskIds:['a'],budget:{dispatchesPerTask:20,dispatchesCampaign:100}}});l.start('a');l.reserve('a','dispatch');process.exit(0);`;
+ const results=await Promise.all([child(code,[dir,runId]),child(code,[dir,runId])]);assert.equal(results.filter(c=>c===0).length,1);assert.notEqual(await child(code,[dir,runId]),0);const rows=readFileSync(join(dir,runId+'.jsonl'),'utf8');assert.equal(rows.split('dispatch_reserved').length-1,1);
+});
+test('default and dry-run are closed; child env and argv/IPC configuration contain no synthetic secret',async()=>{
+ const secret='synthetic-'+randomUUID();process.env.WO75_SYNTHETIC_SECRET=secret;
+ try{assert(!JSON.stringify(childEnvironment('/public/home','/public/docker')).includes(secret));assert.deepEqual(Object.keys(childEnvironment('h','d')).sort(),['DOCKER_CONFIG','DOCKER_HOST','HOME','PATH','PYTHONDONTWRITEBYTECODE']);let network=0;const prior=globalThis.fetch;globalThis.fetch=()=>{network++;throw Error('network forbidden');};try{const d=dryRun();assert.deepEqual(d.sideEffects,{credentials:0,provider:0,docker:0});assert.equal(d.denominator,5);assert.equal(d.tasks.length,5);assert.equal(network,0);await assert.rejects(main([]),/activation_required/);await assert.rejects(main(['--endpoint','https://invalid.example']),/cli_option/);const p=join(root(),'template.json');writeFileSync(p,JSON.stringify({authorized:false}));await assert.rejects(main(['--activation',p]),/not_authorized/);}finally{globalThis.fetch=prior;}}finally{delete process.env.WO75_SYNTHETIC_SECRET;}
+});
+test('fixed denominator retains success, normal zero, verifier error, budget stop, and unstarted',()=>{
+ const manifest={tasks:['a','b','c','d','e'].map(id=>({id}))};const result=summary(manifest,[{task:'a',verifier:{status:'official_scored',rewards:{reward:1}}},{task:'b',verifier:{status:'official_scored',rewards:{reward:0}}},{task:'c',verifier:{status:'evaluation_error',rewards:null}},{task:'d',stopReason:'dispatch_budget'}]);assert.equal(result.denominator,5);assert.deepEqual(result.rows.map(r=>r.state),['official_scored','official_scored','evaluation_error','agent_stopped','not_started']);assert.deepEqual(result.rows[1].reward,{reward:0});assert.equal(result.rows[4].usage,null);
+ for(const rewards of [null,{}, {reward:'zero'},{reward:Infinity}]){const r=summary(manifest,[{task:'a',verifier:{status:'official_scored',rewards}}]);assert.equal(r.rows[0].state,'evaluation_error');assert.deepEqual(r.rows[0].reward,rewards);}
+});

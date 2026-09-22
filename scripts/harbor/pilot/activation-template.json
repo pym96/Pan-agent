@@ -1,0 +1,17 @@
+{
+  "authorized": false,
+  "runId": null,
+  "humanAuthorizationId": null,
+  "notBefore": null,
+  "expiresAt": null,
+  "binding": {
+    "runnerSha": null,
+    "panHash": null,
+    "manifestHash": null,
+    "model": {"provider":"kimi-code","model":"k3-256k","thinking":"high","endpoint":"https://api.kimi.com/coding/v1/chat/completions"},
+    "budget": {"dispatchesPerTask":20,"dispatchesCampaign":100,"toolsPerTask":40,"maxTokens":4096,"requestBytes":131072,"responseBytes":524288,"dispatchSeconds":120},
+    "taskIds": ["overfull-hbox","dna-insert","nginx-request-logging","merge-diff-arc-agi-task","break-filter-js-from-html"],
+    "images": null
+  },
+  "signature": null
+}

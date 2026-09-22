@@ -1,0 +1,1222 @@
+{
+  "schema": 1,
+  "harbor_sha": "f9deaca7f44ab0b91f1dd445d79629e4d97a0716",
+  "registry_sha256": "da1446bce05eabbd72a25eb9eef5a2f5db94645ce88c28e2497581433b3d2e60",
+  "registry_entry": {
+    "name": "terminal-bench",
+    "version": "2.0",
+    "description": "Version 2.0 of Terminal-Bench, a benchmark for testing agents in terminal environments. More tasks, harder, and higher quality than 1.0.",
+    "tasks": [
+      {
+        "name": "adaptive-rejection-sampler",
+        "git_url": "https://github.com/laude-institute/terminal-bench-2.git",
+        "git_commit_id": "69671fbaac6d67a7ef0dfec016cc38a64ef7a77c",
+        "path": "adaptive-rejection-sampler"
+      },
+      {
+        "name": "bn-fit-modify",
+        "git_url": "https://github.com/laude-institute/terminal-bench-2.git",
+        "git_commit_id": "69671fbaac6d67a7ef0dfec016cc38a64ef7a77c",
+        "path": "bn-fit-modify"
+      },
+      {
+        "name": "break-filter-js-from-html",
+        "git_url": "https://github.com/laude-institute/terminal-bench-2.git",
+        "git_commit_id": "69671fbaac6d67a7ef0dfec016cc38a64ef7a77c",
+        "path": "break-filter-js-from-html"
+      },
+      {
+        "name": "build-cython-ext",
+        "git_url": "https://github.com/laude-institute/terminal-bench-2.git",
+        "git_commit_id": "69671fbaac6d67a7ef0dfec016cc38a64ef7a77c",
+        "path": "build-cython-ext"
+      },
+      {
+        "name": "build-pmars",
+        "git_url": "https://github.com/laude-institute/terminal-bench-2.git",
+        "git_commit_id": "69671fbaac6d67a7ef0dfec016cc38a64ef7a77c",
+        "path": "build-pmars"
+      },
+      {
+        "name": "build-pov-ray",
+        "git_url": "https://github.com/laude-institute/terminal-bench-2.git",
+        "git_commit_id": "69671fbaac6d67a7ef0dfec016cc38a64ef7a77c",
+        "path": "build-pov-ray"
+      },
+      {
+        "name": "caffe-cifar-10",
+        "git_url": "https://github.com/laude-institute/terminal-bench-2.git",
+        "git_commit_id": "69671fbaac6d67a7ef0dfec016cc38a64ef7a77c",
+        "path": "caffe-cifar-10"
+      },
+      {
+        "name": "cancel-async-tasks",
+        "git_url": "https://github.com/laude-institute/terminal-bench-2.git",
+        "git_commit_id": "69671fbaac6d67a7ef0dfec016cc38a64ef7a77c",
+        "path": "cancel-async-tasks"
+      },
+      {
+        "name": "chess-best-move",
+        "git_url": "https://github.com/laude-institute/terminal-bench-2.git",
+        "git_commit_id": "69671fbaac6d67a7ef0dfec016cc38a64ef7a77c",
+        "path": "chess-best-move"
+      },
+      {
+        "name": "circuit-fibsqrt",
+        "git_url": "https://github.com/laude-institute/terminal-bench-2.git",
+        "git_commit_id": "69671fbaac6d67a7ef0dfec016cc38a64ef7a77c",
+        "path": "circuit-fibsqrt"
+      },
+      {
+        "name": "cobol-modernization",
+        "git_url": "https://github.com/laude-institute/terminal-bench-2.git",
+        "git_commit_id": "69671fbaac6d67a7ef0dfec016cc38a64ef7a77c",
+        "path": "cobol-modernization"
+      },
+      {
+        "name": "code-from-image",
+        "git_url": "https://github.com/laude-institute/terminal-bench-2.git",
+        "git_commit_id": "69671fbaac6d67a7ef0dfec016cc38a64ef7a77c",
+        "path": "code-from-image"
+      },
+      {
+        "name": "compile-compcert",
+        "git_url": "https://github.com/laude-institute/terminal-bench-2.git",
+        "git_commit_id": "69671fbaac6d67a7ef0dfec016cc38a64ef7a77c",
+        "path": "compile-compcert"
+      },
+      {
+        "name": "configure-git-webserver",
+        "git_url": "https://github.com/laude-institute/terminal-bench-2.git",
+        "git_commit_id": "69671fbaac6d67a7ef0dfec016cc38a64ef7a77c",
+        "path": "configure-git-webserver"
+      },
+      {
+        "name": "constraints-scheduling",
+        "git_url": "https://github.com/laude-institute/terminal-bench-2.git",
+        "git_commit_id": "69671fbaac6d67a7ef0dfec016cc38a64ef7a77c",
+        "path": "constraints-scheduling"
+      },
+      {
+        "name": "count-dataset-tokens",
+        "git_url": "https://github.com/laude-institute/terminal-bench-2.git",
+        "git_commit_id": "69671fbaac6d67a7ef0dfec016cc38a64ef7a77c",
+        "path": "count-dataset-tokens"
+      },
+      {
+        "name": "crack-7z-hash",
+        "git_url": "https://github.com/laude-institute/terminal-bench-2.git",
+        "git_commit_id": "69671fbaac6d67a7ef0dfec016cc38a64ef7a77c",
+        "path": "crack-7z-hash"
+      },
+      {
+        "name": "custom-memory-heap-crash",
+        "git_url": "https://github.com/laude-institute/terminal-bench-2.git",
+        "git_commit_id": "69671fbaac6d67a7ef0dfec016cc38a64ef7a77c",
+        "path": "custom-memory-heap-crash"
+      },
+      {
+        "name": "db-wal-recovery",
+        "git_url": "https://github.com/laude-institute/terminal-bench-2.git",
+        "git_commit_id": "69671fbaac6d67a7ef0dfec016cc38a64ef7a77c",
+        "path": "db-wal-recovery"
+      },
+      {
+        "name": "distribution-search",
+        "git_url": "https://github.com/laude-institute/terminal-bench-2.git",
+        "git_commit_id": "69671fbaac6d67a7ef0dfec016cc38a64ef7a77c",
+        "path": "distribution-search"
+      },
+      {
+        "name": "dna-assembly",
+        "git_url": "https://github.com/laude-institute/terminal-bench-2.git",
+        "git_commit_id": "69671fbaac6d67a7ef0dfec016cc38a64ef7a77c",
+        "path": "dna-assembly"
+      },
+      {
+        "name": "dna-insert",
+        "git_url": "https://github.com/laude-institute/terminal-bench-2.git",
+        "git_commit_id": "69671fbaac6d67a7ef0dfec016cc38a64ef7a77c",
+        "path": "dna-insert"
+      },
+      {
+        "name": "extract-elf",
+        "git_url": "https://github.com/laude-institute/terminal-bench-2.git",
+        "git_commit_id": "69671fbaac6d67a7ef0dfec016cc38a64ef7a77c",
+        "path": "extract-elf"
+      },
+      {
+        "name": "extract-moves-from-video",
+        "git_url": "https://github.com/laude-institute/terminal-bench-2.git",
+        "git_commit_id": "69671fbaac6d67a7ef0dfec016cc38a64ef7a77c",
+        "path": "extract-moves-from-video"
+      },
+      {
+        "name": "feal-differential-cryptanalysis",
+        "git_url": "https://github.com/laude-institute/terminal-bench-2.git",
+        "git_commit_id": "69671fbaac6d67a7ef0dfec016cc38a64ef7a77c",
+        "path": "feal-differential-cryptanalysis"
+      },
+      {
+        "name": "feal-linear-cryptanalysis",
+        "git_url": "https://github.com/laude-institute/terminal-bench-2.git",
+        "git_commit_id": "69671fbaac6d67a7ef0dfec016cc38a64ef7a77c",
+        "path": "feal-linear-cryptanalysis"
+      },
+      {
+        "name": "filter-js-from-html",
+        "git_url": "https://github.com/laude-institute/terminal-bench-2.git",
+        "git_commit_id": "69671fbaac6d67a7ef0dfec016cc38a64ef7a77c",
+        "path": "filter-js-from-html"
+      },
+      {
+        "name": "financial-document-processor",
+        "git_url": "https://github.com/laude-institute/terminal-bench-2.git",
+        "git_commit_id": "69671fbaac6d67a7ef0dfec016cc38a64ef7a77c",
+        "path": "financial-document-processor"
+      },
+      {
+        "name": "fix-code-vulnerability",
+        "git_url": "https://github.com/laude-institute/terminal-bench-2.git",
+        "git_commit_id": "69671fbaac6d67a7ef0dfec016cc38a64ef7a77c",
+        "path": "fix-code-vulnerability"
+      },
+      {
+        "name": "fix-git",
+        "git_url": "https://github.com/laude-institute/terminal-bench-2.git",
+        "git_commit_id": "69671fbaac6d67a7ef0dfec016cc38a64ef7a77c",
+        "path": "fix-git"
+      },
+      {
+        "name": "fix-ocaml-gc",
+        "git_url": "https://github.com/laude-institute/terminal-bench-2.git",
+        "git_commit_id": "69671fbaac6d67a7ef0dfec016cc38a64ef7a77c",
+        "path": "fix-ocaml-gc"
+      },
+      {
+        "name": "gcode-to-text",
+        "git_url": "https://github.com/laude-institute/terminal-bench-2.git",
+        "git_commit_id": "69671fbaac6d67a7ef0dfec016cc38a64ef7a77c",
+        "path": "gcode-to-text"
+      },
+      {
+        "name": "git-leak-recovery",
+        "git_url": "https://github.com/laude-institute/terminal-bench-2.git",
+        "git_commit_id": "69671fbaac6d67a7ef0dfec016cc38a64ef7a77c",
+        "path": "git-leak-recovery"
+      },
+      {
+        "name": "git-multibranch",
+        "git_url": "https://github.com/laude-institute/terminal-bench-2.git",
+        "git_commit_id": "69671fbaac6d67a7ef0dfec016cc38a64ef7a77c",
+        "path": "git-multibranch"
+      },
+      {
+        "name": "gpt2-codegolf",
+        "git_url": "https://github.com/laude-institute/terminal-bench-2.git",
+        "git_commit_id": "69671fbaac6d67a7ef0dfec016cc38a64ef7a77c",
+        "path": "gpt2-codegolf"
+      },
+      {
+        "name": "headless-terminal",
+        "git_url": "https://github.com/laude-institute/terminal-bench-2.git",
+        "git_commit_id": "69671fbaac6d67a7ef0dfec016cc38a64ef7a77c",
+        "path": "headless-terminal"
+      },
+      {
+        "name": "hf-model-inference",
+        "git_url": "https://github.com/laude-institute/terminal-bench-2.git",
+        "git_commit_id": "69671fbaac6d67a7ef0dfec016cc38a64ef7a77c",
+        "path": "hf-model-inference"
+      },
+      {
+        "name": "install-windows-3.11",
+        "git_url": "https://github.com/laude-institute/terminal-bench-2.git",
+        "git_commit_id": "69671fbaac6d67a7ef0dfec016cc38a64ef7a77c",
+        "path": "install-windows-3.11"
+      },
+      {
+        "name": "kv-store-grpc",
+        "git_url": "https://github.com/laude-institute/terminal-bench-2.git",
+        "git_commit_id": "69671fbaac6d67a7ef0dfec016cc38a64ef7a77c",
+        "path": "kv-store-grpc"
+      },
+      {
+        "name": "large-scale-text-editing",
+        "git_url": "https://github.com/laude-institute/terminal-bench-2.git",
+        "git_commit_id": "69671fbaac6d67a7ef0dfec016cc38a64ef7a77c",
+        "path": "large-scale-text-editing"
+      },
+      {
+        "name": "largest-eigenval",
+        "git_url": "https://github.com/laude-institute/terminal-bench-2.git",
+        "git_commit_id": "69671fbaac6d67a7ef0dfec016cc38a64ef7a77c",
+        "path": "largest-eigenval"
+      },
+      {
+        "name": "llm-inference-batching-scheduler",
+        "git_url": "https://github.com/laude-institute/terminal-bench-2.git",
+        "git_commit_id": "69671fbaac6d67a7ef0dfec016cc38a64ef7a77c",
+        "path": "llm-inference-batching-scheduler"
+      },
+      {
+        "name": "log-summary-date-ranges",
+        "git_url": "https://github.com/laude-institute/terminal-bench-2.git",
+        "git_commit_id": "69671fbaac6d67a7ef0dfec016cc38a64ef7a77c",
+        "path": "log-summary-date-ranges"
+      },
+      {
+        "name": "mailman",
+        "git_url": "https://github.com/laude-institute/terminal-bench-2.git",
+        "git_commit_id": "69671fbaac6d67a7ef0dfec016cc38a64ef7a77c",
+        "path": "mailman"
+      },
+      {
+        "name": "make-doom-for-mips",
+        "git_url": "https://github.com/laude-institute/terminal-bench-2.git",
+        "git_commit_id": "69671fbaac6d67a7ef0dfec016cc38a64ef7a77c",
+        "path": "make-doom-for-mips"
+      },
+      {
+        "name": "make-mips-interpreter",
+        "git_url": "https://github.com/laude-institute/terminal-bench-2.git",
+        "git_commit_id": "69671fbaac6d67a7ef0dfec016cc38a64ef7a77c",
+        "path": "make-mips-interpreter"
+      },
+      {
+        "name": "mcmc-sampling-stan",
+        "git_url": "https://github.com/laude-institute/terminal-bench-2.git",
+        "git_commit_id": "69671fbaac6d67a7ef0dfec016cc38a64ef7a77c",
+        "path": "mcmc-sampling-stan"
+      },
+      {
+        "name": "merge-diff-arc-agi-task",
+        "git_url": "https://github.com/laude-institute/terminal-bench-2.git",
+        "git_commit_id": "69671fbaac6d67a7ef0dfec016cc38a64ef7a77c",
+        "path": "merge-diff-arc-agi-task"
+      },
+      {
+        "name": "model-extraction-relu-logits",
+        "git_url": "https://github.com/laude-institute/terminal-bench-2.git",
+        "git_commit_id": "69671fbaac6d67a7ef0dfec016cc38a64ef7a77c",
+        "path": "model-extraction-relu-logits"
+      },
+      {
+        "name": "modernize-scientific-stack",
+        "git_url": "https://github.com/laude-institute/terminal-bench-2.git",
+        "git_commit_id": "69671fbaac6d67a7ef0dfec016cc38a64ef7a77c",
+        "path": "modernize-scientific-stack"
+      },
+      {
+        "name": "mteb-leaderboard",
+        "git_url": "https://github.com/laude-institute/terminal-bench-2.git",
+        "git_commit_id": "69671fbaac6d67a7ef0dfec016cc38a64ef7a77c",
+        "path": "mteb-leaderboard"
+      },
+      {
+        "name": "mteb-retrieve",
+        "git_url": "https://github.com/laude-institute/terminal-bench-2.git",
+        "git_commit_id": "69671fbaac6d67a7ef0dfec016cc38a64ef7a77c",
+        "path": "mteb-retrieve"
+      },
+      {
+        "name": "multi-source-data-merger",
+        "git_url": "https://github.com/laude-institute/terminal-bench-2.git",
+        "git_commit_id": "69671fbaac6d67a7ef0dfec016cc38a64ef7a77c",
+        "path": "multi-source-data-merger"
+      },
+      {
+        "name": "nginx-request-logging",
+        "git_url": "https://github.com/laude-institute/terminal-bench-2.git",
+        "git_commit_id": "69671fbaac6d67a7ef0dfec016cc38a64ef7a77c",
+        "path": "nginx-request-logging"
+      },
+      {
+        "name": "openssl-selfsigned-cert",
+        "git_url": "https://github.com/laude-institute/terminal-bench-2.git",
+        "git_commit_id": "69671fbaac6d67a7ef0dfec016cc38a64ef7a77c",
+        "path": "openssl-selfsigned-cert"
+      },
+      {
+        "name": "overfull-hbox",
+        "git_url": "https://github.com/laude-institute/terminal-bench-2.git",
+        "git_commit_id": "69671fbaac6d67a7ef0dfec016cc38a64ef7a77c",
+        "path": "overfull-hbox"
+      },
+      {
+        "name": "password-recovery",
+        "git_url": "https://github.com/laude-institute/terminal-bench-2.git",
+        "git_commit_id": "69671fbaac6d67a7ef0dfec016cc38a64ef7a77c",
+        "path": "password-recovery"
+      },
+      {
+        "name": "path-tracing",
+        "git_url": "https://github.com/laude-institute/terminal-bench-2.git",
+        "git_commit_id": "69671fbaac6d67a7ef0dfec016cc38a64ef7a77c",
+        "path": "path-tracing"
+      },
+      {
+        "name": "path-tracing-reverse",
+        "git_url": "https://github.com/laude-institute/terminal-bench-2.git",
+        "git_commit_id": "69671fbaac6d67a7ef0dfec016cc38a64ef7a77c",
+        "path": "path-tracing-reverse"
+      },
+      {
+        "name": "polyglot-c-py",
+        "git_url": "https://github.com/laude-institute/terminal-bench-2.git",
+        "git_commit_id": "69671fbaac6d67a7ef0dfec016cc38a64ef7a77c",
+        "path": "polyglot-c-py"
+      },
+      {
+        "name": "polyglot-rust-c",
+        "git_url": "https://github.com/laude-institute/terminal-bench-2.git",
+        "git_commit_id": "69671fbaac6d67a7ef0dfec016cc38a64ef7a77c",
+        "path": "polyglot-rust-c"
+      },
+      {
+        "name": "portfolio-optimization",
+        "git_url": "https://github.com/laude-institute/terminal-bench-2.git",
+        "git_commit_id": "69671fbaac6d67a7ef0dfec016cc38a64ef7a77c",
+        "path": "portfolio-optimization"
+      },
+      {
+        "name": "protein-assembly",
+        "git_url": "https://github.com/laude-institute/terminal-bench-2.git",
+        "git_commit_id": "69671fbaac6d67a7ef0dfec016cc38a64ef7a77c",
+        "path": "protein-assembly"
+      },
+      {
+        "name": "prove-plus-comm",
+        "git_url": "https://github.com/laude-institute/terminal-bench-2.git",
+        "git_commit_id": "69671fbaac6d67a7ef0dfec016cc38a64ef7a77c",
+        "path": "prove-plus-comm"
+      },
+      {
+        "name": "pypi-server",
+        "git_url": "https://github.com/laude-institute/terminal-bench-2.git",
+        "git_commit_id": "69671fbaac6d67a7ef0dfec016cc38a64ef7a77c",
+        "path": "pypi-server"
+      },
+      {
+        "name": "pytorch-model-cli",
+        "git_url": "https://github.com/laude-institute/terminal-bench-2.git",
+        "git_commit_id": "69671fbaac6d67a7ef0dfec016cc38a64ef7a77c",
+        "path": "pytorch-model-cli"
+      },
+      {
+        "name": "pytorch-model-recovery",
+        "git_url": "https://github.com/laude-institute/terminal-bench-2.git",
+        "git_commit_id": "69671fbaac6d67a7ef0dfec016cc38a64ef7a77c",
+        "path": "pytorch-model-recovery"
+      },
+      {
+        "name": "qemu-alpine-ssh",
+        "git_url": "https://github.com/laude-institute/terminal-bench-2.git",
+        "git_commit_id": "69671fbaac6d67a7ef0dfec016cc38a64ef7a77c",
+        "path": "qemu-alpine-ssh"
+      },
+      {
+        "name": "qemu-startup",
+        "git_url": "https://github.com/laude-institute/terminal-bench-2.git",
+        "git_commit_id": "69671fbaac6d67a7ef0dfec016cc38a64ef7a77c",
+        "path": "qemu-startup"
+      },
+      {
+        "name": "query-optimize",
+        "git_url": "https://github.com/laude-institute/terminal-bench-2.git",
+        "git_commit_id": "69671fbaac6d67a7ef0dfec016cc38a64ef7a77c",
+        "path": "query-optimize"
+      },
+      {
+        "name": "raman-fitting",
+        "git_url": "https://github.com/laude-institute/terminal-bench-2.git",
+        "git_commit_id": "69671fbaac6d67a7ef0dfec016cc38a64ef7a77c",
+        "path": "raman-fitting"
+      },
+      {
+        "name": "regex-chess",
+        "git_url": "https://github.com/laude-institute/terminal-bench-2.git",
+        "git_commit_id": "69671fbaac6d67a7ef0dfec016cc38a64ef7a77c",
+        "path": "regex-chess"
+      },
+      {
+        "name": "regex-log",
+        "git_url": "https://github.com/laude-institute/terminal-bench-2.git",
+        "git_commit_id": "69671fbaac6d67a7ef0dfec016cc38a64ef7a77c",
+        "path": "regex-log"
+      },
+      {
+        "name": "reshard-c4-data",
+        "git_url": "https://github.com/laude-institute/terminal-bench-2.git",
+        "git_commit_id": "69671fbaac6d67a7ef0dfec016cc38a64ef7a77c",
+        "path": "reshard-c4-data"
+      },
+      {
+        "name": "rstan-to-pystan",
+        "git_url": "https://github.com/laude-institute/terminal-bench-2.git",
+        "git_commit_id": "69671fbaac6d67a7ef0dfec016cc38a64ef7a77c",
+        "path": "rstan-to-pystan"
+      },
+      {
+        "name": "sam-cell-seg",
+        "git_url": "https://github.com/laude-institute/terminal-bench-2.git",
+        "git_commit_id": "69671fbaac6d67a7ef0dfec016cc38a64ef7a77c",
+        "path": "sam-cell-seg"
+      },
+      {
+        "name": "sanitize-git-repo",
+        "git_url": "https://github.com/laude-institute/terminal-bench-2.git",
+        "git_commit_id": "69671fbaac6d67a7ef0dfec016cc38a64ef7a77c",
+        "path": "sanitize-git-repo"
+      },
+      {
+        "name": "schemelike-metacircular-eval",
+        "git_url": "https://github.com/laude-institute/terminal-bench-2.git",
+        "git_commit_id": "69671fbaac6d67a7ef0dfec016cc38a64ef7a77c",
+        "path": "schemelike-metacircular-eval"
+      },
+      {
+        "name": "sparql-university",
+        "git_url": "https://github.com/laude-institute/terminal-bench-2.git",
+        "git_commit_id": "69671fbaac6d67a7ef0dfec016cc38a64ef7a77c",
+        "path": "sparql-university"
+      },
+      {
+        "name": "sqlite-db-truncate",
+        "git_url": "https://github.com/laude-institute/terminal-bench-2.git",
+        "git_commit_id": "69671fbaac6d67a7ef0dfec016cc38a64ef7a77c",
+        "path": "sqlite-db-truncate"
+      },
+      {
+        "name": "sqlite-with-gcov",
+        "git_url": "https://github.com/laude-institute/terminal-bench-2.git",
+        "git_commit_id": "69671fbaac6d67a7ef0dfec016cc38a64ef7a77c",
+        "path": "sqlite-with-gcov"
+      },
+      {
+        "name": "torch-pipeline-parallelism",
+        "git_url": "https://github.com/laude-institute/terminal-bench-2.git",
+        "git_commit_id": "69671fbaac6d67a7ef0dfec016cc38a64ef7a77c",
+        "path": "torch-pipeline-parallelism"
+      },
+      {
+        "name": "torch-tensor-parallelism",
+        "git_url": "https://github.com/laude-institute/terminal-bench-2.git",
+        "git_commit_id": "69671fbaac6d67a7ef0dfec016cc38a64ef7a77c",
+        "path": "torch-tensor-parallelism"
+      },
+      {
+        "name": "train-fasttext",
+        "git_url": "https://github.com/laude-institute/terminal-bench-2.git",
+        "git_commit_id": "69671fbaac6d67a7ef0dfec016cc38a64ef7a77c",
+        "path": "train-fasttext"
+      },
+      {
+        "name": "tune-mjcf",
+        "git_url": "https://github.com/laude-institute/terminal-bench-2.git",
+        "git_commit_id": "69671fbaac6d67a7ef0dfec016cc38a64ef7a77c",
+        "path": "tune-mjcf"
+      },
+      {
+        "name": "video-processing",
+        "git_url": "https://github.com/laude-institute/terminal-bench-2.git",
+        "git_commit_id": "69671fbaac6d67a7ef0dfec016cc38a64ef7a77c",
+        "path": "video-processing"
+      },
+      {
+        "name": "vulnerable-secret",
+        "git_url": "https://github.com/laude-institute/terminal-bench-2.git",
+        "git_commit_id": "69671fbaac6d67a7ef0dfec016cc38a64ef7a77c",
+        "path": "vulnerable-secret"
+      },
+      {
+        "name": "winning-avg-corewars",
+        "git_url": "https://github.com/laude-institute/terminal-bench-2.git",
+        "git_commit_id": "69671fbaac6d67a7ef0dfec016cc38a64ef7a77c",
+        "path": "winning-avg-corewars"
+      },
+      {
+        "name": "write-compressor",
+        "git_url": "https://github.com/laude-institute/terminal-bench-2.git",
+        "git_commit_id": "69671fbaac6d67a7ef0dfec016cc38a64ef7a77c",
+        "path": "write-compressor"
+      }
+    ]
+  },
+  "selection_seed": "pan-tbench-pilot-v1\n",
+  "denominator": 5,
+  "tasks": [
+    {
+      "name": "overfull-hbox",
+      "git_url": "https://github.com/laude-institute/terminal-bench-2.git",
+      "git_commit_id": "69671fbaac6d67a7ef0dfec016cc38a64ef7a77c",
+      "path": "overfull-hbox",
+      "id": "overfull-hbox",
+      "selection_hash": "03987f43baab2aa52ad5d427840ed8b2ff979d9b77a090f76e5712a294dd23fb",
+      "config": {
+        "version": "1.0",
+        "metadata": {
+          "author_name": "Sam Buchanan",
+          "author_email": "sdbuchanan@berkeley.edu",
+          "difficulty": "easy",
+          "category": "debugging",
+          "tags": [
+            "latex",
+            "document-processing",
+            "combinatorial-optimization"
+          ],
+          "expert_time_estimate_min": 60.0,
+          "junior_time_estimate_min": 60.0
+        },
+        "verifier": {
+          "timeout_sec": 360.0
+        },
+        "agent": {
+          "timeout_sec": 750.0
+        },
+        "environment": {
+          "build_timeout_sec": 600.0,
+          "cpus": 2,
+          "memory": "4G",
+          "storage": "10G",
+          "docker_image": "alexgshaw/overfull-hbox:20251031"
+        }
+      },
+      "files": [
+        {
+          "path": "environment/Dockerfile",
+          "git_blob_sha1": "e4b87dac265388115ae28750c6829dc5ea04fc25",
+          "bytes": 439
+        },
+        {
+          "path": "environment/tests/input.tex",
+          "git_blob_sha1": "86ee7c54c0456b1b6bc6e109ebd640fc0b7a2fd2",
+          "bytes": 5186
+        },
+        {
+          "path": "environment/tests/main.tex",
+          "git_blob_sha1": "9a8c07bad0a63c5c4dfefb44c0c066f7a95f19d3",
+          "bytes": 328
+        },
+        {
+          "path": "environment/tests/synonyms.txt",
+          "git_blob_sha1": "61c4d3737da3b34c1bd443086a106d0d6c270306",
+          "bytes": 6008
+        },
+        {
+          "path": "environment/tests/test_outputs.py",
+          "git_blob_sha1": "f8e673c8446437dd2a42e84aa0771c972de82d1d",
+          "bytes": 3752
+        },
+        {
+          "path": "instruction.md",
+          "git_blob_sha1": "6fe1be57fa7a721f0d2898439b9d9c62925cbf6a",
+          "bytes": 366
+        },
+        {
+          "path": "solution/solve.sh",
+          "git_blob_sha1": "26b32d622739f0e475e93f5c96c7ca61d48ea10b",
+          "bytes": 3145
+        },
+        {
+          "path": "task.toml",
+          "git_blob_sha1": "3ad46b7258c0120c61b4ab5ccc6406e5d893312e",
+          "bytes": 468
+        },
+        {
+          "path": "tests/input.tex",
+          "git_blob_sha1": "86ee7c54c0456b1b6bc6e109ebd640fc0b7a2fd2",
+          "bytes": 5186
+        },
+        {
+          "path": "tests/main.tex",
+          "git_blob_sha1": "9a8c07bad0a63c5c4dfefb44c0c066f7a95f19d3",
+          "bytes": 328
+        },
+        {
+          "path": "tests/synonyms.txt",
+          "git_blob_sha1": "61c4d3737da3b34c1bd443086a106d0d6c270306",
+          "bytes": 6008
+        },
+        {
+          "path": "tests/test.sh",
+          "git_blob_sha1": "725b5b20d3d02e52b44ee25bfa4696f239ba4145",
+          "bytes": 822
+        },
+        {
+          "path": "tests/test_outputs.py",
+          "git_blob_sha1": "f8e673c8446437dd2a42e84aa0771c972de82d1d",
+          "bytes": 3752
+        }
+      ],
+      "inspected": {
+        "instruction.md": {
+          "sha256": "91381d7490afbbf11255e22471d3ed76317353d8e1da372fbc91887e65c57f47",
+          "git_blob_sha1": "6fe1be57fa7a721f0d2898439b9d9c62925cbf6a",
+          "bytes": 366
+        },
+        "task.toml": {
+          "sha256": "d24390ba221061b27cd05ef37504614cb76a489956640a3a74a3d7e773c5518b",
+          "git_blob_sha1": "3ad46b7258c0120c61b4ab5ccc6406e5d893312e",
+          "bytes": 468
+        },
+        "environment/Dockerfile": {
+          "sha256": "f73659a7e258641b2b93affb1d854dbba93239478707255767003e59cf1d1477",
+          "git_blob_sha1": "e4b87dac265388115ae28750c6829dc5ea04fc25",
+          "bytes": 439
+        },
+        "tests/test.sh": {
+          "sha256": "ab4ef5988c8694f6049eac703b7683a7f846c4714a61b764bd8e66e116abe16f",
+          "git_blob_sha1": "725b5b20d3d02e52b44ee25bfa4696f239ba4145",
+          "bytes": 822
+        }
+      },
+      "image_reference": "alexgshaw/overfull-hbox:20251031",
+      "image_digest": null,
+      "architecture": "unknown; not pulled or probed",
+      "environment_verified": false
+    },
+    {
+      "name": "dna-insert",
+      "git_url": "https://github.com/laude-institute/terminal-bench-2.git",
+      "git_commit_id": "69671fbaac6d67a7ef0dfec016cc38a64ef7a77c",
+      "path": "dna-insert",
+      "id": "dna-insert",
+      "selection_hash": "0a7a6e521b2c947725489621c3aa9234cbfc55b8882b7595c2d9879731dc21dc",
+      "config": {
+        "version": "1.0",
+        "metadata": {
+          "author_name": "Karl Krauth",
+          "author_email": "kkt@stanford.edu",
+          "difficulty": "medium",
+          "category": "scientific-computing",
+          "tags": [
+            "biology",
+            "cloning"
+          ],
+          "expert_time_estimate_min": 30.0,
+          "junior_time_estimate_min": 120.0
+        },
+        "verifier": {
+          "timeout_sec": 1800.0
+        },
+        "agent": {
+          "timeout_sec": 1800.0
+        },
+        "environment": {
+          "build_timeout_sec": 600.0,
+          "docker_image": "alexgshaw/dna-insert:20251031",
+          "cpus": 1,
+          "memory": "4G",
+          "storage": "10G"
+        }
+      },
+      "files": [
+        {
+          "path": "environment/Dockerfile",
+          "git_blob_sha1": "5314d91da419061040d51ddea592a4ef0ca983e4",
+          "bytes": 224
+        },
+        {
+          "path": "environment/sequences.fasta",
+          "git_blob_sha1": "25a29875ffe887c1b9e8357403665a7fdf89787b",
+          "bytes": 7238
+        },
+        {
+          "path": "instruction.md",
+          "git_blob_sha1": "991e2f397ad54c4690174e1cb33f90b0ffdecda3",
+          "bytes": 1108
+        },
+        {
+          "path": "solution/solve.sh",
+          "git_blob_sha1": "baa1942d8ef3ff2f21089c9621581d19f1c8dc31",
+          "bytes": 1358
+        },
+        {
+          "path": "task.toml",
+          "git_blob_sha1": "ab1893da05dbecf4d618462664a5ac0c526e5ae4",
+          "bytes": 433
+        },
+        {
+          "path": "tests/test.sh",
+          "git_blob_sha1": "0cb90e10422f5d5cc876306496f8510c9081f491",
+          "bytes": 601
+        },
+        {
+          "path": "tests/test_outputs.py",
+          "git_blob_sha1": "a7cd6294bee840129af71022fdf99cb2394b2cc4",
+          "bytes": 3588
+        }
+      ],
+      "inspected": {
+        "instruction.md": {
+          "sha256": "49fce0ee8b73d7ccdf4b8476c6bb87cf362689fd1d77b21a0d8737d16019a473",
+          "git_blob_sha1": "991e2f397ad54c4690174e1cb33f90b0ffdecda3",
+          "bytes": 1108
+        },
+        "task.toml": {
+          "sha256": "c3e47f205b39b34c9f71cd0f3ce62d810abaa591436c30c4fb3f03349a42dde5",
+          "git_blob_sha1": "ab1893da05dbecf4d618462664a5ac0c526e5ae4",
+          "bytes": 433
+        },
+        "environment/Dockerfile": {
+          "sha256": "26e9e43a98f0b1d132bb638f44b7dc882b0d0ca32d56fa33048adeee00ab600d",
+          "git_blob_sha1": "5314d91da419061040d51ddea592a4ef0ca983e4",
+          "bytes": 224
+        },
+        "tests/test.sh": {
+          "sha256": "355c3f627ad14243da1ec683ebdb120aca7921bb52656c5cb65b281b347ba68b",
+          "git_blob_sha1": "0cb90e10422f5d5cc876306496f8510c9081f491",
+          "bytes": 601
+        }
+      },
+      "image_reference": "alexgshaw/dna-insert:20251031",
+      "image_digest": null,
+      "architecture": "unknown; not pulled or probed",
+      "environment_verified": false
+    },
+    {
+      "name": "nginx-request-logging",
+      "git_url": "https://github.com/laude-institute/terminal-bench-2.git",
+      "git_commit_id": "69671fbaac6d67a7ef0dfec016cc38a64ef7a77c",
+      "path": "nginx-request-logging",
+      "id": "nginx-request-logging",
+      "selection_hash": "0df07d786ac8a871f936634ac3f806018db57a3659096fe913e0d519a639978a",
+      "config": {
+        "version": "1.0",
+        "metadata": {
+          "author_name": "Junhong Shen",
+          "author_email": "junhongs@andrew.cmu.edu",
+          "difficulty": "medium",
+          "category": "system-administration",
+          "tags": [
+            "web-server"
+          ],
+          "expert_time_estimate_min": 20.0,
+          "junior_time_estimate_min": 120.0
+        },
+        "verifier": {
+          "timeout_sec": 900.0
+        },
+        "agent": {
+          "timeout_sec": 900.0
+        },
+        "environment": {
+          "build_timeout_sec": 600.0,
+          "docker_image": "alexgshaw/nginx-request-logging:20251031",
+          "cpus": 1,
+          "memory": "2G",
+          "storage": "10G"
+        }
+      },
+      "files": [
+        {
+          "path": "environment/Dockerfile",
+          "git_blob_sha1": "3dbcfc5e4610a296e14f9c0b431c0d32cd7833ec",
+          "bytes": 246
+        },
+        {
+          "path": "instruction.md",
+          "git_blob_sha1": "083b261c1bde2d770088f4656d478abb4767543d",
+          "bytes": 1882
+        },
+        {
+          "path": "solution/solve.sh",
+          "git_blob_sha1": "962134795703651afdc8ccbc944d3dbb3646e4da",
+          "bytes": 1790
+        },
+        {
+          "path": "task.toml",
+          "git_blob_sha1": "f2befa6f1178d9482e862510f1cd9de44ba84846",
+          "bytes": 443
+        },
+        {
+          "path": "tests/test.sh",
+          "git_blob_sha1": "4bf3d6bc3b076c157822111f516a9a5493730708",
+          "bytes": 634
+        },
+        {
+          "path": "tests/test_outputs.py",
+          "git_blob_sha1": "d0e421f7e91d997d8c64fe24c7938b2ad25f49c9",
+          "bytes": 5947
+        }
+      ],
+      "inspected": {
+        "instruction.md": {
+          "sha256": "26a7ac98aced6107f147206790ada77bbf8ed3c25fb360cf323d5fc6889edf99",
+          "git_blob_sha1": "083b261c1bde2d770088f4656d478abb4767543d",
+          "bytes": 1882
+        },
+        "task.toml": {
+          "sha256": "f41393eea6490092669c0a6abcb3087b751e933d1182fb04471fc56495aeb377",
+          "git_blob_sha1": "f2befa6f1178d9482e862510f1cd9de44ba84846",
+          "bytes": 443
+        },
+        "environment/Dockerfile": {
+          "sha256": "43003466d89ab83484a3fa618e35b58cdb74a002b1e8716ef30f12b3ac8302d8",
+          "git_blob_sha1": "3dbcfc5e4610a296e14f9c0b431c0d32cd7833ec",
+          "bytes": 246
+        },
+        "tests/test.sh": {
+          "sha256": "27761195f53cbfe5941fe39b573631f6c926869e64b7c43220377e1e116528e7",
+          "git_blob_sha1": "4bf3d6bc3b076c157822111f516a9a5493730708",
+          "bytes": 634
+        }
+      },
+      "image_reference": "alexgshaw/nginx-request-logging:20251031",
+      "image_digest": null,
+      "architecture": "unknown; not pulled or probed",
+      "environment_verified": false
+    },
+    {
+      "name": "merge-diff-arc-agi-task",
+      "git_url": "https://github.com/laude-institute/terminal-bench-2.git",
+      "git_commit_id": "69671fbaac6d67a7ef0dfec016cc38a64ef7a77c",
+      "path": "merge-diff-arc-agi-task",
+      "id": "merge-diff-arc-agi-task",
+      "selection_hash": "0df7202d183ebf4215ca11139ff4422da4ff2349e99c72f443a77d328626c2c0",
+      "config": {
+        "version": "1.0",
+        "metadata": {
+          "author_name": "Zhi Wang",
+          "author_email": "zhw119@ucsd.edu",
+          "difficulty": "medium",
+          "category": "debugging",
+          "tags": [
+            "git",
+            "coding"
+          ],
+          "expert_time_estimate_min": 20.0,
+          "junior_time_estimate_min": 40.0
+        },
+        "verifier": {
+          "timeout_sec": 900.0
+        },
+        "agent": {
+          "timeout_sec": 900.0
+        },
+        "environment": {
+          "build_timeout_sec": 600.0,
+          "docker_image": "alexgshaw/merge-diff-arc-agi-task:20251031",
+          "cpus": 1,
+          "memory": "4G",
+          "storage": "10G"
+        }
+      },
+      "files": [
+        {
+          "path": "environment/Dockerfile",
+          "git_blob_sha1": "31f31c7b0b7c28195e9f3a98d7108c86fc20984a",
+          "bytes": 221
+        },
+        {
+          "path": "environment/task-deps/bundle1.bundle",
+          "git_blob_sha1": "0ad49e4e7d28707f48d93d2399dc3c411fc2e682",
+          "bytes": 1009
+        },
+        {
+          "path": "environment/task-deps/bundle2.bundle",
+          "git_blob_sha1": "298e08d59ce4112c2fc1381cfd8fc5800bf37db9",
+          "bytes": 1244
+        },
+        {
+          "path": "environment/task-deps/examples.json",
+          "git_blob_sha1": "653675ee6c4e8be405b23dd75bed336ce9b5fdca",
+          "bytes": 6977
+        },
+        {
+          "path": "instruction.md",
+          "git_blob_sha1": "e2360b1447c0d6bb04d6c574c839842afaf53462",
+          "bytes": 1629
+        },
+        {
+          "path": "solution/solve.sh",
+          "git_blob_sha1": "141ee191c6105676ef23435d51aeb1fd0c142fda",
+          "bytes": 1305
+        },
+        {
+          "path": "task.toml",
+          "git_blob_sha1": "4089c6489c8dc9657839b4005940d5384d874d1e",
+          "bytes": 423
+        },
+        {
+          "path": "tests/test.json",
+          "git_blob_sha1": "13d5c07bf09e9ef7ec1213a139e9110269caac32",
+          "bytes": 9302
+        },
+        {
+          "path": "tests/test.sh",
+          "git_blob_sha1": "36e367f36b98403f8eab986b44d6802c4b91aa6a",
+          "bytes": 620
+        },
+        {
+          "path": "tests/test_outputs.py",
+          "git_blob_sha1": "392b63be825a303ea7c02a74c5cef771c55358a5",
+          "bytes": 3034
+        }
+      ],
+      "inspected": {
+        "instruction.md": {
+          "sha256": "2d826479873e5ac1c94c1f802763bf85c22bb04624384685ebdf6b153fe0278e",
+          "git_blob_sha1": "e2360b1447c0d6bb04d6c574c839842afaf53462",
+          "bytes": 1629
+        },
+        "task.toml": {
+          "sha256": "32696fcfedf2df9a089b97a7fb4dcb6f757b7bb438e5bff5c8c0076ea622af3a",
+          "git_blob_sha1": "4089c6489c8dc9657839b4005940d5384d874d1e",
+          "bytes": 423
+        },
+        "environment/Dockerfile": {
+          "sha256": "4a03ae6f0c60b9c2f45c33f0413b5aa75c9811870254e3ff1968fd0119173fc6",
+          "git_blob_sha1": "31f31c7b0b7c28195e9f3a98d7108c86fc20984a",
+          "bytes": 221
+        },
+        "tests/test.sh": {
+          "sha256": "c9052954cd6ce25c4a375a2fb48e765b1efa5b39f7991b93993cc793af8ab9d2",
+          "git_blob_sha1": "36e367f36b98403f8eab986b44d6802c4b91aa6a",
+          "bytes": 620
+        }
+      },
+      "image_reference": "alexgshaw/merge-diff-arc-agi-task:20251031",
+      "image_digest": null,
+      "architecture": "unknown; not pulled or probed",
+      "environment_verified": false
+    },
+    {
+      "name": "break-filter-js-from-html",
+      "git_url": "https://github.com/laude-institute/terminal-bench-2.git",
+      "git_commit_id": "69671fbaac6d67a7ef0dfec016cc38a64ef7a77c",
+      "path": "break-filter-js-from-html",
+      "id": "break-filter-js-from-html",
+      "selection_hash": "12e838e095a05ee44ac149996e6e7d494e40220b587a298e3ea9068fa757dbc0",
+      "config": {
+        "version": "1.0",
+        "metadata": {
+          "author_name": "Nicholas Carlini",
+          "author_email": "nicholas@carlini.com",
+          "difficulty": "medium",
+          "category": "security",
+          "tags": [
+            "security"
+          ],
+          "expert_time_estimate_min": 20.0,
+          "junior_time_estimate_min": 480.0
+        },
+        "verifier": {
+          "timeout_sec": 1200.0
+        },
+        "agent": {
+          "timeout_sec": 1200.0
+        },
+        "environment": {
+          "build_timeout_sec": 600.0,
+          "docker_image": "alexgshaw/break-filter-js-from-html:20251031",
+          "cpus": 1,
+          "memory": "2G",
+          "storage": "10G"
+        }
+      },
+      "files": [
+        {
+          "path": "environment/Dockerfile",
+          "git_blob_sha1": "77d131ae0ec556e851a6290e07b1387a8e9a935f",
+          "bytes": 703
+        },
+        {
+          "path": "environment/filter.py",
+          "git_blob_sha1": "90d26e63fe63dea63e645bf06159a1c0a4f40593",
+          "bytes": 960
+        },
+        {
+          "path": "environment/tests/filter.py",
+          "git_blob_sha1": "90d26e63fe63dea63e645bf06159a1c0a4f40593",
+          "bytes": 960
+        },
+        {
+          "path": "environment/tests/test_outputs.py",
+          "git_blob_sha1": "1bf2128a002d4014d85094c2223f87c62ae9088d",
+          "bytes": 3270
+        },
+        {
+          "path": "instruction.md",
+          "git_blob_sha1": "116ec0d2215098ad7573769ef71ff1bb31fbd538",
+          "bytes": 559
+        },
+        {
+          "path": "solution/solve.sh",
+          "git_blob_sha1": "949a497ec346b5ffe56a2e7079835874a1649ed2",
+          "bytes": 273
+        },
+        {
+          "path": "task.toml",
+          "git_blob_sha1": "d1b385e30aaaaae86004e51b608a82eb67cfbbc4",
+          "bytes": 435
+        },
+        {
+          "path": "tests/filter.py",
+          "git_blob_sha1": "90d26e63fe63dea63e645bf06159a1c0a4f40593",
+          "bytes": 960
+        },
+        {
+          "path": "tests/test.sh",
+          "git_blob_sha1": "4ed56b85f7f2505b04c8f785666f10aaaf9c3caf",
+          "bytes": 662
+        },
+        {
+          "path": "tests/test_outputs.py",
+          "git_blob_sha1": "1bf2128a002d4014d85094c2223f87c62ae9088d",
+          "bytes": 3270
+        }
+      ],
+      "inspected": {
+        "instruction.md": {
+          "sha256": "ad42558111b2a8e8534bdf52b584b804348e1a8d68d756f812a31d5147e65be5",
+          "git_blob_sha1": "116ec0d2215098ad7573769ef71ff1bb31fbd538",
+          "bytes": 559
+        },
+        "task.toml": {
+          "sha256": "5c10a564179f73c001441dc9a56cb629efac72f5828be8655697c9d2fd2dbb96",
+          "git_blob_sha1": "d1b385e30aaaaae86004e51b608a82eb67cfbbc4",
+          "bytes": 435
+        },
+        "environment/Dockerfile": {
+          "sha256": "456f7dbf9eb988d24598e46fd371f8f732061bcdc55031dff2f8fc79030be5c4",
+          "git_blob_sha1": "77d131ae0ec556e851a6290e07b1387a8e9a935f",
+          "bytes": 703
+        },
+        "tests/test.sh": {
+          "sha256": "09386b7e4929216fe490deb7d32c99841c03be2471897181dda2bd11f8922c00",
+          "git_blob_sha1": "4ed56b85f7f2505b04c8f785666f10aaaf9c3caf",
+          "bytes": 662
+        }
+      },
+      "image_reference": "alexgshaw/break-filter-js-from-html:20251031",
+      "image_digest": null,
+      "architecture": "unknown; not pulled or probed",
+      "environment_verified": false
+    }
+  ],
+  "exposure": [
+    {
+      "task": "overfull-hbox",
+      "path": "instruction.md",
+      "read_by": "Builder integration",
+      "solution_read": false
+    },
+    {
+      "task": "overfull-hbox",
+      "path": "task.toml",
+      "read_by": "Builder integration",
+      "solution_read": false
+    },
+    {
+      "task": "overfull-hbox",
+      "path": "environment/Dockerfile",
+      "read_by": "Builder integration",
+      "solution_read": false
+    },
+    {
+      "task": "overfull-hbox",
+      "path": "tests/test.sh",
+      "read_by": "Builder integration",
+      "solution_read": false
+    },
+    {
+      "task": "dna-insert",
+      "path": "instruction.md",
+      "read_by": "Builder integration",
+      "solution_read": false
+    },
+    {
+      "task": "dna-insert",
+      "path": "task.toml",
+      "read_by": "Builder integration",
+      "solution_read": false
+    },
+    {
+      "task": "dna-insert",
+      "path": "environment/Dockerfile",
+      "read_by": "Builder integration",
+      "solution_read": false
+    },
+    {
+      "task": "dna-insert",
+      "path": "tests/test.sh",
+      "read_by": "Builder integration",
+      "solution_read": false
+    },
+    {
+      "task": "nginx-request-logging",
+      "path": "instruction.md",
+      "read_by": "Builder integration",
+      "solution_read": false
+    },
+    {
+      "task": "nginx-request-logging",
+      "path": "task.toml",
+      "read_by": "Builder integration",
+      "solution_read": false
+    },
+    {
+      "task": "nginx-request-logging",
+      "path": "environment/Dockerfile",
+      "read_by": "Builder integration",
+      "solution_read": false
+    },
+    {
+      "task": "nginx-request-logging",
+      "path": "tests/test.sh",
+      "read_by": "Builder integration",
+      "solution_read": false
+    },
+    {
+      "task": "merge-diff-arc-agi-task",
+      "path": "instruction.md",
+      "read_by": "Builder integration",
+      "solution_read": false
+    },
+    {
+      "task": "merge-diff-arc-agi-task",
+      "path": "task.toml",
+      "read_by": "Builder integration",
+      "solution_read": false
+    },
+    {
+      "task": "merge-diff-arc-agi-task",
+      "path": "environment/Dockerfile",
+      "read_by": "Builder integration",
+      "solution_read": false
+    },
+    {
+      "task": "merge-diff-arc-agi-task",
+      "path": "tests/test.sh",
+      "read_by": "Builder integration",
+      "solution_read": false
+    },
+    {
+      "task": "break-filter-js-from-html",
+      "path": "instruction.md",
+      "read_by": "Builder integration",
+      "solution_read": false
+    },
+    {
+      "task": "break-filter-js-from-html",
+      "path": "task.toml",
+      "read_by": "Builder integration",
+      "solution_read": false
+    },
+    {
+      "task": "break-filter-js-from-html",
+      "path": "environment/Dockerfile",
+      "read_by": "Builder integration",
+      "solution_read": false
+    },
+    {
+      "task": "break-filter-js-from-html",
+      "path": "tests/test.sh",
+      "read_by": "Builder integration",
+      "solution_read": false
+    }
+  ],
+  "claims": "public development pilot; no live score; not unseen holdout"
+}
