@@ -101,3 +101,5 @@ The Human-accepted architecture history remains indexed in [`../adr/README.md`](
 - [Terminal-Bench pilot #75](terminal-bench-pilot-75.md): Criteria1.0 runner, bounded live proposal and upstream test-visibility ScopeChallenge.
 
 - [Terminal-Bench environments #76](terminal-bench-environments-76.md): fixed official assets, bounded preparation and future live prerequisites.
+
+- [Terminal-Bench recovery #78](terminal-bench-recovery-78.md) — candidate diagnostics, owned-network release and unsigned 40/200/80 ceilings.

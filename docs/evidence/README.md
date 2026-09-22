@@ -36,3 +36,5 @@ Raw artifacts remain at their stable source, Git, Trace, Test, evaluator, or ext
 - [Terminal-Bench pilot #75](terminal-bench-pilot-75.md): installed Adapter offline evidence, fixed inputs and independent-review handoff boundaries.
 
 - [Terminal-Bench environments #76](terminal-bench-environments-76.md): actual five-task broker preflight, retained failures and identity-bound assets.
+
+- [Terminal-Bench recovery #78](terminal-bench-recovery-78.md) — current address-pool exhaustion reproduced; blocked real ready comparison, no model calls or scoring.

@@ -1,0 +1,10 @@
+{
+  "schema": 1,
+  "authorized": false,
+  "signature": "",
+  "runId": null,
+  "humanAuthorizationId": null,
+  "runnerSha": null,
+  "notice": "Engineering ceiling proposal only. Requires accepted runner identity, a new explicit Human budget and Master signed activation. WO77 is consumed and cannot be reused.",
+  "budget": {"dispatchesPerTask":40,"dispatchesCampaign":200,"toolsPerTask":80,"maxTokens":4096,"requestBytes":131072,"responseBytes":524288,"dispatchSeconds":120}
+}

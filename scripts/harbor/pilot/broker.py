@@ -1,6 +1,7 @@
 """Credential-free Harbor capability server. Only the Node controller reads keys."""
 import asyncio,json,hashlib,sys,uuid,signal
 from pathlib import Path
+from diagnostics import failure,release_network
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
 from adapter import PanAgent
 from harbor.models.task.task import Task
@@ -14,7 +15,7 @@ class RecordingEnvironment(DockerEnvironment):
   return result
 async def docker(*args):
  p=await asyncio.create_subprocess_exec('docker',*args,stdout=asyncio.subprocess.PIPE,stderr=asyncio.subprocess.PIPE);out,_=await asyncio.wait_for(p.communicate(),20)
- if p.returncode:raise RuntimeError('docker_operation_failed')
+ if p.returncode:raise RuntimeError('docker_operation_failed. Return code: '+str(p.returncode)+'.')
  return out.decode()
 def audit(info,logs,cfg):
  h=info['HostConfig'];assert not h['Privileged'] and not h.get('CapAdd') and not h.get('Devices') and not h.get('DeviceRequests') and h['NetworkMode']!='host'
@@ -49,9 +50,16 @@ class Bound:
 async def main():
  current=asyncio.current_task();asyncio.get_running_loop().add_signal_handler(signal.SIGTERM,current.cancel)
  config=json.loads(await asyncio.to_thread(sys.stdin.readline));meta=config['task'];root=Path(config['task_root'])/meta['path'];trial=TrialPaths(trial_dir=Path(config['output']));trial.mkdir()
- validate_source(root,meta)
+ stage='source_validation';sid='wo78-'+uuid.uuid4().hex[:16];cid=None
+ def record_stage(value):
+  nonlocal stage
+  stage=value
+  print(json.dumps({'diagnostic':{'stage':stage,'project':sid}}),flush=True)
+ record_stage(stage)
+ try:validate_source(root,meta)
+ except BaseException as exc:
+  detail=failure(exc,stage,meta['id'],sid,cid);(trial.trial_dir/'failure.json').write_text(json.dumps(detail)+'\n');print(json.dumps({'diagnostic':{'stage':stage,'reason':detail['causes'][0]['reason']}}),flush=True);raise
  task=Task(root);cfg=task.config.environment.model_copy(update={'docker_image':config['image']});assert not task.config.verifier.env
- sid='wo75-'+uuid.uuid4().hex[:16]
  env=RecordingEnvironment(environment_dir=root/'environment',environment_name='wo75',session_id=sid,trial_paths=trial,task_env_config=cfg,mounts=[{'type':'bind','source':str(trial.verifier_dir),'target':'/logs/verifier'}],keep_containers=True)
  helper=PanAgent(logs_dir=trial.agent_dir);helper.records=[];helper.stopped=False;cid=None
  async def send(x):print(json.dumps(x),flush=True)
@@ -65,12 +73,17 @@ async def main():
   except Exception as e:return {'status':'evaluation_error','rewards':None,'verifier_exit_or_exception':type(e).__name__,'verifier_exits':env.verifier_exits,'raw_reward_paths':['verifier/reward.txt','verifier/reward.json']}
  jobs=set()
  try:
+  record_stage('daemon_connection')
+  if (await docker('info','--format','{{.OSType}}')).strip()!='linux':raise RuntimeError('docker_operation_failed')
+  record_stage('compose_create')
   await asyncio.wait_for(env.start(force_build=False),cfg.build_timeout_sec)
+  record_stage('inspect_audit')
   ids=(await docker('ps','-aq','--filter','label=com.docker.compose.project='+sid,'--filter','label=com.docker.compose.service=main')).split();assert len(ids)==1;cid=ids[0];helper.container_id=cid
   info=json.loads(await docker('inspect',cid))[0];assert info['Image']==config['image']
   (trial.trial_dir/'configuration.json').write_text(json.dumps(audit(info,trial.verifier_dir,cfg),indent=2)+'\n')
   # Do not inject tests/solutions before the Agent; baked upstream tests are a live blocker.
   absent=await env.exec('test ! -e /tests && test ! -e /solution');assert absent.return_code==0
+  record_stage('ready')
   bound=Bound(env,stop,verify);await send({'ready':True,'instruction':task.instruction})
   async def handle(msg):
    try:
@@ -85,11 +98,16 @@ async def main():
    msg=json.loads(line);job=asyncio.create_task(handle(msg));jobs.add(job);job.add_done_callback(jobs.discard)
   await asyncio.gather(*jobs)
  except BaseException as exc:
-  (trial.trial_dir/'failure.json').write_text(json.dumps({'error':type(exc).__name__})+'\n');raise
+  detail=failure(exc,stage,meta['id'],sid,cid)
+  (trial.trial_dir/'failure.json').write_text(json.dumps(detail,indent=2)+'\n')
+  await send({'diagnostic':{'stage':stage,'reason':detail['causes'][0]['reason']}})
+  raise
  finally:
   if not cid:
    ids=(await docker('ps','-aq','--filter','label=com.docker.compose.project='+sid,'--filter','label=com.docker.compose.service=main')).split()
    if len(ids)==1:cid=ids[0];helper.container_id=cid
   if cid:
    await stop('controller_exit');(trial.trial_dir/'stop.json').write_text(json.dumps(helper.records,indent=2)+'\n')
+  # Only this newly allocated project; never old campaigns or global prune.
+  await release_network(docker,sid,trial.trial_dir)
 if __name__=='__main__':asyncio.run(main())

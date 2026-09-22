@@ -303,3 +303,5 @@ The active #60/#61/#62 PTY drivers now start at idle rather than submitting remo
 - [WO75 Terminal-Bench pilot](harbor/pilot/README.md): fixed public five-task manifest, default-closed runner and offline boundary tests.
 
 - [WO76 official environment preparation](harbor/pilot/environment-prep/README.md): fixed five-task source/image assets, bounded broker preflight and unsigned live proposal.
+
+- [WO78 bounded recovery adapter](harbor/pilot/README.md) — zero-model diagnosis, candidate ceilings and scoped lifecycle release.

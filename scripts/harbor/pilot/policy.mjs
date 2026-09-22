@@ -2,7 +2,7 @@ import {createHash,verify} from 'node:crypto';
 import {mkdirSync,openSync,writeSync,fsyncSync,closeSync} from 'node:fs';
 import {join} from 'node:path';
 export const MODEL=Object.freeze({provider:'kimi-code',model:'k3-256k',thinking:'high',endpoint:'https://api.kimi.com/coding/v1/chat/completions'});
-export const LIMITS=Object.freeze({dispatchesPerTask:20,dispatchesCampaign:100,toolsPerTask:40,maxTokens:4096,requestBytes:131072,responseBytes:524288,dispatchSeconds:120});
+export const LIMITS=Object.freeze({dispatchesPerTask:40,dispatchesCampaign:200,toolsPerTask:80,maxTokens:4096,requestBytes:131072,responseBytes:524288,dispatchSeconds:120});
 export const canonical=v=>JSON.stringify(v&&typeof v==='object'?Array.isArray(v)?v.map(x=>JSON.parse(canonical(x))):Object.fromEntries(Object.keys(v).sort().map(k=>[k,JSON.parse(canonical(v[k]))])):v);
 export const digest=v=>createHash('sha256').update(v).digest('hex');
 export const check=(condition,code)=>{if(!condition)throw new Error(code);};
