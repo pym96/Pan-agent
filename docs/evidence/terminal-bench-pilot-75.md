@@ -1,3 +1,15 @@
+# Criteria1.1 continuation
+
+Current contract: [Master Criteria1.1 ruling](https://github.com/pym96/Pan-agent/issues/75#issuecomment-5775497812), together with full 1.0.
+The original delivery below remains historical evidence. SC-TBP-75-01 is resolved only for the pinned original visible test; it is no longer a permanent CLI blocker. Actual images remain unverified, activation stays unauthorized by default, and independent C-TBP-03 review remains pending.
+
+New evidence is under `/Volumes/WD_BLACK/pan-agent/wo75-terminal-bench-20260922/criteria11/`, indexed by hashes and a new full-SHA Handoff. The original Handoff/index and all previous ledgers are preserved.
+C-TBP-05 tests traverse the actual CLI orchestration, real signature/identity/package checks and durable ledger into explicitly injected fake environments and installed Pan/real Adapter/fake SSE. Five original tasks retain order; visible test invocation precedes controller verifier and does not itself create a score. Missing/false/bad-signature/expired/mismatched/over-budget/unresolved-image activation has zero credential, dispatch or environment effects. Successful synthetic execution checks secret/private-reasoning archives and same-run restart refusal. The source exception rejects repo/path/commit/blob changes. No real credential, Provider, image or container operations occur.
+
+Manifest changes only add the single-task visibility record; source files, configurations, population, selected order and official grading remain byte-identical to the old manifest after removing that annotation. New manifest hash and check results are in the external index. Only affected offline checks run; previous unaffected evidence remains available to the independent Regulator.
+
+---
+
 # #75 离线运行准备 Evidence｜Criteria1.0
 
 Builder 候选，非 accepted、非真实成绩。基线 `d1bc6c3938cd68b151b653178d977557a8921a0b`；

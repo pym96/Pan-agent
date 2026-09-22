@@ -5,7 +5,7 @@ from types import SimpleNamespace
 from unittest.mock import create_autospec,AsyncMock
 from harbor.environments.base import BaseEnvironment
 from broker import Bound,audit,validate_source
-from acquire import select
+from acquire import select,visible_test_exception
 HERE=Path(__file__).parent
 class Inputs(unittest.TestCase):
  def test_selection_and_duplicates(self):
@@ -13,6 +13,16 @@ class Inputs(unittest.TestCase):
   self.assertEqual(ids,[t['id'] for t in m['tasks']]);self.assertEqual(len(m['registry_entry']['tasks']),89)
   bad={'tasks':m['registry_entry']['tasks']*2}
   with self.assertRaisesRegex(ValueError,'duplicate'):select(bad)
+ def test_visible_test_exception_identity(self):
+  m=json.loads((HERE/'manifest.json').read_text());target=m['tasks'][-1]
+  self.assertEqual(visible_test_exception(target),target['official_visible_test'])
+  self.assertTrue(all(visible_test_exception(t) is None for t in m['tasks'][:-1]))
+  for field in ['git_url','path','git_commit_id']:
+   bad=json.loads(json.dumps(target));bad[field]='changed'
+   with self.assertRaises(AssertionError):visible_test_exception(bad)
+  for path in ['environment/Dockerfile','environment/tests/test_outputs.py','tests/test_outputs.py']:
+   bad=json.loads(json.dumps(target));next(f for f in bad['files'] if f['path']==path)['git_blob_sha1']='changed'
+   with self.assertRaises(AssertionError):visible_test_exception(bad)
  def test_source_inventory_bytes_and_escape(self):
   with tempfile.TemporaryDirectory() as d:
    root=Path(d);(root/'instruction.md').write_bytes(b'instruction');meta={'files':[{'path':'instruction.md','git_blob_sha1':hashlib.sha1(b'blob 11\0instruction').hexdigest()}]}

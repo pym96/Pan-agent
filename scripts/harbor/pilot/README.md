@@ -1,6 +1,6 @@
 # WO75 Terminal-Bench public pilot (offline preparation)
 
-Criteria1.0; Product evaluation adapter. No live permission is included.
+Criteria1.1; Product evaluation adapter. No live permission is included.
 See [design](../../../docs/design/terminal-bench-pilot-75.md) and
 [evidence](../../../docs/evidence/terminal-bench-pilot-75.md).
 
@@ -15,7 +15,7 @@ See [design](../../../docs/design/terminal-bench-pilot-75.md) and
 - `package-identity.json`: baseline package and installed-file hashes; pinned Harbor closure.
 - `resources.mjs`: five-second operational disk guard; not a filesystem hard quota.
 - `report.mjs`: fixed denominator, original reward, explicit unknown usage and errors.
-- `test_policy.mjs`, `test_session.mjs`, `test_broker.mjs`, `test_offline.py`: offline controls; injected wire
+- `test_cli.mjs` (real CLI orchestration with explicit fake dependencies), `test_policy.mjs`, `test_session.mjs`, `test_broker.mjs`, `test_offline.py`: offline controls; injected wire
   responses are test fixtures only. No test creates task images or containers.
 
 ```sh
@@ -25,6 +25,11 @@ WO75_PAN_ENTRY=/private/tmp/wo75-work/consumer/node_modules/pan-agent/dist/index
 PYTHONDONTWRITEBYTECODE=1 /private/tmp/wo74-work/venv/bin/python -m unittest discover -s scripts/harbor/pilot -p 'test_*.py' -v
 ```
 
-The CLI currently rejects every live campaign with `SC-TBP-75-01_unresolved`, even
-with an otherwise valid activation: one selected official Dockerfile exposes the
-verifier test in `/app`. No task substitution or silent test modification is allowed.
+Criteria1.1 permits only the fixed original `/app/test_outputs.py` for
+`break-filter-js-from-html`, with source identities recorded in the manifest.
+The SC-only permanent refusal is removed; all activation and runtime gates remain.
+Actual image contents and runtime viability are unverified. Run the new entry tests:
+
+```sh
+node --test scripts/harbor/pilot/test_cli.mjs
+```

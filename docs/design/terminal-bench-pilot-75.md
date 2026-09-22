@@ -1,7 +1,8 @@
-# #75 Terminal-Bench pilot｜Criteria1.0
+# #75 Terminal-Bench pilot｜Criteria1.1
 
 Product 评测适配；Builder 候选，等待独立 Regulator。合同：
 [#75 Criteria1.0](https://github.com/pym96/Pan-agent/issues/75#issuecomment-5774791581)。
+[Criteria1.1 修订与限定裁定](https://github.com/pym96/Pan-agent/issues/75#issuecomment-5775497812)与 1.0 共同生效。
 基线 `d1bc6c3938cd68b151b653178d977557a8921a0b`。本轮只做离线准备，真实模型请求、真实凭证读取、任务/Oracle/verifier 容器、镜像拉取/构建均为零。
 
 ## 固定公开输入
@@ -27,19 +28,15 @@ Builder 为集成核验取得了五题 instruction.md、task.toml、environment/
 
 ## SC-TBP-75-01：官方测试可见性冲突
 
-**请求 Master 裁定，当前 live 入口保持拒绝。** `break-filter-js-from-html/environment/Dockerfile`
-（blob `77d131ae0ec556e851a6290e07b1387a8e9a935f`）明确执行：
+**Criteria1.1 已裁定：仅允许原题原有可见测试；实际镜像未验证。**
+固定 `break-filter-js-from-html/environment/Dockerfile`（blob `77d131ae0ec556e851a6290e07b1387a8e9a935f`）
+将 `environment/tests/test_outputs.py` 复制到 `/app/test_outputs.py`；该源和 verifier tests/test_outputs.py
+均为 blob `1bf2128a002d4014d85094c2223f87c62ae9088d`。Builder 重新核对固定 Git tree 和 Dockerfile 源身份，manifest 重建时强制核对 repo、commit、path 与三个 blob。
+许可仅属于该固定文件；不额外注入隐藏测试、solution、答案或控制侧 verifier 日志，不删除、改写或搬迁原文件。
+Agent 自行调用原题可见测试不等于提前调用控制侧正式 verifier，不能直接记为正式成绩。其他任务不获得测试注入许可。
+旧 Criteria1.0 的冲突与永久阻断记录保留在原 SHA / Handoff；本修订只移除已裁定的 SC 分支，所有签名、身份、预算、环境和凭证检查保持。
+CLI 的模块接口允许离线测试显式注入宿主快照、隔离 home、假环境、合成凭证和假 transport；命令行没有这些覆盖选项，也没有跳过授权的测试开关。
 
-```dockerfile
-COPY tests/test_outputs.py /app
-```
-
-同文件注释明确允许 LLM 测试其修改；该任务 `environment/tests/test_outputs.py` 与官方
-`tests/test_outputs.py` 的 Git blob 均为 `1bf2128a002d4014d85094c2223f87c62ae9088d`。
-这与合同“tests 不能进入被测模型运行时工具可读工作区”冲突。
-这是固定源码证据，不声称已检查镜像实际层。原题仍保留在五题分母，未改官方 Dockerfile、测试、评分或时限。
-需要明确针对该任务的官方可见测试例外，或新的环境处理合同；Builder 不自行删除测试、换题或放宽限制。
-`cli.mjs` 的 blocker 必须在裁定后另行修订、复核，不能靠 activation 标记绕过。
 `overfull-hbox` 的部分同名测试目录文件是被 Dockerfile 拷贝的题目输入，不将其等同于上述可执行评分代码冲突。
 
 ## 运行路径与边界
@@ -80,13 +77,13 @@ usage input/output 各自记录；未报告为 null，不能写零。缺 usage�
 
 ## 未授权 live 提案
 
-先解决 SC-TBP-75-01 并取得独立技术复核及 C-TBP-03 新候选的有限 Human 两项明确 pass（或不同模型家族复核）。
+SC-TBP-75-01 的限定裁定已记录；仍需取得独立技术复核及 C-TBP-03 新候选的有限 Human 两项明确 pass（或不同模型家族复核）。
 #74 已接受的 Human 审阅不重做，#70 已消费授权不复用。
 随后另行授权任务数据获取、镜像解析/拉取和这一轮最多 100 次的额度；不假定会员剩余额度，不换算 CNY 或充值。
 完整源文件目录须与五题 manifest 精确匹配；不允许额外 compose 文件、软链接逃逸或源字节漂移。
 镜像 ID 必须解析为不可变 sha256，再写入签名 activation；本轮不提供伪 digest。
 
-命令形状（**当前必定拒绝；不是执行许可**）：
+命令形状（**无有效真实 activation 仍拒绝；不是执行许可**）：
 
 ```sh
 node scripts/harbor/pilot/cli.mjs --activation /controller/approved-activation.json --entry /private/tmp/wo75-work/consumer/node_modules/pan-agent/dist/index.js --task-root /private/tmp/wo75-live/tasks --output /private/tmp/wo75-live/new-run

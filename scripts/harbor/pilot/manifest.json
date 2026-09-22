@@ -1093,7 +1093,16 @@
       "image_reference": "alexgshaw/break-filter-js-from-html:20251031",
       "image_digest": null,
       "architecture": "unknown; not pulled or probed",
-      "environment_verified": false
+      "environment_verified": false,
+      "official_visible_test": {
+        "status": "official visible test permitted; actual image unverified",
+        "source_path": "environment/tests/test_outputs.py",
+        "visible_path": "/app/test_outputs.py",
+        "git_blob_sha1": "1bf2128a002d4014d85094c2223f87c62ae9088d",
+        "dockerfile_blob_sha1": "77d131ae0ec556e851a6290e07b1387a8e9a935f",
+        "ruling": "https://github.com/pym96/Pan-agent/issues/75#issuecomment-5775497812",
+        "scope": "original file only; no additional tests, solution, answers or controller verifier logs"
+      }
     }
   ],
   "exposure": [

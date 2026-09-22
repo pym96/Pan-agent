@@ -61,5 +61,5 @@ allowance is consumed; candidate SHA Handoff defines the independent review step
 
 The separate [pilot entry](pilot/README.md) selects the fixed Terminal-Bench five
 and exercises installed Pan/Kimi with fake transport and environment. It has no
-live authorization; SC-TBP-75-01 blocks live execution. WO74 control code and old
+live authorization; Criteria1.1 resolves SC-TBP-75-01 only for the original visible test. WO74 control code and old
 identity/evidence records remain unchanged.
