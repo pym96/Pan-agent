@@ -1,0 +1,40 @@
+{
+  "criteria": "1.3",
+  "frozen_before_payload_acquisition_utc": "2026-09-22T01:37:01Z",
+  "parser_sha256": "b46bda54790a3780e18d6c0de11edfe3f34e5f3f5bac60edfe6d4f877df057bb",
+  "tests_sha256": "65e7e3306d12f7003f3b926703fc6a3d6773fc89c437150159695dd8d32c490c",
+  "plot_json_fields": [
+    "chart_type",
+    "color",
+    "dpi",
+    "figsize",
+    "graph_title",
+    "graph_type",
+    "labels",
+    "legend_title",
+    "plot_type",
+    "type",
+    "x_label",
+    "xlim",
+    "xtick_labels",
+    "y_label",
+    "ylim",
+    "ytick_labels"
+  ],
+  "chart_kind_enums": [
+    "bar",
+    "box",
+    "heatmap",
+    "histogram",
+    "line",
+    "pie",
+    "scatter",
+    "violin"
+  ],
+  "max_header_bytes": 1048576,
+  "max_columns": 200,
+  "max_name_bytes": 96,
+  "json_max_bytes": 65536,
+  "numpy_max_header_bytes": 65536,
+  "png_read_bytes": 33
+}

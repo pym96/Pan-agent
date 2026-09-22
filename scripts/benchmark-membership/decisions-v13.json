@@ -1,0 +1,1562 @@
+{
+  "criteria": "1.3",
+  "decision_policy": "Structurally complete and instruction/scorer-consistent subset of pinned available distribution; not whole-benchmark representativeness.",
+  "decisions": [
+    {
+      "decision": "excluded",
+      "evidence": [
+        {
+          "git_blob": "62da3b24716e95b8cfc9caddd27781cc99116a85",
+          "locator": "README normal task-input sections; reader-v11 retained projection",
+          "path": "da_code/source/data-sa-026/README.md",
+          "sha256": "faf3fec8d92068b4cc42cd4ecd2a8eb331654f259feeecc583a25e757fcdaf54"
+        },
+        {
+          "locator": "__init__ lines 78\u201396: task-ID directory staged without a task-specific acquisition/generation override",
+          "path": "da_agent/envs/da_agent.py",
+          "sha256": "f3a35f3d22718725efc716e2f1490bf39d63d456c4e331d294bce184c29032fa"
+        },
+        {
+          "locator": "setup_cp_dir lines 27\u201341: direct source-directory copy",
+          "path": "da_agent/controllers/setup.py",
+          "sha256": "5204d12f00c70893cad28d066e7964317eb803100334cc5b9e1b77fcdd0a53dc"
+        }
+      ],
+      "external_provision_audit": "Only exact references in task/source/staging are in scope; no general web search or guessed package dataset.",
+      "id": "data-sa-026",
+      "instruction_sha256": "75ee7e3b52965780b827f22da0e5df9864786fb6935fa28834066c09870ca4d2",
+      "original_reasons": [
+        "instruction file reference not statically classified",
+        "source inventory has no recognized data payload; external/dynamic requirements unresolved"
+      ],
+      "rationale": "README lines 4\u201319 describes airline review fields and a license, but supplies no exact data locator or generation specification. Only README is supplied.",
+      "reason": "required_input_unprovided_in_pinned_distribution",
+      "requirements": [
+        {
+          "classification": "task_produced_output",
+          "inventory_matches": [],
+          "reference": "result.csv"
+        },
+        {
+          "classification": "required_input_unprovided_in_pinned_distribution",
+          "inventory_matches": [],
+          "reference": "sample_result.csv"
+        },
+        {
+          "classification": "required_input_unprovided_in_pinned_distribution",
+          "provision_search": "Complete per-task pinned source tree, allowed README and task instruction; staging directly copies that tree. No data-generation or exact asset provision reference identified.",
+          "reference": "Airline review observations and sample_result.csv"
+        }
+      ],
+      "rights_boundary": "DA-Code code MIT; per-dataset rights/provenance unresolved; tree presence is not download permission",
+      "runtime_gaps": [
+        "task-specific dependency/image lock",
+        "dataset provenance/license and external acquisition",
+        "verify source README/instruction asset requirements",
+        "official scorer fresh-environment preflight"
+      ],
+      "source_inventory": [
+        {
+          "bytes": 600,
+          "git_blob": "62da3b24716e95b8cfc9caddd27781cc99116a85",
+          "path": "da_code/source/data-sa-026/README.md"
+        }
+      ],
+      "source_revision": "b211daf51fdc9b52d5087c9df28ac50191bcabed"
+    },
+    {
+      "decision": "excluded",
+      "evidence": [
+        {
+          "git_blob": "3f5f2a8cec59c72cc3b18209064ff2423c710d97",
+          "locator": "README normal task-input sections; reader-v11 retained projection",
+          "path": "da_code/source/data-sa-028/README.md",
+          "sha256": "70f161d0f4babb3bc832b20725fbf2741ca39edf8de2bfc03a2de92cf1e0abbb"
+        },
+        {
+          "locator": "__init__ lines 78\u201396: task-ID directory staged without a task-specific acquisition/generation override",
+          "path": "da_agent/envs/da_agent.py",
+          "sha256": "f3a35f3d22718725efc716e2f1490bf39d63d456c4e331d294bce184c29032fa"
+        },
+        {
+          "locator": "setup_cp_dir lines 27\u201341: direct source-directory copy",
+          "path": "da_agent/controllers/setup.py",
+          "sha256": "5204d12f00c70893cad28d066e7964317eb803100334cc5b9e1b77fcdd0a53dc"
+        }
+      ],
+      "external_provision_audit": "Only exact references in task/source/staging are in scope; no general web search or guessed package dataset.",
+      "id": "data-sa-028",
+      "instruction_sha256": "75830842f1d8433aae57ec3c6f6b053c0271bbea45d68d418f43c5fbb53da609",
+      "original_reasons": [
+        "instruction file reference not statically classified",
+        "source inventory has no recognized data payload; external/dynamic requirements unresolved"
+      ],
+      "rationale": "README line 1 describes a hypothesis-test method; it neither supplies bird measurements nor specifies their generation or location. Only README is supplied.",
+      "reason": "required_input_unprovided_in_pinned_distribution",
+      "requirements": [
+        {
+          "classification": "task_produced_output",
+          "inventory_matches": [],
+          "reference": "result.csv"
+        },
+        {
+          "classification": "required_input_unprovided_in_pinned_distribution",
+          "inventory_matches": [],
+          "reference": "sample_result.csv"
+        },
+        {
+          "classification": "required_input_unprovided_in_pinned_distribution",
+          "inventory_matches": [],
+          "reference": "tips.md"
+        },
+        {
+          "classification": "required_input_unprovided_in_pinned_distribution",
+          "provision_search": "Complete per-task pinned source tree, allowed README and task instruction; staging directly copies that tree. No data-generation or exact asset provision reference identified.",
+          "reference": "1975/2012 G.scandens beak depths, tips.md and sample_result.csv"
+        }
+      ],
+      "rights_boundary": "DA-Code code MIT; per-dataset rights/provenance unresolved; tree presence is not download permission",
+      "runtime_gaps": [
+        "task-specific dependency/image lock",
+        "dataset provenance/license and external acquisition",
+        "verify source README/instruction asset requirements",
+        "official scorer fresh-environment preflight"
+      ],
+      "source_inventory": [
+        {
+          "bytes": 362,
+          "git_blob": "3f5f2a8cec59c72cc3b18209064ff2423c710d97",
+          "path": "da_code/source/data-sa-028/README.md"
+        }
+      ],
+      "source_revision": "b211daf51fdc9b52d5087c9df28ac50191bcabed"
+    },
+    {
+      "decision": "excluded",
+      "evidence": [
+        {
+          "git_blob": "4e3d7f2701837f5ca9d9b075a678aba24277840b",
+          "locator": "README normal task-input sections; reader-v11 retained projection",
+          "path": "da_code/source/data-sa-029/README.md",
+          "sha256": "59ee801aaca38226cf5659e10fd2629fea001c2d591cd4ebdbdcdf6675f3c999"
+        },
+        {
+          "locator": "__init__ lines 78\u201396: task-ID directory staged without a task-specific acquisition/generation override",
+          "path": "da_agent/envs/da_agent.py",
+          "sha256": "f3a35f3d22718725efc716e2f1490bf39d63d456c4e331d294bce184c29032fa"
+        },
+        {
+          "locator": "setup_cp_dir lines 27\u201341: direct source-directory copy",
+          "path": "da_agent/controllers/setup.py",
+          "sha256": "5204d12f00c70893cad28d066e7964317eb803100334cc5b9e1b77fcdd0a53dc"
+        }
+      ],
+      "external_provision_audit": "Only exact references in task/source/staging are in scope; no general web search or guessed package dataset.",
+      "id": "data-sa-029",
+      "instruction_sha256": "b5063828795f5f43071ab1be4b9a4612c0ec701a102ad05ced7c661f4ec68503",
+      "original_reasons": [
+        "instruction file reference not statically classified",
+        "source inventory has no recognized data payload; external/dynamic requirements unresolved"
+      ],
+      "rationale": "README line 1 is a course overview, without an exact measurement asset/provider or generation recipe. Supplied result.csv is the output-format artifact named in task semantics, not bird measurements; no payload inspected.",
+      "reason": "required_input_unprovided_in_pinned_distribution",
+      "requirements": [
+        {
+          "classification": "supplied_input",
+          "inventory_matches": [
+            {
+              "bytes": 36,
+              "git_blob": "9b1ee7296e4d6c7c9e5aeb5ff5843bb21fc1bce6",
+              "path": "da_code/source/data-sa-029/result.csv"
+            }
+          ],
+          "reference": "result.csv"
+        },
+        {
+          "classification": "required_input_unprovided_in_pinned_distribution",
+          "inventory_matches": [],
+          "reference": "sample_result.csv"
+        },
+        {
+          "classification": "required_input_unprovided_in_pinned_distribution",
+          "provision_search": "Complete per-task pinned source tree, allowed README and task instruction; staging directly copies that tree. No data-generation or exact asset provision reference identified.",
+          "reference": "1975/2012 bird beak lengths/depths and referenced sample_result.csv"
+        }
+      ],
+      "rights_boundary": "DA-Code code MIT; per-dataset rights/provenance unresolved; tree presence is not download permission",
+      "runtime_gaps": [
+        "task-specific dependency/image lock",
+        "dataset provenance/license and external acquisition",
+        "verify source README/instruction asset requirements",
+        "official scorer fresh-environment preflight"
+      ],
+      "source_inventory": [
+        {
+          "bytes": 668,
+          "git_blob": "4e3d7f2701837f5ca9d9b075a678aba24277840b",
+          "path": "da_code/source/data-sa-029/README.md"
+        },
+        {
+          "bytes": 36,
+          "git_blob": "9b1ee7296e4d6c7c9e5aeb5ff5843bb21fc1bce6",
+          "path": "da_code/source/data-sa-029/result.csv"
+        }
+      ],
+      "source_revision": "b211daf51fdc9b52d5087c9df28ac50191bcabed"
+    },
+    {
+      "decision": "excluded",
+      "evidence": [
+        {
+          "git_blob": "0c4c1fa97c34da372abb4c2474b77e9027000a68",
+          "locator": "README normal task-input sections; reader-v11 retained projection",
+          "path": "da_code/source/data-sa-031/README.md",
+          "sha256": "489f12d254056c4ddb9e62a59d2b046d161181897dfe3e3a1c0101f3b5e87a38"
+        },
+        {
+          "locator": "__init__ lines 78\u201396: task-ID directory staged without a task-specific acquisition/generation override",
+          "path": "da_agent/envs/da_agent.py",
+          "sha256": "f3a35f3d22718725efc716e2f1490bf39d63d456c4e331d294bce184c29032fa"
+        },
+        {
+          "locator": "setup_cp_dir lines 27\u201341: direct source-directory copy",
+          "path": "da_agent/controllers/setup.py",
+          "sha256": "5204d12f00c70893cad28d066e7964317eb803100334cc5b9e1b77fcdd0a53dc"
+        }
+      ],
+      "external_provision_audit": "Only exact references in task/source/staging are in scope; no general web search or guessed package dataset.",
+      "id": "data-sa-031",
+      "instruction_sha256": "98ca9b45ece7e020b029a44d0a1cd0facfc2f28b5313e96754d680577bfad4a2",
+      "original_reasons": [
+        "source inventory has no recognized data payload; external/dynamic requirements unresolved"
+      ],
+      "rationale": "README lines 1\u20133 is historical context without observations, loader, generation recipe or data locator. Only README and task output-format result.csv are supplied.",
+      "reason": "required_input_unprovided_in_pinned_distribution",
+      "requirements": [
+        {
+          "classification": "supplied_input",
+          "inventory_matches": [
+            {
+              "bytes": 27,
+              "git_blob": "685df74dc412d6a6cc029982ec4925fb322db52e",
+              "path": "da_code/source/data-sa-031/result.csv"
+            }
+          ],
+          "reference": "result.csv"
+        },
+        {
+          "classification": "required_input_unprovided_in_pinned_distribution",
+          "provision_search": "Complete per-task pinned source tree, allowed README and task instruction; staging directly copies that tree. No data-generation or exact asset provision reference identified.",
+          "reference": "Before/after handwashing death and birth observations"
+        }
+      ],
+      "rights_boundary": "DA-Code code MIT; per-dataset rights/provenance unresolved; tree presence is not download permission",
+      "runtime_gaps": [
+        "task-specific dependency/image lock",
+        "dataset provenance/license and external acquisition",
+        "verify source README/instruction asset requirements",
+        "official scorer fresh-environment preflight"
+      ],
+      "source_inventory": [
+        {
+          "bytes": 285,
+          "git_blob": "0c4c1fa97c34da372abb4c2474b77e9027000a68",
+          "path": "da_code/source/data-sa-031/README.md"
+        },
+        {
+          "bytes": 27,
+          "git_blob": "685df74dc412d6a6cc029982ec4925fb322db52e",
+          "path": "da_code/source/data-sa-031/result.csv"
+        }
+      ],
+      "source_revision": "b211daf51fdc9b52d5087c9df28ac50191bcabed"
+    },
+    {
+      "decision": "excluded",
+      "evidence": [
+        {
+          "git_blob": "4e3d7f2701837f5ca9d9b075a678aba24277840b",
+          "locator": "README normal task-input sections; reader-v11 retained projection",
+          "path": "da_code/source/data-sa-039/README.md",
+          "sha256": "59ee801aaca38226cf5659e10fd2629fea001c2d591cd4ebdbdcdf6675f3c999"
+        },
+        {
+          "locator": "__init__ lines 78\u201396: task-ID directory staged without a task-specific acquisition/generation override",
+          "path": "da_agent/envs/da_agent.py",
+          "sha256": "f3a35f3d22718725efc716e2f1490bf39d63d456c4e331d294bce184c29032fa"
+        },
+        {
+          "locator": "setup_cp_dir lines 27\u201341: direct source-directory copy",
+          "path": "da_agent/controllers/setup.py",
+          "sha256": "5204d12f00c70893cad28d066e7964317eb803100334cc5b9e1b77fcdd0a53dc"
+        }
+      ],
+      "external_provision_audit": "Only exact references in task/source/staging are in scope; no general web search or guessed package dataset.",
+      "id": "data-sa-039",
+      "instruction_sha256": "d67fc8b159c97e66804f2228922ce3cf66d65f3098f214aa7cb3af58034be485",
+      "original_reasons": [
+        "instruction file reference not statically classified",
+        "source inventory has no recognized data payload; external/dynamic requirements unresolved"
+      ],
+      "rationale": "README line 1 is the same course overview as data-sa-029, referring to finches. Full supplied source inventory contains only that README; no explicit frog-data provider/generation is named. Exclusion is limited to this distribution, not all external sources.",
+      "reason": "required_input_unprovided_in_pinned_distribution",
+      "requirements": [
+        {
+          "classification": "task_produced_output",
+          "inventory_matches": [],
+          "reference": "result.csv"
+        },
+        {
+          "classification": "required_input_unprovided_in_pinned_distribution",
+          "inventory_matches": [],
+          "reference": "sample_result.csv"
+        },
+        {
+          "classification": "required_input_unprovided_in_pinned_distribution",
+          "provision_search": "Complete per-task pinned source tree, allowed README and task instruction; staging directly copies that tree. No data-generation or exact asset provision reference identified.",
+          "reference": "Frog D/Frog E impact forces and sample_result.csv"
+        }
+      ],
+      "rights_boundary": "DA-Code code MIT; per-dataset rights/provenance unresolved; tree presence is not download permission",
+      "runtime_gaps": [
+        "task-specific dependency/image lock",
+        "dataset provenance/license and external acquisition",
+        "verify source README/instruction asset requirements",
+        "official scorer fresh-environment preflight"
+      ],
+      "source_inventory": [
+        {
+          "bytes": 668,
+          "git_blob": "4e3d7f2701837f5ca9d9b075a678aba24277840b",
+          "path": "da_code/source/data-sa-039/README.md"
+        }
+      ],
+      "source_revision": "b211daf51fdc9b52d5087c9df28ac50191bcabed"
+    },
+    {
+      "decision": "excluded",
+      "evidence": [
+        {
+          "git_blob": "1364c13af694c85c8966933beec657a0aee1d38c",
+          "locator": "README normal task-input sections; reader-v11 retained projection",
+          "path": "da_code/source/data-sa-043/README.md",
+          "sha256": "f1694627da6e310bf8ddbe4d6b23c1c7424f8086dbefe0129aa9ddb49b894109"
+        },
+        {
+          "locator": "__init__ lines 78\u201396: task-ID directory staged without a task-specific acquisition/generation override",
+          "path": "da_agent/envs/da_agent.py",
+          "sha256": "f3a35f3d22718725efc716e2f1490bf39d63d456c4e331d294bce184c29032fa"
+        },
+        {
+          "locator": "setup_cp_dir lines 27\u201341: direct source-directory copy",
+          "path": "da_agent/controllers/setup.py",
+          "sha256": "5204d12f00c70893cad28d066e7964317eb803100334cc5b9e1b77fcdd0a53dc"
+        }
+      ],
+      "external_provision_audit": "Only exact references in task/source/staging are in scope; no general web search or guessed package dataset.",
+      "id": "data-sa-043",
+      "instruction_sha256": "fb09b5da72059b7467caab7605dc01d5b74450726ed31dc8b65c94c8e680c9c3",
+      "original_reasons": [
+        "source inventory has no recognized data payload; external/dynamic requirements unresolved"
+      ],
+      "rationale": "README lines 1\u20133 describes a risk-management course. Mention of Monte Carlo simulation is not an original recipe for the requested observed quarterly series. Only README and output-format sample_result.csv are supplied.",
+      "reason": "required_input_unprovided_in_pinned_distribution",
+      "requirements": [
+        {
+          "classification": "task_produced_output",
+          "inventory_matches": [],
+          "reference": "result.csv"
+        },
+        {
+          "classification": "required_input_unprovided_in_pinned_distribution",
+          "provision_search": "Complete per-task pinned source tree, allowed README and task instruction; staging directly copies that tree. No data-generation or exact asset provision reference identified.",
+          "reference": "Quarterly minimum portfolio returns and mortgage delinquencies for 2005\u20132010"
+        }
+      ],
+      "rights_boundary": "DA-Code code MIT; per-dataset rights/provenance unresolved; tree presence is not download permission",
+      "runtime_gaps": [
+        "task-specific dependency/image lock",
+        "dataset provenance/license and external acquisition",
+        "verify source README/instruction asset requirements",
+        "official scorer fresh-environment preflight"
+      ],
+      "source_inventory": [
+        {
+          "bytes": 768,
+          "git_blob": "1364c13af694c85c8966933beec657a0aee1d38c",
+          "path": "da_code/source/data-sa-043/README.md"
+        },
+        {
+          "bytes": 29,
+          "git_blob": "1cd48b1cb4bf32a3e7aee6621f046c0749b48fdf",
+          "path": "da_code/source/data-sa-043/sample_result.csv"
+        }
+      ],
+      "source_revision": "b211daf51fdc9b52d5087c9df28ac50191bcabed"
+    },
+    {
+      "decision": "excluded",
+      "evidence": [
+        {
+          "git_blob": "2afccc4e8828a16f435f4a665d23bbb2e1c9cc32",
+          "locator": "README normal task-input sections; reader-v11 retained projection",
+          "path": "da_code/source/ml-multi-003/README.md",
+          "sha256": "23a052b774f4e6a0082ead79cc4e84132cb95cee8fa207bd6744d9678455eb18"
+        },
+        {
+          "locator": "__init__ lines 78\u201396: task-ID directory staged without a task-specific acquisition/generation override",
+          "path": "da_agent/envs/da_agent.py",
+          "sha256": "f3a35f3d22718725efc716e2f1490bf39d63d456c4e331d294bce184c29032fa"
+        },
+        {
+          "locator": "setup_cp_dir lines 27\u201341: direct source-directory copy",
+          "path": "da_agent/controllers/setup.py",
+          "sha256": "5204d12f00c70893cad28d066e7964317eb803100334cc5b9e1b77fcdd0a53dc"
+        }
+      ],
+      "external_provision_audit": "Only exact references in task/source/staging are in scope; no general web search or guessed package dataset.",
+      "id": "ml-multi-003",
+      "instruction_sha256": "2beb6917ede7acd49f76dd228dbd55885f194f08f5910b9417a6510e322517b8",
+      "original_reasons": [
+        "instruction file reference not statically classified"
+      ],
+      "rationale": "README describes postings.csv and company/job support tables. Frozen inventory has support tables but neither test.csv nor postings.csv; no split/generation recipe or exact downloadable job-record asset is specified. LinkedIn job URL is a schema explanation requiring a job_id, not a provision locator for the missing fixed test split.",
+      "reason": "required_input_unprovided_in_pinned_distribution",
+      "requirements": [
+        {
+          "classification": "task_produced_output",
+          "inventory_matches": [],
+          "reference": "result.csv"
+        },
+        {
+          "classification": "required_input_unprovided_in_pinned_distribution",
+          "inventory_matches": [],
+          "reference": "test.csv"
+        },
+        {
+          "classification": "required_input_unprovided_in_pinned_distribution",
+          "provision_search": "Complete per-task pinned source tree, allowed README and task instruction; staging directly copies that tree. No data-generation or exact asset provision reference identified.",
+          "reference": "Task-specified test.csv, with job records to predict"
+        }
+      ],
+      "rights_boundary": "DA-Code code MIT; per-dataset rights/provenance unresolved; tree presence is not download permission",
+      "runtime_gaps": [
+        "task-specific dependency/image lock",
+        "dataset provenance/license and external acquisition",
+        "verify source README/instruction asset requirements",
+        "official scorer fresh-environment preflight"
+      ],
+      "source_inventory": [
+        {
+          "bytes": 4109,
+          "git_blob": "2afccc4e8828a16f435f4a665d23bbb2e1c9cc32",
+          "path": "da_code/source/ml-multi-003/README.md"
+        },
+        {
+          "bytes": 23196843,
+          "git_blob": "044dbcb88bacba5917900cf8e1978c983abfa4fe",
+          "path": "da_code/source/ml-multi-003/companies/companies.csv"
+        },
+        {
+          "bytes": 782404,
+          "git_blob": "f7ed99712d5773d987a423e72c27cfaeab8b0245",
+          "path": "da_code/source/ml-multi-003/companies/company_industries.csv"
+        },
+        {
+          "bytes": 4431117,
+          "git_blob": "e1a2e5ca8a510bfa402bde8c5fc172a3fbc99327",
+          "path": "da_code/source/ml-multi-003/companies/company_specialities.csv"
+        },
+        {
+          "bytes": 1044625,
+          "git_blob": "68aa0a1b6722405a565ca49edcdc7176e2b399cd",
+          "path": "da_code/source/ml-multi-003/companies/employee_counts.csv"
+        },
+        {
+          "bytes": 2506014,
+          "git_blob": "822d695e457c7c392fb50a2075251096e29e56c5",
+          "path": "da_code/source/ml-multi-003/jobs/job_industries.csv"
+        },
+        {
+          "bytes": 3506651,
+          "git_blob": "2df6c4c957fe0a5e7c9f1871e69786b04c1d2632",
+          "path": "da_code/source/ml-multi-003/jobs/job_skills.csv"
+        },
+        {
+          "bytes": 2252264,
+          "git_blob": "640cb960b222e603e2d59a9655734c87ec4f3b54",
+          "path": "da_code/source/ml-multi-003/jobs/salaries.csv"
+        },
+        {
+          "bytes": 12734,
+          "git_blob": "1e4c520c81e8b6f786365e0b10cb9c25b5faeb86",
+          "path": "da_code/source/ml-multi-003/mappings/industries.csv"
+        },
+        {
+          "bytes": 679,
+          "git_blob": "44128cff1d4d95e1a15c5a3bb3e3577fd5ac34c4",
+          "path": "da_code/source/ml-multi-003/mappings/skills.csv"
+        }
+      ],
+      "source_revision": "b211daf51fdc9b52d5087c9df28ac50191bcabed"
+    },
+    {
+      "decision": "eligible",
+      "evidence": [
+        {
+          "git_blob": "e0b911a38d68fe7f49aeb472fb5723506a6a8a18",
+          "locator": "README normal task-input sections; reader-v11 retained projection",
+          "path": "da_code/source/plot-bar-004/README.md",
+          "sha256": "ee92d90df75ba9e40ce813d392e34eabb7941a89cc24f513f4676737e29e6188"
+        },
+        {
+          "locator": "__init__ lines 78\u201396: task-ID directory staged without a task-specific acquisition/generation override",
+          "path": "da_agent/envs/da_agent.py",
+          "sha256": "f3a35f3d22718725efc716e2f1490bf39d63d456c4e331d294bce184c29032fa"
+        },
+        {
+          "locator": "setup_cp_dir lines 27\u201341: direct source-directory copy",
+          "path": "da_agent/controllers/setup.py",
+          "sha256": "5204d12f00c70893cad28d066e7964317eb803100334cc5b9e1b77fcdd0a53dc"
+        },
+        {
+          "git_blob": "d8208e7898f7e3fb00d8a26a52fabfd4c0612b33",
+          "path": "da_agent/configs/post_process.py",
+          "sha256": "bcc5214cdbd02efa1fa54c4c09bbe0729f6629a74fbb7896179757ffe38da63f"
+        },
+        {
+          "git_blob": "24f0249cdcc79f460629bd754e603e7f15316d04",
+          "path": "da_agent/configs/scripts/image.py",
+          "sha256": "3b5c22bc0d81724a0af8bf96515cd8415474627c7072ab20d5679c02174f5d51"
+        },
+        {
+          "git_blob": "6246eabf47f44202c151be7b99a2694af0a5b344",
+          "path": "da_agent/configs/__init__.py",
+          "sha256": "d36b63a5e2c28b0c4f6de3b7aab4d530a4ac2df345fe350017860f7c2e9f7b45"
+        }
+      ],
+      "external_provision_audit": "Only exact references in task/source/staging are in scope; no general web search or guessed package dataset.",
+      "id": "plot-bar-004",
+      "instruction_sha256": "1695e245c5379975502364df74e6d8bbc0d617a93ed31ac79664dacf6ef728af",
+      "original_reasons": [
+        "official post-processing prerequisites unresolved: plot_process"
+      ],
+      "rationale": "Supplied analysis.py, train.csv and plot.yaml satisfy the script-repair input requirements; README identifies Titanic passenger/training records.",
+      "reason": "structural_provision_identified",
+      "requirements": [
+        {
+          "classification": "supplied_input",
+          "inventory_matches": [
+            {
+              "bytes": 195,
+              "git_blob": "a0e71991710547b653cfa876b9be299609ede515",
+              "path": "da_code/source/plot-bar-004/plot.yaml"
+            }
+          ],
+          "reference": "plot.yaml"
+        },
+        {
+          "classification": "task_produced_output",
+          "inventory_matches": [],
+          "reference": "result.png"
+        },
+        {
+          "classification": "task_produced_output",
+          "inputs": "Task-produced plot image and plotting Python script; matplotlib/numpy capture imports; Python controller",
+          "producer": "official plot_process",
+          "provenance": [
+            "da_agent/envs/da_agent.py:226",
+            "da_agent/configs/__init__.py:7",
+            "da_agent/configs/post_process.py:73",
+            "da_agent/configs/scripts/image.py:155"
+          ],
+          "reference": "dabench/plot.json; dabench/result.npy",
+          "runtime_status": "not_validated; no plot capture executed",
+          "scope": "post-task producer; evaluator later consumes generated artifacts"
+        }
+      ],
+      "rights_boundary": "DA-Code code MIT; per-dataset rights/provenance unresolved; tree presence is not download permission",
+      "runtime_gaps": [
+        "task-specific dependency/image lock",
+        "dataset provenance/license and external acquisition",
+        "verify source README/instruction asset requirements",
+        "official scorer fresh-environment preflight"
+      ],
+      "source_inventory": [
+        {
+          "bytes": 298,
+          "git_blob": "e0b911a38d68fe7f49aeb472fb5723506a6a8a18",
+          "path": "da_code/source/plot-bar-004/README.md"
+        },
+        {
+          "bytes": 411,
+          "git_blob": "18519206ec50384a1e0e17c4ba95e3dd31ff9831",
+          "path": "da_code/source/plot-bar-004/analysis.py"
+        },
+        {
+          "bytes": 195,
+          "git_blob": "a0e71991710547b653cfa876b9be299609ede515",
+          "path": "da_code/source/plot-bar-004/plot.yaml"
+        },
+        {
+          "bytes": 61194,
+          "git_blob": "63b68ab0ba98c667f515c52f08c0bbd5573d5330",
+          "path": "da_code/source/plot-bar-004/train.csv"
+        }
+      ],
+      "source_revision": "b211daf51fdc9b52d5087c9df28ac50191bcabed"
+    },
+    {
+      "decision": "eligible",
+      "evidence": [
+        {
+          "git_blob": "53459e8c991b16d23d24fa49ebd7c58156c57908",
+          "locator": "README normal task-input sections; reader-v11 retained projection",
+          "path": "da_code/source/plot-bar-005/README.md",
+          "sha256": "b3c1f4c37f08f305014de14fc320db25afb30c5db9a03fcfe6798e6bd96a6c94"
+        },
+        {
+          "locator": "__init__ lines 78\u201396: task-ID directory staged without a task-specific acquisition/generation override",
+          "path": "da_agent/envs/da_agent.py",
+          "sha256": "f3a35f3d22718725efc716e2f1490bf39d63d456c4e331d294bce184c29032fa"
+        },
+        {
+          "locator": "setup_cp_dir lines 27\u201341: direct source-directory copy",
+          "path": "da_agent/controllers/setup.py",
+          "sha256": "5204d12f00c70893cad28d066e7964317eb803100334cc5b9e1b77fcdd0a53dc"
+        },
+        {
+          "git_blob": "d8208e7898f7e3fb00d8a26a52fabfd4c0612b33",
+          "path": "da_agent/configs/post_process.py",
+          "sha256": "bcc5214cdbd02efa1fa54c4c09bbe0729f6629a74fbb7896179757ffe38da63f"
+        },
+        {
+          "git_blob": "24f0249cdcc79f460629bd754e603e7f15316d04",
+          "path": "da_agent/configs/scripts/image.py",
+          "sha256": "3b5c22bc0d81724a0af8bf96515cd8415474627c7072ab20d5679c02174f5d51"
+        },
+        {
+          "git_blob": "6246eabf47f44202c151be7b99a2694af0a5b344",
+          "path": "da_agent/configs/__init__.py",
+          "sha256": "d36b63a5e2c28b0c4f6de3b7aab4d530a4ac2df345fe350017860f7c2e9f7b45"
+        }
+      ],
+      "external_provision_audit": "Only exact references in task/source/staging are in scope; no general web search or guessed package dataset.",
+      "id": "plot-bar-005",
+      "instruction_sha256": "6583787f2fe0ca7f3344862c35a9b657ca166fb7619412f7e0b67ce2b09801b6",
+      "original_reasons": [
+        "official post-processing prerequisites unresolved: plot_process"
+      ],
+      "rationale": "Supplied survey records, SurveySchema.csv and AgeGroup.md provide data and requested grouping specification; plot.yaml is also supplied. README identifies the survey dataset.",
+      "reason": "structural_provision_identified",
+      "requirements": [
+        {
+          "classification": "supplied_input",
+          "inventory_matches": [
+            {
+              "bytes": 318,
+              "git_blob": "10e2bdfebf1904a14680e9b345dc28ab5ea7137d",
+              "path": "da_code/source/plot-bar-005/AgeGroup.md"
+            }
+          ],
+          "reference": "AgeGroup.md"
+        },
+        {
+          "classification": "task_produced_output",
+          "inventory_matches": [],
+          "reference": "result.png"
+        },
+        {
+          "classification": "task_produced_output",
+          "inputs": "Task-produced plot image and plotting Python script; matplotlib/numpy capture imports; Python controller",
+          "producer": "official plot_process",
+          "provenance": [
+            "da_agent/envs/da_agent.py:226",
+            "da_agent/configs/__init__.py:7",
+            "da_agent/configs/post_process.py:73",
+            "da_agent/configs/scripts/image.py:155"
+          ],
+          "reference": "dabench/plot.json; dabench/result.npy",
+          "runtime_status": "not_validated; no plot capture executed",
+          "scope": "post-task producer; evaluator later consumes generated artifacts"
+        }
+      ],
+      "rights_boundary": "DA-Code code MIT; per-dataset rights/provenance unresolved; tree presence is not download permission",
+      "runtime_gaps": [
+        "task-specific dependency/image lock",
+        "dataset provenance/license and external acquisition",
+        "verify source README/instruction asset requirements",
+        "official scorer fresh-environment preflight"
+      ],
+      "source_inventory": [
+        {
+          "bytes": 318,
+          "git_blob": "10e2bdfebf1904a14680e9b345dc28ab5ea7137d",
+          "path": "da_code/source/plot-bar-005/AgeGroup.md"
+        },
+        {
+          "bytes": 668,
+          "git_blob": "53459e8c991b16d23d24fa49ebd7c58156c57908",
+          "path": "da_code/source/plot-bar-005/README.md"
+        },
+        {
+          "bytes": 8449,
+          "git_blob": "ecfd6d8b6e014d30ef1c46dd3209b1bf3f9a1811",
+          "path": "da_code/source/plot-bar-005/SurveySchema.csv"
+        },
+        {
+          "bytes": 1360985,
+          "git_blob": "2993ff423ba7dfb6fffa52fbbc2da703cb091faf",
+          "path": "da_code/source/plot-bar-005/freeFormResponses.csv"
+        },
+        {
+          "bytes": 41189695,
+          "git_blob": "3e8cfd4f0134f4b274f6978b074cd85a3223f2d2",
+          "path": "da_code/source/plot-bar-005/multipleChoiceResponses.csv"
+        },
+        {
+          "bytes": 250,
+          "git_blob": "871d04c302bde5cd2503b797c486504f36f73103",
+          "path": "da_code/source/plot-bar-005/plot.yaml"
+        }
+      ],
+      "source_revision": "b211daf51fdc9b52d5087c9df28ac50191bcabed"
+    },
+    {
+      "decision": "eligible",
+      "evidence": [
+        {
+          "git_blob": "7df0aaad34c3ea5613c0533c455ee0f06818d55d",
+          "locator": "README normal task-input sections; reader-v11 retained projection",
+          "path": "da_code/source/plot-bar-006/README.md",
+          "sha256": "eeb6e8fb104477b5321fddd9167ba88555b7ebd3ecdd99e20f2a660020c77ea9"
+        },
+        {
+          "locator": "__init__ lines 78\u201396: task-ID directory staged without a task-specific acquisition/generation override",
+          "path": "da_agent/envs/da_agent.py",
+          "sha256": "f3a35f3d22718725efc716e2f1490bf39d63d456c4e331d294bce184c29032fa"
+        },
+        {
+          "locator": "setup_cp_dir lines 27\u201341: direct source-directory copy",
+          "path": "da_agent/controllers/setup.py",
+          "sha256": "5204d12f00c70893cad28d066e7964317eb803100334cc5b9e1b77fcdd0a53dc"
+        },
+        {
+          "git_blob": "d8208e7898f7e3fb00d8a26a52fabfd4c0612b33",
+          "path": "da_agent/configs/post_process.py",
+          "sha256": "bcc5214cdbd02efa1fa54c4c09bbe0729f6629a74fbb7896179757ffe38da63f"
+        },
+        {
+          "git_blob": "24f0249cdcc79f460629bd754e603e7f15316d04",
+          "path": "da_agent/configs/scripts/image.py",
+          "sha256": "3b5c22bc0d81724a0af8bf96515cd8415474627c7072ab20d5679c02174f5d51"
+        },
+        {
+          "git_blob": "6246eabf47f44202c151be7b99a2694af0a5b344",
+          "path": "da_agent/configs/__init__.py",
+          "sha256": "d36b63a5e2c28b0c4f6de3b7aab4d530a4ac2df345fe350017860f7c2e9f7b45"
+        }
+      ],
+      "external_provision_audit": "Only exact references in task/source/staging are in scope; no general web search or guessed package dataset.",
+      "id": "plot-bar-006",
+      "instruction_sha256": "f3e003a98d1f7d878ed5ce4a1447aeb48bf4308ae2a21cd839d987b9c50bedc2",
+      "original_reasons": [
+        "official post-processing prerequisites unresolved: plot_process"
+      ],
+      "rationale": "Supplied results.csv, goalscorers.csv, shootouts.csv, overall_score.txt and plot.yaml provide match data, scoring specification and plot settings. README documents match-table schemas.",
+      "reason": "structural_provision_identified",
+      "requirements": [
+        {
+          "classification": "supplied_input",
+          "inventory_matches": [
+            {
+              "bytes": 258,
+              "git_blob": "a0309e4d37536e5585b39085aace5b105b79f359",
+              "path": "da_code/source/plot-bar-006/plot.yaml"
+            }
+          ],
+          "reference": "plot.yaml"
+        },
+        {
+          "classification": "task_produced_output",
+          "inventory_matches": [],
+          "reference": "team.png"
+        },
+        {
+          "classification": "task_produced_output",
+          "inputs": "Task-produced plot image and plotting Python script; matplotlib/numpy capture imports; Python controller",
+          "producer": "official plot_process",
+          "provenance": [
+            "da_agent/envs/da_agent.py:226",
+            "da_agent/configs/__init__.py:7",
+            "da_agent/configs/post_process.py:73",
+            "da_agent/configs/scripts/image.py:155"
+          ],
+          "reference": "dabench/plot.json; dabench/result.npy",
+          "runtime_status": "not_validated; no plot capture executed",
+          "scope": "post-task producer; evaluator later consumes generated artifacts"
+        }
+      ],
+      "rights_boundary": "DA-Code code MIT; per-dataset rights/provenance unresolved; tree presence is not download permission",
+      "runtime_gaps": [
+        "task-specific dependency/image lock",
+        "dataset provenance/license and external acquisition",
+        "verify source README/instruction asset requirements",
+        "official scorer fresh-environment preflight"
+      ],
+      "source_inventory": [
+        {
+          "bytes": 2508,
+          "git_blob": "7df0aaad34c3ea5613c0533c455ee0f06818d55d",
+          "path": "da_code/source/plot-bar-006/README.md"
+        },
+        {
+          "bytes": 3016253,
+          "git_blob": "17e1c5f4814c2a609cd5b7ed1b693bf271481c60",
+          "path": "da_code/source/plot-bar-006/goalscorers.csv"
+        },
+        {
+          "bytes": 798,
+          "git_blob": "a0c72d89f473a804556aef67deecc0c3b902228d",
+          "path": "da_code/source/plot-bar-006/overall_score.txt"
+        },
+        {
+          "bytes": 258,
+          "git_blob": "a0309e4d37536e5585b39085aace5b105b79f359",
+          "path": "da_code/source/plot-bar-006/plot.yaml"
+        },
+        {
+          "bytes": 3486329,
+          "git_blob": "9bb0d184dd97d1588dfac8bd7b74f6855d9ec3c3",
+          "path": "da_code/source/plot-bar-006/results.csv"
+        },
+        {
+          "bytes": 26128,
+          "git_blob": "c5e09e2727b4a5bfe9cb53245c00448b18eea26e",
+          "path": "da_code/source/plot-bar-006/shootouts.csv"
+        }
+      ],
+      "source_revision": "b211daf51fdc9b52d5087c9df28ac50191bcabed"
+    },
+    {
+      "decision": "excluded",
+      "evidence": [
+        {
+          "git_blob": "891b63d092d91594c1de09f1f5ed55bd2d3fd5a7",
+          "locator": "README normal task-input sections; reader-v11 retained projection",
+          "path": "da_code/source/plot-bar-007/README.md",
+          "sha256": "241740d3c24e93db6fba08fb9740069cdb8011bda6af689ffad607943e41e77b"
+        },
+        {
+          "locator": "__init__ lines 78\u201396: task-ID directory staged without a task-specific acquisition/generation override",
+          "path": "da_agent/envs/da_agent.py",
+          "sha256": "f3a35f3d22718725efc716e2f1490bf39d63d456c4e331d294bce184c29032fa"
+        },
+        {
+          "locator": "setup_cp_dir lines 27\u201341: direct source-directory copy",
+          "path": "da_agent/controllers/setup.py",
+          "sha256": "5204d12f00c70893cad28d066e7964317eb803100334cc5b9e1b77fcdd0a53dc"
+        },
+        {
+          "git_blob": "d8208e7898f7e3fb00d8a26a52fabfd4c0612b33",
+          "path": "da_agent/configs/post_process.py",
+          "sha256": "bcc5214cdbd02efa1fa54c4c09bbe0729f6629a74fbb7896179757ffe38da63f"
+        },
+        {
+          "git_blob": "24f0249cdcc79f460629bd754e603e7f15316d04",
+          "path": "da_agent/configs/scripts/image.py",
+          "sha256": "3b5c22bc0d81724a0af8bf96515cd8415474627c7072ab20d5679c02174f5d51"
+        },
+        {
+          "git_blob": "6246eabf47f44202c151be7b99a2694af0a5b344",
+          "path": "da_agent/configs/__init__.py",
+          "sha256": "d36b63a5e2c28b0c4f6de3b7aab4d530a4ac2df345fe350017860f7c2e9f7b45"
+        }
+      ],
+      "external_provision_audit": "Only exact references in task/source/staging are in scope; no general web search or guessed package dataset.",
+      "id": "plot-bar-007",
+      "instruction_sha256": "23a078366c927eb9b7033d55c22ac5cb898e82909d97b83c2d7e9891f759de20",
+      "original_reasons": [
+        "instruction file reference not statically classified",
+        "official post-processing prerequisites unresolved: plot_process",
+        "source inventory has no recognized data payload; external/dynamic requirements unresolved"
+      ],
+      "rationale": "README describes the Amazon Prime listing dataset and exploratory ideas but provides no exact source locator or generation recipe. Its entire supplied directory is README.md; neither required records nor plot settings is supplied.",
+      "reason": "required_input_unprovided_in_pinned_distribution",
+      "requirements": [
+        {
+          "classification": "required_input_unprovided_in_pinned_distribution",
+          "inventory_matches": [],
+          "reference": "plot.yaml"
+        },
+        {
+          "classification": "task_produced_output",
+          "inventory_matches": [],
+          "reference": "result.png"
+        },
+        {
+          "classification": "required_input_unprovided_in_pinned_distribution",
+          "provision_search": "Complete per-task pinned source tree, allowed README and task instruction; staging directly copies that tree. No data-generation or exact asset provision reference identified.",
+          "reference": "Amazon Prime movie-duration records and plot.yaml"
+        },
+        {
+          "classification": "task_produced_output",
+          "inputs": "Task-produced plot image and plotting Python script; matplotlib/numpy capture imports; Python controller",
+          "producer": "official plot_process",
+          "provenance": [
+            "da_agent/envs/da_agent.py:226",
+            "da_agent/configs/__init__.py:7",
+            "da_agent/configs/post_process.py:73",
+            "da_agent/configs/scripts/image.py:155"
+          ],
+          "reference": "dabench/plot.json; dabench/result.npy",
+          "runtime_status": "not_validated; no plot capture executed",
+          "scope": "post-task producer; evaluator later consumes generated artifacts"
+        }
+      ],
+      "rights_boundary": "DA-Code code MIT; per-dataset rights/provenance unresolved; tree presence is not download permission",
+      "runtime_gaps": [
+        "task-specific dependency/image lock",
+        "dataset provenance/license and external acquisition",
+        "verify source README/instruction asset requirements",
+        "official scorer fresh-environment preflight"
+      ],
+      "source_inventory": [
+        {
+          "bytes": 824,
+          "git_blob": "891b63d092d91594c1de09f1f5ed55bd2d3fd5a7",
+          "path": "da_code/source/plot-bar-007/README.md"
+        }
+      ],
+      "source_revision": "b211daf51fdc9b52d5087c9df28ac50191bcabed"
+    },
+    {
+      "decision": "eligible",
+      "evidence": [
+        {
+          "git_blob": "940790bc7ca9111a7395b88b7b65e1d78d1c4029",
+          "locator": "README normal task-input sections; reader-v11 retained projection",
+          "path": "da_code/source/plot-bar-015/README.md",
+          "sha256": "ad8fb5122413b1c1fc22d99fd71663773d61a03d7a835f26f25a5c53a8ce39b3"
+        },
+        {
+          "locator": "__init__ lines 78\u201396: task-ID directory staged without a task-specific acquisition/generation override",
+          "path": "da_agent/envs/da_agent.py",
+          "sha256": "f3a35f3d22718725efc716e2f1490bf39d63d456c4e331d294bce184c29032fa"
+        },
+        {
+          "locator": "setup_cp_dir lines 27\u201341: direct source-directory copy",
+          "path": "da_agent/controllers/setup.py",
+          "sha256": "5204d12f00c70893cad28d066e7964317eb803100334cc5b9e1b77fcdd0a53dc"
+        },
+        {
+          "git_blob": "d8208e7898f7e3fb00d8a26a52fabfd4c0612b33",
+          "path": "da_agent/configs/post_process.py",
+          "sha256": "bcc5214cdbd02efa1fa54c4c09bbe0729f6629a74fbb7896179757ffe38da63f"
+        },
+        {
+          "git_blob": "24f0249cdcc79f460629bd754e603e7f15316d04",
+          "path": "da_agent/configs/scripts/image.py",
+          "sha256": "3b5c22bc0d81724a0af8bf96515cd8415474627c7072ab20d5679c02174f5d51"
+        },
+        {
+          "git_blob": "6246eabf47f44202c151be7b99a2694af0a5b344",
+          "path": "da_agent/configs/__init__.py",
+          "sha256": "d36b63a5e2c28b0c4f6de3b7aab4d530a4ac2df345fe350017860f7c2e9f7b45"
+        }
+      ],
+      "external_provision_audit": "Only exact references in task/source/staging are in scope; no general web search or guessed package dataset.",
+      "id": "plot-bar-015",
+      "instruction_sha256": "5ec12495565087d5180eee9719643f3e19acd5a768204ccb182a08abb3e59a90",
+      "original_reasons": [
+        "official post-processing prerequisites unresolved: plot_process"
+      ],
+      "rationale": "Supplied sales tables/spreadsheets and currency.txt provide sales/size/currency inputs. README describes sizes, transactional amounts and sales channels; task specifies ordering and units.",
+      "reason": "structural_provision_identified",
+      "requirements": [
+        {
+          "classification": "task_produced_output",
+          "inventory_matches": [],
+          "reference": "result.png"
+        },
+        {
+          "classification": "task_produced_output",
+          "inputs": "Task-produced plot image and plotting Python script; matplotlib/numpy capture imports; Python controller",
+          "producer": "official plot_process",
+          "provenance": [
+            "da_agent/envs/da_agent.py:226",
+            "da_agent/configs/__init__.py:7",
+            "da_agent/configs/post_process.py:73",
+            "da_agent/configs/scripts/image.py:155"
+          ],
+          "reference": "dabench/plot.json; dabench/result.npy",
+          "runtime_status": "not_validated; no plot capture executed",
+          "scope": "post-task producer; evaluator later consumes generated artifacts"
+        }
+      ],
+      "rights_boundary": "DA-Code code MIT; per-dataset rights/provenance unresolved; tree presence is not download permission",
+      "runtime_gaps": [
+        "task-specific dependency/image lock",
+        "dataset provenance/license and external acquisition",
+        "verify source README/instruction asset requirements",
+        "official scorer fresh-environment preflight"
+      ],
+      "source_inventory": [
+        {
+          "bytes": 68923428,
+          "git_blob": "8ed76b337d448263dd65a45ea989ffa12ab4680b",
+          "path": "da_code/source/plot-bar-015/Amazon Sale Report.csv"
+        },
+        {
+          "bytes": 4528,
+          "git_blob": "1dbfb81ba9e2bccf74bd04b37c5f76671ce28c3c",
+          "path": "da_code/source/plot-bar-015/Cloud Warehouse Compersion Chart.csv"
+        },
+        {
+          "bytes": 496,
+          "git_blob": "c78d9e8afbeec5bea6eca0ffed667391cb70ae51",
+          "path": "da_code/source/plot-bar-015/Expense IIGF.csv"
+        },
+        {
+          "bytes": 3112676,
+          "git_blob": "ab38eb080af6e8795570d862f955ee4979705d5b",
+          "path": "da_code/source/plot-bar-015/International sale Report.csv"
+        },
+        {
+          "bytes": 126617,
+          "git_blob": "1d7eadf80e136e599b79757068fcbc0d8d3bfef5",
+          "path": "da_code/source/plot-bar-015/May-2022.csv"
+        },
+        {
+          "bytes": 135938,
+          "git_blob": "155bf08c936fe6e1d87ce4ade75e6eed3ddf6d5c",
+          "path": "da_code/source/plot-bar-015/P  L March 2021.csv"
+        },
+        {
+          "bytes": 3256,
+          "git_blob": "940790bc7ca9111a7395b88b7b65e1d78d1c4029",
+          "path": "da_code/source/plot-bar-015/README.md"
+        },
+        {
+          "bytes": 433643,
+          "git_blob": "037dbdac021970c3dab96f5a945a9accdd468494",
+          "path": "da_code/source/plot-bar-015/Sale Report.csv"
+        },
+        {
+          "bytes": 192,
+          "git_blob": "fcb60922cd0a3863d11f57a85c0148f143737dc1",
+          "path": "da_code/source/plot-bar-015/currency.txt"
+        }
+      ],
+      "source_revision": "b211daf51fdc9b52d5087c9df28ac50191bcabed"
+    },
+    {
+      "decision": "excluded",
+      "evidence": [
+        {
+          "git_blob": "5e2b6e78d484869fe38b4206147563a44f2c3150",
+          "locator": "README normal task-input sections; reader-v11 retained projection",
+          "path": "da_code/source/plot-line-006/README.md",
+          "sha256": "82e0b89a1b49b9aee75b72d66008f680db464fde52196d1a779d97b720f597ed"
+        },
+        {
+          "locator": "__init__ lines 78\u201396: task-ID directory staged without a task-specific acquisition/generation override",
+          "path": "da_agent/envs/da_agent.py",
+          "sha256": "f3a35f3d22718725efc716e2f1490bf39d63d456c4e331d294bce184c29032fa"
+        },
+        {
+          "locator": "setup_cp_dir lines 27\u201341: direct source-directory copy",
+          "path": "da_agent/controllers/setup.py",
+          "sha256": "5204d12f00c70893cad28d066e7964317eb803100334cc5b9e1b77fcdd0a53dc"
+        },
+        {
+          "git_blob": "d8208e7898f7e3fb00d8a26a52fabfd4c0612b33",
+          "path": "da_agent/configs/post_process.py",
+          "sha256": "bcc5214cdbd02efa1fa54c4c09bbe0729f6629a74fbb7896179757ffe38da63f"
+        },
+        {
+          "git_blob": "24f0249cdcc79f460629bd754e603e7f15316d04",
+          "path": "da_agent/configs/scripts/image.py",
+          "sha256": "3b5c22bc0d81724a0af8bf96515cd8415474627c7072ab20d5679c02174f5d51"
+        },
+        {
+          "git_blob": "6246eabf47f44202c151be7b99a2694af0a5b344",
+          "path": "da_agent/configs/__init__.py",
+          "sha256": "d36b63a5e2c28b0c4f6de3b7aab4d530a4ac2df345fe350017860f7c2e9f7b45"
+        },
+        {
+          "git_blob": "67795f4ad57d4d83a840605d2d40fc1198517625",
+          "locator": "tips.txt lines 1\u20137, complete normal input instructions through source_view shared gate",
+          "path": "da_code/source/plot-line-006/tips.txt",
+          "sha256": "8a0be255331171b48f7cc347527de4b7c3e17a4a9a3a36e7e6c4dce919c323d4"
+        }
+      ],
+      "external_provision_audit": "Only exact references in task/source/staging are in scope; no general web search or guessed package dataset.",
+      "id": "plot-line-006",
+      "instruction_sha256": "25621071a3eb93995cfdf782bf28c62dffb6d7d73c629e366518787c8a47ebdf",
+      "original_reasons": [
+        "instruction file reference not statically classified",
+        "official post-processing prerequisites unresolved: plot_process"
+      ],
+      "rationale": "Task requires settings from plot.yaml, absent from the full pinned task inventory. Newly authorized tips.txt lines 1\u20137 supplies seasonal month groups, country exclusions and country-name normalization only; it gives no plot.yaml settings, generation recipe or provision locator. README describes football records and likewise supplies no climate plot configuration. Pinned staging copies the task directory and the official capture post-process generates plot.json/result.npy, not a pre-task plot.yaml. Exclusion is limited to the finite pinned distribution.",
+      "reason": "required_input_unprovided_in_pinned_distribution",
+      "requirements": [
+        {
+          "classification": "required_input_unprovided_in_pinned_distribution",
+          "inventory_matches": [],
+          "provision_search": "Task instruction, complete source inventory, README, tips.txt lines 1\u20137, pinned staging/post-process; no supplied or generated plot.yaml.",
+          "reference": "plot.yaml"
+        },
+        {
+          "classification": "task_produced_output",
+          "inventory_matches": [],
+          "reference": "result.png"
+        },
+        {
+          "classification": "supplied_input",
+          "inventory_matches": [
+            {
+              "bytes": 340,
+              "git_blob": "67795f4ad57d4d83a840605d2d40fc1198517625",
+              "path": "da_code/source/plot-line-006/tips.txt"
+            }
+          ],
+          "reference": "tips.txt"
+        },
+        {
+          "classification": "task_produced_output",
+          "inputs": "Task-produced plot image and plotting Python script; matplotlib/numpy capture imports; Python controller",
+          "producer": "official plot_process",
+          "provenance": [
+            "da_agent/envs/da_agent.py:226",
+            "da_agent/configs/__init__.py:7",
+            "da_agent/configs/post_process.py:73",
+            "da_agent/configs/scripts/image.py:155"
+          ],
+          "reference": "dabench/plot.json; dabench/result.npy",
+          "runtime_status": "not_validated; no plot capture executed",
+          "scope": "post-task producer; evaluator later consumes generated artifacts"
+        }
+      ],
+      "rights_boundary": "DA-Code code MIT; per-dataset rights/provenance unresolved; tree presence is not download permission",
+      "runtime_gaps": [
+        "task-specific dependency/image lock",
+        "dataset provenance/license and external acquisition",
+        "verify source README/instruction asset requirements",
+        "official scorer fresh-environment preflight"
+      ],
+      "source_inventory": [
+        {
+          "bytes": 22680393,
+          "git_blob": "c6492227e231a513217a2ab6bcc0e8ced1c2a932",
+          "path": "da_code/source/plot-line-006/GlobalLandTemperaturesByCountry.csv"
+        },
+        {
+          "bytes": 14138385,
+          "git_blob": "d81ee7ae4c2b6a13d554d5257c03511300f67b5c",
+          "path": "da_code/source/plot-line-006/GlobalLandTemperaturesByMajorCity.csv"
+        },
+        {
+          "bytes": 30770160,
+          "git_blob": "0450b49de4f00959bf43e230b22efb5f195fa3cb",
+          "path": "da_code/source/plot-line-006/GlobalLandTemperaturesByState.csv"
+        },
+        {
+          "bytes": 205875,
+          "git_blob": "d7d2477bfacb16f01877f3cf0d5948bcb99f58d2",
+          "path": "da_code/source/plot-line-006/GlobalTemperatures.csv"
+        },
+        {
+          "bytes": 3460,
+          "git_blob": "5e2b6e78d484869fe38b4206147563a44f2c3150",
+          "path": "da_code/source/plot-line-006/README.md"
+        },
+        {
+          "bytes": 340,
+          "git_blob": "67795f4ad57d4d83a840605d2d40fc1198517625",
+          "path": "da_code/source/plot-line-006/tips.txt"
+        }
+      ],
+      "source_revision": "b211daf51fdc9b52d5087c9df28ac50191bcabed"
+    },
+    {
+      "decision": "eligible",
+      "evidence": [
+        {
+          "git_blob": "1c798d5da51b03d7d45ec20a4788c501e07261c7",
+          "locator": "README normal task-input sections; reader-v11 retained projection",
+          "path": "da_code/source/plot-pie-005/README.md",
+          "sha256": "57eebd8e871748251127b264e23b4fc70a7fa22779d857cb094ec10006b72dfd"
+        },
+        {
+          "locator": "__init__ lines 78\u201396: task-ID directory staged without a task-specific acquisition/generation override",
+          "path": "da_agent/envs/da_agent.py",
+          "sha256": "f3a35f3d22718725efc716e2f1490bf39d63d456c4e331d294bce184c29032fa"
+        },
+        {
+          "locator": "setup_cp_dir lines 27\u201341: direct source-directory copy",
+          "path": "da_agent/controllers/setup.py",
+          "sha256": "5204d12f00c70893cad28d066e7964317eb803100334cc5b9e1b77fcdd0a53dc"
+        },
+        {
+          "git_blob": "d8208e7898f7e3fb00d8a26a52fabfd4c0612b33",
+          "path": "da_agent/configs/post_process.py",
+          "sha256": "bcc5214cdbd02efa1fa54c4c09bbe0729f6629a74fbb7896179757ffe38da63f"
+        },
+        {
+          "git_blob": "24f0249cdcc79f460629bd754e603e7f15316d04",
+          "path": "da_agent/configs/scripts/image.py",
+          "sha256": "3b5c22bc0d81724a0af8bf96515cd8415474627c7072ab20d5679c02174f5d51"
+        },
+        {
+          "git_blob": "6246eabf47f44202c151be7b99a2694af0a5b344",
+          "path": "da_agent/configs/__init__.py",
+          "sha256": "d36b63a5e2c28b0c4f6de3b7aab4d530a4ac2df345fe350017860f7c2e9f7b45"
+        }
+      ],
+      "external_provision_audit": "Only exact references in task/source/staging are in scope; no general web search or guessed package dataset.",
+      "id": "plot-pie-005",
+      "instruction_sha256": "c620f5a1d69885ae8d09ce9b4e621eb8d093c3b2348f117647024b4b21315f51",
+      "original_reasons": [
+        "official post-processing prerequisites unresolved: plot_process"
+      ],
+      "rationale": "Supplied analysis.py, appstore_games.csv and guidance.txt provide the requested implementation skeleton, game records and categorization/filter rules. Reviewed guidance lines 2\u201313 specifies input-processing rules, without computed answers.",
+      "reason": "structural_provision_identified",
+      "requirements": [
+        {
+          "classification": "supplied_input",
+          "inventory_matches": [
+            {
+              "bytes": 646,
+              "git_blob": "d9429fc316afb79e817fa6bb7ac9a7cf34ce1522",
+              "path": "da_code/source/plot-pie-005/guidance.txt"
+            }
+          ],
+          "reference": "guidance.txt"
+        },
+        {
+          "classification": "task_produced_output",
+          "inventory_matches": [],
+          "reference": "result.png"
+        },
+        {
+          "classification": "task_produced_output",
+          "inputs": "Task-produced plot image and plotting Python script; matplotlib/numpy capture imports; Python controller",
+          "producer": "official plot_process",
+          "provenance": [
+            "da_agent/envs/da_agent.py:226",
+            "da_agent/configs/__init__.py:7",
+            "da_agent/configs/post_process.py:73",
+            "da_agent/configs/scripts/image.py:155"
+          ],
+          "reference": "dabench/plot.json; dabench/result.npy",
+          "runtime_status": "not_validated; no plot capture executed",
+          "scope": "post-task producer; evaluator later consumes generated artifacts"
+        }
+      ],
+      "rights_boundary": "DA-Code code MIT; per-dataset rights/provenance unresolved; tree presence is not download permission",
+      "runtime_gaps": [
+        "task-specific dependency/image lock",
+        "dataset provenance/license and external acquisition",
+        "verify source README/instruction asset requirements",
+        "official scorer fresh-environment preflight"
+      ],
+      "source_inventory": [
+        {
+          "bytes": 392,
+          "git_blob": "1c798d5da51b03d7d45ec20a4788c501e07261c7",
+          "path": "da_code/source/plot-pie-005/README.md"
+        },
+        {
+          "bytes": 343,
+          "git_blob": "4b0e6da01a86333c75e6401ace4f86d14bd571ad",
+          "path": "da_code/source/plot-pie-005/analysis.py"
+        },
+        {
+          "bytes": 23948849,
+          "git_blob": "ebe6ea82c655674c49f0f272fd1f9e9ac3c7d882",
+          "path": "da_code/source/plot-pie-005/appstore_games.csv"
+        },
+        {
+          "bytes": 646,
+          "git_blob": "d9429fc316afb79e817fa6bb7ac9a7cf34ce1522",
+          "path": "da_code/source/plot-pie-005/guidance.txt"
+        }
+      ],
+      "source_revision": "b211daf51fdc9b52d5087c9df28ac50191bcabed"
+    },
+    {
+      "decision": "eligible",
+      "evidence": [
+        {
+          "git_blob": "757663d5a052f3ae7972d8a86a5c3592a08bdf80",
+          "locator": "README normal task-input sections; reader-v11 retained projection",
+          "path": "da_code/source/plot-pie-008/README.md",
+          "sha256": "8081605b532b04c703781c9c15c025161dab4004e6ea1e9e56981b9ab3c824e9"
+        },
+        {
+          "locator": "__init__ lines 78\u201396: task-ID directory staged without a task-specific acquisition/generation override",
+          "path": "da_agent/envs/da_agent.py",
+          "sha256": "f3a35f3d22718725efc716e2f1490bf39d63d456c4e331d294bce184c29032fa"
+        },
+        {
+          "locator": "setup_cp_dir lines 27\u201341: direct source-directory copy",
+          "path": "da_agent/controllers/setup.py",
+          "sha256": "5204d12f00c70893cad28d066e7964317eb803100334cc5b9e1b77fcdd0a53dc"
+        },
+        {
+          "git_blob": "d8208e7898f7e3fb00d8a26a52fabfd4c0612b33",
+          "path": "da_agent/configs/post_process.py",
+          "sha256": "bcc5214cdbd02efa1fa54c4c09bbe0729f6629a74fbb7896179757ffe38da63f"
+        },
+        {
+          "git_blob": "24f0249cdcc79f460629bd754e603e7f15316d04",
+          "path": "da_agent/configs/scripts/image.py",
+          "sha256": "3b5c22bc0d81724a0af8bf96515cd8415474627c7072ab20d5679c02174f5d51"
+        },
+        {
+          "git_blob": "6246eabf47f44202c151be7b99a2694af0a5b344",
+          "path": "da_agent/configs/__init__.py",
+          "sha256": "d36b63a5e2c28b0c4f6de3b7aab4d530a4ac2df345fe350017860f7c2e9f7b45"
+        }
+      ],
+      "external_provision_audit": "Only exact references in task/source/staging are in scope; no general web search or guessed package dataset.",
+      "id": "plot-pie-008",
+      "instruction_sha256": "34229b29f7597456d86e6946ff3b3b51e6c2cbd8a6d31b8c2409de700e9e794e",
+      "original_reasons": [
+        "official post-processing prerequisites unresolved: plot_process"
+      ],
+      "rationale": "Supplied channels/deliveries/drivers/hubs/orders/payments/stores CSVs and plot.yaml provide the joined delivery data and settings. README lines 9\u201317 documents the table roles.",
+      "reason": "structural_provision_identified",
+      "requirements": [
+        {
+          "classification": "supplied_input",
+          "inventory_matches": [
+            {
+              "bytes": 125,
+              "git_blob": "0ce30061fccc1cb4e3d85fb7c23c8c47e9f449b8",
+              "path": "da_code/source/plot-pie-008/plot.yaml"
+            }
+          ],
+          "reference": "plot.yaml"
+        },
+        {
+          "classification": "task_produced_output",
+          "inventory_matches": [],
+          "reference": "result.jpg"
+        },
+        {
+          "classification": "task_produced_output",
+          "inputs": "Task-produced plot image and plotting Python script; matplotlib/numpy capture imports; Python controller",
+          "producer": "official plot_process",
+          "provenance": [
+            "da_agent/envs/da_agent.py:226",
+            "da_agent/configs/__init__.py:7",
+            "da_agent/configs/post_process.py:73",
+            "da_agent/configs/scripts/image.py:155"
+          ],
+          "reference": "dabench/plot.json; dabench/result.npy",
+          "runtime_status": "not_validated; no plot capture executed",
+          "scope": "post-task producer; evaluator later consumes generated artifacts"
+        }
+      ],
+      "rights_boundary": "DA-Code code MIT; per-dataset rights/provenance unresolved; tree presence is not download permission",
+      "runtime_gaps": [
+        "task-specific dependency/image lock",
+        "dataset provenance/license and external acquisition",
+        "verify source README/instruction asset requirements",
+        "official scorer fresh-environment preflight"
+      ],
+      "source_inventory": [
+        {
+          "bytes": 1521,
+          "git_blob": "757663d5a052f3ae7972d8a86a5c3592a08bdf80",
+          "path": "da_code/source/plot-pie-008/README.md"
+        },
+        {
+          "bytes": 1152,
+          "git_blob": "708c925f725115eea9448277bde0a28c81f02e19",
+          "path": "da_code/source/plot-pie-008/channels.csv"
+        },
+        {
+          "bytes": 14491794,
+          "git_blob": "8be32bc1041af5a5b15e28d46b990b74b70b49d6",
+          "path": "da_code/source/plot-pie-008/deliveries.csv"
+        },
+        {
+          "bytes": 123374,
+          "git_blob": "7299fb170d2b0f5df1df1978ffa47eb7b9829665",
+          "path": "da_code/source/plot-pie-008/drivers.csv"
+        },
+        {
+          "bytes": 1866,
+          "git_blob": "2cf5cf0d39c4d9dbbf4b2da883eff53ebe01b4f1",
+          "path": "da_code/source/plot-pie-008/hubs.csv"
+        },
+        {
+          "bytes": 90250303,
+          "git_blob": "791d9a0576ffe61544f0fd315da465f305aa78da",
+          "path": "da_code/source/plot-pie-008/orders.csv"
+        },
+        {
+          "bytes": 16072813,
+          "git_blob": "abe761f1f8c30a25d7b114a39c24b5a570d0a146",
+          "path": "da_code/source/plot-pie-008/payments.csv"
+        },
+        {
+          "bytes": 125,
+          "git_blob": "0ce30061fccc1cb4e3d85fb7c23c8c47e9f449b8",
+          "path": "da_code/source/plot-pie-008/plot.yaml"
+        },
+        {
+          "bytes": 48440,
+          "git_blob": "c0080ab895e91bf93c1a05b0e8a47658b314d848",
+          "path": "da_code/source/plot-pie-008/stores.csv"
+        }
+      ],
+      "source_revision": "b211daf51fdc9b52d5087c9df28ac50191bcabed"
+    },
+    {
+      "decision": "unresolved",
+      "evidence": [
+        {
+          "git_blob": "0c3dfdcd258866babb836e63e37497427433b003",
+          "locator": "README normal task-input sections; reader-v11 retained projection",
+          "path": "da_code/source/plot-scatter-002/README.md",
+          "sha256": "607b866a0b2beb5edc736da505cd247f63ca4ea20d5c306bc0bd7b0a9e86037c"
+        },
+        {
+          "locator": "__init__ lines 78\u201396: task-ID directory staged without a task-specific acquisition/generation override",
+          "path": "da_agent/envs/da_agent.py",
+          "sha256": "f3a35f3d22718725efc716e2f1490bf39d63d456c4e331d294bce184c29032fa"
+        },
+        {
+          "locator": "setup_cp_dir lines 27\u201341: direct source-directory copy",
+          "path": "da_agent/controllers/setup.py",
+          "sha256": "5204d12f00c70893cad28d066e7964317eb803100334cc5b9e1b77fcdd0a53dc"
+        },
+        {
+          "git_blob": "d8208e7898f7e3fb00d8a26a52fabfd4c0612b33",
+          "path": "da_agent/configs/post_process.py",
+          "sha256": "bcc5214cdbd02efa1fa54c4c09bbe0729f6629a74fbb7896179757ffe38da63f"
+        },
+        {
+          "git_blob": "24f0249cdcc79f460629bd754e603e7f15316d04",
+          "path": "da_agent/configs/scripts/image.py",
+          "sha256": "3b5c22bc0d81724a0af8bf96515cd8415474627c7072ab20d5679c02174f5d51"
+        },
+        {
+          "git_blob": "6246eabf47f44202c151be7b99a2694af0a5b344",
+          "path": "da_agent/configs/__init__.py",
+          "sha256": "d36b63a5e2c28b0c4f6de3b7aab4d530a4ac2df345fe350017860f7c2e9f7b45"
+        },
+        {
+          "locator": "lines 229\u2013254: nested config passed alongside metric options",
+          "path": "da_agent/evaluators/evaluation.py"
+        },
+        {
+          "locator": "lines 170\u2013225: only options.keys consumed; lines 149\u2013168: supplied fig_keys used; lines 46\u201349: type compared only if selected as a key",
+          "path": "da_agent/evaluators/metrics/image.py"
+        },
+        {
+          "locator": "8 fixed object identities and frozen structural parser outputs; no data rows or GT values displayed",
+          "path": "package-audit-v13.json"
+        }
+      ],
+      "external_provision_audit": "Only exact references in task/source/staging are in scope; no general web search or guessed package dataset.",
+      "id": "plot-scatter-002",
+      "instruction_sha256": "fba0dce73a9c853c2f107a7e03f1981190d5f3155609cb4edc5d43e2d245f778",
+      "original_reasons": [
+        "official post-processing prerequisites unresolved: plot_process"
+      ],
+      "rationale": "Human provision and override answers are received/unclear. All eight fixed objects verified. Three source CSV headers positively describe match/team/odds data; two series headers are unsupported by the frozen bounded parser, leaving their schema and join/derivation role unknown. GT has explicit scatter kind and safe structural metadata, but type is not enforced by the configured metric keys and GT values/pixels were not inspected. Structural evidence does not prove whether requested order-stage/city-sales bar output can satisfy grading. No exclusion or eligibility is justified; this authorized one-pass audit is complete and must not be repeated without new Master evidence/authority.",
+      "reason": "one_pass_package_consistency_unresolved",
+      "requirements": [
+        {
+          "classification": "supplied_input",
+          "inventory_matches": [
+            {
+              "bytes": 99,
+              "git_blob": "646c7c20a884f3af9d4fd9e2ad52756088ec44a8",
+              "path": "da_code/source/plot-scatter-002/plot.yaml"
+            }
+          ],
+          "reference": "plot.yaml"
+        },
+        {
+          "classification": "task_produced_output",
+          "inventory_matches": [],
+          "reference": "result.png"
+        },
+        {
+          "classification": "task_produced_output",
+          "inputs": "Task-produced plot image and plotting Python script; matplotlib/numpy capture imports; Python controller",
+          "producer": "official plot_process",
+          "provenance": [
+            "da_agent/envs/da_agent.py:226",
+            "da_agent/configs/__init__.py:7",
+            "da_agent/configs/post_process.py:73",
+            "da_agent/configs/scripts/image.py:155"
+          ],
+          "reference": "dabench/plot.json; dabench/result.npy",
+          "runtime_status": "not_validated; no plot capture executed",
+          "scope": "post-task producer; evaluator later consumes generated artifacts"
+        }
+      ],
+      "rights_boundary": "DA-Code code MIT; per-dataset rights/provenance unresolved; tree presence is not download permission",
+      "runtime_gaps": [
+        "task-specific dependency/image lock",
+        "dataset provenance/license and external acquisition",
+        "verify source README/instruction asset requirements",
+        "official scorer fresh-environment preflight"
+      ],
+      "source_inventory": [
+        {
+          "bytes": 2198,
+          "git_blob": "0c3dfdcd258866babb836e63e37497427433b003",
+          "path": "da_code/source/plot-scatter-002/README.md"
+        },
+        {
+          "bytes": 19457496,
+          "git_blob": "f53e4af4b103f400cbb5dd197ddfb9cee4440936",
+          "path": "da_code/source/plot-scatter-002/closing_odds.csv.gz"
+        },
+        {
+          "bytes": 2240,
+          "git_blob": "28fcff2406dcf583888b5228d06c5018769d4050",
+          "path": "da_code/source/plot-scatter-002/guidance.txt"
+        },
+        {
+          "bytes": 22306334,
+          "git_blob": "185d4b8941dc903831efc789f2a0cdaaa902c520",
+          "path": "da_code/source/plot-scatter-002/odds_series.csv.gz"
+        },
+        {
+          "bytes": 43789920,
+          "git_blob": "eaf86d5b68b1975b4229e6ba26732874f9d16f7b",
+          "path": "da_code/source/plot-scatter-002/odds_series_b.csv.gz"
+        },
+        {
+          "bytes": 1804654,
+          "git_blob": "a7c9c4848bc794002597ceb0b6de4b1052091044",
+          "path": "da_code/source/plot-scatter-002/odds_series_b_matches.csv.gz"
+        },
+        {
+          "bytes": 1074970,
+          "git_blob": "fa9943a7f69fe7eeb5697496236a55f399d3319d",
+          "path": "da_code/source/plot-scatter-002/odds_series_matches.csv.gz"
+        },
+        {
+          "bytes": 99,
+          "git_blob": "646c7c20a884f3af9d4fd9e2ad52756088ec44a8",
+          "path": "da_code/source/plot-scatter-002/plot.yaml"
+        }
+      ],
+      "source_revision": "b211daf51fdc9b52d5087c9df28ac50191bcabed"
+    }
+  ],
+  "execution_authorized": false,
+  "historical_incident": "incident-v12.json",
+  "human_metadata_receipt": "human-metadata-v13.json",
+  "status": "one_pass_inconclusive_scope_challenge"
+}

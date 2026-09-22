@@ -51,3 +51,19 @@ PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s scripts/benchmark-memb
 ```
 
 Source inspection uses `source_view.py --inputs ... --receipts ... --path <authorized-pinned-path>`; static implementation views also require explicit `--functions`. All new views share the same retained receipts directory and fixed carry/ceiling. Synthetic tests use isolated temporary ledgers. Reading hidden Solution content is not authorized by this tool.
+
+## Criteria1.3 — one-pass package audit finished, unresolved
+
+[SC-73-03 and matrix explanation](../../docs/design/benchmark-membership-resolution.md#criteria13--one-package-audit-completed-sc-73-03-unresolved) is the current handback. No repeat package investigation is authorized by this checkpoint.
+
+- [human-metadata-v13.json](human-metadata-v13.json): received Human unclear/unclear, preserving the historical null receipt.
+- [package_schema.py](package_schema.py), [package-schema-lock.json](package-schema-lock.json), [test_package_schema.py](test_package_schema.py): pre-access frozen safe whitelist and synthetic parser negatives.
+- [package_audit.py](package_audit.py), [test_package_audit.py](test_package_audit.py): exact eight-object controller authority, whole-byte checks, structural-only parsing, one-pass CLI marker and diagnostic tests. No upstream/task/scorer imports or execution.
+- [package-audit-v13.json](package-audit-v13.json): allowed headers/GT structures and whole-file provenance only; no raw rows, values or pixels.
+- [package-matrix-v13.json](package-matrix-v13.json): instruction/input/producer/GT/scorer relationships and precise remaining unknowns.
+- [controller-exposure-v13.json](controller-exposure-v13.json): honest controlled-metadata exposure boundary; no change to71 existing flags or automatic new exclusion.
+- [decisions-v13.json](decisions-v13.json), [continuation-lock-v13.json](continuation-lock-v13.json): current9 excluded/6 eligible/1 unresolved judgments. Real overlay defaults to1.3 and refuses; previous versions remain separately loadable.
+
+New synthetic checks only: `PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s scripts/benchmark-membership -p 'test_package*.py' -v`.
+
+Regulator may independently reconstruct the structural evidence using `package_audit.audit(controller_path, locked_tree_path)` in its own authorized environment after parser negatives, without displaying raw contents. Builder's real CLI pass has already been consumed. The display ledger retains its historical filename `display-v12.jsonl`; source_view now applies the1.3 cumulative time state when present. No new display ledger or byte allocation was started.

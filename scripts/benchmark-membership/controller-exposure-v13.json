@@ -1,0 +1,14 @@
+{
+  "criteria": "1.3",
+  "task_id": "plot-scatter-002",
+  "actor": "Working Agent evaluator-controller deterministic structural parser",
+  "source_revision": "b211daf51fdc9b52d5087c9df28ac50191bcabed",
+  "boundary": "Controller-only fixed-object metadata access; no solver task context, no task/scorer/model execution. Not untouched holdout.",
+  "inspected_gt_fields": "Whitelisted JSON field presence/types and explicit closed chart kind; NPY format/shape/dtype/object presence; PNG signature/IHDR dimensions. No GT field values, arrays, pixels or per-answer hashes.",
+  "source_payload_access": "First bounded CSV header record only; no rows sampled. Two files unsupported by the frozen parser.",
+  "provenance": "package-audit-v13.json",
+  "historical_71_id_flags": "unchanged",
+  "other_784_rows": "unchanged",
+  "automatic_membership_exclusion": false,
+  "accounting_incident": "incident-v12.json remains unchanged"
+}

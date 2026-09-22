@@ -1,0 +1,7 @@
+{
+  "base_pool_sha256": "82b4c021a9d712ff73a0e32c82484c56960f89a34530e5b5eccb798f11549710",
+  "decisions_sha256": "db47dddb7a811bc83c1cc71119debfd44c786b355a83dabf427f200589ed2ff6",
+  "selector_sha256": "3be3bb6e675a89d94e649e6b80d168ef69e1a705f7e013f88507978fca1068d4",
+  "criteria": "1.3",
+  "decision_file": "decisions-v13.json"
+}

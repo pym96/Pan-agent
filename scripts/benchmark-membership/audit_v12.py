@@ -4,7 +4,7 @@ from pathlib import Path
 from overlay import ROOT,load_frozen
 
 def audit(inputs):
-    pool,decisions=load_frozen()
+    pool,decisions=load_frozen("1.2")
     tree=json.loads((inputs/'da-full-tree.json').read_text())
     lock=json.loads((ROOT.parent/'benchmark-subset/input-lock.json').read_text())
     locked={r['path']:r['sha256'] for r in lock['files']}

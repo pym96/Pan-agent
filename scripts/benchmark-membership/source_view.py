@@ -9,7 +9,7 @@ IMPLEMENTATIONS={'da_agent/envs/da_agent.py','da_agent/controllers/setup.py','da
 
 def emit(receipts,path,lines):
     receipts.mkdir(parents=True,exist_ok=True)
-    timing=receipts/'start-v12.json'
+    timing=receipts/('start-v13.json' if (receipts/'start-v13.json').exists() else 'start-v12.json')
     if timing.exists():
         t=json.loads(timing.read_text())
         if t['prior_seconds']+time.time()-t['start_epoch']>=t['time_limit']:raise ValueError('cumulative role time exhausted')

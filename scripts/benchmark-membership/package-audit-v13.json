@@ -1,0 +1,370 @@
+{
+  "criteria": "1.3",
+  "source_revision": "b211daf51fdc9b52d5087c9df28ac50191bcabed",
+  "actor": "Working Agent evaluator-controller-local structural parser; no solver context",
+  "schema_lock": {
+    "criteria": "1.3",
+    "frozen_before_payload_acquisition_utc": "2026-09-22T01:37:01Z",
+    "parser_sha256": "b46bda54790a3780e18d6c0de11edfe3f34e5f3f5bac60edfe6d4f877df057bb",
+    "tests_sha256": "65e7e3306d12f7003f3b926703fc6a3d6773fc89c437150159695dd8d32c490c",
+    "plot_json_fields": [
+      "chart_type",
+      "color",
+      "dpi",
+      "figsize",
+      "graph_title",
+      "graph_type",
+      "labels",
+      "legend_title",
+      "plot_type",
+      "type",
+      "x_label",
+      "xlim",
+      "xtick_labels",
+      "y_label",
+      "ylim",
+      "ytick_labels"
+    ],
+    "chart_kind_enums": [
+      "bar",
+      "box",
+      "heatmap",
+      "histogram",
+      "line",
+      "pie",
+      "scatter",
+      "violin"
+    ],
+    "max_header_bytes": 1048576,
+    "max_columns": 200,
+    "max_name_bytes": 96,
+    "json_max_bytes": 65536,
+    "numpy_max_header_bytes": 65536,
+    "png_read_bytes": 33
+  },
+  "provenance": [
+    {
+      "path": "da_code/source/plot-scatter-002/closing_odds.csv.gz",
+      "bytes": 19457496,
+      "git_blob": "f53e4af4b103f400cbb5dd197ddfb9cee4440936",
+      "sha256": "4759597876175342a5919a5286a8300b86c35ad3416de39f09beda83a510a76a"
+    },
+    {
+      "path": "da_code/source/plot-scatter-002/odds_series.csv.gz",
+      "bytes": 22306334,
+      "git_blob": "185d4b8941dc903831efc789f2a0cdaaa902c520",
+      "sha256": "cc6e0ad9b818d9d8a06e857d65d8dd8f32d8d7a21d9b9b49a5c27d4e9eb1c722"
+    },
+    {
+      "path": "da_code/source/plot-scatter-002/odds_series_b.csv.gz",
+      "bytes": 43789920,
+      "git_blob": "eaf86d5b68b1975b4229e6ba26732874f9d16f7b",
+      "sha256": "3d24e8c8021559b03afa17194a3748929e48b27311fea5da045e7f0040c957c5"
+    },
+    {
+      "path": "da_code/source/plot-scatter-002/odds_series_b_matches.csv.gz",
+      "bytes": 1804654,
+      "git_blob": "a7c9c4848bc794002597ceb0b6de4b1052091044",
+      "sha256": "f0775b93eb7b84ecfefd75e7b2589b21ad8024bb81dd39378b398f5e82497cc0"
+    },
+    {
+      "path": "da_code/source/plot-scatter-002/odds_series_matches.csv.gz",
+      "bytes": 1074970,
+      "git_blob": "fa9943a7f69fe7eeb5697496236a55f399d3319d",
+      "sha256": "17953204e497afcc3365bfdcc54a24bd1568be1c2a06b520e7b105a65035a26e"
+    },
+    {
+      "path": "da_code/gold/plot-scatter-002/plot.json",
+      "bytes": 394,
+      "git_blob": "7f88ab0d8d7ad0c7b7faf7178e9db0233213fe54",
+      "sha256": "53427c0b386304dd33a7a2390ceb9c1314e2d12ef3472583d15a958e059fb1d4"
+    },
+    {
+      "path": "da_code/gold/plot-scatter-002/result.npy",
+      "bytes": 3968,
+      "git_blob": "20939344f60bb38aa0554dc394fe313461b10604",
+      "sha256": "e22c03eaea4b121c3502f8e0ac22a53753726c3c107ece2c5b51ae82b2093764"
+    },
+    {
+      "path": "da_code/gold/plot-scatter-002/result.png",
+      "bytes": 23578,
+      "git_blob": "a4773404b7bf67c778b6e1cdf572e7931ca0a9cd",
+      "sha256": "74a07f82af792a7e10f14fc21553a3e8ad2672f38c807be0783e4b320c92a408"
+    }
+  ],
+  "structures": [
+    {
+      "path": "da_code/source/plot-scatter-002/closing_odds.csv.gz",
+      "structure": {
+        "schema": "csv_header_v1",
+        "status": "supported",
+        "columns": [
+          {
+            "index": 0,
+            "name": "match_id"
+          },
+          {
+            "index": 1,
+            "name": "league"
+          },
+          {
+            "index": 2,
+            "name": "match_date"
+          },
+          {
+            "index": 3,
+            "name": "home_team"
+          },
+          {
+            "index": 4,
+            "name": "home_score"
+          },
+          {
+            "index": 5,
+            "name": "away_team"
+          },
+          {
+            "index": 6,
+            "name": "away_score"
+          },
+          {
+            "index": 7,
+            "name": "avg_odds_home_win"
+          },
+          {
+            "index": 8,
+            "name": "avg_odds_draw"
+          },
+          {
+            "index": 9,
+            "name": "avg_odds_away_win"
+          },
+          {
+            "index": 10,
+            "name": "max_odds_home_win"
+          },
+          {
+            "index": 11,
+            "name": "max_odds_draw"
+          },
+          {
+            "index": 12,
+            "name": "max_odds_away_win"
+          },
+          {
+            "index": 13,
+            "name": "top_bookie_home_win"
+          },
+          {
+            "index": 14,
+            "name": "top_bookie_draw"
+          },
+          {
+            "index": 15,
+            "name": "top_bookie_away_win"
+          },
+          {
+            "index": 16,
+            "name": "n_odds_home_win"
+          },
+          {
+            "index": 17,
+            "name": "n_odds_draw"
+          },
+          {
+            "index": 18,
+            "name": "n_odds_away_win"
+          }
+        ],
+        "withheld_column_indices": [],
+        "column_count": 19,
+        "decoded_header_bytes": 269,
+        "rows_inspected": 0
+      }
+    },
+    {
+      "path": "da_code/source/plot-scatter-002/odds_series.csv.gz",
+      "structure": {
+        "status": "unsupported_or_malformed",
+        "values_withheld": true
+      }
+    },
+    {
+      "path": "da_code/source/plot-scatter-002/odds_series_b.csv.gz",
+      "structure": {
+        "status": "unsupported_or_malformed",
+        "values_withheld": true
+      }
+    },
+    {
+      "path": "da_code/source/plot-scatter-002/odds_series_b_matches.csv.gz",
+      "structure": {
+        "schema": "csv_header_v1",
+        "status": "supported",
+        "columns": [
+          {
+            "index": 0,
+            "name": "match_id"
+          },
+          {
+            "index": 1,
+            "name": " league"
+          },
+          {
+            "index": 2,
+            "name": " home_team"
+          },
+          {
+            "index": 3,
+            "name": " away_team"
+          },
+          {
+            "index": 4,
+            "name": " score"
+          },
+          {
+            "index": 5,
+            "name": " detailed_score"
+          },
+          {
+            "index": 6,
+            "name": " match_datetime"
+          }
+        ],
+        "withheld_column_indices": [],
+        "column_count": 7,
+        "decoded_header_bytes": 78,
+        "rows_inspected": 0
+      }
+    },
+    {
+      "path": "da_code/source/plot-scatter-002/odds_series_matches.csv.gz",
+      "structure": {
+        "schema": "csv_header_v1",
+        "status": "supported",
+        "columns": [
+          {
+            "index": 0,
+            "name": "match_id"
+          },
+          {
+            "index": 1,
+            "name": " league"
+          },
+          {
+            "index": 2,
+            "name": " home_team"
+          },
+          {
+            "index": 3,
+            "name": " away_team"
+          },
+          {
+            "index": 4,
+            "name": " score"
+          },
+          {
+            "index": 5,
+            "name": " detailed_score"
+          },
+          {
+            "index": 6,
+            "name": " match_datetime"
+          }
+        ],
+        "withheld_column_indices": [],
+        "column_count": 7,
+        "decoded_header_bytes": 78,
+        "rows_inspected": 0
+      }
+    },
+    {
+      "path": "da_code/gold/plot-scatter-002/plot.json",
+      "structure": {
+        "schema": "da_plot_metadata_v1",
+        "status": "supported",
+        "fields": {
+          "color": {
+            "present": true,
+            "type": "array"
+          },
+          "figsize": {
+            "present": true,
+            "type": "array"
+          },
+          "graph_title": {
+            "present": true,
+            "type": "string"
+          },
+          "labels": {
+            "present": true,
+            "type": "array"
+          },
+          "legend_title": {
+            "present": true,
+            "type": "string"
+          },
+          "type": {
+            "present": true,
+            "type": "string"
+          },
+          "x_label": {
+            "present": true,
+            "type": "string"
+          },
+          "xtick_labels": {
+            "present": true,
+            "type": "array"
+          },
+          "y_label": {
+            "present": true,
+            "type": "string"
+          },
+          "ytick_labels": {
+            "present": true,
+            "type": "array"
+          }
+        },
+        "unknown_fields_withheld": false,
+        "explicit_chart_kinds": {
+          "type": "scatter"
+        }
+      }
+    },
+    {
+      "path": "da_code/gold/plot-scatter-002/result.npy",
+      "structure": {
+        "schema": "npy_header_v1",
+        "status": "supported",
+        "version": [
+          1,
+          0
+        ],
+        "shape": [
+          240,
+          2
+        ],
+        "dtype": "<f8",
+        "object_presence": false,
+        "fortran_order": false,
+        "array_data_read": false
+      }
+    },
+    {
+      "path": "da_code/gold/plot-scatter-002/result.png",
+      "structure": {
+        "schema": "png_ihdr_v1",
+        "status": "supported",
+        "width": 640,
+        "height": 480,
+        "pixel_data_read": false
+      }
+    }
+  ],
+  "task_runs": 0,
+  "scorer_runs": 0,
+  "model_calls": 0,
+  "membership_conclusion": "not_automatically_inferred",
+  "unknown_human_provision": "unclear",
+  "unknown_human_override": "unclear"
+}

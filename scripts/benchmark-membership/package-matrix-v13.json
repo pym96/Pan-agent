@@ -1,0 +1,69 @@
+{
+  "criteria": "1.3",
+  "status": "one_pass_inconclusive",
+  "task_id": "plot-scatter-002",
+  "relationships": [
+    {
+      "from": "instruction",
+      "to": "required inputs",
+      "status": "specified outcome; provision unresolved",
+      "evidence": "#72 preserved instruction identity and #73 allowlisted task projection",
+      "observation": "Requested stacked horizontal bar chart: average days per order stage, top ten cities by sales; plot.yaml settings."
+    },
+    {
+      "from": "five supplied source payloads",
+      "to": "order-stage/city-sales provision",
+      "status": "unknown",
+      "evidence": "package-audit-v13.json source structures",
+      "observation": "Three decoded headers positively name match/team/score/league/odds concepts. The two odds_series variants are unsupported by the frozen compressed-CSV header parser. No rows sampled. Partial header evidence does not rule out a join or derivation using the uncharacterized files; Human report is unclear."
+    },
+    {
+      "from": "task-produced plot/script",
+      "to": "official capture artifacts",
+      "status": "producer identified; task-specific shape not established",
+      "evidence": [
+        "da_agent/envs/da_agent.py:226-241",
+        "da_agent/configs/post_process.py:73-127",
+        "da_agent/configs/scripts/image.py:41-82,155-198"
+      ],
+      "observation": "Post-process generates dabench/plot.json and result.npy from task plotting code/image. parse_bar collects patch widths/heights into returned grouped results. Instruction alone does not establish the resulting array dimensions or values."
+    },
+    {
+      "from": "GT byte identities",
+      "to": "GT structural contract",
+      "status": "verified objects and supported structural projection only",
+      "evidence": "package-audit-v13.json gold structures and provenance",
+      "observation": "Recognized JSON includes explicit scatter kind and label/title/axis field types only; NPY numeric 2D header and PNG IHDR recorded without arrays or pixels. These are metadata, not proof of correct/aligned GT semantics."
+    },
+    {
+      "from": "GT structures and official options",
+      "to": "actual scorer consumers",
+      "status": "static dataflow established; scored compatibility unknown",
+      "evidence": [
+        "da_agent/evaluators/evaluation.py:229-254",
+        "da_agent/evaluators/metrics/image.py:91-121,124-146,149-168,170-225"
+      ],
+      "observation": "Nested config.type is not directly consumed by compare_image; configured keys omit type. Pixel equality can return success before array comparison. Otherwise test_numpy requires matching shapes after 1D reshape and compares direct/scaled data; configured JSON label/axis fields also affect fallback. Header/dimension/type agreement cannot establish value/pixel equality. No scorer executed; unsafe upstream allow_pickle path was only read statically and never invoked."
+    },
+    {
+      "from": "Human-only Solution receipt",
+      "to": "provision/override conclusion",
+      "status": "received/unclear",
+      "evidence": "human-metadata-v13.json",
+      "observation": "No metadata locator or line numbers supplied. This is not absence, exclusion or H-MEM-DECISIONS."
+    }
+  ],
+  "final_scope_challenge": {
+    "id": "SC-73-03",
+    "unresolved": [
+      "Schemas/provision role of odds_series.csv.gz and odds_series_b.csv.gz are unsupported in this frozen one-pass parser; no approved mapping from input package to requested order-stage/city-sales entities is established.",
+      "GT schema and scorer consumers do not establish whether an instruction-compliant bar result can satisfy the official pixel/value contract. GT values and pixels remain undisclosed; chart-kind metadata is not an enforced config-type exclusion."
+    ],
+    "requested_master_decision": "Decide a disclosed project/population boundary or a genuinely new source/evidence plan. Do not repeat this bounded investigation or ask Human to reinterpret the same Solution. No automatic unknown-as-excluded or GT-inspection exposure exclusion."
+  },
+  "membership_decision": "unresolved",
+  "selection_performed": false,
+  "task_runs": 0,
+  "model_calls": 0,
+  "scorer_runs": 0
+}

@@ -37,10 +37,10 @@ def derive(pool,decisions):
     selection['population_boundary']='Structurally complete and instruction/scorer-consistent subset of pinned available distribution under #73 Criteria1.2.'
     return new,selection
 
-def load_frozen(criteria="1.2"):
-    if criteria not in {"1.1","1.2"}:raise ValueError("unsupported criteria")
-    lock_file="continuation-lock-v12.json" if criteria=="1.2" else "continuation-lock.json"
-    decision_file="decisions-v12.json" if criteria=="1.2" else "decisions-v11.json"
+def load_frozen(criteria="1.3"):
+    if criteria not in {"1.1","1.2","1.3"}:raise ValueError("unsupported criteria")
+    lock_file={"1.1":"continuation-lock.json","1.2":"continuation-lock-v12.json","1.3":"continuation-lock-v13.json"}[criteria]
+    decision_file={"1.1":"decisions-v11.json","1.2":"decisions-v12.json","1.3":"decisions-v13.json"}[criteria]
     data=(ROOT.parent/'benchmark-subset/generated/pool.json').read_bytes()
     lock=json.loads((ROOT/lock_file).read_text())
     if hashlib.sha256(data).hexdigest()!=lock['base_pool_sha256']:raise ValueError('base pool integrity mismatch')
