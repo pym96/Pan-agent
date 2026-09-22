@@ -293,3 +293,5 @@ The active #60/#61/#62 PTY drivers now start at idle rather than submitting remo
 - [`benchmark-env/README.md`](benchmark-env/README.md): #71 Criteria1.1 two-domain environment controls; zero model calls, restricted official evaluators.
 
 - [`benchmark-subset/`](benchmark-subset/README.md): #72 deterministic public metadata selection and blocked, unactivated campaign proposal; no model/task execution.
+
+- [Harbor zero-model control](harbor/README.md) — #74 candidate; installed Pan → official public hello-world, with raw failure retention.
