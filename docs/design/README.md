@@ -93,3 +93,5 @@ The Human-accepted architecture history remains indexed in [`../adr/README.md`](
 - [`benchmark-subset-preregistration.md`](benchmark-subset-preregistration.md): #72 frozen selection method, membership/exposure blockers, official scoring and proposed budgets; no campaign activation.
 
 - [Harbor external adapter](harbor-adapter.md) — #74 candidate routing, cancellation and repeatable zero-model controls.
+
+- [#74 Criteria1.2 controller-prefetch design and retained failed layout](harbor-adapter.md).

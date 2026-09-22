@@ -27,3 +27,17 @@ See [design](../../docs/design/harbor-adapter.md) for repeatable commands and
   resource/evidence identities; **no successful derived image** is recorded.
 - `test_preparation.py`: overlapping timeout/SIGTERM cleanup regressions.
   Two-round allowance is exhausted; further online preparation needs a new contract.
+
+## Criteria1.2 continuation (blocked)
+
+- `prepare_prefetched.py`: 600 s work phase, separate <=60 s cleanup, actual
+  owned-container timeout probe; use a 660 s resource supervisor ceiling.
+- `prepare-prefetched.sh`: retained failed dependency-only local repository
+  reconstruction; apt requests compressed indexes absent from this layout.
+- `prefetch-identity.json`: controller downloads/cache authentication, one failed
+  installation, actual cleanup receipts and unchanged cumulative baseline.
+- `test_adapter.py`: also checks the exact public dependency environment values.
+
+No successful image or controls were produced. Do not start another preparation
+round from these commands without a new explicit contract. Acquisition scripts,
+raw manifests and downloaded public dependencies remain in the external bundle.

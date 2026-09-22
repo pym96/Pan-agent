@@ -1,0 +1,222 @@
+{
+  "criteria": "1.2 + complete 1.1 + 1.0",
+  "parent_candidate": "34d5c7091246870e8dc6e13f0b4121fceff7c5a4",
+  "status": "blocked; no valid control pair",
+  "derived_image": null,
+  "bundle": "/Volumes/WD_BLACK/pan-agent/wo74-harbor-20260922/criteria12",
+  "bundle_manifest_sha256": "5804b8325cd15593feb2a6936ece7ce305874bddb7228f1ee5d093b89388b9d9",
+  "prefetch_manifest_sha256": "0cadde0af557ce09f2af22360345a9cf2a0d71dec21319ac8d8879b9ea0ffd14",
+  "prefetch_elapsed_seconds": 539.569277048111,
+  "downloads": [
+    {
+      "url": "https://astral.sh/uv/0.9.7/install.sh",
+      "file": "uv-installer.sh",
+      "sha256": "ef72d0c2b8f2d2a0d7c6b2d866339869a3f0cbd31e8f1b6901f2064c16d47b58",
+      "bytes": 65983,
+      "attempt_exit_codes": [
+        35,
+        0
+      ]
+    },
+    {
+      "url": "https://github.com/astral-sh/uv/releases/download/0.9.7/uv-aarch64-unknown-linux-gnu.tar.gz",
+      "file": "uv-aarch64-unknown-linux-gnu.tar.gz",
+      "sha256": "8b3d31a154673c6d357727d2083a33525b515589d153fa5b5455e1db9e9e6363",
+      "bytes": 20300539,
+      "attempt_exit_codes": [
+        28,
+        0
+      ]
+    },
+    {
+      "url": "https://github.com/astral-sh/uv/releases/download/0.9.7/uv-aarch64-unknown-linux-gnu.tar.gz.sha256",
+      "file": "uv.sha256",
+      "sha256": "c449e590c04993fee1585efe2a274637a6f97898dde1c91ba97660221ed842c5",
+      "bytes": 102,
+      "attempt_exit_codes": [
+        0
+      ]
+    },
+    {
+      "url": "https://pypi.org/pypi/pytest/8.4.1/json",
+      "file": "pytest.json",
+      "sha256": "0163148d468ca244ca7390e5a3a185ecdb39c2fddcd255be2a65c1a6cc0e6814",
+      "bytes": 10588,
+      "attempt_exit_codes": [
+        0
+      ]
+    },
+    {
+      "url": "https://files.pythonhosted.org/packages/29/16/c8a903f4c4dffe7a12843191437d7cd8e32751d5de349d45d3fe69544e87/pytest-8.4.1-py3-none-any.whl",
+      "file": "pytest-8.4.1-py3-none-any.whl",
+      "sha256": "539c70ba6fcead8e78eebbf1115e8b589e7565830d7d006a8723f19ac8a0afb7",
+      "bytes": 365474,
+      "attempt_exit_codes": [
+        0
+      ]
+    },
+    {
+      "url": "https://pypi.org/pypi/pytest-json-ctrf/0.3.5/json",
+      "file": "pytest-json-ctrf.json",
+      "sha256": "143e28b335bf77801ee9c0bf7fab019d0c51f60a082985464d46f0838c2bd9ed",
+      "bytes": 5631,
+      "attempt_exit_codes": [
+        0
+      ]
+    },
+    {
+      "url": "https://files.pythonhosted.org/packages/51/a8/d58637d10f70ae14a1ad18cb37f4aa32d5593510213d5f929892cb1c9c6d/pytest_json_ctrf-0.3.5-py3-none-any.whl",
+      "file": "pytest_json_ctrf-0.3.5-py3-none-any.whl",
+      "sha256": "e82fd1d69be2f92385bc33540063e5ad7b17b36de67764c84f3ceb9815a895e9",
+      "bytes": 6837,
+      "attempt_exit_codes": [
+        0
+      ]
+    },
+    {
+      "url": "https://pypi.org/pypi/iniconfig/2.1.0/json",
+      "file": "iniconfig.json",
+      "sha256": "75d3a90695b44c6e8956fc7813a97b31499ff77537c28e4f9ad973c153431396",
+      "bytes": 4789,
+      "attempt_exit_codes": [
+        0
+      ]
+    },
+    {
+      "url": "https://files.pythonhosted.org/packages/2c/e1/e6716421ea10d38022b952c159d5161ca1193197fb744506875fbb87ea7b/iniconfig-2.1.0-py3-none-any.whl",
+      "file": "iniconfig-2.1.0-py3-none-any.whl",
+      "sha256": "9deba5723312380e77435581c6bf4935c94cbfab9b1ed33ef8d238ea168eb760",
+      "bytes": 6050,
+      "attempt_exit_codes": [
+        0
+      ]
+    },
+    {
+      "url": "https://pypi.org/pypi/packaging/25.0/json",
+      "file": "packaging.json",
+      "sha256": "6ab300d7b0735a50109912decebb1731ed292f1ed88a3ce5e4bb7876b182cac0",
+      "bytes": 5501,
+      "attempt_exit_codes": [
+        0
+      ]
+    },
+    {
+      "url": "https://files.pythonhosted.org/packages/20/12/38679034af332785aac8774540895e234f4d07f7545804097de4b666afd8/packaging-25.0-py3-none-any.whl",
+      "file": "packaging-25.0-py3-none-any.whl",
+      "sha256": "29572ef2b1f17581046b3a2227d5c611fb25ec70ca1ba8554b24b0e69331a484",
+      "bytes": 66469,
+      "attempt_exit_codes": [
+        0
+      ]
+    },
+    {
+      "url": "https://pypi.org/pypi/pluggy/1.6.0/json",
+      "file": "pluggy.json",
+      "sha256": "db23d1227f5870da7538b1e29371d9fc9a93b0499989f8e3ef021fdccd75bc8e",
+      "bytes": 7064,
+      "attempt_exit_codes": [
+        0
+      ]
+    },
+    {
+      "url": "https://files.pythonhosted.org/packages/54/20/4d324d65cc6d9205fabedc306948156824eb9f0ee1633355a8f7ec5c66bf/pluggy-1.6.0-py3-none-any.whl",
+      "file": "pluggy-1.6.0-py3-none-any.whl",
+      "sha256": "e920276dd6813095e9377c0bc5566d94c932c33b27a3e3945d8389c374dd4746",
+      "bytes": 20538,
+      "attempt_exit_codes": [
+        0
+      ]
+    },
+    {
+      "url": "https://pypi.org/pypi/pygments/2.19.2/json",
+      "file": "pygments.json",
+      "sha256": "9d6987788c1a0373de4d6320d2afbc50745cb39a33b15893fd879e1bf6fc9d4f",
+      "bytes": 5778,
+      "attempt_exit_codes": [
+        0
+      ]
+    },
+    {
+      "url": "https://files.pythonhosted.org/packages/c7/21/705964c7812476f378728bdf590ca4b771ec72385c533964653c68e86bdc/pygments-2.19.2-py3-none-any.whl",
+      "file": "pygments-2.19.2-py3-none-any.whl",
+      "sha256": "86540386c03d588bb81d44bc3928634ff26449851e99741617ecb9037ee5ec0b",
+      "bytes": 1225217,
+      "attempt_exit_codes": [
+        28,
+        0
+      ]
+    }
+  ],
+  "cache_origin": {
+    "source_container": "31bad0deee2d961839f319f7a0a5f3f9e325b4d350f93a65b3deb110ee1385ba",
+    "origin": "https://mirrors.tuna.tsinghua.edu.cn/ubuntu-ports",
+    "reuse_condition": "original-base Ubuntu keyring gpgv InRelease, Release SHA256 -> Packages -> deb SHA256, followed by signed apt update before install",
+    "source_identity_verified": true
+  },
+  "verification": {
+    "uv": "matches publisher checksum obtained over TLS; not publisher signature",
+    "ubuntu": "4 gpgv signatures with original image Ubuntu archive keyring; 15 uncompressed Packages hashes and 35 deb hashes verified before apt update",
+    "python": "6 pinned wheels match version JSON SHA256 from PyPI over TLS; not publisher signatures"
+  },
+  "installation_failure": {
+    "base_image": "sha256:d84ac69e7810ab577455f4b95fe1452285a8d812c533fd4562ff37c618fd4d54",
+    "scheme": "Criteria1.2 controller prefetch",
+    "work_limit_seconds": 600,
+    "cleanup_limit_seconds": 60,
+    "error": "RuntimeError: command 11 exit 100",
+    "elapsed_work_seconds": 4.71022645800258
+  },
+  "timeout_probe": {
+    "container_id": "349dbdad9abe30b85476ddc4a09d8202db075dc62e8ba2cceeaf39bbbf82dac7",
+    "elapsed_seconds": 1.221941791009158,
+    "state": {
+      "Status": "exited",
+      "Running": false,
+      "Paused": false,
+      "Restarting": false,
+      "OOMKilled": false,
+      "Dead": false,
+      "Pid": 0,
+      "ExitCode": 137,
+      "Error": "",
+      "StartedAt": "2026-09-22T08:47:14.231514177Z",
+      "FinishedAt": "2026-09-22T08:47:16.46017497Z"
+    }
+  },
+  "installation_cleanup": {
+    "container_id": "8b5874010d3f4612c4a11f4cab475187c10407365a0e73943341bd1c2d1ea7a2",
+    "elapsed_seconds": 1.51306908299739,
+    "state": {
+      "Status": "exited",
+      "Running": false,
+      "Paused": false,
+      "Restarting": false,
+      "OOMKilled": false,
+      "Dead": false,
+      "Pid": 0,
+      "ExitCode": 137,
+      "Error": "",
+      "StartedAt": "2026-09-22T08:47:16.765616803Z",
+      "FinishedAt": "2026-09-22T08:47:19.86803843Z"
+    }
+  },
+  "resource_summary": {
+    "steps": 20,
+    "baseline": {
+      "utc": "2026-09-22T02:50:43.732883+00:00",
+      "free_bytes": 94306226176,
+      "docker_raw_bytes": 38386786304,
+      "owned_files_bytes": 9457664
+    },
+    "minimum_free_bytes": 92605558784,
+    "maximum_incremental_bytes": 1148592128
+  },
+  "new_task_controls": 0,
+  "real_model_calls": 0,
+  "remaining_gaps": [
+    "apt compressed-index selection versus cached uncompressed layout",
+    "container official installer path and uvx preflight not reached",
+    "no derived image or actual positive/negative and final-image timeout/cancel pair",
+    "independent final SHA verification and Human/different-model-family boundary gate"
+  ]
+}

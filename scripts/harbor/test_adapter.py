@@ -4,6 +4,7 @@ import tempfile
 import unittest
 from pathlib import Path
 from runner import audit, reward
+from prepare_prefetched import DEPENDENCY_ENV
 
 class Boundaries(unittest.TestCase):
     def test_reward_errors(self):
@@ -17,6 +18,14 @@ class Boundaries(unittest.TestCase):
                 p.write_text(text);self.assertEqual(reward(p),float(text))
     def fixture(self):
         return {'HostConfig':{'Privileged':False,'CapAdd':None,'NetworkMode':'wo74-network','NanoCpus':10**9,'Memory':2048*2**20,'Devices':None,'DeviceRequests':None},'Config':{'Env':['PATH=/bin','WO74_CANARY=fake']},'Id':'bound-id','Image':'sha256:fixture','Mounts':[{'Type':'bind','Source':'/tmp/wo74-verifier','Destination':'/logs/verifier'}]}
+    def test_dependency_configuration_is_exact(self):
+        valid=self.fixture();valid['Config']['Env'] += [k+'='+v for k,v in DEPENDENCY_ENV.items()]
+        audit(valid,Path('/tmp/wo74-verifier'))
+        for key in DEPENDENCY_ENV:
+            x=copy.deepcopy(valid)
+            x['Config']['Env']=[key+'=https://unapproved.invalid' if v.startswith(key+'=') else v for v in x['Config']['Env']]
+            with self.subTest(key=key),self.assertRaises(AssertionError):audit(x,Path('/tmp/wo74-verifier'))
+
     def test_configuration_rejections(self):
         valid=self.fixture();audit(valid,Path('/tmp/wo74-verifier'))
         for key,val in [('Privileged',True),('CapAdd',['SYS_ADMIN']),('NetworkMode','host'),('NanoCpus',2*10**9),('Memory',3*2**30),('Devices',[{}]),('DeviceRequests',[{}])]:

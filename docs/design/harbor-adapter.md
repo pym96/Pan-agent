@@ -1,3 +1,39 @@
+## Current continuation: Criteria1.2
+
+One controller-side prefetch scheme was attempted under
+[Criteria1.2](https://github.com/pym96/Pan-agent/issues/74#issuecomment-5773455758).
+It is now **blocked**, not a reusable verified recipe. See the current
+[evidence](../evidence/harbor-adapter-74.md) and
+[prefetch identity](../../scripts/harbor/prefetch-identity.json).
+The old two rounds remain exhausted; this failed new scheme does not authorize
+another preparation attempt.
+
+`prepare_prefetched.py` takes `--input` (verified dependency bundle) and a fresh
+`--output`. It records a real 1 s work-timeout probe, then creates a separate
+1 CPU/2048 MiB original-base container with no mounts. The work budget is 600 s;
+cleanup has a separate <=60 s allowance. Invoke through the cumulative
+`resources.py` supervisor with a 660 s ceiling, never the old coincident 600 s
+outer deadline. Download acquisition scripts/raw receipts are retained in the
+external evidence bundle; no downloaded Linux binary runs on the host.
+
+`prepare-prefetched.sh` authenticates cached Ubuntu InRelease -> Packages -> deb
+bytes before attempting a signed local apt update. Its retained attempted
+layout lacks the compressed indexes requested by apt, so update fails closed.
+Later steps (not reached) would configure real curl's timeouts, exercise the
+actual remote installer URL, and use the installer's supported `UV_DOWNLOAD_URL`
+for the prefetched Linux archive. No curl/uvx wrapper or official verifier edit
+is introduced. This local cache adaptation is specific to the public example,
+not established formal Terminal-Bench operating conditions.
+
+The prospective image environment is restricted to exact public values
+`UV_DOWNLOAD_URL=file:///opt/wo74`, `UV_PYTHON_PREFERENCE=only-system`,
+`UV_OFFLINE=1`, and `UV_FIND_LINKS=/opt/wo74/wheels`. Runner audit rejects other
+values; this gate was checked offline only. There is no `prepared.json`, image
+ID, or authorization to start controls from the failed container. Original
+agent/verifier 120 s, bridge 1 s and cancellation <=30 s constraints stand.
+
+### Historical Criteria1.1 design (not new execution authority)
+
 ## Current continuation: Criteria1.1
 
 The original design below remains historical context. Criteria1.1 permits a

@@ -1,3 +1,100 @@
+# Criteria1.2 continuation — blocked before verifier
+
+[Criteria1.2](https://github.com/pym96/Pan-agent/issues/74#issuecomment-5773455758)
+continues `34d5c7091246870e8dc6e13f0b4121fceff7c5a4`; the independent 1.1
+Verdict SHA256 remains
+`63a0480ae9b9ac8b70f249246e38c3e120517db8c30659870f6eaa2e3328d634`.
+**One newly authorized controller-prefetch scheme was attempted and stopped.
+No derived image, official pytest execution, valid reward pair or task controls.**
+This is Builder evidence for independent review, not acceptance.
+
+## Observed result and concrete blocker
+
+Controller prefetch took 539.569277048111 s of the 1800 s allowance. It obtained
+uv 0.9.7 Linux aarch64, its official installer and published checksum, six pinned
+PyPI wheels, and the old owned container's apt cache. Every network request used
+15 s connect / 120 s total limits and at most one retry. The installer first had
+curl exit35, uv archive first exit28 at 120 s, and the Pygments wheel also needed
+its single retry; successes and failures remain in the download manifest.
+The uv archive matches Astral's published SHA256
+`8b3d31a154673c6d357727d2083a33525b515589d153fa5b5455e1db9e9e6363`.
+The installer matches the old observed hash. These TLS/checksum checks are not
+publisher signatures. Python wheels match PyPI version JSON hashes.
+
+In a fresh original-base container, gpgv verified four InRelease signatures with
+the original Ubuntu archive keyring; all 15 decompressed Packages indexes and
+35 deb files matched the corresponding authenticated SHA256 entries. The source
+cache container was inspected by full ID and remained stopped; it was never
+used as a clean task environment.
+
+**The Builder's reconstructed repository layout was incomplete for apt's default
+compressed-index selection.** It supplied authenticated uncompressed `Packages`,
+but `apt-get update` requested signed `Packages.gz` entries and failed with
+`Hash Sum mismatch` / exit100. Example endpoint:
+`file:/opt/wo74/repo/dists/noble/universe/binary-arm64/Packages.gz`.
+This is an implementation/preparation failure, not evidence of a corrupt signed
+upstream repository and not a network-caused negative task result. Work stopped
+at 4.71022645800258 s, including the timeout probe. No extra preparation round
+was started even though the maximum work allowance was not consumed.
+
+A future authorized repair would need to make apt acquire the already validated
+uncompressed indexes, or supply the exact signed compressed bytes. Merely
+recompressing a cached index does not establish the signed compressed hash.
+The retained failed script has not been silently replaced by an unverified fix.
+Container-side Astral installer retrieval, local-artifact installation, uvx
+preflight and the actual verifier path were **not reached**. Static inspection
+established that this installer supports `UV_DOWNLOAD_URL`; it did not prove
+that the final verifier can run. Return this concrete blocker to Master; do not
+resume preparation or controls on the basis of this Handoff.
+
+## Cleanup, resources and checks
+
+- Actual `docker exec sleep 30` was stopped by the candidate's 1 s subprocess
+  timeout. The same cleanup function stopped owned probe
+  `349dbdad9abe30b85476ddc4a09d8202db075dc62e8ba2cceeaf39bbbf82dac7`
+  in 1.221941791009158 s; Docker reported Running=false/Pid=0.
+- Failed preparation container
+  `8b5874010d3f4612c4a11f4cab475187c10407365a0e73943341bd1c2d1ea7a2`
+  was stopped in 1.51306908299739 s, also Running=false/Pid=0. Both used
+  1 CPU/2048 MiB, no host mounts, extra devices/capabilities or privileged mode.
+  Work has a 600 s deadline, cleanup a distinct <=60 s allowance; the resource
+  supervisor's 660 s ceiling does not coincide with the work deadline.
+- This actual preparation-timeout probe is not the still-missing final-image
+  Pan cancel/timeout control pair, nor an assertion that the 600 s exhaustion
+  path or external signal interruption has been independently exercised.
+- Original resource baseline and all 14 prior receipts are unchanged. Six new
+  receipts bring the cumulative count to 20. Sampled minimum free space:
+  92,605,558,784 bytes; maximum incremental allocation: 1,148,592,128 bytes.
+- Three affected adapter boundary tests pass, including rejection of altered
+  dependency environment values. Shell syntax and Python compilation pass.
+  Official tests, reward reader/scoring logic, core Session and time limits are
+  unchanged. No Linux binary was executed on the host; no model/provider,
+  balance or real-credential calls occurred.
+- Unchanged historical full tests were not rerun. Keep the exact earlier result:
+  82 host checks passed; Python 259 had one terminal-snake timeout failure;
+  its later single-test pass does not turn that full run into PASS. The original
+  host root-extra-files BLOCK also remains. New candidate path/package checks
+  and exact-SHA status are reported in the external Handoff.
+
+## Evidence identity and remaining criteria
+
+[Prefetch identity](../../scripts/harbor/prefetch-identity.json) binds URLs,
+versions, checksums, attempt exit codes, full owned IDs, cleanup and resource
+records. Bundle:
+`/Volumes/WD_BLACK/pan-agent/wo74-harbor-20260922/criteria12/`.
+Its initial 128-artifact `manifest.json` SHA256 is
+`5804b8325cd15593feb2a6936ece7ce305874bddb7228f1ee5d093b89388b9d9`;
+later Handoff/checks have a separate append-only manifest. Exact acquisition
+scripts and raw download stderr are included. Old 1.0/1.1 bundles are retained.
+
+C-HBR-01 still lacks a successful derived image and final round-trip evidence;
+C-HBR-02 lacks final-image controls and final Human/different-family review;
+C-HBR-03 lacks actual official positive1/negative0. No criterion is self-accepted.
+All commits stay on `workorder/74-candidate`; main is untouched. Navigation is
+updated only in allowed files; the root SOURCE_OF_TRUTH remains Master-owned.
+
+---
+
 # Criteria1.1 continuation — preparation blocked
 
 [Criteria1.1 contract](https://github.com/pym96/Pan-agent/issues/74#issuecomment-5772562134)

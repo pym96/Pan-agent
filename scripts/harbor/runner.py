@@ -11,6 +11,7 @@ import uuid
 from pathlib import Path
 from adapter import PanAgent
 from scoring import classify
+from prepare_prefetched import DEPENDENCY_ENV
 from harbor.environments.docker.docker import DockerEnvironment
 from harbor.models.agent.context import AgentContext
 from harbor.models.task.task import Task
@@ -38,7 +39,9 @@ def audit(info,logdir):
     assert h['NanoCpus']==1_000_000_000 and h['Memory']==2048*2**20 and not h.get('DeviceRequests')
     assert not h.get('Devices')
     assert all(m['Type']=='bind' and Path(m['Source']).resolve()==logdir.resolve() and m['Destination']=='/logs/verifier' for m in info['Mounts'])
-    assert set(names)<= {'PATH','WO74_CANARY'}
+    assert set(names)<= {'PATH','WO74_CANARY',*DEPENDENCY_ENV}
+    values=dict(x.split('=',1) for x in info['Config']['Env'])
+    assert all(values[k]==v for k,v in DEPENDENCY_ENV.items() if k in values)
     return {'id':info['Id'],'image':info['Image'],'mounts':info['Mounts'],'privileged':h['Privileged'],'cap_add':h.get('CapAdd'),'network':h['NetworkMode'],'nano_cpus':h['NanoCpus'],'memory':h['Memory'],'devices':h.get('Devices'),'device_requests':h.get('DeviceRequests'),'environment_names':names}
 
 async def one(a,mode):
