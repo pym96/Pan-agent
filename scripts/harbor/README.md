@@ -13,3 +13,17 @@ Pan's FauxModelAdapter reports explicitly synthetic zero usage.
 
 See [design](../../docs/design/harbor-adapter.md) for repeatable commands and
 [evidence](../../docs/evidence/harbor-adapter-74.md) for actual outcomes and failures.
+
+## Criteria1.1 repair
+
+- `prepare.py` / `prepare.sh`: bounded dependency-only derived image; official
+  HTTPS apt source, public CA bootstrap, official curl/uv and cached pytest.
+- `scoring.py` / `test_verifier.py`: require actual execution of both official
+  tests; distinguish infrastructure errors from a valid missing-file negative.
+- The runner now requires `--prepared PATH/prepared.json`, matching the image ID.
+  It checks a clean start and keeps the original 120-second verifier limit.
+
+- `preparation-identity.json`: both Criteria1.1 failed rounds and cumulative
+  resource/evidence identities; **no successful derived image** is recorded.
+- `test_preparation.py`: overlapping timeout/SIGTERM cleanup regressions.
+  Two-round allowance is exhausted; further online preparation needs a new contract.

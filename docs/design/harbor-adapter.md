@@ -1,3 +1,31 @@
+## Current continuation: Criteria1.1
+
+The original design below remains historical context. Criteria1.1 permits a
+bounded dependency-only image derived from the original fixed image. Official
+hello-world inputs/tests/scoring/time limits and installed Pan/Harbor identities
+remain unchanged. `prepare.py --round 1|2 --output NEW_PATH --ca-bundle PUBLIC_PEM`
+runs under the existing cumulative resource launcher, with `--timeout 600`.
+Never run more than two preparation plans or repeat a positive/negative control
+within a plan. A failed dependency preflight does not authorize task execution.
+
+The bootstrap PEM is the public trust-root bundle from the already pinned
+certifi Python dependency, not a credential. Only official apt transport changes
+to HTTPS. apt signatures and TLS verification stay enabled. Preparation installs
+ca-certificates/curl, the official uv 0.9.7 installer, and caches the exact official
+`uvx --with pytest==8.4.1 --with pytest-json-ctrf==0.3.5 pytest --version` environment.
+No tests/solution/instruction files enter preparation; `/app` must stay empty and
+no hello.txt, reward, tests or pytest run cache may be present at image creation.
+
+The resulting `prepared.json` records the image ID, base ID, script/public CA
+hashes and successful preflight. Pass it to every fresh control as `--prepared`.
+The runner rejects image mismatches and preexisting output/test files. Positive
+and negative controls use the same digest; tests are uploaded only after Pan ends.
+Scoring now requires the two official tests in CTRF with actual expected statuses
+and, for the negative, the missing-file failure evidence. Raw official reward is
+never rewritten. Dependency/network/collection failures are infrastructure errors,
+including official reward=0 with no executed tests. Final-image timeout/cancel
+controls retain the full original boundary checks and separate high-risk review.
+
 # Pan external Harbor adapter — candidate #74
 
 Criteria1.0, accepted base `3d42cc22df25a6d34cbc5bdc18edde47a1180119`.
@@ -98,3 +126,32 @@ These sources specify the integration seam; this candidate does not promote any
 new [Verified Project Fact](../evidence/verified-project-facts.md). Root
 SOURCE_OF_TRUTH updates remain with Master because #74's allowed write scope
 excludes that file.
+
+### Criteria1.1 second preparation plan
+
+`--round 2` selects `prepare-round2.sh`: the same Ubuntu archive signatures and
+suites/components via the [TUNA Ubuntu Ports HTTPS mirror](https://mirrors.tuna.tsinghua.edu.cn/help/ubuntu-ports/),
+plus the system Python needed by pytest. The task-only Docker apt cache cleanup
+hook is removed so downloaded packages remain cached. The official curl/uv
+binaries and verifier script are not wrapped or replaced. `only-system` applies
+only to the dependency prefetch command, avoiding a redundant managed Python
+download; the official verifier command is unchanged. The preparation controller
+checks an independent host canary and the container-side same-path canary before
+and after preparation, then removes the container canary before image creation.
+
+Invocation used for the continuation (one invocation per authorized round):
+
+```sh
+python3 scripts/harbor/resources.py --work /private/tmp/wo74-work \
+  --name v11-prepare-round2 --timeout 600 \
+  /private/tmp/wo74-work/venv/bin/python scripts/harbor/prepare.py \
+  --round 2 --output /private/tmp/wo74-work/v11/preparation-2 \
+  --ca-bundle /private/tmp/wo74-work/venv/lib/python3.12/site-packages/certifi/cacert.pem
+```
+
+For independent reproduction, substitute a new internal-disk WORK directory,
+reuse the fixed inputs after verifying their hashes, and retain that process's
+own preparation/attempt records. Builder's two-round authorization does not reset
+when a directory name changes. A `prepared.json` exists only after successful
+preflight and image commit. If neither round produces one, do not run controls.
+Missing/unavailable new-image cancellation and reward evidence remains explicit.

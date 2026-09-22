@@ -1,0 +1,36 @@
+{
+  "criteria": "1.1",
+  "parent_candidate": "01dc19b77483e4e9d35a904e306ed20ece7a6977",
+  "base_image": "sha256:d84ac69e7810ab577455f4b95fe1452285a8d812c533fd4562ff37c618fd4d54",
+  "derived_image": null,
+  "preparation_rounds_used": 2,
+  "new_task_controls": 0,
+  "real_model_calls": 0,
+  "rounds": [
+    {
+      "round": 1,
+      "base_image": "sha256:d84ac69e7810ab577455f4b95fe1452285a8d812c533fd4562ff37c618fd4d54",
+      "ca_bundle_sha256": "9cc2a774b5198dcff14d9be1e66091f538975d867ce029a96bce15a55dfd730f",
+      "script_sha256": "4706d20055ee913e49adef19479cdc3a231634b7db3d40dbdd40b681e89ef3c2",
+      "started_utc": "2026-09-22T07:43:24Z",
+      "container_id": "de81049a9f7c606120f20df7eae0af151b05342b011833b86f438a40cfd21bfb",
+      "error": "RuntimeError: preparation command failed: 100",
+      "elapsed_seconds": 504.7273779590032
+    },
+    {
+      "round": 2,
+      "base_image": "sha256:d84ac69e7810ab577455f4b95fe1452285a8d812c533fd4562ff37c618fd4d54",
+      "ca_bundle_sha256": "9cc2a774b5198dcff14d9be1e66091f538975d867ce029a96bce15a55dfd730f",
+      "script_sha256": "cb5f26f0e1e699b1528a696d827d30e0ac70f60e09083788338ce9979b8b6078",
+      "started_utc": "2026-09-22T07:54:24Z",
+      "container_id": "31bad0deee2d961839f319f7a0a5f3f9e325b4d350f93a65b3deb110ee1385ba",
+      "error": "TimeoutExpired: Command '('docker', 'exec', '31bad0deee2d961839f319f7a0a5f3f9e325b4d350f93a65b3deb110ee1385ba', 'bash', '/tmp/wo74-prepare.sh')' timed out after 599.4939344580052 seconds",
+      "elapsed_seconds": 600.0077009169909
+    }
+  ],
+  "evidence": "/Volumes/WD_BLACK/pan-agent/wo74-harbor-20260922/criteria11",
+  "manifest_sha256": "1765e8e16e34d089e8fc63e421ae10d4f7d55a989c2577bd89903f1d1589da60",
+  "min_cumulative_free_bytes": 93083226112,
+  "max_cumulative_increment_bytes": 742514688,
+  "cumulative_resource_steps": 14
+}

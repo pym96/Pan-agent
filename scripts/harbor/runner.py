@@ -10,6 +10,7 @@ import signal
 import uuid
 from pathlib import Path
 from adapter import PanAgent
+from scoring import classify
 from harbor.environments.docker.docker import DockerEnvironment
 from harbor.models.agent.context import AgentContext
 from harbor.models.task.task import Task
@@ -52,6 +53,7 @@ async def one(a,mode):
     env=DockerEnvironment(environment_dir=a.harbor/'examples/tasks/hello-world/environment',environment_name='wo74-hello-world',session_id=sid,trial_paths=trial,task_env_config=cfg,mounts=[{'type':'bind','source':str(trial.verifier_dir),'target':'/logs/verifier'}],persistent_env={'WO74_CANARY':'fake-not-a-credential'},keep_containers=True)
     (target/'owned.json').write_text(json.dumps({'compose_project':sid,'image':a.image})+'\n')
     container=None
+    phase='environment_start'
     try:
         await asyncio.wait_for(env.start(force_build=False),task.config.environment.build_timeout_sec)
         # Lookup by this unpredictable controller-owned project, then bind immutable ID.
@@ -61,6 +63,9 @@ async def one(a,mode):
         info=json.loads(await docker('inspect',container))[0]
         (target/'configuration.json').write_text(json.dumps(audit(info,trial.verifier_dir),indent=2)+'\n')
         assert info['Image']==a.image
+        clean=await env.exec('test ! -e /app/hello.txt && test ! -e /tests && test ! -e /solution && test ! -e /logs/verifier/reward.txt && test ! -e /logs/verifier/ctrf.json && test -z "$(ls -A /app)"')
+        if clean.return_code:raise RuntimeError('prepared image/control not clean')
+        (target/'clean-start.json').write_text(json.dumps(clean.model_dump() if hasattr(clean,'model_dump') else {'exit_code':clean.return_code,'stdout':clean.stdout,'stderr':clean.stderr})+'\n')
         host=target/'host-canary';host.write_text('host-original\n')
         same=str(host)
         canary=f'test ! -e {shlex.quote(same)} && mkdir -p {shlex.quote(str(host.parent))} && printf container-only > {shlex.quote(same)} && cat {shlex.quote(same)} && printf "\\n%s\\n" "$WO74_CANARY" && test ! -e /var/run/docker.sock'
@@ -68,16 +73,20 @@ async def one(a,mode):
         commands={'positive':[canary,"printf 'Hello, world!\\n' > /app/hello.txt; cat /app/hello.txt",'exit 7'], 'negative':[canary,'test ! -e /app/hello.txt'], 'timeout':[sleep], 'cancel':[sleep]}[mode]
         agent=PanAgent(logs_dir=trial.agent_dir)
         agent.bind(installed_entry=a.entry,mode=mode,commands=commands,container_id=info['Id'])
+        phase='agent'
         await agent.setup(env)
         await asyncio.wait_for(agent.run(task.instruction,env,AgentContext()),task.config.agent.timeout_sec)
         assert host.read_text()=='host-original\n'
         trace=json.loads((trial.agent_dir/'trace.json').read_text())
         report={'mode':mode,'pan_terminal':trace['result']['status'],'real_provider_calls':0,'usage':'synthetic zero','host_canary_unchanged':True}
         if mode in ('positive','negative'):
+            phase='verifier'
             vr=await asyncio.wait_for(Verifier(task,trial,env).verify(),task.config.verifier.timeout_sec)
             value=reward(trial.reward_text_path)
             report.update(official=vr.model_dump(mode='json'),reward=value)
-            assert value== (1 if mode=='positive' else 0)
+            ctrf_path=trial.verifier_dir/'ctrf.json'
+            ctrf=json.loads(ctrf_path.read_text()) if ctrf_path.exists() else None
+            report['validation']=classify(mode,value,ctrf,trial.test_stdout_path.read_text())
             if mode=='positive':assert any(e['result']['exit_code']==7 for e in trace['effects'])
         else:
             assert agent.stopped
@@ -87,7 +96,7 @@ async def one(a,mode):
         (target/'report.json').write_text(json.dumps(report,indent=2)+'\n')
         return report
     except BaseException as exc:
-        (target/'failure.json').write_text(json.dumps({'type':type(exc).__name__,'message':str(exc)})+'\n');raise
+        (target/'failure.json').write_text(json.dumps({'type':type(exc).__name__,'message':str(exc),'phase':phase,'classification':'infrastructure_or_control_error'})+'\n');raise
     finally:
         if container:
             # Only stop the explicitly recorded owned ID; retain inspect and raw logs.
@@ -100,8 +109,10 @@ async def one(a,mode):
 async def main():
     task=asyncio.current_task()
     asyncio.get_running_loop().add_signal_handler(signal.SIGTERM,task.cancel)
-    p=argparse.ArgumentParser();p.add_argument('--harbor',type=Path,required=True);p.add_argument('--entry',type=Path,required=True);p.add_argument('--image',required=True);p.add_argument('--output',type=Path,required=True);p.add_argument('--mode',choices=['positive','negative','timeout','cancel'],required=True)
+    p=argparse.ArgumentParser();p.add_argument('--harbor',type=Path,required=True);p.add_argument('--entry',type=Path,required=True);p.add_argument('--image',required=True);p.add_argument('--output',type=Path,required=True);p.add_argument('--prepared',type=Path,required=True);p.add_argument('--mode',choices=['positive','negative','timeout','cancel'],required=True)
     a=p.parse_args();a.output=a.output.resolve();a.output.mkdir(parents=True,exist_ok=True)
+    preparation=json.loads(a.prepared.read_text())
+    if preparation.get('preflight')!='passed' or preparation.get('image_id')!=a.image:raise RuntimeError('preparation identity/preflight missing')
     assert a.image.startswith('sha256:') and len(a.image)==71
     assert '/node_modules/pan-agent/dist/index.js' in str(a.entry.resolve())
     installed=a.entry.resolve().parents[1]

@@ -1,3 +1,82 @@
+# Criteria1.1 continuation — preparation blocked
+
+[Criteria1.1 contract](https://github.com/pym96/Pan-agent/issues/74#issuecomment-5772562134)
+continues `01dc19b77483e4e9d35a904e306ed20ece7a6977` additively. Its independent
+Criteria1.0 Verdict remains rejected/evidence_incomplete (SHA256
+`46ac6a2cf0913932f4a1e8a1be16eda43f20ce81669f8c5bfcef0e8d90b944eb`).
+No accepted declaration or main change.
+
+**Both authorized preparation rounds failed. No derived image passed preflight;
+zero new positive/negative/timeout/cancel controls were started. Valid rewards
+1/0 remain unavailable. Builder's two-round allowance is exhausted.**
+
+| Round | Plan | Actual outcome |
+|---|---|---|
+| 1 | Original image, official ports.ubuntu.com over HTTPS, public certifi CA bootstrap, signed apt, official curl/uv/pytest preparation | apt returned 100 after 504.7273779590032 s: TLS termination and DNS failures downloading required .deb files. No uv/pytest preflight or image commit. |
+| 2 | Same original image, TUNA Ubuntu Ports HTTPS mirror with original Ubuntu archive key, retained apt cache, system Python | curl/Python/certificates installed; official uv installer fetched (SHA256 `ef72d0c2b8f2d2a0d7c6b2d866339869a3f0cbd31e8f1b6901f2064c16d47b58`). The 600 s deadline expired while downloading uv 0.9.7 aarch64-unknown-linux-gnu. No pytest preflight or image commit. |
+
+Round 2 elapsed record is 600.0077009169909 s at timeout detection; this is not an
+increased allowance. Its outer resource deadline also interrupted the original
+finally cleanup. The controller subsequently stopped the explicitly recorded
+owned container and retained `final-state-controller-cleanup.json`; both owned
+containers were independently inspected as Running=false/Pid=0. This failure is
+not hidden or labelled a passing cancellation control. The candidate now protects
+bounded preparation cleanup against overlapping SIGTERM, with a signal-injection
+unit regression. No third online preparation was run to validate that fix.
+
+Preparation IDs, original base identity, script/public-CA hashes, exact commands,
+raw endpoint errors and terminal states are in
+[preparation-identity.json](../../scripts/harbor/preparation-identity.json) and the
+external bundle `/Volumes/WD_BLACK/pan-agent/wo74-harbor-20260922/criteria11/`.
+`manifest.json` SHA256:
+`1765e8e16e34d089e8fc63e421ae10d4f7d55a989c2577bd89903f1d1589da60`.
+This manifest covers original continuation artifacts; later host checks/Handoff
+are separately indexed. No official task/test/scoring bytes or thresholds changed.
+The unchanged `identity.json` still locks installed Pan, Harbor and task inputs.
+
+The cumulative resource baseline and all twelve old step receipts remain; two
+new preparation receipts bring the count to fourteen. Observed minimum free
+93,083,226,112 bytes; maximum incremental allocation 742,514,688 bytes. Old
+96-artifact manifest revalidation found no mismatches. No old failure was reset,
+no host proxy/DNS/Docker settings changed, and no real credentials/models used.
+
+## Incremental implementation and checks
+
+- Dependency-only preparation scripts: two explicit plans, <=600 s, original
+  base image, TLS/archive signatures enabled, no test/solution/answer upload.
+- Runner requires matching successful prepared-image metadata and a clean start.
+  Official tests are still uploaded only after Pan ends; verifier remains 120 s.
+- `scoring.py` requires both official tests to execute, with the expected results
+  and missing-file cause for a negative. Dependency/network/collection errors
+  remain infrastructure errors even when the official script writes reward=0.
+- Replay of the independent old reward=0/network-failure log was rejected as
+  infrastructure failure. Nine offline test methods pass, including empty/invalid
+  rewards, missing execution, inconsistent summaries and preparation cleanup.
+- New-image integration and cancellation evidence is **not available**. Existing
+  adapter/Session code and original identities are unchanged; historical PASS
+  and technical checks do not become acceptance of this new candidate.
+
+## ScopeChallenge SC-74-02 — two preparation plans exhausted
+
+Blocking Criterion: C-HBR-03/1.1 lacks a successful preparation and valid executed
+1/0 pair. C-HBR-01's new image identity and C-HBR-02's final-image controls also
+cannot be supplied. Specific network failures: ports.ubuntu.com .deb TLS/DNS
+errors in round 1; round 2 spent most of its allowance downloading signed indexes
+and packages from mirrors.tuna.tsinghua.edu.cn, then reached its hard deadline
+inside the official uv installer. Full logs retain the endpoints and process state.
+
+Return to Master for a new, explicitly bounded preparation/network plan before
+any additional attempt. One possible next plan is separately authorized trusted
+dependency prefetch or a transport repair; this candidate does not authorize it,
+change official test/score/timeout rules, or reuse an incomplete preparation as a
+valid image. Independent Regulator should report the remaining evidence gap and
+not rerun unavailable final-image controls automatically. C-HBR-02's separate
+Human/different-family gate is still pending; no Human response was inferred.
+
+---
+
+## Retained Criteria1.0 Builder record
+
 # WO74 Harbor adapter — Builder candidate evidence
 
 Criteria-Version **1.0**. This is a zero-model public hello-world development
