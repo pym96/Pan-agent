@@ -36,3 +36,5 @@ Raw artifacts remain at their stable source, Git, Trace, Test, evaluator, or ext
 - [Terminal-Bench pilot #75](terminal-bench-pilot-75.md): installed Adapter offline evidence, fixed inputs and independent-review handoff boundaries.
 
 - [Terminal-Bench environments #76](terminal-bench-environments-76.md): actual five-task broker preflight, retained failures and identity-bound assets.
+
+- [#77 fixed five-task live baseline candidate](terminal-bench-baseline-77.md) — [machine-readable summary](terminal-bench-baseline-77-summary.json); one authorized campaign, all five unscored; independent Criteria1.0 review pending.
