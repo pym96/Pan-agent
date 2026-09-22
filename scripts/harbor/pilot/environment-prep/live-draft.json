@@ -1,0 +1,42 @@
+{
+  "authorized": false,
+  "runId": null,
+  "humanAuthorizationId": null,
+  "notBefore": null,
+  "expiresAt": null,
+  "binding": {
+    "runnerSha": "a74c0675d0a3eefea282a62585925617a89a7da3",
+    "panHash": "e7da84c88b4eadb1395914720b85514d54cfdb52a93a2b87bd3c8b0baf8c7ecb",
+    "manifestHash": "74433498d6a551c86ccc6e5faad2f9d8d3c099e5b872170e54edf23769fe6503",
+    "model": {
+      "provider": "kimi-code",
+      "model": "k3-256k",
+      "thinking": "high",
+      "endpoint": "https://api.kimi.com/coding/v1/chat/completions"
+    },
+    "budget": {
+      "dispatchesPerTask": 20,
+      "dispatchesCampaign": 100,
+      "toolsPerTask": 40,
+      "maxTokens": 4096,
+      "requestBytes": 131072,
+      "responseBytes": 524288,
+      "dispatchSeconds": 120
+    },
+    "taskIds": [
+      "overfull-hbox",
+      "dna-insert",
+      "nginx-request-logging",
+      "merge-diff-arc-agi-task",
+      "break-filter-js-from-html"
+    ],
+    "images": {
+      "overfull-hbox": "sha256:14636c361ced3673ad2a80291343b30916af81c26d954567e6f3d9de04df3b76",
+      "dna-insert": "sha256:2e68029a49d11b454994967b2eddb94333ef321b688f865ada3c09a3b534c110",
+      "nginx-request-logging": "sha256:41217bae6667f04a767dc1b2c5c12b034dfc51a18226202003313aaf86832055",
+      "merge-diff-arc-agi-task": "sha256:1994f7ed8975cf2a616e00daa45fc556e842418f8040398053f064cf0bba3c69",
+      "break-filter-js-from-html": "sha256:1c09e20b95f90415fe2f5424335b3bca11e36ee915715b2891aeaaefec475645"
+    }
+  },
+  "signature": null
+}

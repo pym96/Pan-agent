@@ -34,3 +34,5 @@ Raw artifacts remain at their stable source, Git, Trace, Test, evaluator, or ext
 - [#74 Criteria1.3 valid Builder reward pair and final-image controls; independent review pending](harbor-adapter-74.md).
 
 - [Terminal-Bench pilot #75](terminal-bench-pilot-75.md): installed Adapter offline evidence, fixed inputs and independent-review handoff boundaries.
+
+- [Terminal-Bench environments #76](terminal-bench-environments-76.md): actual five-task broker preflight, retained failures and identity-bound assets.

@@ -1,0 +1,306 @@
+{
+  "accepted_runner_sha": "a74c0675d0a3eefea282a62585925617a89a7da3",
+  "denominator": 5,
+  "model_calls": 0,
+  "real_credential_reads": 0,
+  "official_verifier_calls": 0,
+  "rows": [
+    {
+      "task": "overfull-hbox",
+      "status": "prepared",
+      "reason": null,
+      "source": {
+        "source_root": "/private/tmp/wo76-work/tasks/overfull-hbox",
+        "status": "verified",
+        "validation_log": "/private/tmp/wo76-work/commands/010-validate-overfull-hbox.log"
+      },
+      "image": {
+        "reference": "alexgshaw/overfull-hbox:20251031",
+        "registry_digest": "sha256:67fe0ccc0ff2305d6fcb3652977d377b901bb7bd96904b6765835935574992e1",
+        "platform_digest": "sha256:67fe0ccc0ff2305d6fcb3652977d377b901bb7bd96904b6765835935574992e1",
+        "config_digest": "sha256:14636c361ced3673ad2a80291343b30916af81c26d954567e6f3d9de04df3b76",
+        "local_image_id": "sha256:14636c361ced3673ad2a80291343b30916af81c26d954567e6f3d9de04df3b76",
+        "architecture": "amd64",
+        "platform": "linux/amd64",
+        "compressed_layer_bytes": 131844457,
+        "local_size_bytes": 311918918,
+        "emulation": true,
+        "inspect_log": "/private/tmp/wo76-work/commands/034-inspect-overfull-hbox.log",
+        "pull_reference": "alexgshaw/overfull-hbox@sha256:67fe0ccc0ff2305d6fcb3652977d377b901bb7bd96904b6765835935574992e1"
+      },
+      "official_configuration": {
+        "version": "1.0",
+        "metadata": {
+          "author_name": "Sam Buchanan",
+          "author_email": "sdbuchanan@berkeley.edu",
+          "difficulty": "easy",
+          "category": "debugging",
+          "tags": [
+            "latex",
+            "document-processing",
+            "combinatorial-optimization"
+          ],
+          "expert_time_estimate_min": 60.0,
+          "junior_time_estimate_min": 60.0
+        },
+        "verifier": {
+          "timeout_sec": 360.0
+        },
+        "agent": {
+          "timeout_sec": 750.0
+        },
+        "environment": {
+          "build_timeout_sec": 600.0,
+          "cpus": 2,
+          "memory": "4G",
+          "storage": "10G",
+          "docker_image": "alexgshaw/overfull-hbox:20251031"
+        }
+      },
+      "container_id": "4fb577561dd583d72e4bbef1abdae4b934d8fa5264f392e2928d97c1aaba6dee",
+      "stop_confirmed": true,
+      "preflight_report": "/private/tmp/wo76-work/preflight-r2/overfull-hbox/report.json",
+      "official_visible_test": null,
+      "verifier_execution": "not performed; command availability is not verifier validation",
+      "formal_attempt": "must start a new clean environment"
+    },
+    {
+      "task": "dna-insert",
+      "status": "prepared",
+      "reason": null,
+      "source": {
+        "source_root": "/private/tmp/wo76-work/tasks/dna-insert",
+        "status": "verified",
+        "validation_log": "/private/tmp/wo76-work/commands/014-validate-dna-insert.log"
+      },
+      "image": {
+        "reference": "alexgshaw/dna-insert:20251031",
+        "registry_digest": "sha256:4dd8760694e355de85ecf03605cb487ccdb33322f6afad513d2920829baa33b2",
+        "platform_digest": "sha256:4dd8760694e355de85ecf03605cb487ccdb33322f6afad513d2920829baa33b2",
+        "config_digest": "sha256:2e68029a49d11b454994967b2eddb94333ef321b688f865ada3c09a3b534c110",
+        "local_image_id": "sha256:2e68029a49d11b454994967b2eddb94333ef321b688f865ada3c09a3b534c110",
+        "architecture": "amd64",
+        "platform": "linux/amd64",
+        "compressed_layer_bytes": 29724629,
+        "local_size_bytes": 78130094,
+        "emulation": true,
+        "inspect_log": "/private/tmp/wo76-work/commands/037-inspect-dna-insert.log",
+        "pull_reference": "alexgshaw/dna-insert@sha256:4dd8760694e355de85ecf03605cb487ccdb33322f6afad513d2920829baa33b2"
+      },
+      "official_configuration": {
+        "version": "1.0",
+        "metadata": {
+          "author_name": "Karl Krauth",
+          "author_email": "kkt@stanford.edu",
+          "difficulty": "medium",
+          "category": "scientific-computing",
+          "tags": [
+            "biology",
+            "cloning"
+          ],
+          "expert_time_estimate_min": 30.0,
+          "junior_time_estimate_min": 120.0
+        },
+        "verifier": {
+          "timeout_sec": 1800.0
+        },
+        "agent": {
+          "timeout_sec": 1800.0
+        },
+        "environment": {
+          "build_timeout_sec": 600.0,
+          "docker_image": "alexgshaw/dna-insert:20251031",
+          "cpus": 1,
+          "memory": "4G",
+          "storage": "10G"
+        }
+      },
+      "container_id": "1f15fdd259225e638788a67e70d1677277d70162753dfa7446ae81165bc747f6",
+      "stop_confirmed": true,
+      "preflight_report": "/private/tmp/wo76-work/preflight-r2/dna-insert/report.json",
+      "official_visible_test": null,
+      "verifier_execution": "not performed; command availability is not verifier validation",
+      "formal_attempt": "must start a new clean environment"
+    },
+    {
+      "task": "nginx-request-logging",
+      "status": "prepared",
+      "reason": null,
+      "source": {
+        "source_root": "/private/tmp/wo76-work/tasks/nginx-request-logging",
+        "status": "verified",
+        "validation_log": "/private/tmp/wo76-work/commands/017-validate-nginx-request-logging.log"
+      },
+      "image": {
+        "reference": "alexgshaw/nginx-request-logging:20251031",
+        "registry_digest": "sha256:693e64431a0dbf45952e8b91a298d54fd60247e501c6623fb8fa3ebc07fc3d3d",
+        "platform_digest": "sha256:693e64431a0dbf45952e8b91a298d54fd60247e501c6623fb8fa3ebc07fc3d3d",
+        "config_digest": "sha256:41217bae6667f04a767dc1b2c5c12b034dfc51a18226202003313aaf86832055",
+        "local_image_id": "sha256:41217bae6667f04a767dc1b2c5c12b034dfc51a18226202003313aaf86832055",
+        "architecture": "amd64",
+        "platform": "linux/amd64",
+        "compressed_layer_bytes": 67277698,
+        "local_size_bytes": 158785504,
+        "emulation": true,
+        "inspect_log": "/private/tmp/wo76-work/commands/040-inspect-nginx-request-logging.log",
+        "pull_reference": "alexgshaw/nginx-request-logging@sha256:693e64431a0dbf45952e8b91a298d54fd60247e501c6623fb8fa3ebc07fc3d3d"
+      },
+      "official_configuration": {
+        "version": "1.0",
+        "metadata": {
+          "author_name": "Junhong Shen",
+          "author_email": "junhongs@andrew.cmu.edu",
+          "difficulty": "medium",
+          "category": "system-administration",
+          "tags": [
+            "web-server"
+          ],
+          "expert_time_estimate_min": 20.0,
+          "junior_time_estimate_min": 120.0
+        },
+        "verifier": {
+          "timeout_sec": 900.0
+        },
+        "agent": {
+          "timeout_sec": 900.0
+        },
+        "environment": {
+          "build_timeout_sec": 600.0,
+          "docker_image": "alexgshaw/nginx-request-logging:20251031",
+          "cpus": 1,
+          "memory": "2G",
+          "storage": "10G"
+        }
+      },
+      "container_id": "00131d835df662206d0334cd1c19f29a857149b6f0476857b1695991b268c176",
+      "stop_confirmed": true,
+      "preflight_report": "/private/tmp/wo76-work/preflight-r2/nginx-request-logging/report.json",
+      "official_visible_test": null,
+      "verifier_execution": "not performed; command availability is not verifier validation",
+      "formal_attempt": "must start a new clean environment"
+    },
+    {
+      "task": "merge-diff-arc-agi-task",
+      "status": "prepared",
+      "reason": null,
+      "source": {
+        "source_root": "/private/tmp/wo76-work/tasks/merge-diff-arc-agi-task",
+        "status": "verified",
+        "validation_log": "/private/tmp/wo76-work/commands/024-validate-merge-diff-arc-agi-task.log"
+      },
+      "image": {
+        "reference": "alexgshaw/merge-diff-arc-agi-task:20251031",
+        "registry_digest": "sha256:bfc2a235f2ceea64ffb1ffc5529c2acebf570bff61f3668f0e5669ef570c17d4",
+        "platform_digest": "sha256:bfc2a235f2ceea64ffb1ffc5529c2acebf570bff61f3668f0e5669ef570c17d4",
+        "config_digest": "sha256:1994f7ed8975cf2a616e00daa45fc556e842418f8040398053f064cf0bba3c69",
+        "local_image_id": "sha256:1994f7ed8975cf2a616e00daa45fc556e842418f8040398053f064cf0bba3c69",
+        "architecture": "amd64",
+        "platform": "linux/amd64",
+        "compressed_layer_bytes": 29725592,
+        "local_size_bytes": 78132086,
+        "emulation": true,
+        "inspect_log": "/private/tmp/wo76-work/commands/043-inspect-merge-diff-arc-agi-task.log",
+        "pull_reference": "alexgshaw/merge-diff-arc-agi-task@sha256:bfc2a235f2ceea64ffb1ffc5529c2acebf570bff61f3668f0e5669ef570c17d4"
+      },
+      "official_configuration": {
+        "version": "1.0",
+        "metadata": {
+          "author_name": "Zhi Wang",
+          "author_email": "zhw119@ucsd.edu",
+          "difficulty": "medium",
+          "category": "debugging",
+          "tags": [
+            "git",
+            "coding"
+          ],
+          "expert_time_estimate_min": 20.0,
+          "junior_time_estimate_min": 40.0
+        },
+        "verifier": {
+          "timeout_sec": 900.0
+        },
+        "agent": {
+          "timeout_sec": 900.0
+        },
+        "environment": {
+          "build_timeout_sec": 600.0,
+          "docker_image": "alexgshaw/merge-diff-arc-agi-task:20251031",
+          "cpus": 1,
+          "memory": "4G",
+          "storage": "10G"
+        }
+      },
+      "container_id": "5b370f513d3796000ee506e5619ac668d594afbf816449f5deaa6390588e624c",
+      "stop_confirmed": true,
+      "preflight_report": "/private/tmp/wo76-work/preflight-r2/merge-diff-arc-agi-task/report.json",
+      "official_visible_test": null,
+      "verifier_execution": "not performed; command availability is not verifier validation",
+      "formal_attempt": "must start a new clean environment"
+    },
+    {
+      "task": "break-filter-js-from-html",
+      "status": "prepared",
+      "reason": null,
+      "source": {
+        "source_root": "/private/tmp/wo76-work/tasks/break-filter-js-from-html",
+        "status": "verified",
+        "validation_log": "/private/tmp/wo76-work/commands/031-validate-break-filter-js-from-html.log"
+      },
+      "image": {
+        "reference": "alexgshaw/break-filter-js-from-html:20251031",
+        "registry_digest": "sha256:d7bfb45e47cf10d2e21dc520239215498f4eba9c1ab2d0cd7d647985dddb4fa8",
+        "platform_digest": "sha256:d7bfb45e47cf10d2e21dc520239215498f4eba9c1ab2d0cd7d647985dddb4fa8",
+        "config_digest": "sha256:1c09e20b95f90415fe2f5424335b3bca11e36ee915715b2891aeaaefec475645",
+        "local_image_id": "sha256:1c09e20b95f90415fe2f5424335b3bca11e36ee915715b2891aeaaefec475645",
+        "architecture": "amd64",
+        "platform": "linux/amd64",
+        "compressed_layer_bytes": 382365840,
+        "local_size_bytes": 1037400001,
+        "emulation": true,
+        "inspect_log": "/private/tmp/wo76-work/commands/046-inspect-break-filter-js-from-html.log",
+        "pull_reference": "alexgshaw/break-filter-js-from-html@sha256:d7bfb45e47cf10d2e21dc520239215498f4eba9c1ab2d0cd7d647985dddb4fa8"
+      },
+      "official_configuration": {
+        "version": "1.0",
+        "metadata": {
+          "author_name": "Nicholas Carlini",
+          "author_email": "nicholas@carlini.com",
+          "difficulty": "medium",
+          "category": "security",
+          "tags": [
+            "security"
+          ],
+          "expert_time_estimate_min": 20.0,
+          "junior_time_estimate_min": 480.0
+        },
+        "verifier": {
+          "timeout_sec": 1200.0
+        },
+        "agent": {
+          "timeout_sec": 1200.0
+        },
+        "environment": {
+          "build_timeout_sec": 600.0,
+          "docker_image": "alexgshaw/break-filter-js-from-html:20251031",
+          "cpus": 1,
+          "memory": "2G",
+          "storage": "10G"
+        }
+      },
+      "container_id": "4a483314c1335655ede395cd473eac517854869987c28ed5ce6b72d71e45ab53",
+      "stop_confirmed": true,
+      "preflight_report": "/private/tmp/wo76-work/preflight-r2/break-filter-js-from-html/report.json",
+      "official_visible_test": {
+        "status": "official visible test permitted; actual image unverified",
+        "source_path": "environment/tests/test_outputs.py",
+        "visible_path": "/app/test_outputs.py",
+        "git_blob_sha1": "1bf2128a002d4014d85094c2223f87c62ae9088d",
+        "dockerfile_blob_sha1": "77d131ae0ec556e851a6290e07b1387a8e9a935f",
+        "ruling": "https://github.com/pym96/Pan-agent/issues/75#issuecomment-5775497812",
+        "scope": "original file only; no additional tests, solution, answers or controller verifier logs"
+      },
+      "verifier_execution": "not performed; command availability is not verifier validation",
+      "formal_attempt": "must start a new clean environment"
+    }
+  ]
+}

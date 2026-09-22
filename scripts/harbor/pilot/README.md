@@ -33,3 +33,5 @@ Actual image contents and runtime viability are unverified. Run the new entry te
 ```sh
 node --test scripts/harbor/pilot/test_cli.mjs
 ```
+
+- [WO76 official environments](environment-prep/README.md): real source/image preparation and bounded harmless broker probes; no model or formal verifier execution.

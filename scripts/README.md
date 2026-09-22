@@ -301,3 +301,5 @@ The active #60/#61/#62 PTY drivers now start at idle rather than submitting remo
 - [#74 Criteria1.3 apt index repair and preparation ledger](harbor/README.md).
 
 - [WO75 Terminal-Bench pilot](harbor/pilot/README.md): fixed public five-task manifest, default-closed runner and offline boundary tests.
+
+- [WO76 official environment preparation](harbor/pilot/environment-prep/README.md): fixed five-task source/image assets, bounded broker preflight and unsigned live proposal.
