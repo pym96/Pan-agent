@@ -1,3 +1,58 @@
+## Current continuation: Criteria1.3
+
+The minimal apt repair and successful Builder controls are bound in
+[Criteria1.3 identity](../../scripts/harbor/criteria13-identity.json) and
+[current evidence](../evidence/harbor-adapter-74.md). Previous designs below are
+historical; their expired attempt limits are superseded by the current contract.
+
+The task-specific signed local cache uses
+`Acquire::CompressionTypes::uncompressed "."` and clears/replaces the order in
+`zz-wo74-local-cache`. This avoids both the base gzip preference and an
+unregistered uncompressed type being appended after other formats. The
+[apt configuration reference](https://manpages.debian.org/trixie/apt/apt.conf.5.en.html)
+describes format preference; the inspected
+[upstream implementation](https://github.com/Debian/apt/blob/2.7.14/apt-pkg/aptconfiguration.cc)
+explains method registration and the built-in handler. Actual execution here is
+Ubuntu apt2.8.3; source reading alone was not treated as runtime proof.
+
+`check-local-apt-uris.sh` compares the exact URI preview with signed Release
+membership and available bytes before installation. `test_indexes.py` replays
+the missing Packages.gz shape; it rejects missing advertised indexes and remote
+sources. Empty advertised indexes are recreated only when Release declares zero
+bytes and the resulting hash matches. Actual apt acquisition and its own full
+signature/hash/expiry verification still determine installation success.
+
+Preparation continues to exercise the unchanged remote installer URL and genuine
+uvx with cached dependencies; the final image contains no task outputs/tests or
+reward. The public-example local apt/uv/Python cache adaptation is disclosed,
+not generalized to formal Terminal-Bench task environments.
+
+Rebuild from the verified Criteria1.2 prefetch bundle under the original cumulative
+resource guard, using a new output and Criteria1.3 preparation ledger:
+
+```sh
+python3 scripts/harbor/resources.py --work /private/tmp/wo74-work \
+  --name UNIQUE_PREPARATION --timeout 660 \
+  python3 scripts/harbor/prepare_prefetched.py \
+  --input /Volumes/WD_BLACK/pan-agent/wo74-harbor-20260922/criteria12/prefetch \
+  --output NEW_PREPARATION_DIRECTORY --budget-ledger NEW_ROLE_LEDGER.json
+```
+
+The ledger charges monotonic preparation-phase elapsed, caps each work phase at
+min(600, remaining1800), rejects unresolved or identical attempts, and reserves
+cleanup separately up to60s. `test_preparation_budget.py` verifies rejection
+before Docker. Builder's actual ledger remains external and must not be reset.
+Regulator is authorized only one independent preparation (<=600s plus cleanup),
+or an explicitly disclosed reuse of this exact verified image; the CLI's Builder
+budget is not authority for extra Regulator attempts.
+
+For each of `positive`, `negative`, `timeout`, `cancel`, invoke unchanged runner
+CLI with the fixed image from identity, matching `prepared.json`, original
+Harbor/installed Pan paths and a fresh control directory. Handoff gives complete
+commands and gate status. Do not repeat a consumed final control.
+
+### Historical Criteria1.2 design
+
 ## Current continuation: Criteria1.2
 
 One controller-side prefetch scheme was attempted under

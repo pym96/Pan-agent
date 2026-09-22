@@ -95,3 +95,5 @@ The Human-accepted architecture history remains indexed in [`../adr/README.md`](
 - [Harbor external adapter](harbor-adapter.md) — #74 candidate routing, cancellation and repeatable zero-model controls.
 
 - [#74 Criteria1.2 controller-prefetch design and retained failed layout](harbor-adapter.md).
+
+- [#74 Criteria1.3 authenticated local indexes and bounded rebuild](harbor-adapter.md).

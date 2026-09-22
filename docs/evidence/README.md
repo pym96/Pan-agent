@@ -30,3 +30,5 @@ Raw artifacts remain at their stable source, Git, Trace, Test, evaluator, or ext
 - [Harbor control evidence](harbor-adapter-74.md) — #74 candidate only; official example, no model or Terminal-Bench score.
 
 - [#74 Criteria1.2 prefetch/cleanup evidence; no valid reward pair](harbor-adapter-74.md).
+
+- [#74 Criteria1.3 valid Builder reward pair and final-image controls; independent review pending](harbor-adapter-74.md).

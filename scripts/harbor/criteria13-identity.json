@@ -1,0 +1,147 @@
+{
+  "criteria": "1.3 (inherits complete 1.2, 1.1, 1.0)",
+  "parent_sha": "fc230dd486658bc71d627c22428663d2dc82d4eb",
+  "status": "Builder technical controls complete; independent Regulator and final boundary gate pending",
+  "image_id": "sha256:ef05b5874d4b4d9a2ab7ce28224f6b5615be9c8547e728bc2c5a3222617813bc",
+  "architecture": "arm64",
+  "preparation": {
+    "base_image": "sha256:d84ac69e7810ab577455f4b95fe1452285a8d812c533fd4562ff37c618fd4d54",
+    "scheme": "Criteria1.3 authenticated uncompressed apt indexes",
+    "work_limit_seconds": 600,
+    "cleanup_limit_seconds": 60,
+    "image_id": "sha256:ef05b5874d4b4d9a2ab7ce28224f6b5615be9c8547e728bc2c5a3222617813bc",
+    "preflight": "passed",
+    "container_id": "b1f71507460126c11e103aeac2db6d82e2c93f5aa35feca5b59f39da5c43025d",
+    "elapsed_work_seconds": 13.491438375000143,
+    "dependency_env": {
+      "UV_DOWNLOAD_URL": "file:///opt/wo74",
+      "UV_PYTHON_PREFERENCE": "only-system",
+      "UV_OFFLINE": "1",
+      "UV_FIND_LINKS": "/opt/wo74/wheels"
+    }
+  },
+  "preparation_budget": {
+    "criteria": "1.3",
+    "limit_seconds": 1800,
+    "attempts": [
+      {
+        "output": "/private/tmp/wo74-work/v13/preparation-1",
+        "fingerprint": "66c3c791bb0ce92fca1eba54c240eca218fb65c03e8836babe096432e549ac75",
+        "work_limit_seconds": 600,
+        "elapsed_work_seconds": 4.896177749993512,
+        "successful": false
+      },
+      {
+        "output": "/private/tmp/wo74-work/v13/preparation-2",
+        "fingerprint": "4ebcfd82c068d491dfb11bd7538b6b98144c50aeea698ab0fec81de8abac35d5",
+        "work_limit_seconds": 600,
+        "elapsed_work_seconds": 4.40776437499153,
+        "successful": false
+      },
+      {
+        "output": "/private/tmp/wo74-work/v13/preparation-3",
+        "fingerprint": "598d47adca2928f225281f88d69fdd8adddf0b4fdcf87465fabc15b310d47f32",
+        "work_limit_seconds": 600,
+        "elapsed_work_seconds": 4.549632999987807,
+        "successful": false
+      },
+      {
+        "output": "/private/tmp/wo74-work/v13/preparation-4",
+        "fingerprint": "d3df3a30512111e660f6ddfa43c3c9410cfb160f28cc8c2f57af055cac90e0cd",
+        "work_limit_seconds": 600,
+        "elapsed_work_seconds": 13.491444084007526,
+        "successful": true
+      }
+    ]
+  },
+  "resources": {
+    "resource_steps": 28,
+    "old_steps_unchanged": 20,
+    "baseline": {
+      "utc": "2026-09-22T02:50:43.732883+00:00",
+      "free_bytes": 94306226176,
+      "docker_raw_bytes": 38386786304,
+      "owned_files_bytes": 9457664
+    },
+    "minimum_free_bytes": 90803703808,
+    "maximum_incremental_bytes": 2899087360,
+    "preparation_work_seconds": 27.345019208980375,
+    "remaining_preparation_seconds": 1772.6549807910196
+  },
+  "bundle": "/Volumes/WD_BLACK/pan-agent/wo74-harbor-20260922/criteria13",
+  "manifest_sha256": "d2c78e59c47f6d9c438780b40ed1799ab5073c075372d79c3d4a2ef4c366e370",
+  "manifest_files": 228,
+  "prefetch_source": "/Volumes/WD_BLACK/pan-agent/wo74-harbor-20260922/criteria12/prefetch",
+  "consumed_index_manifest_sha256": "ebc81b63df59ff64e4b9c127abf445e3870ce9f776e22dff6ae9863d1ac2ce7f",
+  "controls": {
+    "positive": {
+      "mode": "positive",
+      "pan_terminal": "completed",
+      "real_provider_calls": 0,
+      "usage": "synthetic zero",
+      "host_canary_unchanged": true,
+      "official": {
+        "rewards": {
+          "reward": 1.0
+        }
+      },
+      "reward": 1.0,
+      "validation": {
+        "classification": "valid_control",
+        "executed_tests": [
+          "test_hello_file_contents",
+          "test_hello_file_exists"
+        ],
+        "expected_status": "passed",
+        "official_reward": 1.0
+      }
+    },
+    "negative": {
+      "mode": "negative",
+      "pan_terminal": "completed",
+      "real_provider_calls": 0,
+      "usage": "synthetic zero",
+      "host_canary_unchanged": true,
+      "official": {
+        "rewards": {
+          "reward": 0.0
+        }
+      },
+      "reward": 0.0,
+      "validation": {
+        "classification": "valid_control",
+        "executed_tests": [
+          "test_hello_file_contents",
+          "test_hello_file_exists"
+        ],
+        "expected_status": "failed",
+        "official_reward": 0.0
+      }
+    },
+    "timeout": {
+      "mode": "timeout",
+      "pan_terminal": "completed",
+      "real_provider_calls": 0,
+      "usage": "synthetic zero",
+      "host_canary_unchanged": true,
+      "task_success": false
+    },
+    "cancel": {
+      "mode": "cancel",
+      "pan_terminal": "cancelled",
+      "real_provider_calls": 0,
+      "usage": "synthetic zero",
+      "host_canary_unchanged": true,
+      "task_success": false
+    }
+  },
+  "stop_seconds": {
+    "timeout": 10.2468589170021,
+    "cancel": 10.25461983299465
+  },
+  "prepare_scripts": {
+    "prepare_prefetched.py": "b98610f036d4904f5e9e0e50f26a3924878b853149c61f344f517b79ef304832",
+    "prepare-prefetched.sh": "1980ece6f7a75eed5131029d469f2fbb4f5e3fd61b7478a03622ed29bd3ae689",
+    "check-local-apt-uris.sh": "f144580d9c470a91ff386eec0a22f08e1821bba630a239a02db17cea5c086a93"
+  }
+}

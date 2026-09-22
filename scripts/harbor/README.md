@@ -41,3 +41,18 @@ See [design](../../docs/design/harbor-adapter.md) for repeatable commands and
 No successful image or controls were produced. Do not start another preparation
 round from these commands without a new explicit contract. Acquisition scripts,
 raw manifests and downloaded public dependencies remain in the external bundle.
+
+## Current Criteria1.3
+
+- `check-local-apt-uris.sh` / `test_indexes.py`: detect missing advertised apt
+  indexes before installation, including the retained Packages.gz regression.
+- `prepare-prefetched.sh`: authenticated uncompressed indexes, signed empty
+  index reconstruction, actual official installer and cached uvx preflight.
+- `prepare_prefetched.py` / `test_preparation_budget.py`: cumulative1800s ledger,
+  min(600s, remaining) work phases and separate bounded cleanup.
+- `criteria13-identity.json`: successful image and one valid positive/negative
+  pair plus actual final-image timeout/cancel controls; independent review pending.
+
+Old source snapshots, failures and resource receipts remain in external evidence.
+Original official tests/scoring and Pan core are unchanged. The final control
+allowance is consumed; candidate SHA Handoff defines the independent review step.

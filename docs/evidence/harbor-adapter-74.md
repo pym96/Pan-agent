@@ -1,3 +1,91 @@
+# Criteria1.3 — valid Builder controls; independent review pending
+
+[Criteria1.3](https://github.com/pym96/Pan-agent/issues/74#issuecomment-5774142450)
+continues `fc230dd486658bc71d627c22428663d2dc82d4eb`, inheriting complete
+1.2/1.1/1.0. The old independent Verdict remains rejected/evidence_incomplete,
+SHA256 `78bf1b3f0282ea3363ef55c77050454b487dc3657272b7130461037f1ca0a8aa`.
+
+**Official positive reward=1 and negative reward=0 are now observed, with both
+pytest tests actually executed. Final-image timeout/cancel controls also completed.
+These are Builder technical results, pending independent Regulator and the final
+candidate-bound Human/different-family boundary gate. No acceptance or main merge.**
+
+| Final control (one each) | Raw result |
+|---|---|
+| positive | Two official tests passed, reward=1; Pan completed, including the expected explicit exit7 tool result. |
+| negative | Two official tests failed because `/app/hello.txt` was absent, reward=0; not a dependency/network failure. |
+| timeout | Bridge deadline1s produced a timeout tool result; container stopped in 10.2468589170021s. Pan dialogue completed, but task_success=false. |
+| cancel | Pan cancelled; container stopped in 10.25461983299465s, task_success=false. |
+
+Each control starts clean from image
+`sha256:ef05b5874d4b4d9a2ab7ce28224f6b5615be9c8547e728bc2c5a3222617813bc`
+(linux/arm64). All four containers ended Running=false/Pid=0. Each uses the same
+installed public Pan Session/Faux adapter, official Harbor example and original
+verifier/test/scoring/time-limit bytes. Recorded host canaries remain unchanged.
+Real model/provider/balance calls and payment are zero; Faux usage is synthetic.
+This public hello-world control is not a Terminal-Bench/model score.
+
+## Preparation changes and retained failures
+
+The signed local repository now maps apt's `uncompressed` type to its built-in
+`.` handler and explicitly places it first after clearing the image's gzip
+preference. A pre-install URI check detects missing advertised files; it checks
+Release membership because apt's preview also lists provisional unsupported
+architectures. One signed empty index missing from the old apt cache is created
+as zero bytes and verified against its Release SHA256. No recompression, forged
+Release, disabled signature, expiry, TLS or hash verification is used.
+
+| Attempt | Distinct change and observation | Work seconds |
+|---|---|---:|
+| 1 | Added URI regression guard and uncompressed preference; guard rejected gzip selection still present in base configuration. | 4.896177749993512 |
+| 2 | Cleared prior order in a later configuration file; missing type mapping still selected xz, caught by guard. | 4.40776437499153 |
+| 3 | Added built-in mapping and Release-aware preview check; guard found the signed empty backports/restricted index absent from cache. | 4.549632999987807 |
+| 4 | Reconstructed only the authenticated empty index; apt install, actual official installer download and uvx preflight succeeded. | 13.491444084007526 |
+
+New preparation budget charged 27.345019208980375/1800s; every attempt remained
+below min(600s, remaining). Phase timing conservatively includes command dispatch,
+inspection and the internal timeout probe, excludes final bounded cleanup, and
+never resets old resource use. Each distinct failed attempt retains its source
+snapshot, command journal, error and cleanup. An unresolved, spent or identical
+ledger is rejected before Docker. No further controls or preparation were run.
+
+Four Ubuntu InRelease signatures, 16 uncompressed index hashes (including one
+empty index), and 35 deb hashes were verified. The 15 nonempty indexes actually
+consumed by apt were saved with their exact URI/cache paths; all 15 cached files
+match the previously authenticated prefetch bytes exactly. Ubuntu apt is 2.8.3.
+The uv0.9.7 archive still matches Astral's published checksum; six fixed Python
+wheels retain PyPI metadata hashes. These checksum checks are not publisher
+signatures. The installer itself prints `no checksums to verify`; the separate
+controller checksum verification remains explicit. Actual installer retrieval
+was byte-compared with the pinned script, and genuine uvx reported pytest8.4.1.
+
+## Evidence and validation boundary
+
+[Criteria1.3 identity](../../scripts/harbor/criteria13-identity.json) binds image,
+script hashes, preparation budget, controls, stop durations and resources.
+Bundle: `/Volumes/WD_BLACK/pan-agent/wo74-harbor-20260922/criteria13/`.
+Initial228-artifact manifest SHA256:
+`d2c78e59c47f6d9c438780b40ed1799ab5073c075372d79c3d4a2ef4c366e370`.
+Exact-SHA Handoff, host checks and final boundary packet are indexed separately.
+
+Six affected offline test methods pass (including three budget-rejection cases),
+shell syntax/Python compilation pass, and 80 installed Pan / 6 official task
+file hashes match. Old128/141-artifact manifests rechecked without mismatches.
+Original resource baseline and all20 old steps remain; eight new steps give28.
+Sampled minimum free90,803,703,808 bytes; maximum increment2,899,087,360 bytes.
+
+Unchanged historical full regression was not repeated: earlier host82 passed;
+Python259 had one terminal-snake timeout failure, then a single-test pass. The
+full historical run remains failed and original host root-extra BLOCK remains.
+New candidate path/package checks are reported in Handoff. Allowed navigation
+is updated; root SOURCE_OF_TRUTH remains Master-owned. No facts/resume promotion.
+
+The remaining gate is independent verification of the final remote SHA and its
+candidate-bound C-HBR-02 Human/different-family review. Old Human replies do not
+satisfy it. Raw results and configuration are supplied for that review.
+
+---
+
 # Criteria1.2 continuation — blocked before verifier
 
 [Criteria1.2](https://github.com/pym96/Pan-agent/issues/74#issuecomment-5773455758)
