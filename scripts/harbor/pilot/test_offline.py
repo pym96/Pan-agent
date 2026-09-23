@@ -60,3 +60,26 @@ class Routing(unittest.IsolatedAsyncioTestCase):
   with self.assertRaises(RuntimeError):await bound.verify()
   verify.assert_not_awaited()
 if __name__=='__main__':unittest.main()
+
+class CommandBoundary(unittest.IsolatedAsyncioTestCase):
+ async def test_confirmed_timeout_preserves_same_bound_capability(self):
+  commands=SimpleNamespace(run=AsyncMock(side_effect=[{'status':'timeout','termination':{'confirmed':True}}, {'status':'completed','termination':{'confirmed':True}}]))
+  stop=AsyncMock();verify=AsyncMock(return_value={'status':'synthetic_control'});bound=Bound(None,stop,verify,commands)
+  self.assertEqual((await bound.exec('first',.1))['status'],'timeout')
+  self.assertEqual((await bound.exec('second',1))['status'],'completed')
+  stop.assert_not_awaited();await bound.verify();verify.assert_awaited_once()
+ async def test_unconfirmed_stop_is_not_recoverable_even_when_environment_stop_fails(self):
+  for error in [False,True]:
+   commands=SimpleNamespace(run=AsyncMock(return_value={'status':'stop_unconfirmed','termination':{'confirmed':False}}))
+   stop=AsyncMock(side_effect=RuntimeError('stop unavailable') if error else None);verify=AsyncMock();bound=Bound(None,stop,verify,commands)
+   if error:
+    with self.assertRaises(RuntimeError):await bound.exec('first',1)
+   else:self.assertEqual((await bound.exec('first',1))['status'],'stop_unconfirmed')
+   with self.assertRaises(RuntimeError):await bound.exec('next',1)
+   with self.assertRaises(RuntimeError):await bound.verify()
+   verify.assert_not_awaited();stop.assert_awaited_once()
+ async def test_broker_revalidates_timeout_before_effect(self):
+  commands=SimpleNamespace(run=AsyncMock());bound=Bound(None,AsyncMock(),AsyncMock(),commands)
+  for timeout in [0,-1,31,float('nan'),float('inf'),True,'1']:
+   with self.assertRaisesRegex(RuntimeError,'invalid_command'):await bound.exec('fixture',timeout)
+  commands.run.assert_not_awaited()

@@ -39,3 +39,11 @@ node --test scripts/harbor/pilot/test_cli.mjs
 - [WO78 recovery design](../../../docs/design/terminal-bench-recovery-78.md) and [evidence](../../../docs/evidence/terminal-bench-recovery-78.md): diagnostics.mjs/diagnostics.py, test_recovery.mjs/test_recovery.py, and unsigned recovery-78-proposal.json; blocked full ready comparison, no live authority.
 
 - [WO78 Criteria1.1 evidence](../../../docs/evidence/terminal-bench-recovery-78.md): actual five-task ready/stop/owned-network release completed after authorized one-old-network cleanup; no live authority.
+
+- WO81 candidate: `broker.py` owns a bounded command process group; `session.mjs`
+  continues only after confirmed local timeout. See the [blocked control report](../../../docs/evidence/command-timeout-recovery-81.md).
+  `test_command_control.mjs` / `test_command_control.py` are explicit opt-in,
+  synthetic-response container fixtures, not official scoring or default offline tests.
+  Builder container attempts are exhausted for normal completion; do not replay
+  them to obtain a pass. `test_session.mjs` and `test_offline.py` cover offline
+  continuation, cancellation, expiry, uncertainty and budget/credential boundaries.

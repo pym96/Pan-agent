@@ -9,7 +9,8 @@ export async function runAttempt({entry,task,instruction,output,environment,gate
  const controller=new AbortController(),combined=AbortSignal.any([signal??new AbortController().signal,controller.signal]);
  let secret,stoppedReason=null,session;const usage=[],effects=[];let stopPromise;
  const scrub=value=>JSON.parse(JSON.stringify(value, (k,v)=>k==='reasoning_content'?undefined:typeof v==='string'&&secret?v.split(secret).join('[REDACTED]'):v));
- const stop=reason=>{stoppedReason??=reason;controller.abort();return stopPromise??=environment.stop(reason);};
+ let stopConfirmed=null;
+ const stop=reason=>{stoppedReason??=reason;stopPromise??=Promise.resolve().then(()=>environment.stop(stoppedReason)).then(r=>{stopConfirmed=r?.stopped===true;},()=>{stopConfirmed=false;});controller.abort();return stopPromise;};
  const transport=new KimiFetchTransport({credentialSource:()=>{gate.assert(combined);secret=credentialSource();return secret;},...(fetchImplementation?{fetchImplementation}:{})});
  const bounded={async send(request){
   gate.assert(combined);check(request.path==='/chat/completions'&&request.method==='POST','endpoint_invariant');
@@ -32,24 +33,30 @@ export async function runAttempt({entry,task,instruction,output,environment,gate
   return outcome; // Preserve the Adapter private continuation identity; public fields were checked above.
  }};
  const tool={name:'task_command',description:'Execute a shell command only in the current task container. timeout is seconds and must satisfy 0 < timeout <= 30; longer commands are not allowed.',parameters:{type:'object',properties:{command:{type:'string'},timeout:{type:'number',exclusiveMinimum:0,maximum:30,description:'Seconds; greater than 0 and at most 30.'}},required:['command','timeout'],additionalProperties:false},validate:v=>v&&Object.keys(v).length===2&&typeof v.command==='string'&&v.command.length<=32768&&Number.isFinite(v.timeout)&&v.timeout>0&&v.timeout<=30?{ok:true,value:v}:{ok:false,error:'invalid_task_command: expected only command (string <=32768 characters) and timeout (seconds, 0 < timeout <= 30); resubmit valid arguments, no automatic clamping'},async execute({arguments:args,signal:toolSignal}){
-  gate.assert(toolSignal);check(!secret||!args.command.includes(secret),'credential_echo');ledger.reserve(task.id,'tool',toolSignal);
-  const abort=()=>{void stop('cancelled').catch(()=>{});};toolSignal.addEventListener('abort',abort,{once:true});
+  gate.assert(combined);gate.assert(toolSignal);check(!secret||!args.command.includes(secret),'credential_echo');ledger.reserve(task.id,'tool',toolSignal);
+  const abort=()=>{void stop('cancelled');};toolSignal.addEventListener('abort',abort,{once:true});
   let timer;try{
-   const deadline=new Promise((_,reject)=>{timer=setTimeout(()=>{void stop('timeout').then(()=>reject(new Error('timeout')),reject);},args.timeout*1000);});
-   const raw=await Promise.race([environment.exec(args.command),deadline]);const r=scrub(raw);effects.push({arguments:args,result:r});
+   // The broker owns the local deadline and positive process-stop confirmation.
+   // This watchdog bounds a missing broker response; it never permits recovery.
+   const deadline=new Promise((_,reject)=>{timer=setTimeout(()=>{void stop('command_stop_unconfirmed').then(()=>reject(new Error('command_stop_unconfirmed')));},(args.timeout+15)*1000);});
+   const raw=await Promise.race([environment.exec(args.command,args.timeout),deadline]);const r=scrub(raw);effects.push({arguments:args,result:r});
+   if(r.status==='stop_unconfirmed'||r.status==='timeout'&&r.termination?.confirmed!==true)await stop('command_stop_unconfirmed');
+   gate.assert(combined);gate.assert(toolSignal);
    return {content:[{type:'text',text:JSON.stringify(r)}],isError:r.exit_code!==0||r.status!=='completed',details:r};
-  }catch{const r={status:stoppedReason??'tool_error',exit_code:null,stdout:'',stderr:'task_command_failed'};effects.push({arguments:args,result:r});return {content:[{type:'text',text:JSON.stringify(r)}],isError:true,details:r};}
+  }catch{await stop(stoppedReason??'tool_error');const r={status:stoppedReason,exit_code:null,stdout:'',stderr:'task_command_failed'};if(!effects.at(-1)||effects.at(-1).arguments!==args)effects.push({arguments:args,result:r});return {content:[{type:'text',text:JSON.stringify(r)}],isError:true,details:r};}
   finally{clearTimeout(timer);toolSignal.removeEventListener('abort',abort);}
  }};
  const cancel=()=>{session?.cancel();void stop('cancelled').catch(()=>{});};combined.addEventListener('abort',cancel,{once:true});
- const timer=setTimeout(()=>{stoppedReason='agent_timeout';controller.abort();},task.config.agent.timeout_sec*1000);
+ const timer=setTimeout(()=>{void stop('agent_timeout');},task.config.agent.timeout_sec*1000);
+ const expiryTimer=setTimeout(()=>{void stop('activation_expired');},Math.max(1,gate.expiresAt-gate.clock()));
  let result,verifier=null;
  try{
   session=new GeneralAgentSession({kernel:'native',adapter,tools:[tool],systemPrompt:'Complete the supplied task using task_command. The controller fixes the destination. Do not assume verifier files are available.',limits:{maxModelTurns:gate.binding.budget.dispatchesPerTask,maxToolSteps:gate.binding.budget.toolsPerTask},memory:{archiveStore:await RunArchiveStore.open(output+'/archive'),runbook:async()=>({content:'WO75 fixed public pilot',revision:'sha256:'+digest('WO75 fixed public pilot')})}});
   result=await session.runTask(instruction);await session.close();session=undefined;
   if(!stoppedReason&&result.status!=='completed')stoppedReason=result.reason??result.status;
-  if(!stoppedReason&&result.status==='completed'){gate.assert(combined);try{verifier=await environment.verify();}catch{verifier={status:'evaluation_error',rewards:null,verifier_exit_or_exception:'broker_verifier_error'};}}
- }finally{clearTimeout(timer);combined.removeEventListener('abort',cancel);await session?.close();inner.dispose();if(stopPromise)await stopPromise;}
- const report={task:task.id,agentStatus:result?.status??'failed',stopReason:stoppedReason,usage,verifier,effects:scrub(effects)};
+  if(!stoppedReason&&result.status==='completed'){gate.assert(combined);try{verifier=await environment.verify();gate.assert(combined);}catch{verifier={status:'evaluation_error',rewards:null,verifier_exit_or_exception:'broker_verifier_error'};}}
+ }catch{await stop(stoppedReason??'attempt_error');}
+ finally{clearTimeout(timer);clearTimeout(expiryTimer);combined.removeEventListener('abort',cancel);await session?.close();inner.dispose();if(stopPromise)await stopPromise;if(stoppedReason)verifier=null;}
+ const report={task:task.id,agentStatus:result?.status??'failed',stopReason:stoppedReason,stopConfirmed,usage,verifier,effects:scrub(effects)};
  ledger.finish(task.id,report.stopReason??report.agentStatus);await writeFile(output+'/report.json',JSON.stringify(report,null,2)+'\n');return report;
 }

@@ -42,3 +42,7 @@ Raw artifacts remain at their stable source, Git, Trace, Test, evaluator, or ext
 - [WO78 Criteria1.1 continuation](terminal-bench-recovery-78.md): five ordered ready/stop/network-release transitions, exact-ID old-network cleanup and retained failure evidence; zero real model/scoring calls.
 
 - [#79 fixed five-task live results](terminal-bench-baseline-79.md) — [summary](terminal-bench-baseline-79-summary.json); 2 valid official successes, 3 stopped/unscored; Criteria1.0 independent review pending, no equal-budget improvement claim.
+
+- [WO81 command timeout recovery candidate](command-timeout-recovery-81.md) and
+  [machine summary](command-timeout-recovery-81-summary.json): blocked actual-container
+  controls, retained failed attempts and SC-TREC-81-01; no benchmark improvement claim.

@@ -1,0 +1,36 @@
+{
+  "issue": 81,
+  "criteria": "1.0",
+  "role": "Working Agent (Builder)",
+  "base": "d290c95aefd8bef33770ea5ab4dec46b63309a38",
+  "delivery": "blocked_candidate",
+  "scopeChallenge": "SC-TREC-81-01",
+  "realModelProviderBalanceCalls": 0,
+  "officialScoringCalls": 0,
+  "offlineTests": {
+    "nodePassed": 27,
+    "pythonPassed": 11
+  },
+  "containerControls": {
+    "initialAttempts": 5,
+    "repairAttempts": 1,
+    "successfulScenarios": 0,
+    "normalScenarioAttemptsUsed": 2,
+    "maxAttemptsPerScenario": 2,
+    "cumulativeWallSeconds": 12.974218667019159,
+    "wallLimitSeconds": 1800,
+    "containersConfirmedStopped": 6,
+    "matrixStopped": true
+  },
+  "storage": {
+    "minimumFreeBytes": 85596082176,
+    "maxAccountedGrowthBytes": 1228800
+  },
+  "criteriaEvidence": {
+    "C-TREC-01": "offline mechanism only; container recovery not demonstrated",
+    "C-TREC-02": "offline negatives and actual fallback stop; incomplete actual matrix",
+    "C-TREC-03": "not demonstrated: identity unavailable in normal repair",
+    "C-TREC-04": "targeted offline tests pass; failed controls preserved; not acceptance"
+  },
+  "benefitsMeasured": false
+}
