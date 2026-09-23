@@ -118,3 +118,9 @@ The necessary verifier adaptation removes those system calls entirely, uses an
 environment-only configure driver whose Keychain-save dependency fails closed,
 and replaces the obsolete yes/no startup input with the current `:exit` command.
 The no-run/no-provider oracle remains; product startup behavior is not modified.
+
+A second consumer run stopped when the old #35 guard rejected read-only ancestor
+`lstat` needed by the already accepted file-authorization layer. The verifier now
+uses the existing #49 metadata-only guard (as the K3 verifier already does),
+retaining its separate metadata receipt and all content/network/credential guards.
+No new content-access exception or Product change was added.

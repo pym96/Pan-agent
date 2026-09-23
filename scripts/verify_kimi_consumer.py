@@ -89,7 +89,7 @@ consumer=out/'consumer';consumer.mkdir();(consumer/'package.json').write_text(js
 for ancestor in consumer.parents:assert not (ancestor/'node_modules').exists(),f'ancestor dependencies: {ancestor}'
 assert not (consumer/'.git').exists();tarball=consumer/archive.name;shutil.copy2(archive,tarball);assert filehash(tarball)==filehash(archive)
 instrumentation=consumer/'verification';instrumentation.mkdir()
-for source,name in [('scripts/wo35-consumer-guard.mjs','guard.mjs'),('scripts/fixtures/kimi/kimi-configure-driver.mjs','configure.mjs'),('scripts/fixtures/kimi/kimi-task-driver.mjs','task.mjs'),('scripts/fixtures/preview/replay-driver.mjs','replay.mjs'),('scripts/fixtures/kimi/kimi-boundary-driver.mjs','boundary.mjs'),('scripts/fixtures/kimi/kimi-switch-driver.mjs','switch.mjs'),('scripts/fixtures/kimi/kimi-wire-v1.json','kimi-wire.json'),('scripts/fixtures/preview-first-task-v1.json','fixture.json')]:shutil.copy2(ROOT/source,instrumentation/name)
+for source,name in [('scripts/wo35-consumer-guard.mjs','base-guard.mjs'),('scripts/wo49-consumer-guard.mjs','guard.mjs'),('scripts/fixtures/kimi/kimi-configure-driver.mjs','configure.mjs'),('scripts/fixtures/kimi/kimi-task-driver.mjs','task.mjs'),('scripts/fixtures/preview/replay-driver.mjs','replay.mjs'),('scripts/fixtures/kimi/kimi-boundary-driver.mjs','boundary.mjs'),('scripts/fixtures/kimi/kimi-switch-driver.mjs','switch.mjs'),('scripts/fixtures/kimi/kimi-wire-v1.json','kimi-wire.json'),('scripts/fixtures/preview-first-task-v1.json','fixture.json')]:shutil.copy2(ROOT/source,instrumentation/name)
 (instrumentation/'expected-result.json').write_text(json.dumps(expected,indent=2)+'\n')
 (instrumentation/'canaries.json').write_text(json.dumps(canaries,indent=2)+'\n')
 (instrumentation/'answers-env.json').write_text(json.dumps({'answers':['kimi-code','environment']})+'\n')
@@ -201,6 +201,7 @@ if True:
  nominal=[];negative_reports=[]
  keys=['forbidden_resolution','forbidden_filesystem','network_attempts','real_credential_reads','real_provider_calls','balance_queries','paid_formal_runs','cost_cny']
  for file in sorted((out/'guard-reports').glob('*.json')):
+  if file.name=='classification-metadata.json':continue  # separately retained lstat-only evidence
   data=json.loads(file.read_text())
   if data['phase'].startswith('caught-'):negative_reports.append(data)
   else:
