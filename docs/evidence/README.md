@@ -51,3 +51,5 @@ Raw artifacts remain at their stable source, Git, Trace, Test, evaluator, or ext
   [summary](terminal-bench-post-timeout-82-summary.json); all five attempted and unscored,
   four confirmed local timeouts followed by further activity; Criteria1.0 independent
   review pending, no measured zero-accuracy or causal-improvement claim.
+
+- [WO83 verifier handoff](verifier-handoff-83.md) — [summary](verifier-handoff-83-summary.json): bounded Agent quiescence, preserved pinned service, independent verifier timer and cancellation controls; no real model or official scoring, independent review pending.

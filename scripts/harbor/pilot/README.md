@@ -69,3 +69,33 @@ node --test scripts/harbor/pilot/test_cli.mjs
   The command client uses `setsid --wait` and null stdin; bounded control timing
   observations distinguish launch/read/exit, and command-result polling respects
   the original local deadline. Existing task/authorization cancellation stays active.
+
+## WO83 phase handoff controls (Criteria1.0)
+
+See [design](../../../docs/design/verifier-handoff-83.md) and
+[evidence](../../../docs/evidence/verifier-handoff-83.md). Agent completion/time or
+explicit call-budget exhaustion closes Agent admission, confirms broker quiescence,
+then permits one independently timed verifier. Unknown processes and global stops
+remain hard stops. Only pinned pre-Agent service identities are preserved.
+
+Offline: `node --test scripts/harbor/pilot/test_*.mjs` and the existing frozen Python
+unittest discovery. Container cases skip unless explicitly enabled. Under the #83
+scope authorization, from a clean committed candidate:
+
+```sh
+WO83_CONTROL_AUTH=H-GRADE83-SCOPE-20260923-001 WO83_ROLE=builder node --test scripts/harbor/pilot/test_handoff_container.mjs
+```
+
+`WO83_ROLE=regulator` selects the independent Regulator's fixed ledger; it does not
+grant a role or authorize Builder to consume it. `WO83_SCENARIO` may select a named
+case for an evidence-driven diagnosis. The fixed append-only ledger is
+`/private/tmp/wo83-work/builder-container-budget.jsonl` (Regulator:
+`/private/tmp/wo83-regulator/regulator-container-budget.jsonl`), each capped at
+1800 cumulative seconds. No fixed per-case count and no ledger reset. Unfinished
+attempts reject admission until reconciled; necessary cleanup must still occur.
+Every actual Docker operation, including image inspection and cleanup, is inside
+its reserved interval. Never use the old WO81 fixture/budget for this workorder.
+
+The fixture creates only uniquely labelled WO83 containers from the authorized
+cached image; no network, official tasks/verifier, real model, or live signature.
+Its FIFO service and delayed writer are synthetic controls, not benchmark scores.

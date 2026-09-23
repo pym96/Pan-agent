@@ -105,3 +105,5 @@ The Human-accepted architecture history remains indexed in [`../adr/README.md`](
 - [Terminal-Bench recovery #78](terminal-bench-recovery-78.md) — candidate diagnostics, owned-network release and unsigned 40/200/80 ceilings.
 
 - [WO78 Criteria1.1 continuation](terminal-bench-recovery-78.md): unchanged adapter with real lifecycle evidence; independent review pending.
+
+- [WO83 verifier handoff](verifier-handoff-83.md): separate Agent quiescence and verifier timing, pinned service identities, and hard-stop semantics; candidate pending independent review.
