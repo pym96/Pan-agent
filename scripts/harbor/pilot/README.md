@@ -40,43 +40,18 @@ node --test scripts/harbor/pilot/test_cli.mjs
 
 - [WO78 Criteria1.1 evidence](../../../docs/evidence/terminal-bench-recovery-78.md): actual five-task ready/stop/owned-network release completed after authorized one-old-network cleanup; no live authority.
 
-- WO81 candidate: `broker.py` owns a bounded command process group; `session.mjs`
-  continues only after confirmed local timeout. See the [blocked control report](../../../docs/evidence/command-timeout-recovery-81.md).
-  `test_command_control.mjs` / `test_command_control.py` are explicit opt-in,
-  synthetic-response container fixtures, not official scoring or default offline tests.
-  Builder container attempts are exhausted for normal completion; do not replay
-  them to obtain a pass. `test_session.mjs` and `test_offline.py` cover offline
-  continuation, cancellation, expiry, uncertainty and budget/credential boundaries.
+- WO81 process-group fixtures are historical: their implementation and raw results remain
+  at `5552200379c3f4d45288b6942966d3ac755e3314` and the original Evidence archive.
+  Their runtime entry now refuses execution; pure ledger admission regression remains.
 
-- WO81 offline repair checkpoint: `WO81_OFFLINE_ROOT=/private/tmp/wo81-work/offline-repair/fixtures node --test scripts/harbor/pilot/test_command_control.mjs`
-  exercises the **same** scripted SSE generator and five scenario assertions through
-  installed Adapter/Session, substituting only a fake environment. It does not
-  spawn a broker, run a storage guard or touch the actual-container budget.
-  `broker.py` now retains finite stage/reason diagnostics; this is not proof that
-  the unresolved actual identity failure is fixed. No new actual attempt authorized.
-
-- Criteria1.2: `WO81_NORMAL3_AUTH=H-TREC81-NORMAL3-20260923-001` selects only
-  the approved third normal diagnostic. Admission uses the original cumulative
-  ledger under an exclusive file lock, refuses consumed/wrong authorization,
-  non-normal scenarios, unfinished attempts and exhausted time. Default remains
-  two attempts. This is not a reusable extra-attempt switch.
-
-- Criteria1.3 `WO81_SCOPE_AUTH=H-TREC81-SCOPE-20260923-001` supersedes the
-  normal3-only/count restriction for this scope. It runs the six normal/nonzero/
-  timeout/cancel/deadline/uncertain scenarios under the original locked cumulative
-  1,800-second ledger. No arbitrary targets or time reset. Use a fresh output
-  directory via `WO81_CONTROL_ROOT`, never a new ledger. See current WO81 evidence.
-  The command client uses `setsid --wait` and null stdin; bounded control timing
-  observations distinguish launch/read/exit, and command-result polling respects
-  the original local deadline. Existing task/authorization cancellation stays active.
-
-## WO83 phase handoff controls (Criteria1.0)
+## WO83 phase handoff controls (Criteria1.1)
 
 See [design](../../../docs/design/verifier-handoff-83.md) and
 [evidence](../../../docs/evidence/verifier-handoff-83.md). Agent completion/time or
-explicit call-budget exhaustion closes Agent admission, confirms broker quiescence,
-then permits one independently timed verifier. Unknown processes and global stops
-remain hard stops. Only pinned pre-Agent service identities are preserved.
+explicit call-budget exhaustion closes Agent admission and settles the host client's
+wait before one independently timed verifier. Task services/processes are retained;
+there is no initial PID gate or normal-return process-group kill. The 30-second tool
+limit bounds waiting, not task-process lifetime. Global cancellation stops the container.
 
 Offline: `node --test scripts/harbor/pilot/test_*.mjs` and the existing frozen Python
 unittest discovery. Container cases skip unless explicitly enabled. Under the #83

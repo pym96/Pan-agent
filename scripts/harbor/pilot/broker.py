@@ -14,9 +14,13 @@ class RecordingEnvironment(DockerEnvironment):
   if getattr(self,'verifier_phase',False):self.verifier_exits.append(result.return_code)
   return result
 async def docker(*args):
- p=await asyncio.create_subprocess_exec('docker',*args,stdout=asyncio.subprocess.PIPE,stderr=asyncio.subprocess.PIPE);out,_=await asyncio.wait_for(p.communicate(),20)
- if p.returncode:raise RuntimeError('docker_operation_failed. Return code: '+str(p.returncode)+'.')
- return out.decode()
+ p=await asyncio.create_subprocess_exec('docker',*args,stdout=asyncio.subprocess.PIPE,stderr=asyncio.subprocess.PIPE)
+ try:
+  out,_=await asyncio.wait_for(p.communicate(),20)
+  if p.returncode:raise RuntimeError('docker_operation_failed. Return code: '+str(p.returncode)+'.')
+  return out.decode()
+ finally:
+  if p.returncode is None:p.kill();await asyncio.wait_for(p.wait(),2)
 def audit(info,logs,cfg):
  h=info['HostConfig'];assert not h['Privileged'] and not h.get('CapAdd') and not h.get('Devices') and not h.get('DeviceRequests') and h['NetworkMode']!='host'
  assert h['NanoCpus']==cfg.cpus*10**9 and h['Memory']==cfg.memory_mb*2**20
@@ -32,148 +36,64 @@ def validate_source(root,meta):
   if not p.is_file() or p.is_symlink() or not p.resolve().is_relative_to(root.resolve()):raise RuntimeError('task_source_path')
   b=p.read_bytes()
   if hashlib.sha1(b'blob '+str(len(b)).encode()+b'\0'+b).hexdigest()!=f['git_blob_sha1']:raise RuntimeError('task_source_identity')
-class CommandFailure(RuntimeError):
- """Finite diagnostic codes only; never serialize exception text."""
- REASONS=frozenset(['command_control_failed','process_inventory_limit','process_identity_unavailable',
-  'scanner_identity_unavailable','command_identity_unavailable','command_identity_changed',
-  'unmanaged_process_observed','command_stop_unconfirmed','command_setup_failed','pid_malformed','pid_not_received','process_missing','process_group_mismatch'])
- def __init__(self,reason):self.reason=reason if reason in self.REASONS else 'internal_error';super().__init__(self.reason)
 class ManagedCommand:
- """One container-bound process group; never treats cancelling docker client as a stop.
+ """Bounded host Docker-client wait, not a task-process lifecycle controller.
 
- Linux /proc + setsid + POSIX shell are required. No arbitrary-process sandbox:
- newly observed processes outside the group cause uncertainty and environment stop.
- Only non-zombie members execute; PID/start-time identities guard signal targeting.
+ Mirrors frozen Harbor's bash -c and host-client terminate/kill on wait expiry.
+ Task processes may survive; only the owning environment stop ends their lifetime.
+ No PID inventory, process-group signals, service registry or initial whitelist.
  """
  LIMIT=65536
- def __init__(self,container_id,cwd=None):self.cid=container_id;self.cwd=cwd;self.observations=[];self.stage='baseline_snapshot';self.interrupt=asyncio.Event();self.baseline=None
- async def control(self,script):
-  clock=asyncio.get_running_loop().time;started=clock();p=None;first=None;size=0;parts=[];outcome='error'
-  try:
-   p=await asyncio.create_subprocess_exec('docker','exec',self.cid,'/bin/sh','-c',script,stdin=asyncio.subprocess.DEVNULL,stdout=asyncio.subprocess.PIPE,stderr=asyncio.subprocess.DEVNULL)
-   spawned=clock()
-   async def collect():
-    nonlocal first,size
-    while chunk:=await p.stdout.read(8192):
-     if first is None:first=clock()
-     size+=len(chunk)
-     if size>262144:raise CommandFailure('process_inventory_limit')
-     parts.append(chunk)
-    await p.wait()
-   await asyncio.wait_for(collect(),5)
-   if p.returncode:raise CommandFailure('command_control_failed')
-   outcome='completed';return b''.join(parts).decode()
-  except TimeoutError:outcome='timeout';raise
-  except asyncio.CancelledError:outcome='cancelled';raise
-  finally:
-   if p is not None and p.returncode is None:p.kill();await p.wait()
-   item={'stage':self.stage,'spawn_seconds':spawned-started if p is not None else None,'first_byte_seconds':first-started if first else None,'elapsed_seconds':clock()-started,'bytes':size,'exit_code':p.returncode if p else None,'outcome':outcome}
-   if len(self.observations)<32:self.observations.append(item)
- async def snapshot(self):
-  raw=await self.control('echo scanner=$$; for f in /proc/[0-9]*/stat; do cat "$f" 2>/dev/null || :; done')
-  return self.parse_snapshot(raw)
- @staticmethod
- def parse_snapshot(raw):
-  lines=raw.splitlines();rows={}
-  if not lines or not lines[0].startswith('scanner='):raise CommandFailure('scanner_identity_unavailable')
-  scanner=ManagedCommand.parse_pid(lines[0][8:])
-  for line in lines[1:]:
-   pid,sep,tail=line.partition(' (');_,sep,tail=tail.rpartition(') ')
-   if not sep:raise CommandFailure('process_identity_unavailable')
-   fields=tail.split()
-   if len(fields)<20 or not pid.isdecimal() or not fields[1].isdecimal() or not fields[2].isdecimal() or not fields[19].isdecimal():raise CommandFailure('process_identity_unavailable')
-   rows[int(pid)]={'state':fields[0],'ppid':int(fields[1]),'pgid':int(fields[2]),'start':fields[19]}
-  group=rows.get(scanner,{}).get('pgid')
-  if group is None:raise CommandFailure('scanner_identity_unavailable')
-  return {p:r for p,r in rows.items() if r['pgid']!=group and r['state']!='Z'}
- @staticmethod
- def parse_pid(value):
-  if not value.isascii() or not value.isdecimal() or not 0<int(value)<=2147483647:raise CommandFailure('pid_malformed')
-  return int(value)
- async def initialize(self):
-  if self.baseline is None:self.baseline=await self.snapshot()
+ def __init__(self,container_id,cwd=None):
+  self.cid=container_id;self.cwd=cwd;self.interrupt=asyncio.Event();self.active=False
+ async def initialize(self):pass
  async def confirm_quiescent(self):
-  await self.initialize();self.stage="handoff_snapshot";after=await self.snapshot()
-  unknown={p:r for p,r in after.items() if p not in self.baseline or r["start"]!=self.baseline[p]["start"]}
-  return {"confirmed":not unknown,"baseline":[{"pid":p,**r} for p,r in self.baseline.items()],"remaining":[{"pid":p,**r} for p,r in after.items()],"scope":"pinned pre-Agent process identities; unknown processes reject handoff"}
+  if self.active:return {'confirmed':False,'reason':'client_wait_active'}
+  info=json.loads(await asyncio.wait_for(docker('inspect',self.cid),5))[0]
+  return {'confirmed':bool(info['State']['Running']),'reason':None if info['State']['Running'] else 'environment_not_running','scope':'Agent admission closed and host client wait settled; task processes retained'}
  async def run(self,command,timeout):
-  self.observations=[]
-  token=uuid.uuid4().hex;directory='/tmp/pan-command-'+token
-  before={};chunks={'stdout':bytearray(),'stderr':bytearray()};sizes={'stdout':0,'stderr':0}
-  # The anchor survives normal completion until the controller signals its group.
-  # A gate file ensures no solving command starts before identity is captured.
-  script='umask 077; mkdir '+directory+' || exit 125; echo $$ > '+directory+'/pid; while [ ! -f '+directory+'/go ]; do sleep 0.01; done; /bin/sh -c "$1"; rc=$?; echo "$rc" > '+directory+'/rc; while :; do sleep 1; done'
-  argv=['docker','exec']+(['-w',self.cwd] if self.cwd else [])+[self.cid,'setsid','--wait','/bin/sh','-c',script,'pan-command',command]
-  proc=None;readers=[];stages=[];stage='baseline_snapshot';reason=None
-  def enter(value):
-   nonlocal stage
-   stage=value;self.stage=value
-   if len(stages)<16:stages.append(value)
-  async def drain(name,stream):
-   while chunk:=await stream.read(8192):
+  self.active=True;proc=None;tasks=[];settled=False;status='stop_unconfirmed';reason=None;code=None
+  chunks={n:bytearray() for n in ('stdout','stderr')};sizes={n:0 for n in chunks}
+  async def drain(name):
+   while chunk:=await getattr(proc,name).read(8192):
     sizes[name]+=len(chunk);chunks[name].extend(chunk[:max(0,self.LIMIT-len(chunks[name]))])
-  identity=None;received_pid=None;launcher=None;foreign={};observed={};status='stop_unconfirmed';code=None;confirmed=False
+  async def collect():
+   await asyncio.gather(*(drain(n) for n in chunks));return await proc.wait()
+  async def stop_client():
+   if proc.returncode is None:
+    proc.terminate()
+    try:await asyncio.wait_for(proc.wait(),5)
+    except TimeoutError:
+     proc.kill();await asyncio.wait_for(proc.wait(),2)
   try:
-   enter('baseline_snapshot');before=await self.snapshot()
-   if self.baseline is None:self.baseline=before
-   if any(p not in self.baseline or r['start']!=self.baseline[p]['start'] for p,r in before.items()):raise CommandFailure('unmanaged_process_observed')
-   enter('launch');proc=await asyncio.create_subprocess_exec(*argv,stdin=asyncio.subprocess.DEVNULL,stdout=asyncio.subprocess.PIPE,stderr=asyncio.subprocess.PIPE)
-   readers=[asyncio.create_task(drain(n,getattr(proc,n))) for n in chunks]
-   deadline=asyncio.get_running_loop().time()+timeout
-   enter('pid_receipt')
-   while asyncio.get_running_loop().time()<deadline:
-    value=(await self.control('cat '+directory+'/pid 2>/dev/null || :')).strip()
-    if value:
-     pid=self.parse_pid(value);received_pid=pid;enter('process_snapshot');snap=await self.snapshot();enter('identity_validation');row=snap.get(pid)
-     if not row:raise CommandFailure('process_missing')
-     if row['pgid']!=pid:raise CommandFailure('process_group_mismatch')
-     identity={'pid':pid,'start':row['start']};observed.update(snap)
-     parent=snap.get(row.get('ppid'))
-     if parent and row['ppid'] not in before:launcher={'pid':row['ppid'],'start':parent['start']}
-     if self.interrupt.is_set() or asyncio.get_running_loop().time()>=deadline:break
-     enter('go_release');await self.control('touch '+directory+'/go');break
-    if proc.returncode is not None:raise CommandFailure('command_setup_failed')
-    await asyncio.sleep(.01)
-   if identity is None:raise CommandFailure('pid_not_received')
-   enter('settlement')
-   while asyncio.get_running_loop().time()<deadline:
-    if self.interrupt.is_set():status='interrupted';break
-    try:value=(await asyncio.wait_for(self.control('cat '+directory+'/rc 2>/dev/null || :'),max(.001,deadline-asyncio.get_running_loop().time()))).strip()
-    except TimeoutError:status='timeout';break
-    if value:code=int(value);status='completed';break
-    await asyncio.sleep(.02)
+   if self.interrupt.is_set():raise RuntimeError('admission_closed')
+   argv=['docker','exec']+(['-w',self.cwd] if self.cwd else [])+[self.cid,'bash','-c',command]
+   proc=await asyncio.create_subprocess_exec(*argv,stdin=asyncio.subprocess.DEVNULL,stdout=asyncio.subprocess.PIPE,stderr=asyncio.subprocess.PIPE)
+   pending=asyncio.create_task(collect());interrupted=asyncio.create_task(self.interrupt.wait());tasks=[pending,interrupted]
+   done,_=await asyncio.wait(tasks,timeout=timeout,return_when=asyncio.FIRST_COMPLETED)
+   if self.interrupt.is_set():status='interrupted'
+   elif pending in done:code=pending.result();status='completed'
    else:status='timeout'
-   # Completion racing the deadline never changes timeout into a retry.
-   enter('termination_snapshot');snap=await self.snapshot();observed.update(snap);pid=identity['pid']
-   if snap.get(pid,{}).get('start')!=identity['start']:raise CommandFailure('command_identity_changed')
-   known_groups={r['pgid'] for r in before.values()}
-   foreign={p:r for p,r in snap.items() if r['pgid'] not in known_groups and r['pgid']!=pid and not (launcher and p==launcher['pid'] and r['start']==launcher['start'])}
-   if foreign:raise CommandFailure('unmanaged_process_observed')
-   enter('termination_signal');await self.control('kill -9 -'+str(pid))
-   enter('termination_confirmation');cleanup=asyncio.get_running_loop().time()+2
-   while True:
-    remaining=await self.snapshot()
-    if not any(r['pgid']==pid for r in remaining.values()):
-     if any(r['pgid'] not in known_groups and r['pgid']!=pid and not (launcher and p==launcher['pid'] and r['start']==launcher['start']) for p,r in remaining.items()):raise CommandFailure('unmanaged_process_observed')
-     confirmed=True;break
-    if asyncio.get_running_loop().time()>=cleanup:raise CommandFailure('command_stop_unconfirmed')
-    await asyncio.sleep(.02)
-   enter('output_settlement');await asyncio.wait_for(proc.wait(),2);await asyncio.wait_for(asyncio.gather(*readers),2)
+   if status!='completed':await stop_client()
+   await asyncio.wait_for(asyncio.shield(pending),2)
+   settled=proc.returncode is not None
   except (Exception,asyncio.CancelledError) as exc:
-   reason=exc.reason if isinstance(exc,CommandFailure) else 'operation_timeout' if isinstance(exc,TimeoutError) else 'cancelled' if isinstance(exc,asyncio.CancelledError) else 'internal_error'
-   status='stop_unconfirmed';confirmed=False
+   reason='client_wait_cancelled' if isinstance(exc,asyncio.CancelledError) else 'client_wait_failed'
+   status='stop_unconfirmed'
   finally:
-   command_client_exit=proc.returncode if proc else None
-   # This is only client cleanup. Bound owns mandatory environment shutdown on uncertainty.
-   if proc is not None and proc.returncode is None:proc.kill();await proc.wait()
-   for reader in readers:
-    if not reader.done():reader.cancel()
-   await asyncio.gather(*readers,return_exceptions=True)
-  return {'diagnostic':{'stage':stage,'reason':reason,'stages':stages,'received_pid':received_pid,'command_client_exit':command_client_exit,'unmanaged':[{ 'pid':p,**r} for p,r in list(foreign.items())[:16]],'control_operations':self.observations},'status':status,'exit_code':code if status=='completed' else None,
+   if proc is not None and proc.returncode is None:
+    try:await stop_client()
+    except Exception:reason='client_cleanup_failed';settled=False;status='stop_unconfirmed'
+   for task in tasks:
+    if not task.done():task.cancel()
+   await asyncio.gather(*tasks,return_exceptions=True)
+   self.active=False
+  return {'status':status,'exit_code':code if status=='completed' else None,
    **{n:bytes(v).decode(errors='replace') for n,v in chunks.items()},
    'output_bounds':{n:{'bytes':sizes[n],'retained_bytes':len(chunks[n]),'truncated':sizes[n]>len(chunks[n])} for n in chunks},
-   'termination':{'confirmed':confirmed,'identity':identity,'managed':[{ 'pid':p,**r} for p,r in observed.items() if identity and r['pgid']==identity['pid']],
-    'scope':'observed process group; not adversarial containment'}}
+   'diagnostic':{'reason':reason,'command_client_exit':proc.returncode if proc else None},
+   'wait':{'settled':settled,'scope':'host Docker client only'},
+   'task_processes':'may continue until task environment stops; timeout does not confirm command termination'}
 class Bound:
  def __init__(self,env,stopper,verifier,commands=None):self.env=env;self.stopper=stopper;self.verifier=verifier;self.commands=commands;self.finished=False;self.active=False;self.stopped=False;self.stop_task=None;self.quiescing=False;self.quiet=None;self.active_task=None
  async def exec(self,command,timeout=30):
@@ -185,13 +105,13 @@ class Bound:
     # Legacy offline BaseEnvironment seam is not used by the live broker.
     r=await self.env.exec(command);return {'status':'completed','exit_code':r.return_code,'stdout':r.stdout,'stderr':r.stderr}
    r=await self.commands.run(command,timeout)
-   if not r['termination']['confirmed']:await self.stop('command_stop_unconfirmed')
-   if self.stopped:r={**r,'status':'cancelled' if r['termination']['confirmed'] else 'stop_unconfirmed'}
+   if not r['wait']['settled']:await self.stop('command_stop_unconfirmed')
+   if self.stopped:r={**r,'status':'cancelled' if r['wait']['settled'] else 'stop_unconfirmed'}
    return r
   finally:self.active=False;self.active_task=None
  async def quiesce(self):
   self.quiescing=True
-  if self.commands is None:return {'confirmed':False,'reason':'no_process_controller'}
+  if self.commands is None:return {'confirmed':False,'reason':'no_wait_controller'}
   self.commands.interrupt.set()
   try:
    if self.active_task:await asyncio.wait_for(asyncio.shield(self.active_task),12)

@@ -1,33 +1,5 @@
-/** Opt-in real container controls. Synthetic wire only, never official scoring. */
-import test from 'node:test';import assert from 'node:assert/strict';import {spawn} from 'node:child_process';
-import {generateKeyPairSync,sign,randomUUID} from 'node:crypto';import {mkdirSync,readFileSync,writeFileSync,existsSync} from 'node:fs';import {join} from 'node:path';import {fileURLToPath} from 'node:url';
-import {openBroker} from './broker.mjs';import {runAttempt} from './session.mjs';import {MODEL,LIMITS,canonical,authorize,Ledger} from './policy.mjs';import {resourceGuard} from './resources.mjs';
-const offline=Boolean(process.env.WO81_OFFLINE_ROOT);
-const root=process.env.WO81_OFFLINE_ROOT??process.env.WO81_CONTROL_ROOT;
-const authorization=process.env.WO81_SCOPE_AUTH??process.env.WO81_NORMAL3_AUTH;
-if(authorization&&!['H-TREC81-NORMAL3-20260923-001','H-TREC81-SCOPE-20260923-001'].includes(authorization))throw Error('diagnostic_authorization_refused');
-const frame=x=>'data: '+JSON.stringify({object:'chat.completion.chunk',created:1,...x})+'\n\n';
-function wire(command,timeout=2){const responseId=randomUUID();const delta=command?{role:'assistant',reasoning_content:'synthetic-private',tool_calls:[{index:0,id:randomUUID(),type:'function',function:{name:'task_command',arguments:JSON.stringify({command,timeout})}}]}:{role:'assistant',reasoning_content:'synthetic-private',content:'Fixture complete.'};return frame({id:responseId,model:'k3-256k',choices:[{index:0,delta,finish_reason:null}]})+frame({id:responseId,model:'k3-256k',choices:[{index:0,delta:{},finish_reason:command?'tool_calls':'stop'}],usage:{prompt_tokens:10,completion_tokens:5,total_tokens:15}})+'data: [DONE]\n\n';}
-for(const scenario of (authorization==='H-TREC81-NORMAL3-20260923-001'?['normal']:['normal','nonzero','timeout','cancel','deadline','uncertain']))test((offline?'offline fixture ':'owned container ')+scenario,{skip:!root},async()=>{
- mkdirSync(root,{recursive:true});const out=join(root,scenario+'-'+randomUUID());mkdirSync(out);const abort=new AbortController();const guard=offline?{close(){}}:resourceGuard(root,abort);
- const budget=authorization?'/private/tmp/wo81-work/controls/container-budget.jsonl':join(root,'container-budget.jsonl');const rows=existsSync(budget)?readFileSync(budget,'utf8').trim().split('\n').map(JSON.parse):[];const remaining=1800-rows.reduce((s,r)=>s+(r.elapsed??0),0);assert(remaining>0);
- const ceiling=setTimeout(()=>abort.abort(),Math.min(remaining,60)*1000);
- const binding={runnerSha:'a'.repeat(40),panHash:'b'.repeat(64),manifestHash:'c'.repeat(64),model:MODEL,budget:LIMITS,taskIds:[scenario],images:{}};
- const keys=generateKeyPairSync('ed25519');const activation={authorized:true,runId:randomUUID(),humanAuthorizationId:'WO81 synthetic controls only',notBefore:new Date(Date.now()-1000).toISOString(),expiresAt:new Date(Date.now()+60000).toISOString(),binding};activation.signature=sign(null,Buffer.from(canonical(activation)),keys.privateKey).toString('base64');
- const gate=authorize(activation,{publicKey:keys.publicKey,acceptedRunnerSha:binding.runnerSha},binding);const ledger=new Ledger(join(out,'ledger'),gate);const requests=[];
- const admitted=[];
- const broker=offline?{ready:Promise.resolve('Harmless WO81 '+scenario+' fixture only.'),async exec(command,timeout){admitted.push({command,timeout});if(scenario==='cancel'||scenario==='deadline')abort.abort();return {status:scenario==='uncertain'?'stop_unconfirmed':scenario==='timeout'&&admitted.length===1?'timeout':'completed',exit_code:scenario==='nonzero'?7:0,stdout:scenario==='timeout'&&admitted.length===2?'CONTINUED':'BEFORE',stderr:'',termination:{confirmed:scenario!=='uncertain',managed:[{pid:10},{pid:11}]}};},async stop(){return {stopped:true};},async verify(){return {status:'synthetic_control',rewards:null};},async close(){}}:openBroker({python:'/private/tmp/wo74-work/venv/bin/python',home:out,dockerConfig:out,config:{scenario,budget,...(authorization?{authorization}:{}),output:join(out,'broker'),task:{id:scenario,config:{environment:{build_timeout_sec:10}}}},spawnImplementation:(exe,args,options)=>spawn(exe,[fileURLToPath(new URL('./test_command_control.py',import.meta.url))],options)});
- const previous=globalThis.fetch;globalThis.fetch=()=>{throw Error('real network forbidden');};
- try{
-  const instruction=await broker.ready;
-  const first=scenario==='normal'?'printf NORMAL':scenario==='nonzero'?'printf NONZERO; exit 7':"echo BEFORE; /bin/sh -c 'echo $$ >/tmp/managed-child; sleep 5; echo LATE >/tmp/late' & wait";
-  let dispatch=0;
-  const environment={...broker,exec:async(command,timeout)=>{if(!offline&&scenario==='cancel')setTimeout(()=>abort.abort(),1200);return broker.exec(command,timeout);}};
-  const report=await runAttempt({entry:process.env.WO75_PAN_ENTRY??'/private/tmp/wo75-work/consumer/node_modules/pan-agent/dist/index.js',task:{id:scenario,config:{agent:{timeout_sec:scenario==='deadline'?1.5:30}}},instruction,output:join(out,'attempt'),environment,gate,ledger,credentialSource:()=> 'synthetic-wo81-secret',signal:abort.signal,fetchImplementation:async(url,options)=>{requests.push(JSON.parse(options.body));dispatch++;return new Response(wire(dispatch===1?first:scenario==='timeout'&&dispatch===2?'sleep 5.1; test ! -e /tmp/late && kill -0 "$(cat /tmp/control-pid)" && echo CONTINUED':null,scenario==='timeout'&&dispatch===2?10:scenario==='timeout'||scenario==='uncertain'?1:['cancel','deadline'].includes(scenario)?10:2));}});
-  if(offline){assert.equal(admitted[0]?.command,first);assert.equal(admitted.length,scenario==='timeout'?2:1);writeFileSync(join(out,'admitted.json'),JSON.stringify(admitted,null,2)+'\n');}
-  writeFileSync(join(out,'requests.json'),JSON.stringify(requests,null,2)+'\n');writeFileSync(join(out,'control-result.json'),JSON.stringify({scenario,dispatch,report},null,2)+'\n');
-  if(['cancel','deadline','uncertain'].includes(scenario)){assert.equal(dispatch,1);assert.equal(report.verifier,null);assert(report.stopReason);assert.equal(report.stopConfirmed,true);}
-  else{assert.equal(report.stopReason,null);assert.equal(report.verifier.status,'synthetic_control');assert.equal(report.verifier.rewards,null);assert.equal(report.effects[0].result.termination.confirmed,true);if(scenario==='nonzero')assert.equal(report.effects[0].result.exit_code,7);}
-  if(scenario==='timeout'){assert.equal(dispatch,3);assert.equal(report.effects[0].result.status,'timeout');assert.match(report.effects[0].result.stdout,/BEFORE/);assert(report.effects[0].result.termination.managed.length>=2);assert.match(report.effects[1].result.stdout,/CONTINUED/);assert(!report.effects[1].result.stdout.includes('BEFORE'));assert(requests[1].messages.some(m=>m.role==='tool'&&m.content.includes('timeout')&&m.content.includes('BEFORE')));}
- }finally{globalThis.fetch=previous;clearTimeout(ceiling);ledger.close();await broker.close();guard.close();}
-});
+/** WO81 process-group assertions superseded prospectively by WO83 Criteria1.1.
+ * Historical runner/evidence retained at 5552200379c3f4d45288b6942966d3ac755e3314. */
+import test from 'node:test';
+if(process.env.WO81_CONTROL_ROOT||process.env.WO81_OFFLINE_ROOT||process.env.WO81_SCOPE_AUTH||process.env.WO81_NORMAL3_AUTH)throw Error('WO81 controls superseded: use authorized test_handoff_container.mjs');
+test('WO81 historical process-group control: replaced by WO83 semantic controls',{skip:true},()=>{});

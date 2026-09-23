@@ -33,34 +33,31 @@ async def main():
  async def send(x):print(json.dumps(x),flush=True)
  try:
   assert json.loads(await docker('image','inspect',IMAGE))[0]['Id']==IMAGE
-  # PID 1 is an explicitly established, single-process FIFO echo service.
-  service='mkfifo /tmp/service-in /tmp/service-out; echo $$ > /tmp/service-pid; while :; do read request < /tmp/service-in || exit; printf "%s\\n" "$request" > /tmp/service-out; done'
+  # Only an idle container exists at ready. The Agent tool starts the service.
+  service='exec sleep 120'
   cid=(await docker('run','-d','--pull=never','--name',name,'--network=none','--cpus=2','--memory=4g','--label','pan.wo83='+attempt,'--entrypoint','/bin/sh',IMAGE,'-c',service)).strip()
   info=json.loads(await docker('inspect',cid))[0];h=info['HostConfig'];assert info['Image']==IMAGE and h['NetworkMode']=='none' and not info['Mounts'] and not h['Privileged'] and not h.get('CapAdd') and not h.get('Devices') and not h.get('DeviceRequests') and h['NanoCpus']==2*10**9 and h['Memory']==4*2**30
   (root/'container.json').write_text(json.dumps(info,indent=2)+'\n')
-  assert (await docker('exec',cid,'/bin/sh','-c','test -p /tmp/service-in; cat /tmp/service-pid')).strip()=='1'
-  cmd=ManagedCommand(cid,'/tmp');await cmd.initialize();(root/'baseline.json').write_text(json.dumps(cmd.baseline)+'\n')
+  cmd=ManagedCommand(cid,'/tmp')
   async def stop(reason):
    stops.append(reason);await docker('stop','-t','1',cid);s=json.loads(await docker('inspect',cid))[0]['State'];assert not s['Running'] and s['Pid']==0
   async def verify():
-   # Wait beyond the delayed writer's deadline; make a real service request.
    if config['scenario']=='verifier_cancel':
     await send({'diagnostic':{'stage':'ready'}});await asyncio.sleep(2)
-   observation=await docker('exec',cid,'/bin/sh','-c','set -eu; pid=$(cat /tmp/writer-pid); if [ -f /proc/$pid/stat ]; then cat /proc/$pid/stat; else echo writer_absent; fi')
-   if observation!='writer_absent\n':assert observation.rpartition(') ')[2].split()[0]=='Z'
-   await docker('exec',cid,'/bin/sh','-c','set -eu; touch /tmp/grade-entry; sleep .15; test ! -e /tmp/late; test -f /tmp/artifact; printf "ping\\n" > /tmp/service-in; read reply < /tmp/service-out; test "$reply" = ping; printf SERVICE_OK')
-   return {'status':'synthetic_control','rewards':{'reward':1},'oracle':'artifact preserved; delayed writer absent/zombie before grade-entry trigger; no late write; pinned FIFO service responds','writer_observation':observation}
+   observation=await docker('exec',cid,'bash','-c', 'set -eu; test -f /tmp/artifact; test -f /tmp/later-tool; touch /tmp/release-long; if [ -f /tmp/long-start ]; then for i in $(seq 1 100); do test -f /tmp/long-done && break; sleep .02; done; test -f /tmp/long-done; fi; printf "grade\\n" > /tmp/service-in; read reply < /tmp/service-out; test "$reply" = grade; test -f /tmp/service-log; printf DYNAMIC_SERVICE_AND_ARTIFACT_OK')
+   return {'status':'synthetic_control','rewards':{'reward':1},'oracle':'Agent-started service answers later tool and verifier; artifact retained; any launched long operation finishes after release','observation':observation}
   bound=Bound(None,stop,verify,cmd)
   await send({'ready':True,'instruction':'Synthetic WO83 fixture; no official task.'})
   async def handle(msg):
    try:
     method=msg['method']
     if method=='exec':
-     if config['scenario']=='uncertain':
-      # Actual unknown process outside owned group, not a mocked boolean.
-      await docker('exec','-d',cid,'setsid','sleep','20')
      r=await bound.exec(msg['command'],msg['timeout'])
-    elif method=='quiesce':r=await bound.quiesce()
+    elif method=='quiesce':
+     if config['scenario']=='uncertain':
+      # Real loss of the owned environment, not unknown task-process identity.
+      await docker('stop','-t','1',cid)
+     r=await bound.quiesce()
     elif method=='verify':r=await bound.verify()
     elif method=='stop':r=await bound.stop(msg['reason'])
     else:raise RuntimeError('method')

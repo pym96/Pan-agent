@@ -12,7 +12,7 @@ for(const kind of ['agent_timeout','turn_limit','step_limit','dispatch_budget','
  const budget=kind==='turn_limit'?{dispatchesPerTask:1}:kind==='step_limit'?{toolsPerTask:1}:kind==='dispatch_budget'?{dispatchesCampaign:1}:{};
  const r=await fixture({timers,budget,prepare:kind==='tool_budget'?({ledger})=>{const start=ledger.start.bind(ledger);ledger.start=id=>{start(id);for(let i=0;i<80;i++)ledger.reserve(id,'tool');};}:undefined,
  fetcher:async(n,o)=>{if(kind==='agent_timeout'){timers.fire('agent');throw Error('cancelled synthetic exchange');}return new Response(wire(kind==='step_limit'&&n===2?'blocked':kind==='tool_budget'?'cmd':n===1?'cmd':null));},
- env:{async exec(){commands++;return {status:'completed',exit_code:0,stdout:'ok',stderr:'',termination:{confirmed:true}};},async verify(){verifies++;return {status:'synthetic_control',rewards:{reward:1}};}}});
+ env:{async exec(){commands++;return {status:'completed',exit_code:0,stdout:'ok',stderr:'',wait:{settled:true}};},async verify(){verifies++;return {status:'synthetic_control',rewards:{reward:1}};}}});
  // The tool_budget case preconsumes the frozen 80-tool limit, not a fake error.
  assert.equal(r.report.agentStopReason,kind);assert.equal(verifies,1);assert.equal(r.report.verifier.status,'synthetic_control');assert.notEqual(r.report.agentStatus,'completed');assert.equal(r.report.globalStops.length,0);
 });
