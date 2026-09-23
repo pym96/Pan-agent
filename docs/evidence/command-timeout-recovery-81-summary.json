@@ -1,9 +1,9 @@
 {
   "issue": 81,
-  "criteria": "1.0",
+  "criteria": "1.3",
   "role": "Working Agent (Builder)",
   "base": "d290c95aefd8bef33770ea5ab4dec46b63309a38",
-  "delivery": "blocked_candidate",
+  "delivery": "candidate_pending_independent_review",
   "scopeChallenge": "SC-TREC-81-01",
   "realModelProviderBalanceCalls": 0,
   "officialScoringCalls": 0,
@@ -73,5 +73,16 @@
     "realModelCalls": 0,
     "officialScoringCalls": 0,
     "retry": false
+  },
+  "criteria13": {
+    "authorization": "H-TREC81-SCOPE-20260923-001",
+    "offlineNodePassed": 33,
+    "offlinePythonPassed": 16,
+    "developmentMatrixPassed": 6,
+    "finalCleanMatrixEvidence": "external criteria13/Handoff.md",
+    "historicalConsumptionCarried": true,
+    "modelCalls": 0,
+    "officialScoringCalls": 0,
+    "containment": "observed process groups; not adversarial universal containment"
   }
 }

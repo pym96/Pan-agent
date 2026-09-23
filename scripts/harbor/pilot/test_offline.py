@@ -106,7 +106,7 @@ class IdentityDiagnostics(unittest.IsolatedAsyncioTestCase):
     return {42:{'pgid':41 if failure=='identity_validation' else 42,'start':'100','state':'S'}}
    async def control(script):
     stage='pid_receipt' if '/pid ' in script else 'go_release' if script.startswith('touch') else 'settlement' if '/rc ' in script else 'termination_signal'
-    if failure==stage:raise TimeoutError('synthetic-secret')
+    if failure==stage:raise CommandFailure('command_control_failed')
     if stage=='pid_receipt':return 'not-a-pid' if failure=='malformed' else '42'
     return '0' if stage=='settlement' else ''
    runner.snapshot=snapshot;runner.control=control
@@ -121,7 +121,7 @@ class IdentityDiagnostics(unittest.IsolatedAsyncioTestCase):
   from broker import ManagedCommand,CommandFailure
   def row(pid,group,start):return f'{pid} (fixture with ) parens) S 1 {group} '+'0 '*16+str(start)+'\n'
   result=ManagedCommand.parse_snapshot('scanner=7\n'+row(7,7,1)+row(42,42,100))
-  self.assertEqual(result,{42:{'state':'S','pgid':42,'start':'100'}})
+  self.assertEqual(result,{42:{'state':'S','ppid':1,'pgid':42,'start':'100'}})
   for raw in ['', 'scanner=bad\n','scanner=7\n42 broken','scanner=7\n42 (short) S 1']:
    with self.assertRaises(CommandFailure):ManagedCommand.parse_snapshot(raw)
   for pid in ['0','-1','1;echo secret','2147483648','１２']:
@@ -141,3 +141,31 @@ class DiagnosticAdmission(unittest.TestCase):
    with self.assertRaises(RuntimeError):authorize_control(bad,'normal',NORMAL3_AUTH)
   with self.assertRaises(RuntimeError):authorize_control([], 'normal',NORMAL3_AUTH)
   self.assertEqual(authorize_control([], 'normal'),1)
+
+class ScopeAdmission(unittest.TestCase):
+ def test_scope_history_time_and_unknown_targets(self):
+  from test_command_control import authorize_control,SCOPE_AUTH
+  rows=[{'event':e,'scenario':'normal','attempt':n,**({'elapsed':2} if e=='end' else {})} for n in range(1,9) for e in ['start','end']]
+  original=json.dumps(rows);self.assertEqual(authorize_control(rows,'normal',SCOPE_AUTH),17);self.assertEqual(json.dumps(rows),original)
+  for bad,scenario in [(rows,'unknown'),(rows+[{'event':'end','elapsed':1800}],'normal'),(rows+[{'event':'start','attempt':9}],'normal')]:
+   with self.assertRaises(RuntimeError):authorize_control(bad,scenario,SCOPE_AUTH)
+
+class ProcessMembership(unittest.IsolatedAsyncioTestCase):
+ async def test_new_unrelated_group_never_recovers(self):
+  from broker import ManagedCommand
+  from unittest.mock import patch
+  class Stream:
+   async def read(self,n):return b''
+  class Process:
+   stdout=Stream();stderr=Stream();returncode=None
+   def kill(self):self.returncode=-9
+   async def wait(self):self.returncode=0;return 0
+  r=ManagedCommand('fake');count=0
+  async def snapshot():
+   nonlocal count
+   count+=1
+   return {} if count==1 else {42:{'pgid':42,'ppid':0,'start':'1','state':'S'},**({90:{'pgid':90,'ppid':0,'start':'2','state':'S'}} if count==3 else {})}
+  r.snapshot=snapshot;r.control=AsyncMock(side_effect=['42','','0'])
+  with patch('broker.asyncio.create_subprocess_exec',AsyncMock(return_value=Process())):result=await r.run('fixture',1)
+  self.assertFalse(result['termination']['confirmed']);self.assertEqual(result['diagnostic']['reason'],'unmanaged_process_observed')
+  self.assertEqual(result['diagnostic']['unmanaged'][0]['pid'],90)

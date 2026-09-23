@@ -1,4 +1,12 @@
-# WO81 / Criteria1.0 — blocked Builder candidate
+# WO81 / Criteria1.3 — recovery candidate, independent review pending
+
+Authority: [scope and cumulative-budget amendment](https://github.com/pym96/Pan-agent/issues/81#issuecomment-5790393381).
+The six-scenario development container matrix now passes. Final clean candidate
+matrix and exact remote SHA are recorded in external `criteria13/Handoff.md`.
+This does not grant acceptance or demonstrate benchmark improvement. All earlier
+blocked checkpoints below remain historical evidence, not the current status.
+
+## Historical initial Criteria1.0 blocked candidate
 
 Base `d290c95aefd8bef33770ea5ab4dec46b63309a38`; branch `workorder/81-candidate`.
 This is an incomplete candidate, not acceptance or an operationally validated runner.
@@ -195,3 +203,71 @@ and ledger prefix remain. This is a failed diagnostic checkpoint, not completed
 acceptance Handoff. The next investigation should distinguish the PID-read control
 subprocess delay from identity parsing, under a separate scoped instruction. No
 new run, timeout increase or algorithm change is authorized or made by this result.
+
+
+## Criteria1.3 implementation and evidence
+
+Current fixture scope authorization keeps the original append-only locked ledger,
+refuses unfinished activity or exhausted 1,800-second time, and admits only the
+six named harmless scenarios. Prior normal3 consumption is retained. Actual work
+uses one accepted cached nginx image per sequential container, network none,
+2CPU/4GiB, no mounts or elevated capabilities. No images downloaded or built.
+
+The command Docker client now has null stdin and `setsid --wait`: the launcher
+stays associated with its child instead of treating a forked session leader as
+finished work. Controller operations retain at most32 numeric timing observations
+(startup, first byte, completion, bytes, exit and finite outcome); arbitrary control
+stderr is suppressed. Control wait5seconds is distinct from the model-visible
+command maximum30seconds. Shell release still requires PID/start identity. Local
+command-result polling is additionally bounded by its remaining deadline, so the
+longer control wait cannot silently extend solving via a blocked result read.
+Global task/authorization cancellation and environment-stop fallback remain active.
+
+The lifecycle classifier distinguishes baseline process groups and the pinned
+launcher parent from the owned command group. It kills only the latter, confirms
+no executing members, and conservatively refuses newly observed foreign groups.
+This prevents treating normal children of the independent control process or the
+waiting launcher itself as proof of command escape. PID/start-time mismatch and
+unknown stop still stop the entire bound environment. It is **not a security
+boundary against adversarial reparenting, joining pre-existing groups or transient
+unobserved escape**. Those containment limits remain explicit for independent
+high-risk review; no broader isolation claim is made.
+
+Development sequence, all failures retained with source diffs:
+1. Timing probe with null control stdin and5second internal wait: PID read returned
+   no bytes after2.0624seconds and the command client had already exited; no go.
+   This differs from the earlier collapsed timeout, but does not identify historical
+   latency cause or prove a general daemon/emulation problem.
+2. Adding waiting setsid and null command-client stdin reached PID identity,
+   go-release and output NORMAL. Foreign-process classification then refused recovery.
+3. Accounting for baseline groups and pinned launcher parent allowed normal completion.
+4. Complete six-scenario development matrix passed; a later fixture enhancement
+   adds a separate `/proc` observation before returning timeout to the Session.
+The changes were not individually controlled causal experiments. Attribute the
+observed recovery to the tested combination, not an invented single-cause result.
+
+Offline:33 Node checks (including six shared scenario scripts) and16 Python checks
+pass. Python coverage includes time/history accounting, unknown targets/groups,
+malformed/missing identities, stage failures, installed Session cancellation/expiry
+races, old command validation, budget and credential controls. One development
+Python assertion expected a settlement timeout to be a global error; it was updated
+to inject a non-timeout control failure, because local settlement timeout is now
+handled as the local deadline. That failed log remains.
+
+Actual matrix: normal and ordinary exit7 reach a synthetic verifier with no reward;
+local timeout preserves BEFORE output, confirms target/managed child stopped,
+then sends that ToolResult to the real installed Session. A distinct second command
+waits5.1seconds (past the child's planned5second late write), checks absence of the
+late file and survival of the independent control process, and emits CONTINUED.
+A separate fixture observation reads the child's own recorded PID and every
+managed `/proc` stat **before** returning the timeout result; remaining zombies are
+non-executing and distinguished from survivors. Cancellation, official task deadline
+and injected unavailable confirmation permit no next solving dispatch or verifier.
+All final owned containers have explicit stop receipts; no old resource is deleted.
+
+Test wire responses and their usage values are synthetic; there are zero real
+model/Provider/credential/balance calls and zero official scoring. Raw evidence,
+source diffs, cumulative time and clean final matrix are retained externally under
+`wo81-timeout-recovery-20260923/criteria13/`. Final Handoff includes all hashes and
+per-criterion mapping. Independent Regulator and subsequent Human/different-family
+review of the new cancellation boundary remain required. Main remains untouched.

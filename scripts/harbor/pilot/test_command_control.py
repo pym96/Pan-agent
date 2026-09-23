@@ -5,13 +5,16 @@ import asyncio,json,sys,time,os,fcntl
 from pathlib import Path
 from broker import ManagedCommand,Bound,docker
 IMAGE='sha256:41217bae6667f04a767dc1b2c5c12b034dfc51a18226202003313aaf86832055'
+SCOPE_AUTH='H-TREC81-SCOPE-20260923-001'
 NORMAL3_AUTH='H-TREC81-NORMAL3-20260923-001'
 ORIGINAL_BUDGET=Path('/private/tmp/wo81-work/controls/container-budget.jsonl')
 def authorize_control(rows,scenario,authorization=None):
  if any(r['event']=='start' and not any(e['event']=='end' and e['attempt']==r['attempt'] for e in rows) for r in rows):raise RuntimeError('unfinished_control_attempt')
  count=sum(r['event']=='start' and r['scenario']==scenario for r in rows)
  if sum(r.get('elapsed',0) for r in rows)>=1800:raise RuntimeError('control_budget_exhausted')
- if authorization is not None:
+ if authorization==SCOPE_AUTH:
+  if scenario not in ['normal','nonzero','timeout','cancel','deadline','uncertain']:raise RuntimeError('diagnostic_authorization_refused')
+ elif authorization is not None:
   if authorization!=NORMAL3_AUTH or scenario!='normal' or count!=2 or any(r.get('authorization')==NORMAL3_AUTH for r in rows):raise RuntimeError('diagnostic_authorization_refused')
  elif count>=2:raise RuntimeError('control_budget_exhausted')
  return len(rows)+1
@@ -52,7 +55,15 @@ async def main():
   await send({'ready':True,'instruction':'Harmless WO81 '+scenario+' fixture only.'})
   async def handle(msg):
    try:
-    if msg['method']=='exec':r=await bound.exec(msg['command'],msg['timeout'])
+    if msg['method']=='exec':
+     r=await bound.exec(msg['command'],msg['timeout'])
+     if scenario=='timeout' and r['status']=='timeout' and r['termination']['confirmed']:
+      # Separate observation before returning the ToolResult to Session.
+      child=int((await docker('exec',cid,'cat','/tmp/managed-child')).strip())
+      assert any(row['pid']==child for row in r['termination']['managed'])
+      observation=await docker('exec',cid,'/bin/sh','-c','for p in '+ ' '.join(str(row['pid']) for row in r['termination']['managed'])+'; do if [ -e /proc/$p/stat ]; then cat /proc/$p/stat; fi; done; kill -0 "$(cat /tmp/control-pid)"')
+      for line in observation.splitlines():assert line.rpartition(') ')[2].split()[0]=='Z'
+      (root/'independent-process-observation.json').write_text(json.dumps({'child_pid':child,'managed':r['termination']['managed'],'remaining_stats':observation,'control_alive':True,'before_tool_return':True})+'\n')
     elif msg['method']=='stop':r=await bound.stop(msg['reason'])
     elif msg['method']=='verify':r=await bound.verify()
     else:raise ValueError('method')

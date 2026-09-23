@@ -60,3 +60,12 @@ node --test scripts/harbor/pilot/test_cli.mjs
   ledger under an exclusive file lock, refuses consumed/wrong authorization,
   non-normal scenarios, unfinished attempts and exhausted time. Default remains
   two attempts. This is not a reusable extra-attempt switch.
+
+- Criteria1.3 `WO81_SCOPE_AUTH=H-TREC81-SCOPE-20260923-001` supersedes the
+  normal3-only/count restriction for this scope. It runs the six normal/nonzero/
+  timeout/cancel/deadline/uncertain scenarios under the original locked cumulative
+  1,800-second ledger. No arbitrary targets or time reset. Use a fresh output
+  directory via `WO81_CONTROL_ROOT`, never a new ledger. See current WO81 evidence.
+  The command client uses `setsid --wait` and null stdin; bounded control timing
+  observations distinguish launch/read/exit, and command-result polling respects
+  the original local deadline. Existing task/authorization cancellation stays active.
