@@ -106,4 +106,4 @@ The Human-accepted architecture history remains indexed in [`../adr/README.md`](
 
 - [WO78 Criteria1.1 continuation](terminal-bench-recovery-78.md): unchanged adapter with real lifecycle evidence; independent review pending.
 
-- [WO83 verifier handoff](verifier-handoff-83.md): separate Agent quiescence and verifier timing, pinned service identities, and hard-stop semantics; candidate pending independent review.
+- [WO83 verifier handoff](verifier-handoff-83.md): Criteria1.1: stop Agent admission, retain dynamic task services, bounded client waits and independent verifier timing; candidate pending independent review.

@@ -1,64 +1,58 @@
-# #83 Agent停止与评分交接｜Criteria1.0 候选
+# #83 Agent 停止与评分交接｜Criteria1.1 候选
 
-Builder 实现及自行验证完成，等待独立 Regulator 和 Human `H-GRADE83-BOUNDARY`。本报告不是 accepted Verdict；不新增 [Verified Project Facts](verified-project-facts.md)、简历披露或官方分数。
+已完成本轮修订和 Builder 验证，待独立 Regulator；**已知一次 Docker 操作未入预算账本，不能声明 C-GRADE83-04 满足**。新边界 Human 材料审阅也尚未完成。本报告不是 accepted Verdict，不新增 [Verified Project Facts](verified-project-facts.md)、简历披露或官方成绩。
 
-[正式合同](https://github.com/pym96/Pan-agent/issues/83#issuecomment-5792286554)，授权 `H-GRADE83-SCOPE-20260923-001`；基线 `739bed6c6d1643940ff2cf8411c3aa5a6214cf09`。候选分支 `workorder/83-candidate`，完整最终 SHA 由外部 Handoff 绑定。最终真实控制 runner：`60ed5d87787521b1db8a465f6f6c591de4626c06`；其后仅追加报告／设计／导航，执行文件逐字节一致检查在归档中。
+[正式 Criteria1.1](https://github.com/pym96/Pan-agent/issues/83#issuecomment-5793143932)，继承未冲突 1.0，授权 `H-GRADE83-SCOPE-20260923-001`。基线 main `739bed6c6d1643940ff2cf8411c3aa5a6214cf09`，原候选 `5552200379c3f4d45288b6942966d3ac755e3314` 原分支追加，未重写历史。新完整 SHA 由外部 Handoff 绑定。
 
-## 修复与证据范围
+## 改动与实际依据
 
-#82 已验收证据显示：Agent completed 后，旧 Agent 定时器在官方评分准备阶段停止整个环境。这里分离 Agent、handoff、verifier、ended 阶段，正常完成及批准的时间／调用预算结束先停止Agent动作并核对真实进程，再进入一次独立计时的评分。原 Agent 原因、评分结果、全局取消和最终环境停止各自保留。详细接口和限制见[设计](../design/verifier-handoff-83.md)。
+移除初始 PID/PGID 白名单及正常命令返回即清理进程组；保留任务服务和状态，关闭 Agent 准入／控制循环并收尾宿主 Docker 客户端等待后评分。`wait.settled` 不再冒充容器任务进程停止。工具等待上限仍 30 秒，评分沿用原独立时限，全局取消最终停止整个自有容器。
 
-真实模型／Provider／凭证／余额请求 **0**；官方任务和官方 verifier 执行 **0**。所有响应为脚本输入，所有评分为 synthetic_control，不能当作官方成功。真实安装的 GeneralAgentSession、Kimi Adapter 和实际 broker 均被覆盖，未重写玩具 Agent 循环。未修改产品核心、policy、manifest、安装包、上游 Harbor、历史 Evidence 或 main。
+冻结 Harbor 的 Docker exec 超时结束宿主客户端，共享环境先评分后停止。五题实际 instruction/config 中，Nginx 明确要求服务在配置后可访问；评分请求产生服务日志是任务行为。其余四题的产物／计算需求不支持普遍“新进程即失败”的推断。[设计](../design/verifier-handoff-83.md)列出三类对象、源码哈希、本地适配与上游的差异。363 个 Harbor 文件、80 个安装文件与 Python 身份全量匹配原 package-identity，十份任务 instruction/config 匹配 manifest。
 
-冻结 Harbor 身份已只读核对：trial/single_step.py SHA256 `fbf03d5e721177b3d35b0a778ec5224f2bb07b55d540542c8339843f21f0b06e`；trial/trial.py `04f95b4197a77c948f81e4f848adbdd383ba6f62db03cfd4a2be590084a95c7a`。其捕获 AgentTimeoutError/NonZeroAgentExitCodeError 后评分的流程是参考；Pan四类调用预算映射来自Human本工单批准，不归因于上游规定。
+真实模型／Provider／凭证／余额请求 **0**，官方任务／verifier **0**。真实安装的 Session/Adapter 搭配脚本响应，真实 broker 和缓存容器执行无害控制。未修改产品核心、policy、manifest、安装包、Harbor、任务定义、旧 Evidence、main 或 Regulator 账本。
 
-## 最终验证
+## 验证结果与复查材料
 
-- `node --test scripts/harbor/pilot/test_*.mjs`：50 pass、13显式opt-in控制skip、0 fail。
-- 冻结Python unittest discovery：20 pass，0 fail。
-- 最终源码的真实缓存容器矩阵：7 pass，0 fail；此前取消修复的定向真实控制1 pass。
-- 原症状离线复现、扩展fixture失败、并发时钟测试问题及后续修正日志全部保留。
-- 16个实际控制archive均有唯一 run.terminal / run.settled；最终runner中工具开始事件与effects条数一致。原重复effects案例仍保留。
+离线 Node **50 pass / 8 skip / 0 fail**，Python **19 pass / 0 fail**。真实缓存容器 **7 pass / 0 fail**。旧 WO81 进程组测试入口已前瞻停用，历史版本及原始证据保留，纯账本准入测试保留；没有用固定测试数作为验收门槛。
 
-| 最终矩阵场景 | 脚本请求／工具 | Agent 原因 | 合成评分／终态观察 |
-|---|---:|---|---|
-| normal | 2 / 1 | completed，原因null | 一次合成评分；服务响应，产物保留，写入进程停止 |
-| deadline | 1 / 1 | cancelled / agent_timeout | 一次合成评分；无追加解题请求，写入操作中断并确认 |
-| budget | 1 / 1 | incomplete / turn_limit | 一次合成评分；原预算原因保留 |
-| cancel | 1 / 1 | cancelled / operator_cancelled | 不评分；全局取消记录及环境停止 |
-| verifier_cancel | 2 / 1 | completed，原因null | 评分中取消，缺reward为null；环境停止 |
-| uncertain | 1 / 1 | cancelled / operator_cancelled | 真实未知setsid进程触发拒绝评分；全局停止记录 |
-| timeout | 3 / 2 | completed，原因null | 确认局部超时后工具反馈进入下一请求，后续操作及合成评分完成 |
+| 场景 | 脚本请求 / 工具 | 观察 |
+| --- | ---: | --- |
+| normal | 3 / 2 | ready 后工具启动服务，后续工具与合成评分均成功请求，产物保留 |
+| budget | 2 / 2 | turn_limit 后同一服务可评分，未增加请求 |
+| deadline | 2 / 2 | agent_timeout 中断宿主等待后评分；长操作在评分释放后完成，原终止原因保留 |
+| timeout | 4 / 3 | 长操作跨过 2 秒等待期限；模型可见 timeout，下一工具释放并观察完成，再评分 |
+| cancel | 2 / 2 | 工具等待中用户取消，不评分，整个自有容器停止 |
+| verifier_cancel | 3 / 2 | 评分中取消，reward=null，环境停止 |
+| uncertain | 3 / 2 | 真实停止本次容器，交接读到 environment_not_running，拒绝评分；不是未知 PID 门禁 |
 
-各次耗时、全部早期尝试、实际源码SHA、原始目录和阶段结果见[机器摘要](verifier-handoff-83-summary.json)。真实控制中的服务是已明确建立的PID1单进程FIFO服务，仅在容器内响应。写入子进程等待 grade-entry，评分前核对其不存在或为zombie，然后触发grade-entry、检查无迟到写入、产物存在及服务实际响应。证据是进程身份／文件／服务结果，不只是控制进程退出或mock布尔值。
+每例初始只有 idle 容器，没有预启动 FIFO 服务、PID 清单或动态注册。服务由实际 Agent 工具创建；后续工具写 later-tool 标记、评分发送 grade 请求并由服务写日志。timeout 的 start/done 标记证明等待结束不等于任务进程结束。所有控制最终 inspect 确认 Running=false/Pid=0，随后只删除自己的容器。合成 reward=1 不计官方成功。
 
-额外离线覆盖正常完成、agent_timeout、turn_limit、step_limit、冻结Ledger的dispatch_budget/tool_budget，以及三阶段的用户取消／过期／资源停止、未知停止、迟到Agent回调、评分超时、完整评分后取消、取消后迟到评分、交接超时和合成评分分类。阶段事件使用显式调度顺序断言，不以模糊睡眠容差证明竞态正确。旧#81局部超时回归保留；旧“Agent deadline不评分”断言前瞻更新，历史日志不改。
+两个实际 runner：`ece11c603915d225debe2459092e2db491e30452`（normal/timeout）与 `6cdafcb0d3d0bcf0dbd8fbe99767ec45e38bf502`（其余五例）。两者执行文件及真实夹具字节完全一致；差别仅设计文档及离线测试末尾空行。`runner-equivalence.json`记录核对；后续交付提交只更新文档／摘要／导航，不把未运行的实现冒充已测。
 
-## 累计预算、资源与终态
+保留原有六种可评分结束路径、三阶段用户取消／到期／资源保护、迟到响应、评分与取消有序竞争、局部命令错误、独立评分时限及一次终态测试。新增客户端正常／非零／超时／交接中断／启动失败、有界输出、真实容器状态交接与失败禁止评分测试。完整原始日志见归档。
 
-Builder固定账本 `/private/tmp/wo83-work/builder-container-budget.jsonl`，16次已结账，无未结束记录；累计 **59.34770695696352 / 1800秒**，剩余1740.6522930430365秒。首次正常控制、第一次矩阵、修复后定向取消及最后矩阵全部相加，没有按场景或源码版本重置。Regulator预算未使用，独立账本路径仍由合同指定。
+## 预算、偏差与资源
 
-每次区间在首次Docker镜像核对前写入并fsync，排他锁覆盖全区间，含启动、验证、等待、重复stop和最终清理。watchdog为60秒与剩余额度的较小值；本轮未触限，也没有超预算必要清理。所有容器只由本工单唯一命名创建；stop后inspect确认Running=false/Pid=0，再删除自有容器。旧资源未清理，无新镜像、网络、服务端口或依赖安装。
+固定 Builder 账本 `/private/tmp/wo83-work/builder-container-budget.jsonl` 原前缀逐字节保留，现 **23 个完成区间，79.88078095798846 / 1800 秒**，账面剩余 **1720.1192190420115 秒**；本修订新增 7 区间。无未结束区间。Regulator 原 8 区间／27.373108915024204 秒逐字节未变，Builder 未使用其额度。
 
-固定镜像 `sha256:41217bae6667f04a767dc1b2c5c12b034dfc51a18226202003313aaf86832055`，network none，2CPU/4GiB，无敏感挂载、特权或额外设备。35个资源样本，最低空闲87681548288字节、按首样本复算最大记账增长1339392字节；满足60GiB／24GiB约束。仅声明采样观测，不宣称捕捉瞬时峰值。旧#77/#79/#82三份消费账本哈希复核未变，未复用旧授权。
+**已知偏差：**首次离线红测只 mock `broker.docker`，但旧 `ManagedCommand.confirm_quiescent` 直接调用 subprocess，因而意外执行一次 `docker exec synthetic /bin/sh -c …`。命令失败，没有创建容器、运行正式任务或模型。该操作没有进入固定账本，实际 Docker 单调时钟端点未知；工具报告整个 shell 0.433583542 秒、unittest 0.118 秒，这些不是可倒填的 Docker 区间。原 `red-offline.log` 与 `budget-deviation.md`保留，不补造、重置账本或把实际总耗时写成精确已知。此偏差需由独立方按 C-GRADE83-04 裁定；后续成功不能消除它。
 
-## 失败与判断修正
+修正测试隔离后，新增实际控制全部由固定排他锁账本包围，从首次 image inspect 到最终 stop/inspect/rm，包含等待与失败，watchdog 为 60 秒与剩余额度较小者。缓存镜像 `sha256:41217bae6667f04a767dc1b2c5c12b034dfc51a18226202003313aaf86832055`；network none、2CPU/4GiB、无挂载／特权／额外设备／端口。内置盘活跃证据，5 秒资源采样与 60GiB/24GiB保护不变；无下载／安装／新镜像／旧资源清理。
 
-1. 原症状复现红：短Agent时限在合成评分等待期间仍触发agent_timeout。结合#82原始Evidence，修复对象从“延长等待”确定为阶段计时／停止耦合；没有延长官方时限。
-2. 扩展脚本测试最初缺少Kimi工具轮所需的合成continuation字段，四类预算测试先报protocol。补齐fixture后才测试到实际预算路径；这不是模型或预算实现失败，原日志保留。
-3. 完整并发回归暴露80ms墙钟复现受负载影响，以及旧CLI mock没有quiesce。改为可控制的事件顺序与阶段能力mock，未放宽行为断言。
-4. 第一版真实矩阵通过原断言，但人工复查发现cancel下同一操作被effects记录两次。原因是已记录结果后再次检查全局gate进入catch，又补一条失败。补充精确条数断言并消除重复记录；旧候选 `f0bd2405efdd5d79ccd914520852575eabc6563f` 与其8次控制证据保留。修复后 `60ed5d87787521b1db8a465f6f6c591de4626c06` 定向及完整矩阵通过。
+## 判断修正与归属
 
-Human指定目标、预算和可评分原因；Master冻结合同与验收范围；Builder实现、诊断和自行验证；Regulator尚待独立复核。上述实现和测试操作由Agent完成，不写成人类独立实现。对任务成功率、真实网络错误根因和实际官方评分耗时的收益仍未知，需另行授权评测。
+1. 旧 1.0 以“Agent 停止”等同全部新任务进程停止，正常返回也清组；其原技术 PASS 证明的是旧合同边界。Human 指出服务／长操作应按冻结上游和任务语义保留，Master 发布前瞻 1.1；不是追溯声称旧测试未通过。
+2. Builder 读取冻结执行／超时／共享环境源码与五题说明后，移除自制 PID 规则，采用薄的宿主等待收尾；真实服务和跨等待操作控制验证此修正。仍不证明对抗性后台 Agent 检测、任意环境兼容或五题成绩收益。
+3. 红测隔离失误及未入账命令是 Builder 操作错误。原因和日志公开保留；后续在实际 subprocess seam mock，真实 Docker 全走固定夹具。不得归因于 Human，也不能用模拟计时补齐审计历史。
+4. 首轮 Node 回归失败是旧 mock 仍返回 termination.confirmed，修订为 wait.settled 后通过；原日志保留。源码等价审计初版误把 ignore-space-at-eol 当成忽略空白行，改为读取 Git blob 的 rstrip 精确比较，未重复容器运行。
 
-## 复核位置与限制
+Human 提供目标纠偏，Master 冻结合同，Builder 完成实现与自测，独立 Regulator 尚待复核。C-GRADE83-02 新边界材料需在技术复核后由 Human 一次审阅；不再请求旧 PID 边界的 pass。
 
-原件 `/private/tmp/wo83-work/`，归档 `/Volumes/WD_BLACK/pan-agent/wo83-verifier-handoff-20260923/`：
+## 原件与交接
 
-- `builder-evidence.tar.gz` SHA256 `ad0d4a59035c6679775eb0df589498ea8b9ba4632b20b50d36d5d1bbf93802e2`。
-- `evidence-index.json` SHA256 `bd63170cba9aabac3ec9b66809a7f8242e0e8a5e8a9cc0a6464188d8bef799e0`；202个文件逐一回读验证。tar根wo83-work，含固定累计账本、所有控制输入/RPC/结果/原始archive/终态、所有失败日志、回归及范围身份检查。
-- 原始合成fixture请求日志包含字面占位符`synthetic-private`；它是固定脚本测试输入，不是从真实模型取得的私有reasoning或凭证。真实凭证未读取，provider请求为0；候选只放脱敏统计和证据定位。
+新归档 `/Volumes/WD_BLACK/pan-agent/wo83-verifier-handoff-20260923/criteria11/`，含 `builder-evidence.tar.gz`、`evidence-index.json`、`Handoff.md`。归档哈希由[机器摘要](verifier-handoff-83-summary.json)及外部 Handoff 绑定。活跃原件在 `/private/tmp/wo83-work/criteria11/` 与 `criteria11-<scenario>-<uuid>/`，固定累计账本保持原位置。
 
-C-GRADE83-01～04均有上述Builder证据，最终判定由独立Regulator完成。尤其C-GRADE83-02：只保留Agent开始前已固定PID/start-time身份的服务，不支持任意新后台进程自动成为服务，也不证明对抗性隔离。Human应在技术复核后一次审阅“写入停止／服务保留／未知进程拒绝”的材料并确认H-GRADE83-BOUNDARY；本次不提前索取pass。
+旧归档 `../builder-evidence.tar.gz` SHA256 `ad0d4a59035c6679775eb0df589498ea8b9ba4632b20b50d36d5d1bbf93802e2` 复核未变；旧 `../regulator-20260923/Verdict.md` 的技术 PASS、rejected/evidence_incomplete 原样保留。请求文件中的 synthetic-private 是固定脚本占位符，不是真实模型 reasoning 或凭证。
 
-人类反馈检查PASS、整包结构PASS；根路径仍因已有`.DS_Store`和`潘佳祥——agent简历.pdf` BLOCK。范围外文件不修改。根SOURCE_OF_TRUTH已导航#83合同，集成/验收状态留Master更新。Handoff后Builder停止，不自行合main或宣布accepted。
+人类反馈无待处理；整包结构检查 PASS。根路径仍因已有 `.DS_Store` 与 `潘佳祥——agent简历.pdf` BLOCK，未改范围外文件。根 SOURCE_OF_TRUTH 已导航 1.1，验收／集成状态留 Master 维护。交接包含已知预算违规，Builder 不宣布 accepted，不合 main。

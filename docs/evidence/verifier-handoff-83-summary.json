@@ -1,10 +1,10 @@
 {
-  "schema": 1,
+  "schema": 2,
   "issue": 83,
-  "criteria_version": "1.0",
-  "status": "candidate_pending_independent_regulator_and_human_boundary_review",
+  "criteria_version": "1.1",
+  "status": "candidate_pending_independent_review_with_known_budget_deviation",
   "base_sha": "739bed6c6d1643940ff2cf8411c3aa5a6214cf09",
-  "final_control_runner_sha": "60ed5d87787521b1db8a465f6f6c591de4626c06",
+  "previous_candidate_sha": "5552200379c3f4d45288b6942966d3ac755e3314",
   "authorization": "H-GRADE83-SCOPE-20260923-001",
   "real_model_requests": 0,
   "official_tasks": 0,
@@ -12,21 +12,33 @@
   "container_budget": {
     "role": "builder",
     "fixed_path": "/private/tmp/wo83-work/builder-container-budget.jsonl",
-    "attempts": 16,
-    "cumulative_seconds": 59.34770695696352,
-    "remaining_seconds": 1740.6522930430365,
+    "attempts": 23,
+    "cumulative_recorded_seconds": 79.88078095798846,
+    "remaining_recorded_seconds": 1720.1192190420115,
     "ceiling_seconds": 1800,
     "unfinished": 0,
-    "sha256": "65a14b98da850a31072bd9bd5e1a9d3901c698c82fb1a2e4080b7015d80ed00a"
+    "sha256": "531f995bc6c98c78b42300821758752c40a2ca02c35fde3361cd02f59add79cd",
+    "old_prefix_preserved": true,
+    "unmetered_docker_operation": {
+      "count": 1,
+      "command_target": "synthetic",
+      "actual_elapsed_seconds": null,
+      "entire_shell_observed_wall_seconds": 0.433583542,
+      "reason": "offline mock missed old direct subprocess seam",
+      "evidence": "criteria11/budget-deviation.md",
+      "criterion": "C-GRADE83-04",
+      "disposition": "known violation; no retrospective ledger fabrication; independent adjudication required"
+    }
   },
+  "regulator_ledger_unchanged": true,
   "controls": [
     {
       "scenario": "budget",
-      "runner_sha": "60ed5d87787521b1db8a465f6f6c591de4626c06",
-      "attempt_id": "41c4c28c-b02e-4e70-a646-ee8fd095a5e9",
-      "elapsed_seconds": 3.1252295000012964,
-      "synthetic_dispatches": 1,
-      "effects": 1,
+      "runner_sha": "6cdafcb0d3d0bcf0dbd8fbe99767ec45e38bf502",
+      "attempt_id": "2690d52e-140b-40e1-8d5f-f25af3ac1063",
+      "elapsed_seconds": 1.8997647910146043,
+      "synthetic_dispatches": 2,
+      "effects": 2,
       "agent_status": "incomplete",
       "agent_reason": "turn_limit",
       "global_stops": [],
@@ -35,43 +47,28 @@
         "rewards": {
           "reward": 1
         },
-        "oracle": "artifact preserved; delayed writer absent/zombie before grade-entry trigger; no late write; pinned FIFO service responds",
-        "writer_observation": "85 (sh) Z 1 43 43 0 -1 4228364 529 1296 0 0 1 0 3 0 20 0 1 0 23201 0 0 18446744073709551615 0 0 0 0 0 0 0 6 66576 1 0 0 17 2 0 0 0 0 0 0 0 0 0 0 0 0 9\n"
+        "oracle": "Agent-started service answers later tool and verifier; artifact retained; any launched long operation finishes after release",
+        "observation": "DYNAMIC_SERVICE_AND_ARTIFACT_OK"
       },
-      "quiescence_confirmed": true,
-      "stop_confirmed": true,
-      "raw_directory": "budget-9729dd0e-df97-4193-ac8b-62bacdb3c252",
-      "is_final_runner": true
-    },
-    {
-      "scenario": "budget",
-      "runner_sha": "f0bd2405efdd5d79ccd914520852575eabc6563f",
-      "attempt_id": "e74c1593-9035-4576-8def-a5e1218b82be",
-      "elapsed_seconds": 2.763927749998402,
-      "synthetic_dispatches": 1,
-      "effects": 1,
-      "agent_status": "incomplete",
-      "agent_reason": "turn_limit",
-      "global_stops": [],
-      "verifier": {
-        "status": "synthetic_control",
-        "rewards": {
-          "reward": 1
-        },
-        "oracle": "artifact preserved; delayed writer absent/zombie before grade-entry trigger; no late write; pinned FIFO service responds",
-        "writer_observation": "83 (sh) Z 1 42 42 0 -1 4228364 518 992 0 0 1 0 2 0 20 0 1 0 5460 0 0 18446744073709551615 0 0 0 0 0 0 0 6 66576 1 0 0 17 2 0 0 0 0 0 0 0 0 0 0 0 0 9\n"
+      "quiescence": {
+        "confirmed": true,
+        "reason": null,
+        "scope": "Agent admission closed and host client wait settled; task processes retained"
       },
-      "quiescence_confirmed": true,
       "stop_confirmed": true,
-      "raw_directory": "budget-dd97f139-a9d9-4b2f-a30b-e36c853ee93b",
-      "is_final_runner": false
+      "container_stopped": true,
+      "raw_directory": "criteria11-budget-03facc7d-02b9-4562-b7fc-b8445a119471",
+      "tool_statuses": [
+        "completed",
+        "completed"
+      ]
     },
     {
       "scenario": "cancel",
-      "runner_sha": "f0bd2405efdd5d79ccd914520852575eabc6563f",
-      "attempt_id": "39c235db-8522-45df-9e7a-b7bc09a15b78",
-      "elapsed_seconds": 2.5042578330030665,
-      "synthetic_dispatches": 1,
+      "runner_sha": "6cdafcb0d3d0bcf0dbd8fbe99767ec45e38bf502",
+      "attempt_id": "97487d3b-803a-4dbe-a14c-df2d5e33159d",
+      "elapsed_seconds": 2.6795955420238897,
+      "synthetic_dispatches": 2,
       "effects": 2,
       "agent_status": "cancelled",
       "agent_reason": "operator_cancelled",
@@ -79,81 +76,26 @@
         {
           "reason": "cancelled",
           "phase": "agent",
-          "at": 12006.929334
-        },
-        {
-          "reason": "command_stop_unconfirmed",
-          "phase": "agent",
-          "at": 13079.078042
+          "at": 1732.6895
         }
       ],
       "verifier": null,
-      "quiescence_confirmed": null,
+      "quiescence": null,
       "stop_confirmed": true,
-      "raw_directory": "cancel-3c176f6e-9569-4743-853f-f7da1dcd98c7",
-      "is_final_runner": false
-    },
-    {
-      "scenario": "cancel",
-      "runner_sha": "60ed5d87787521b1db8a465f6f6c591de4626c06",
-      "attempt_id": "8990cbf9-03ee-409b-8adc-c44e9b6f0875",
-      "elapsed_seconds": 2.8598258749989327,
-      "synthetic_dispatches": 1,
-      "effects": 1,
-      "agent_status": "cancelled",
-      "agent_reason": "operator_cancelled",
-      "global_stops": [
-        {
-          "reason": "cancelled",
-          "phase": "agent",
-          "at": 2069.324083
-        },
-        {
-          "reason": "command_stop_unconfirmed",
-          "phase": "agent",
-          "at": 3141.030458
-        }
-      ],
-      "verifier": null,
-      "quiescence_confirmed": null,
-      "stop_confirmed": true,
-      "raw_directory": "cancel-99374d64-1522-4d41-b3a7-684051fe7c4e",
-      "is_final_runner": true
-    },
-    {
-      "scenario": "cancel",
-      "runner_sha": "60ed5d87787521b1db8a465f6f6c591de4626c06",
-      "attempt_id": "b76e6838-efc0-4d6e-a046-fe058ebe6134",
-      "elapsed_seconds": 2.566133957996499,
-      "synthetic_dispatches": 1,
-      "effects": 1,
-      "agent_status": "cancelled",
-      "agent_reason": "operator_cancelled",
-      "global_stops": [
-        {
-          "reason": "cancelled",
-          "phase": "agent",
-          "at": 13923.40925
-        },
-        {
-          "reason": "command_stop_unconfirmed",
-          "phase": "agent",
-          "at": 15046.321625
-        }
-      ],
-      "verifier": null,
-      "quiescence_confirmed": null,
-      "stop_confirmed": true,
-      "raw_directory": "cancel-f7bc9184-6a3a-4160-8e15-970359ae9ae9",
-      "is_final_runner": true
+      "container_stopped": true,
+      "raw_directory": "criteria11-cancel-4fbd408b-0ca7-4bee-9f5d-1792e4819af7",
+      "tool_statuses": [
+        "completed",
+        "cancelled"
+      ]
     },
     {
       "scenario": "deadline",
-      "runner_sha": "f0bd2405efdd5d79ccd914520852575eabc6563f",
-      "attempt_id": "0576d416-fed8-4dd9-8d19-11949e863bb5",
-      "elapsed_seconds": 3.9174311670067254,
-      "synthetic_dispatches": 1,
-      "effects": 1,
+      "runner_sha": "6cdafcb0d3d0bcf0dbd8fbe99767ec45e38bf502",
+      "attempt_id": "b660702b-e628-4423-a857-1d40dc263c79",
+      "elapsed_seconds": 3.04572462500073,
+      "synthetic_dispatches": 2,
+      "effects": 2,
       "agent_status": "cancelled",
       "agent_reason": "agent_timeout",
       "global_stops": [],
@@ -162,111 +104,27 @@
         "rewards": {
           "reward": 1
         },
-        "oracle": "artifact preserved; delayed writer absent/zombie before grade-entry trigger; no late write; pinned FIFO service responds",
-        "writer_observation": "82 (sh) Z 1 41 41 0 -1 4228364 885 6447 0 0 1 0 21 2 20 0 1 0 5047 0 0 18446744073709551615 0 0 0 0 0 0 0 6 66576 1 0 0 17 5 0 0 0 0 0 0 0 0 0 0 0 0 9\n"
+        "oracle": "Agent-started service answers later tool and verifier; artifact retained; any launched long operation finishes after release",
+        "observation": "DYNAMIC_SERVICE_AND_ARTIFACT_OK"
       },
-      "quiescence_confirmed": true,
-      "stop_confirmed": true,
-      "raw_directory": "deadline-283768ef-abbe-46f6-934d-b162519be74c",
-      "is_final_runner": false
-    },
-    {
-      "scenario": "deadline",
-      "runner_sha": "60ed5d87787521b1db8a465f6f6c591de4626c06",
-      "attempt_id": "8fd6b4d2-9719-4d4e-a6f8-7da0f9c57252",
-      "elapsed_seconds": 3.88978445797693,
-      "synthetic_dispatches": 1,
-      "effects": 1,
-      "agent_status": "cancelled",
-      "agent_reason": "agent_timeout",
-      "global_stops": [],
-      "verifier": {
-        "status": "synthetic_control",
-        "rewards": {
-          "reward": 1
-        },
-        "oracle": "artifact preserved; delayed writer absent/zombie before grade-entry trigger; no late write; pinned FIFO service responds",
-        "writer_observation": "85 (sh) Z 1 43 43 0 -1 4228364 841 5801 0 0 1 0 16 1 20 0 1 0 22754 0 0 18446744073709551615 0 0 0 0 0 0 0 6 66576 1 0 0 17 4 0 0 0 0 0 0 0 0 0 0 0 0 9\n"
+      "quiescence": {
+        "confirmed": true,
+        "reason": null,
+        "scope": "Agent admission closed and host client wait settled; task processes retained"
       },
-      "quiescence_confirmed": true,
       "stop_confirmed": true,
-      "raw_directory": "deadline-a9a33b34-0a49-478e-9875-9344d696bff9",
-      "is_final_runner": true
+      "container_stopped": true,
+      "raw_directory": "criteria11-deadline-d5405392-a857-483d-b3da-89df7879d42a",
+      "tool_statuses": [
+        "completed",
+        "interrupted"
+      ]
     },
     {
       "scenario": "normal",
-      "runner_sha": "f0bd2405efdd5d79ccd914520852575eabc6563f",
-      "attempt_id": "00a8b1ec-d4c1-4b3c-baca-c0bd79add083",
-      "elapsed_seconds": 5.250414457987063,
-      "synthetic_dispatches": 2,
-      "effects": 1,
-      "agent_status": "completed",
-      "agent_reason": null,
-      "global_stops": [],
-      "verifier": {
-        "status": "synthetic_control",
-        "rewards": {
-          "reward": 1
-        },
-        "oracle": "artifact preserved; delayed writer absent/zombie before grade-entry trigger; no late write; pinned FIFO service responds",
-        "writer_observation": "84 (sh) Z 1 43 43 0 -1 4228364 511 974 0 0 1 0 2 0 20 0 1 0 261 0 0 18446744073709551615 0 0 0 0 0 0 0 6 66576 1 0 0 17 3 0 0 0 0 0 0 0 0 0 0 0 0 9\n"
-      },
-      "quiescence_confirmed": true,
-      "stop_confirmed": true,
-      "raw_directory": "normal-104a099d-e951-4a32-8dff-603c9cbcf0db",
-      "is_final_runner": false
-    },
-    {
-      "scenario": "normal",
-      "runner_sha": "60ed5d87787521b1db8a465f6f6c591de4626c06",
-      "attempt_id": "5a00df4a-2ff1-4e93-a7b5-616d0691330e",
-      "elapsed_seconds": 4.123621583014028,
-      "synthetic_dispatches": 2,
-      "effects": 1,
-      "agent_status": "completed",
-      "agent_reason": null,
-      "global_stops": [],
-      "verifier": {
-        "status": "synthetic_control",
-        "rewards": {
-          "reward": 1
-        },
-        "oracle": "artifact preserved; delayed writer absent/zombie before grade-entry trigger; no late write; pinned FIFO service responds",
-        "writer_observation": "88 (sh) Z 1 43 43 0 -1 4228364 566 1652 0 0 1 0 4 0 20 0 1 0 22412 0 0 18446744073709551615 0 0 0 0 0 0 0 6 66576 1 0 0 17 3 0 0 0 0 0 0 0 0 0 0 0 0 9\n"
-      },
-      "quiescence_confirmed": true,
-      "stop_confirmed": true,
-      "raw_directory": "normal-195618c7-d895-4147-9d9b-3ac0be425868",
-      "is_final_runner": true
-    },
-    {
-      "scenario": "normal",
-      "runner_sha": "f0bd2405efdd5d79ccd914520852575eabc6563f",
-      "attempt_id": "d15cad13-cdc6-466b-b08e-f960b45eb904",
-      "elapsed_seconds": 2.8606358749966603,
-      "synthetic_dispatches": 2,
-      "effects": 1,
-      "agent_status": "completed",
-      "agent_reason": null,
-      "global_stops": [],
-      "verifier": {
-        "status": "synthetic_control",
-        "rewards": {
-          "reward": 1
-        },
-        "oracle": "artifact preserved; delayed writer absent/zombie before grade-entry trigger; no late write; pinned FIFO service responds",
-        "writer_observation": "83 (sh) Z 1 43 43 0 -1 4228364 511 972 0 0 1 0 2 0 20 0 1 0 4739 0 0 18446744073709551615 0 0 0 0 0 0 0 6 66576 1 0 0 17 1 0 0 0 0 0 0 0 0 0 0 0 0 9\n"
-      },
-      "quiescence_confirmed": true,
-      "stop_confirmed": true,
-      "raw_directory": "normal-3383697e-85c5-475a-9922-f9a3c09bd14a",
-      "is_final_runner": false
-    },
-    {
-      "scenario": "timeout",
-      "runner_sha": "60ed5d87787521b1db8a465f6f6c591de4626c06",
-      "attempt_id": "e32ced1b-e515-4639-bfbc-c52faafb0e81",
-      "elapsed_seconds": 5.275277291977545,
+      "runner_sha": "ece11c603915d225debe2459092e2db491e30452",
+      "attempt_id": "23e95507-780a-4168-84f0-fadf205f7ba5",
+      "elapsed_seconds": 4.574907709000399,
       "synthetic_dispatches": 3,
       "effects": 2,
       "agent_status": "completed",
@@ -277,21 +135,29 @@
         "rewards": {
           "reward": 1
         },
-        "oracle": "artifact preserved; delayed writer absent/zombie before grade-entry trigger; no late write; pinned FIFO service responds",
-        "writer_observation": "81 (sh) Z 1 42 42 0 -1 4228364 1082 9341 0 0 1 0 26 2 20 0 1 0 24541 0 0 18446744073709551615 0 0 0 0 0 0 0 6 66576 1 0 0 17 1 0 0 0 0 0 0 0 0 0 0 0 0 9\n"
+        "oracle": "Agent-started service answers later tool and verifier; artifact retained; any launched long operation finishes after release",
+        "observation": "DYNAMIC_SERVICE_AND_ARTIFACT_OK"
       },
-      "quiescence_confirmed": true,
+      "quiescence": {
+        "confirmed": true,
+        "reason": null,
+        "scope": "Agent admission closed and host client wait settled; task processes retained"
+      },
       "stop_confirmed": true,
-      "raw_directory": "timeout-aebefb3f-9b19-4149-821a-e0857ad72be1",
-      "is_final_runner": true
+      "container_stopped": true,
+      "raw_directory": "criteria11-normal-ba2fed91-d2f8-4ca1-80c9-4e6835a4ad48",
+      "tool_statuses": [
+        "completed",
+        "completed"
+      ]
     },
     {
       "scenario": "timeout",
-      "runner_sha": "f0bd2405efdd5d79ccd914520852575eabc6563f",
-      "attempt_id": "11ce6248-e555-4a40-9ade-b376f895d34d",
-      "elapsed_seconds": 6.057851207995554,
-      "synthetic_dispatches": 3,
-      "effects": 2,
+      "runner_sha": "ece11c603915d225debe2459092e2db491e30452",
+      "attempt_id": "cda82986-edd3-4f8f-a11b-187c4ef0666a",
+      "elapsed_seconds": 3.9881546669930685,
+      "synthetic_dispatches": 4,
+      "effects": 3,
       "agent_status": "completed",
       "agent_reason": null,
       "global_stops": [],
@@ -300,82 +166,67 @@
         "rewards": {
           "reward": 1
         },
-        "oracle": "artifact preserved; delayed writer absent/zombie before grade-entry trigger; no late write; pinned FIFO service responds",
-        "writer_observation": "84 (sh) Z 1 42 42 0 -1 4228364 1061 9019 0 0 1 0 25 2 20 0 1 0 6889 0 0 18446744073709551615 0 0 0 0 0 0 0 6 66576 1 0 0 17 2 0 0 0 0 0 0 0 0 0 0 0 0 9\n"
+        "oracle": "Agent-started service answers later tool and verifier; artifact retained; any launched long operation finishes after release",
+        "observation": "DYNAMIC_SERVICE_AND_ARTIFACT_OK"
       },
-      "quiescence_confirmed": true,
+      "quiescence": {
+        "confirmed": true,
+        "reason": null,
+        "scope": "Agent admission closed and host client wait settled; task processes retained"
+      },
       "stop_confirmed": true,
-      "raw_directory": "timeout-eca25e02-c120-4b16-bcf2-eb58f0c3f2fd",
-      "is_final_runner": false
+      "container_stopped": true,
+      "raw_directory": "criteria11-timeout-bd35e305-91e9-4a8b-9a93-d8d3048e54e1",
+      "tool_statuses": [
+        "completed",
+        "timeout",
+        "completed"
+      ]
     },
     {
       "scenario": "uncertain",
-      "runner_sha": "60ed5d87787521b1db8a465f6f6c591de4626c06",
-      "attempt_id": "293e156f-3c9f-4778-b235-2aec8e93f987",
-      "elapsed_seconds": 3.6465892090054695,
-      "synthetic_dispatches": 1,
-      "effects": 1,
-      "agent_status": "cancelled",
-      "agent_reason": "operator_cancelled",
+      "runner_sha": "6cdafcb0d3d0bcf0dbd8fbe99767ec45e38bf502",
+      "attempt_id": "14e50ea7-f80a-4cf1-a142-2e4292692d66",
+      "elapsed_seconds": 1.7667717919975985,
+      "synthetic_dispatches": 3,
+      "effects": 2,
+      "agent_status": "completed",
+      "agent_reason": null,
       "global_stops": [
         {
           "reason": "command_stop_unconfirmed",
-          "phase": "agent",
-          "at": 22525.223416
-        },
-        {
-          "reason": "cancelled",
-          "phase": "agent",
-          "at": 22525.306541
+          "phase": "handoff",
+          "at": 1940.643709
         }
       ],
       "verifier": null,
-      "quiescence_confirmed": null,
+      "quiescence": {
+        "confirmed": false,
+        "reason": "environment_not_running",
+        "scope": "Agent admission closed and host client wait settled; task processes retained"
+      },
       "stop_confirmed": true,
-      "raw_directory": "uncertain-09ee8462-2c67-461e-9760-558f309ea346",
-      "is_final_runner": true
-    },
-    {
-      "scenario": "uncertain",
-      "runner_sha": "f0bd2405efdd5d79ccd914520852575eabc6563f",
-      "attempt_id": "e58cdab8-685c-49bb-81f2-6c40817cc34e",
-      "elapsed_seconds": 3.862596457998734,
-      "synthetic_dispatches": 1,
-      "effects": 1,
-      "agent_status": "cancelled",
-      "agent_reason": "operator_cancelled",
-      "global_stops": [
-        {
-          "reason": "command_stop_unconfirmed",
-          "phase": "agent",
-          "at": 20683.698125
-        },
-        {
-          "reason": "cancelled",
-          "phase": "agent",
-          "at": 20683.784042
-        }
-      ],
-      "verifier": null,
-      "quiescence_confirmed": null,
-      "stop_confirmed": true,
-      "raw_directory": "uncertain-e82fc541-c58f-473c-b7a5-b376973d6505",
-      "is_final_runner": false
+      "container_stopped": true,
+      "raw_directory": "criteria11-uncertain-6b65f536-e0da-4383-9b33-701edfdad297",
+      "tool_statuses": [
+        "completed",
+        "completed"
+      ]
     },
     {
       "scenario": "verifier_cancel",
-      "runner_sha": "60ed5d87787521b1db8a465f6f6c591de4626c06",
-      "attempt_id": "eb13dc2a-e6ca-48ec-9cba-19456f9e9dd3",
-      "elapsed_seconds": 3.315709957998479,
-      "synthetic_dispatches": 2,
-      "effects": 1,
+      "runner_sha": "6cdafcb0d3d0bcf0dbd8fbe99767ec45e38bf502",
+      "attempt_id": "f48d7544-e3bc-47e0-9ccf-a181db57a6a8",
+      "elapsed_seconds": 2.5781548749946523,
+      "synthetic_dispatches": 3,
+      "effects": 2,
       "agent_status": "completed",
       "agent_reason": null,
       "global_stops": [
         {
           "reason": "cancelled",
           "phase": "verifier",
-          "at": 16715.556625
+          "at": 783.33175
         }
       ],
       "verifier": {
@@ -383,87 +234,77 @@
         "rewards": null,
         "verifier_exit_or_exception": "cancelled"
       },
-      "quiescence_confirmed": true,
-      "stop_confirmed": true,
-      "raw_directory": "verifier_cancel-9101a4d7-3743-4f93-8a0a-07a2d6cc7550",
-      "is_final_runner": true
-    },
-    {
-      "scenario": "verifier_cancel",
-      "runner_sha": "f0bd2405efdd5d79ccd914520852575eabc6563f",
-      "attempt_id": "a6ad81e7-0e42-4ca7-9143-cb339f42bfd4",
-      "elapsed_seconds": 3.328420375008136,
-      "synthetic_dispatches": 2,
-      "effects": 1,
-      "agent_status": "completed",
-      "agent_reason": null,
-      "global_stops": [
-        {
-          "reason": "cancelled",
-          "phase": "verifier",
-          "at": 14746.615625
-        }
-      ],
-      "verifier": {
-        "status": "evaluation_error",
-        "rewards": null,
-        "verifier_exit_or_exception": "cancelled"
+      "quiescence": {
+        "confirmed": true,
+        "reason": null,
+        "scope": "Agent admission closed and host client wait settled; task processes retained"
       },
-      "quiescence_confirmed": true,
       "stop_confirmed": true,
-      "raw_directory": "verifier_cancel-d4c76bbd-fdd9-4844-b209-a37f3c09afb4",
-      "is_final_runner": false
+      "container_stopped": true,
+      "raw_directory": "criteria11-verifier_cancel-e0994e5a-b932-4b94-90b2-a8f9c2bd3538",
+      "tool_statuses": [
+        "completed",
+        "completed"
+      ]
     }
   ],
-  "tests": {
-    "node_final": {
-      "pass": 50,
-      "skip_opt_in": 13,
-      "fail": 0
+  "offline": {
+    "node_pass": 50,
+    "node_skipped": 8,
+    "python_pass": 19
+  },
+  "source_identities": {
+    "harbor_commit": "f9deaca7f44ab0b91f1dd445d79629e4d97a0716",
+    "harbor_files_verified": 363,
+    "installed_files_verified": 80,
+    "python_verified": true,
+    "sources_read_sha256": {
+      "agents/base.py": "5a0a59edb7406c8ad77f3667f5a4eff2a755509c6d0d2cd0c25ce8405de7773c",
+      "trial/single_step.py": "fbf03d5e721177b3d35b0a778ec5224f2bb07b55d540542c8339843f21f0b06e",
+      "trial/trial.py": "04f95b4197a77c948f81e4f848adbdd383ba6f62db03cfd4a2be590084a95c7a",
+      "environments/docker/docker.py": "071d8d1f13dcb59b5f02cdcbf88dce36108cac4ccb3dd0db4a063fc988b5b35b",
+      "environments/docker/docker_unix.py": "56f1655b29ad222c315b2ea3c6d4172d6fdcd4a3788697eb9d3f80d1264b3152"
     },
-    "python_final": {
-      "pass": 20,
-      "fail": 0
+    "task_instruction_and_config_sha256": {
+      "overfull-hbox": {
+        "instruction.md": "91381d7490afbbf11255e22471d3ed76317353d8e1da372fbc91887e65c57f47",
+        "task.toml": "d24390ba221061b27cd05ef37504614cb76a489956640a3a74a3d7e773c5518b"
+      },
+      "dna-insert": {
+        "instruction.md": "49fce0ee8b73d7ccdf4b8476c6bb87cf362689fd1d77b21a0d8737d16019a473",
+        "task.toml": "c3e47f205b39b34c9f71cd0f3ce62d810abaa591436c30c4fb3f03349a42dde5"
+      },
+      "nginx-request-logging": {
+        "instruction.md": "26a7ac98aced6107f147206790ada77bbf8ed3c25fb360cf323d5fc6889edf99",
+        "task.toml": "f41393eea6490092669c0a6abcb3087b751e933d1182fb04471fc56495aeb377"
+      },
+      "merge-diff-arc-agi-task": {
+        "instruction.md": "2d826479873e5ac1c94c1f802763bf85c22bb04624384685ebdf6b153fe0278e",
+        "task.toml": "32696fcfedf2df9a089b97a7fb4dcb6f757b7bb438e5bff5c8c0076ea622af3a"
+      },
+      "break-filter-js-from-html": {
+        "instruction.md": "ad42558111b2a8e8534bdf52b584b804348e1a8d68d756f812a31d5147e65be5",
+        "task.toml": "5c10a564179f73c001441dc9a56cb629efac72f5828be8655697c9d2fd2dbb96"
+      }
     },
-    "final_container_matrix": {
-      "pass": 7,
-      "fail": 0
-    },
-    "targeted_cancel_after_fix": {
-      "pass": 1
-    }
+    "solutions_or_official_tests_read": false
+  },
+  "old_evidence": {
+    "archive": "/Volumes/WD_BLACK/pan-agent/wo83-verifier-handoff-20260923/builder-evidence.tar.gz",
+    "sha256": "ad0d4a59035c6679775eb0df589498ea8b9ba4632b20b50d36d5d1bbf93802e2",
+    "verdict": "/Volumes/WD_BLACK/pan-agent/wo83-verifier-handoff-20260923/regulator-20260923/Verdict.md",
+    "meaning": "Criteria1.0 technical PASS, rejected/evidence_incomplete missing old Human boundary; prospective change, not retroactive failure"
+  },
+  "archive": {
+    "root": "/Volumes/WD_BLACK/pan-agent/wo83-verifier-handoff-20260923/criteria11",
+    "file_count": 96,
+    "archive_sha256": "802408356e709bada5724bddd7cd169db8403e0911dc0233da37082d219bfa91",
+    "index_sha256": "24392c2043cf392f25942bc755a281aae2e66aba70c2d3fda84ded956413239c",
+    "readback_verified": true
   },
   "resources": {
-    "samples": 35,
-    "minimum_free_bytes": 87681548288,
-    "maximum_growth_from_first_sample_bytes": 1339392,
-    "image": "sha256:41217bae6667f04a767dc1b2c5c12b034dfc51a18226202003313aaf86832055",
-    "network": "none",
-    "cpus": 2,
-    "memory_bytes": 4294967296
-  },
-  "prior_live_ledgers_unchanged": {
-    "6130046a-3003-4102-b450-f47b0d4601b5.jsonl": "61087c150935b7d19eba403e129e5ebf45c2a95d68c9359e660675b459a725f2",
-    "fc6f81d3-78c8-4e46-8dfd-b4123c787efa.jsonl": "472dbdcfc52f2da0786ae9a7550dbccc1f285e0bda3fbc5fd0fd249d72ad73c5",
-    "60592f7d-ef87-4483-8cfb-e428a55e7063.jsonl": "6d1c6ae4a4fdabf4cb5ce9cbc8bac117694b98744e27588279d673092bfd11bf"
-  },
-  "history": [
-    "Initial exact-symptom offline test failed: completed Agent timer cancelled synthetic verifier.",
-    "First expanded fixture omitted synthetic Kimi reasoning continuation field; four protocol failures corrected.",
-    "Concurrent offline run exposed timing-dependent 80ms reproduction and old CLI mock without quiescence; replaced with explicit ordered timer controls and updated phase mock.",
-    "First real matrix passed its initial assertions, but subsequent inspection found duplicate effects on cancel. Preserved originals; added exact effect-count assertion and fixed recording.",
-    "Final source passed complete matrix and offline regressions; earlier evidence not overwritten."
-  ],
-  "limitations": [
-    "Only pinned pre-Agent process identities are preserved. Unknown processes, changed PID/start identity and new independent groups refuse handoff.",
-    "No arbitrary service registration, daemon discovery, adversarial process containment, provider behavior or official task score demonstrated.",
-    "Synthetic wire placeholders are not real credentials or model-private reasoning. Earlier raw fixture request logs contain the literal synthetic-private placeholder; no real model was contacted.",
-    "Resource bounds are sampled; no claim about unobserved instantaneous peaks.",
-    "High-risk C-GRADE83-02 requires independent Regulator and Human H-GRADE83-BOUNDARY pass.",
-    "Existing host whitelist BLOCK remains; no VPF/resume promotion."
-  ],
-  "evidence_root": "/Volumes/WD_BLACK/pan-agent/wo83-verifier-handoff-20260923",
-  "archive_sha256": "ad0d4a59035c6679775eb0df589498ea8b9ba4632b20b50d36d5d1bbf93802e2",
-  "index_sha256": "bd63170cba9aabac3ec9b66809a7f8242e0e8a5e8a9cc0a6464188d8bef799e0",
-  "archive_files": 202
+    "new_samples": 14,
+    "minimum_free_bytes": 86184689664,
+    "maximum_owned_bytes": 1912832
+  }
 }

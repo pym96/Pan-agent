@@ -52,4 +52,4 @@ Raw artifacts remain at their stable source, Git, Trace, Test, evaluator, or ext
   four confirmed local timeouts followed by further activity; Criteria1.0 independent
   review pending, no measured zero-accuracy or causal-improvement claim.
 
-- [WO83 verifier handoff](verifier-handoff-83.md) — [summary](verifier-handoff-83-summary.json): bounded Agent quiescence, preserved pinned service, independent verifier timer and cancellation controls; no real model or official scoring, independent review pending.
+- [WO83 verifier handoff](verifier-handoff-83.md) — [summary](verifier-handoff-83-summary.json): Criteria1.1 dynamic service/long-operation controls, independent verifier timing and known budget deviation; no real model or official scoring, independent review pending.
