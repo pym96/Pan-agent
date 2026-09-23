@@ -10,12 +10,47 @@
   "official_verifier_runs": 0,
   "container_calls": 0,
   "cost": 0,
-  "package_sha256": "a469597067f30d0bb7655538aff2050f8c7f2f41bb6ba3c57fc2ea7aa2eacba4",
+  "package_sha256": "ff1be95187d83b90b2485255541b7f66fde54f5a6fcf2d86fa4db1eef5c525c8",
   "installed_files": 80,
   "source_tests": 36,
   "python_tests": 19,
-  "tests_pending_final_receipt": true,
   "history_audit": "history-audit.json",
   "external_root": "/Volumes/WD_BLACK/pan-agent/wo85-transport-metering-20260923/",
-  "extra_review": "C-METER-02 different model family or H-METER-BOUNDARY pass/problem; pending"
+  "extra_review": "C-METER-02 different model family or H-METER-BOUNDARY pass/problem; pending",
+  "pilot_tests": 76,
+  "final_identity_cli_tests": 6,
+  "guarded_consumers": [
+    "kimi legacy",
+    "kimi K3"
+  ],
+  "guarded_consumer_source_sha": "c77a11c713d80e5afe464936ff070256eb12adbe",
+  "k3_guarded_phases": 17,
+  "scope_challenge": {
+    "id": "SC-85-SCOPE-01",
+    "status": "pending Master/independent Regulator disposition",
+    "deviations": [
+      "legacy verifier: 2 random test-account Keychain existence probes and 1 cleanup delete attempt",
+      "early npm default cache/log writes",
+      "initial legacy helper default temp directory outside WO85 root"
+    ],
+    "not_waived": true
+  },
+  "technical_checks": "passed; not an independent Verdict",
+  "receipts": {
+    "red.log": "ca87a3138ec9f1ac54e3e407f46d6aba1128ea70060fc80eaa8a9c82a5f982eb",
+    "matrix-1.log": "151ebf9f1375ce9d3c35bc39405c08d1ad8d2b324bacc12d4469885afd817426",
+    "pilot-2.log": "ac83d728a2fee00e3a4654abb3b5137cd5e8421d7d44a3c6749ae05727312adb",
+    "pilot-final.log": "2ab22a13363d49955c515846bad360fe211f6943ea59a4dd29b3fb00ef54436e",
+    "pilot-complete.log": "5042315ffedb89cb8281983d5b49a7bdcebeca96c86722e4b5165a2b3a2aa184",
+    "cli-guarded-identity.log": "db10b58c4043af7235d2d1071cf97736977ac7f9b12ee054ecac3d2485560849",
+    "source-final.log": "9056fccab1a5128bc6ec7ed355d552c91e4b781e71e051e61e7e40b767812c52",
+    "typecheck-final.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "python-offline.log": "0e13767f6c24dc3ae98a80889308c6b448790c1ab8a3c5179478ca90197fe5c1",
+    "history-audit.json": "9c4cbc1f672f288e09daaaf7892d4bd72526ac8f57da8e5bdc9063976f159507",
+    "identity-audit.json": "4839ac48cd5ce90af415c67631e274db44a1ffcf21504a3f3f8cfa21b16124f5",
+    "keychain-scope-incident.json": "a9730ad39759003cdfb5846610dff529a10b7b5290f947b56fc5e63435da6073",
+    "initial-temp-scope.json": "a29da50aeb5ff2b4c78c9e681be1440d19d03e524dc49f6702f5f2dfd2183cce",
+    "guarded-kimi-complete/summary.json": "0d63e1b39a9a424f945e99846d3d9f55369f5c8354e95cf96702db1cb20c6424",
+    "guarded-k3/summary.json": "500547c0b2de1ca4b68de2c1a2ceddb8a89e0904cc526ff2ac8f1bbec07dc6fc"
+  }
 }

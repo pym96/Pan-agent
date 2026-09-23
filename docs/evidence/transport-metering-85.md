@@ -63,8 +63,15 @@ files and retains the exact original Harbor/Python identities.
 
 - TypeScript typecheck and 36 affected source/conformance tests passed.
 - Python offline broker/handoff/diagnostic regressions: 19 passed; no Docker calls.
-- Final installed-pilot matrix and guarded clean-consumer receipts are recorded
-  in the machine summary and final Handoff.
+- Final installed-pilot matrix: **76/76 passed** on Node 22.19.0, including the
+  new signed metering/recovery and old #83 controls. A separate six-case CLI run
+  also passed against the final guarded package identity.
+- Both Kimi legacy and K3 guarded clean consumers passed at source commit
+  `c77a11c713d80e5afe464936ff070256eb12adbe`; K3 includes 17 guarded phases.
+  Both packaged `ff1be95187d83b90b2485255541b7f66fde54f5a6fcf2d86fa4db1eef5c525c8`.
+  `identity-audit.json` verifies all 80 installed bytes against the final lock,
+  development test install and current source-to-build map. Final evidence/lock
+  edits do not change Product bytes.
 - #83 normal/Agent-time/bounded-count endings, independent verifier timer,
   quiescence, global cancellation, late callbacks and stop-failure regressions retained.
 
@@ -136,3 +143,12 @@ authorized WO85 directories (one failed pack log explicitly names
 `/Users/panyiming/.npm/_logs/2026-09-23T13_05_17_645Z-debug-0.log`). This incidental
 write-scope deviation is disclosed, not waived. Subsequent package commands use
 the WO85 cache; no user cache cleanup was attempted.
+
+The initial red test also used the historical helper's default temp root before
+WO85 TMPDIR was supplied, creating
+`/var/folders/y0/l5kd4xvd2ls8bkp65s5db8mh0000gn/T/wo83-offline-bv4KZZ`.
+Its synthetic fixture was copied into this issue's evidence; the original was
+left unchanged. Later test artifacts are under the authorized WO85 root. This
+third incidental write-scope deviation joins **SC-85-SCOPE-01** (legacy Keychain
+probe, npm default cache/log writes, initial temp location), pending Master /
+independent Regulator disposition. Technical passes do not resolve that challenge.
