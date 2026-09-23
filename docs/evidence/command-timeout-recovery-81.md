@@ -96,3 +96,57 @@ The important failed decision was spending finite container attempts before chec
 SSE fixture consistency offline. Preserve that ordering error instead of presenting
 only the final offline green tests. The second failure remains an unresolved
 implementation/control-environment issue, not a diagnosed infrastructure cause.
+
+## Offline repair checkpoint — 2026-09-23
+
+Authority: [Master offline-only disposition](https://github.com/pym96/Pan-agent/issues/81#issuecomment-5790032442).
+The independent rejected Verdict for `7d951f1cc495f20020c2032297ead47e93d1fdac`
+remains unchanged (SHA256 `e121ad40e77143e2b9f1dbc884223dcb34918194f427f67ee3813e884c7ce70e`).
+This additive repair is a diagnostic checkpoint, not a completed Handoff or a
+request to repeat Regulator review of the same missing actual evidence.
+
+The existing fixed SSE generator now runs in an explicit offline mode with a fake
+bound environment. All five original scenarios reached their exact intended first
+tool call through the installed real Adapter/Session: normal/nonzero each one tool,
+timeout two distinct tools with the timeout observation in the second request,
+cancel/uncertain one tool followed by stopping and no verifier. The wire fixture
+and scenario assertions are shared with the existing opt-in container test, avoiding
+a second independently maintained fake model script. No Docker subprocess is
+spawned by this mode; fake credentials and usage remain synthetic.
+
+Command diagnostics now retain at most 16 fixed stage names, one allowlisted
+failure reason and a validated numeric received PID. Stages distinguish baseline
+snapshot, launch, PID receipt, process snapshot, identity validation, go release,
+settlement, termination snapshot/signal/confirmation and output settlement.
+Missing process, group mismatch, malformed PID, unavailable receipt, bounded
+operation timeout and unknown internal failures are distinguished without raw
+exception text, environment values or command text in diagnostic fields.
+Baseline/launch errors also produce explicit unconfirmed results rather than
+escaping before diagnostics. Pure snapshot parsing and injected process/control
+seams cover successful settlement and failures at each stage without host commands.
+
+Observed retained evidence: repaired normal RPC had identity=null, empty output,
+stop_unconfirmed; the saved filesystem diff had pid but no go file. Source inspection
+shows several different failures previously collapsed to that same result. These
+facts **do not identify which one happened**. No real identity-capture cause has
+been fixed or established. Parser validation/diagnostic retention are supported
+improvements, not a claim that the original runtime failure is solved.
+
+Minimum proposed next actual probe, **not authorized here**: one newly owned normal
+fixture using the same cached image/digest and 2-second `printf NORMAL` command,
+with the new stage diagnostics, at most one container / 2 CPU / 4 GiB, network none,
+60-second outer control cap, explicit stop receipt and unchanged cumulative ledger.
+This would be normal attempt 3, requiring prospective Human/Master allowance. Stop
+on failure and inspect the diagnostic; do not launch the remaining full matrix.
+It tests launch→identity→go→settlement only, not child termination or full recovery.
+
+Current checks and preserved hashes are in external `offline-repair/` evidence;
+checkpoint binds the new remote SHA. Prior raw archive and container ledger are
+hash-checked unchanged. No new container create/start/restart/exec, real model,
+credential read, official scoring, download, main modification or facts promotion.
+
+Offline checks: 27 distinct existing Node checks pass across the regression and
+CLI rerun, plus 5 shared scenario fixtures and 13 Python checks. The first regression
+was 26/27: CLI `mkdtemp` saw an uncreated configured temporary root (ENOENT).
+Precreating that directory and rerunning the three CLI checks passed; original
+log retained. No production code or timeout was changed for that harness failure.

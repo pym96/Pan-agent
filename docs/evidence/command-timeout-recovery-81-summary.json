@@ -32,5 +32,18 @@
     "C-TREC-03": "not demonstrated: identity unavailable in normal repair",
     "C-TREC-04": "targeted offline tests pass; failed controls preserved; not acceptance"
   },
-  "benefitsMeasured": false
+  "benefitsMeasured": false,
+  "offlineRepair": {
+    "authority": "https://github.com/pym96/Pan-agent/issues/81#issuecomment-5790032442",
+    "parentCandidate": "7d951f1cc495f20020c2032297ead47e93d1fdac",
+    "type": "diagnostic_checkpoint",
+    "nodeRegressionPassed": 27,
+    "sharedScenarioFixturesPassed": 5,
+    "pythonPassed": 13,
+    "newActualContainerAttempts": 0,
+    "realModelCalls": 0,
+    "originalIdentityFailureCause": "unknown",
+    "priorArchiveAndBudgetUnchanged": true,
+    "nextProbe": "proposed one normal attempt; not authorized"
+  }
 }

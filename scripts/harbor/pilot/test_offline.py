@@ -83,3 +83,46 @@ class CommandBoundary(unittest.IsolatedAsyncioTestCase):
   for timeout in [0,-1,31,float('nan'),float('inf'),True,'1']:
    with self.assertRaisesRegex(RuntimeError,'invalid_command'):await bound.exec('fixture',timeout)
   commands.run.assert_not_awaited()
+
+class IdentityDiagnostics(unittest.IsolatedAsyncioTestCase):
+ async def test_finite_stage_failures_and_success_without_processes(self):
+  from broker import ManagedCommand,CommandFailure
+  from unittest.mock import patch
+  class Stream:
+   async def read(self,n):return b''
+  class Process:
+   stdout=Stream();stderr=Stream();returncode=None
+   def kill(self):self.returncode=-9
+   async def wait(self):self.returncode=0;return 0
+  for failure,expected in [('baseline_snapshot','baseline_snapshot'),('launch','launch'),('pid_receipt','pid_receipt'),('malformed','pid_receipt'),('missing','identity_validation'),('process_snapshot','process_snapshot'),('identity_validation','identity_validation'),('go_release','go_release'),('settlement','settlement'),('termination_snapshot','termination_snapshot'),('termination_signal','termination_signal'),('termination_confirmation','termination_confirmation'),(None,'output_settlement')]:
+   runner=ManagedCommand('synthetic-container');snapshots=0
+   async def snapshot():
+    nonlocal snapshots
+    snapshots+=1
+    stage={1:'baseline_snapshot',2:'process_snapshot',3:'termination_snapshot',4:'termination_confirmation'}[snapshots]
+    if failure==stage:raise RuntimeError('synthetic-secret unrestricted exception text')
+    if snapshots in (1,4):return {}
+    if failure=='missing':return {}
+    return {42:{'pgid':41 if failure=='identity_validation' else 42,'start':'100','state':'S'}}
+   async def control(script):
+    stage='pid_receipt' if '/pid ' in script else 'go_release' if script.startswith('touch') else 'settlement' if '/rc ' in script else 'termination_signal'
+    if failure==stage:raise TimeoutError('synthetic-secret')
+    if stage=='pid_receipt':return 'not-a-pid' if failure=='malformed' else '42'
+    return '0' if stage=='settlement' else ''
+   runner.snapshot=snapshot;runner.control=control
+   with patch('broker.asyncio.create_subprocess_exec',AsyncMock(side_effect=OSError('synthetic-secret') if failure=='launch' else None,return_value=Process())):
+    result=await runner.run('never executed',1)
+   self.assertEqual(result['diagnostic']['stage'],expected,failure)
+   self.assertNotIn('synthetic-secret',json.dumps(result));self.assertLess(len(json.dumps(result['diagnostic'])),1024)
+   self.assertEqual(result['termination']['confirmed'],failure is None)
+   self.assertEqual(result['status'],'completed' if failure is None else 'stop_unconfirmed')
+   if failure in ['malformed','missing','identity_validation']:self.assertEqual(result['diagnostic']['reason'],{'malformed':'pid_malformed','missing':'process_missing','identity_validation':'process_group_mismatch'}[failure])
+ def test_snapshot_parser_rejects_missing_malformed_and_preserves_identity(self):
+  from broker import ManagedCommand,CommandFailure
+  def row(pid,group,start):return f'{pid} (fixture with ) parens) S 1 {group} '+'0 '*16+str(start)+'\n'
+  result=ManagedCommand.parse_snapshot('scanner=7\n'+row(7,7,1)+row(42,42,100))
+  self.assertEqual(result,{42:{'state':'S','pgid':42,'start':'100'}})
+  for raw in ['', 'scanner=bad\n','scanner=7\n42 broken','scanner=7\n42 (short) S 1']:
+   with self.assertRaises(CommandFailure):ManagedCommand.parse_snapshot(raw)
+  for pid in ['0','-1','1;echo secret','2147483648','１２']:
+   with self.assertRaises(CommandFailure):ManagedCommand.parse_pid(pid)

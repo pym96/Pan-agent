@@ -47,3 +47,10 @@ node --test scripts/harbor/pilot/test_cli.mjs
   Builder container attempts are exhausted for normal completion; do not replay
   them to obtain a pass. `test_session.mjs` and `test_offline.py` cover offline
   continuation, cancellation, expiry, uncertainty and budget/credential boundaries.
+
+- WO81 offline repair checkpoint: `WO81_OFFLINE_ROOT=/private/tmp/wo81-work/offline-repair/fixtures node --test scripts/harbor/pilot/test_command_control.mjs`
+  exercises the **same** scripted SSE generator and five scenario assertions through
+  installed Adapter/Session, substituting only a fake environment. It does not
+  spawn a broker, run a storage guard or touch the actual-container budget.
+  `broker.py` now retains finite stage/reason diagnostics; this is not proof that
+  the unresolved actual identity failure is fixed. No new actual attempt authorized.
