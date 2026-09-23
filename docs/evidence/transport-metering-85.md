@@ -80,7 +80,7 @@ live attempt occurred. No source regression is dismissed by replacing its oracle
 ## Boundaries, responsibility and review
 
 This stage made zero real Provider/model, quota/balance, official task/verifier or
-container calls; no new spend, credential search, old ledger reset, main change,
+container calls; no new spend, old ledger reset, main change,
 VPF/Wiki/resume fact promotion or claim of improved benchmark success. Mock
 `official_scored` labels in old CLI unit fixtures are synthetic assertions only.
 Original host root-directory BLOCK remains outside this implementation's scope.
@@ -99,3 +99,22 @@ of explicit mode, unchanged old authority, cancellation and official deadlines.
 That review is still pending; no repeated total-budget approval is requested.
 New true evaluation requires Master-issued candidate-bound activation/new run
 following acceptance; this candidate includes only an unauthorized template.
+
+
+### Disclosed harness scope deviation
+
+The first guarded legacy-consumer run (`guarded-kimi/`, candidate
+`ab9640417c36b2611b0aef504f23e88fc2aae8f4`) reached an obsolete startup assertion.
+Inspection then found two `security find-generic-password` existence probes and
+one cleanup `delete-generic-password` attempt against the script's freshly random
+`test-*` account in `com.pym96.pan-agent.workorder-52-test`. No test item was created;
+the existence probes returned nonzero; no credential value was displayed. These
+were not Provider/account-quota calls, but they violate this WorkOrder's prohibition
+on Keychain searching. The original script at that SHA, failed logs and a scoped
+incident record are retained. Builder does not waive this deviation or claim full
+scope compliance. Independent Regulator/Master must decide its disposition.
+
+The necessary verifier adaptation removes those system calls entirely, uses an
+environment-only configure driver whose Keychain-save dependency fails closed,
+and replaces the obsolete yes/no startup input with the current `:exit` command.
+The no-run/no-provider oracle remains; product startup behavior is not modified.

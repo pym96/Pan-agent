@@ -13,3 +13,5 @@ Drivers:
 
 - [kimi-k3-wire-v1.json](kimi-k3-wire-v1.json): new synthetic K3 wires, including private reasoning (test evidence only).
 - [kimi-k3-driver.mjs](kimi-k3-driver.mjs): installed real CLI configure/startup/task/replay/invalid phases.
+
+- [kimi-configure-driver.mjs](kimi-configure-driver.mjs): environment-only installed configuration probe; no system Keychain searches or writes.

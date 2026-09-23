@@ -17,7 +17,6 @@ sha=subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip
 dirty=bool(subprocess.check_output(['git','status','--porcelain'],cwd=ROOT).strip());assert not dirty or args.allow_dirty_development,'commit clean candidate before formal verification'
 assert subprocess.check_output([str(node),'--version'],text=True).strip()=='v22.19.0','required consumer floor is Node 22.19.0'
 toolchain=node.parent.parent;npm=toolchain/'lib/node_modules/npm/bin/npm-cli.js';assert npm.is_file()
-KEYCHAIN_SERVICE='com.pym96.pan-agent.workorder-52-test'
 commands=[]
 def h(body):return hashlib.sha256(body).hexdigest()
 def filehash(path):return h(path.read_bytes())
@@ -90,7 +89,7 @@ consumer=out/'consumer';consumer.mkdir();(consumer/'package.json').write_text(js
 for ancestor in consumer.parents:assert not (ancestor/'node_modules').exists(),f'ancestor dependencies: {ancestor}'
 assert not (consumer/'.git').exists();tarball=consumer/archive.name;shutil.copy2(archive,tarball);assert filehash(tarball)==filehash(archive)
 instrumentation=consumer/'verification';instrumentation.mkdir()
-for source,name in [('scripts/wo35-consumer-guard.mjs','guard.mjs'),('scripts/fixtures/preview/config-configure-driver.mjs','configure.mjs'),('scripts/fixtures/kimi/kimi-task-driver.mjs','task.mjs'),('scripts/fixtures/preview/replay-driver.mjs','replay.mjs'),('scripts/fixtures/kimi/kimi-boundary-driver.mjs','boundary.mjs'),('scripts/fixtures/kimi/kimi-switch-driver.mjs','switch.mjs'),('scripts/fixtures/kimi/kimi-wire-v1.json','kimi-wire.json'),('scripts/fixtures/preview-first-task-v1.json','fixture.json')]:shutil.copy2(ROOT/source,instrumentation/name)
+for source,name in [('scripts/wo35-consumer-guard.mjs','guard.mjs'),('scripts/fixtures/kimi/kimi-configure-driver.mjs','configure.mjs'),('scripts/fixtures/kimi/kimi-task-driver.mjs','task.mjs'),('scripts/fixtures/preview/replay-driver.mjs','replay.mjs'),('scripts/fixtures/kimi/kimi-boundary-driver.mjs','boundary.mjs'),('scripts/fixtures/kimi/kimi-switch-driver.mjs','switch.mjs'),('scripts/fixtures/kimi/kimi-wire-v1.json','kimi-wire.json'),('scripts/fixtures/preview-first-task-v1.json','fixture.json')]:shutil.copy2(ROOT/source,instrumentation/name)
 (instrumentation/'expected-result.json').write_text(json.dumps(expected,indent=2)+'\n')
 (instrumentation/'canaries.json').write_text(json.dumps(canaries,indent=2)+'\n')
 (instrumentation/'answers-env.json').write_text(json.dumps({'answers':['kimi-code','environment']})+'\n')
@@ -105,15 +104,8 @@ def guarded(directory,phase,install=False):
  config.write_text(json.dumps(data,indent=2)+'\n')
  return {**consumer_env,'NODE_OPTIONS':f'--import={directory}/verification/guard.mjs','WO35_GUARD_CONFIG':str(config)}
 canary_env={'KIMI_API_KEY':canary_env_value,'DEEPSEEK_API_KEY':canary_keychain_value}
-def security(*argv,expected=0):
- result=subprocess.run(['security',*argv],capture_output=True,text=True)
- assert result.returncode==expected,(argv,result.returncode,result.stderr)
- return result
-def keychain_absent():
- return subprocess.run(['security','find-generic-password','-s',KEYCHAIN_SERVICE,'-a',keychain_account,'-w'],capture_output=True,text=True).returncode!=0
-assert keychain_absent(),'test keychain item must not pre-exist'
-cleanup_ok=False
-try:
+# Environment-only consumer: never inspect or mutate the system Keychain.
+if True:
  install_env=guarded(consumer,'install',True)
  run([node,npm,'--prefix',consumer,'install',str(tarball),'--omit=dev','--offline','--ignore-scripts','--no-audit','--no-fund'],consumer,'consumer-install',install_env)
  run([node,npm,'--prefix',consumer,'ls','--all','--json'],consumer,'consumer-npm-ls',guarded(consumer,'npm-ls',True))
@@ -146,8 +138,8 @@ try:
   assert diagnostic in log.read_text()
   assert not (consumer/'memory').exists()
  startup_workspace=consumer/'startup-workspace';startup_workspace.mkdir();startup_memory=consumer/'startup-memory'
- log=run([executable,'--kernel','native','--workspace',startup_workspace,'--memory-root',startup_memory],consumer,'bin-native-decline',guarded(consumer,'bin-native-decline'),input='n\n')
- assert 'trusted-local' in log.read_text() and 'Cancelled before Provider use.' in log.read_text()
+ log=run([executable,'--kernel','native','--workspace',startup_workspace,'--memory-root',startup_memory],consumer,'bin-native-decline',guarded(consumer,'bin-native-decline'),input=':exit\n')
+ assert 'trusted-local' in log.read_text() and 'General Agent TUI closed.' in log.read_text()
  assert not list((startup_memory/'runs').iterdir()),'declined startup created a run'
  run([executable,'--help'],consumer,'bin-help-no-preload',consumer_env)
  # C-CONFIG-02 closed selection matrix against the installed executable.
@@ -159,7 +151,7 @@ try:
  # kimi-code through the wizard: explicit unavailable, nothing persisted, cancellation on EOF.
  log=run([node,instrumentation/'configure.mjs',installed,settings_home,instrumentation/'answers-kimi.json',keychain_account,'kimi'],consumer,'configure-kimi',{**guarded(consumer,'configure-kimi'),**canary_env},expected=2)
  kimi_report=json.loads((settings_home/'configure-report.json').read_text())
- assert 'Unknown provider: moonshot' in kimi_report['rendered'] and kimi_report['settings'] is None and not kimi_report['itemExists']
+ assert 'Unknown provider: moonshot' in kimi_report['rendered'] and kimi_report['settings'] is None and kimi_report['keychainCalls']==0
  # C-CONFIG-01: configure with environment source, canaries present in the parent env.
  log=run([node,instrumentation/'configure.mjs',installed,settings_home,instrumentation/'answers-env.json',keychain_account,'accept-env'],consumer,'configure-env',{**guarded(consumer,'configure-env'),**canary_env})
  configure_report=json.loads((settings_home/'configure-report.json').read_text())
@@ -168,7 +160,7 @@ try:
  assert settings=={'schemaVersion':1,'provider':'kimi-code','modelId':'kimi-for-coding','thinkingLevel':'high','credentialSource':'environment'},settings
  assert stat.S_IMODE(settings_file.stat().st_mode)==0o600
  for canary in canaries['values']:assert canary.encode() not in settings_bytes,'canary in settings'
- assert not configure_report['itemExists']
+ assert configure_report['keychainCalls']==0
  # C-CONFIG-01/05: restart with persisted settings runs the deterministic Faux task offline.
  run([node,instrumentation/'task.mjs'],consumer,'configured-task',{**guarded(consumer,'task'),**canary_env})
  report=json.loads((consumer/'kimi-task-report.json').read_text())
@@ -220,8 +212,4 @@ try:
  task_guard=[r for r in nominal if r['phase']=='task'][0];assert len(task_guard['children'])==1 and task_guard['children'][0]['exit']==0
  replay_guard=[r for r in nominal if r['phase']=='replay'][0];assert replay_guard['children']==[],'replay must not spawn children'
  save('summary.json',{'source_sha':sha,'development_dirty_source':dirty,'tarball_sha256':filehash(archive),'node':'v22.19.0','case':'kimi-wire/v1 + preview-first-task/v1','run_id':run_id,'provider':'kimi-code','switch_report':switch_report,'consumer':str(consumer),'installed_packages':physical,'nominal_meter_totals':{key:sum(r[key] for r in nominal) for key in keys},'negative_controls':{r['phase']:{key:r[key] for key in keys} for r in negative_reports},'kimi_task_report_sha256':filehash(consumer/'kimi-task-report.json'),'replay_report_sha256':filehash(consumer/'replay-report.json'),'boundary_report_sha256':filehash(consumer/'boundary-report.json'),'canary_leaks':0,'runtime_files_unchanged':True,'package_or_toolchain_fetches':'none in consumer; build dependencies/toolchain supplied beforehand'})
- cleanup_ok=True
  print('PASS Node 22.19.0 kimi consumer checks; retained evidence:',out)
-finally:
- left=subprocess.run(['security','delete-generic-password','-s',KEYCHAIN_SERVICE,'-a',keychain_account],capture_output=True)
- if not keychain_absent(): raise SystemExit('FATAL: disposable keychain item leaked')
