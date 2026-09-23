@@ -54,7 +54,19 @@ output.on('data',(chunk)=>{
 let capturedProfile=null;
 const exit=await runCli(['--kernel','native','--workspace',join(root,'workspace'),'--memory-root',join(root,'memory')],{output,home,
  createKimiAdapter:profile=>{capturedProfile=profile;return new PanKimiModelAdapter(profile,{transport:scriptedTransport});},
- startTui:options=>runTui({...options,input})});
+ startTui:options=>{
+  // Explicit synthetic approval for only the three frozen fixture actions.
+  // The current product correctly denies uncertain writes/Shell without a channel.
+  options.session.setApprovalChannel(async request=>{
+   const expected=taskFixture.calls.find(call=>call.name===request.tool||call.tool===request.tool||call.toolName===request.tool);
+   assert.ok(expected,'only a frozen fixture tool may request approval');
+   assert.equal(request.workspace,join(root,'workspace'));
+   assert.equal(request.target,request.tool==='bash'?'node hello.js':join(root,'workspace','hello.js'));
+   assert.equal(request.argumentsHash,createHash('sha256').update(JSON.stringify(expected.arguments)).digest('hex'));
+   return {requestId:request.requestId,decision:'allow-once'};
+  });
+  return runTui({...options,input});
+ }});
 assert.equal(exit,0);assert.equal(served,4,'exactly four Kimi exchanges');
 assert.deepEqual(capturedProfile,{modelId:'kimi-for-coding'},'restart must restore the fixed Kimi selection');
 assert.ok(rendered.includes('CREDENTIAL environment KIMI_API_KEY (required at task time; never saved)'),'kimi credential line must be reported');

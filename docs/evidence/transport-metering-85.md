@@ -124,3 +124,15 @@ A second consumer run stopped when the old #35 guard rejected read-only ancestor
 uses the existing #49 metadata-only guard (as the K3 verifier already does),
 retaining its separate metadata receipt and all content/network/credential guards.
 No new content-access exception or Product change was added.
+
+The next legacy task probe correctly encountered `approval_unavailable`: its old
+fixture expected file creation and Shell with no operation approval channel. The
+updated fixture explicitly approves only its three frozen action hashes/targets
+inside its fresh synthetic workspace. Production authorization remains unchanged;
+the file content and child-process assertions are retained.
+
+Early npm commands also used npm's default user cache/log location outside the
+authorized WO85 directories (one failed pack log explicitly names
+`/Users/panyiming/.npm/_logs/2026-09-23T13_05_17_645Z-debug-0.log`). This incidental
+write-scope deviation is disclosed, not waived. Subsequent package commands use
+the WO85 cache; no user cache cleanup was attempted.
