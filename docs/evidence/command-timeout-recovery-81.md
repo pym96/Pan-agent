@@ -164,3 +164,34 @@ file lock. Default cap2, total1800 seconds and unfinished-attempt refusal remain
 Offline checks: 14 Python tests and 5 shared fake-environment scenarios pass.
 Actual results, runner identity and consumption are recorded separately after the
 single authorized attempt; no outcome is asserted here.
+
+
+## Criteria1.2 single normal3 result
+
+Actual executed runner: `2443f87b3bf3f79581a8998572fab9539b375126` (clean, pushed before admission).
+Authorization H-TREC81-NORMAL3-20260923-001 was consumed exactly once. The existing
+ledger gained one start/end pair; the full prior byte prefix matches its preflight
+hash. No further scenario, repair attempt or model call occurred.
+
+The sole `printf NORMAL` ToolCall was admitted with timeout2. Its result diagnostic
+is `stage=pid_receipt`, `reason=operation_timeout`, `received_pid=null`; stages reached
+baseline_snapshot → launch → pid_receipt. No process_snapshot, identity_validation
+or go_release was reached. By source, PID receipt calls the bounded control helper,
+whose subprocess communication limit is2seconds. This establishes a timeout during
+that control operation for this attempt; it does not establish why Docker/control
+communication took that long, nor retrospectively prove the earlier failure cause.
+The tool's solving command completion is not established: output empty, exit null,
+termination identity null. Do not describe tool admission as successful shell work.
+
+Environment fallback succeeded: container `fb36f1d8ffa345004afe512f9fe8a3c9d2de58f8cca0160e27211dd575fbf27a`
+recorded Running=false/Pid=0, stopReason=command_stop_unconfirmed. Agent cancelled,
+only one scripted dispatch, verifier absent. Normal control assertion failed.
+Additional wall time 6.0645276669820305seconds including shutdown; total
+19.03874633400119/1800seconds. Normal3/3 consumed; other scenarios still paused at1/2.
+
+Raw evidence under external `normal3/`; original active logs under
+`/private/tmp/wo81-work/normal3` and `normal3-preparation`. Prior archives, containers
+and ledger prefix remain. This is a failed diagnostic checkpoint, not completed
+acceptance Handoff. The next investigation should distinguish the PID-read control
+subprocess delay from identity parsing, under a separate scoped instruction. No
+new run, timeout increase or algorithm change is authorized or made by this result.

@@ -45,5 +45,33 @@
     "originalIdentityFailureCause": "unknown",
     "priorArchiveAndBudgetUnchanged": true,
     "nextProbe": "proposed one normal attempt; not authorized"
+  },
+  "normal3": {
+    "authorization": "H-TREC81-NORMAL3-20260923-001",
+    "criteria": "1.2",
+    "actualRunnerSha": "2443f87b3bf3f79581a8998572fab9539b375126",
+    "normalAttemptsTotal": 3,
+    "additionalAttemptSeconds": 6.0645276669820305,
+    "cumulativeSeconds": 19.03874633400119,
+    "diagnostic": {
+      "stage": "pid_receipt",
+      "reason": "operation_timeout",
+      "stages": [
+        "baseline_snapshot",
+        "launch",
+        "pid_receipt"
+      ],
+      "received_pid": null
+    },
+    "toolAdmissions": 1,
+    "solvingCommandCompletionProven": false,
+    "containerStopped": true,
+    "containerId": "fb36f1d8ffa345004afe512f9fe8a3c9d2de58f8cca0160e27211dd575fbf27a",
+    "ledgerPrefixUnchanged": true,
+    "ledgerSha256": "44e6512b277d4712da10aea57901d5cd9ca21036b680f5f01d0a9150fa38ea3c",
+    "minimumFreeBytes": 86634393600,
+    "realModelCalls": 0,
+    "officialScoringCalls": 0,
+    "retry": false
   }
 }
