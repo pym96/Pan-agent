@@ -1,18 +1,31 @@
 """Explicit WO81 controlled-container RPC fixture; never part of default discovery runs.
 Run via test_command_control.mjs with WO81_CONTROL_ROOT set. No tasks/verifier/model.
 """
-import asyncio,json,sys,time,os
+import asyncio,json,sys,time,os,fcntl
 from pathlib import Path
 from broker import ManagedCommand,Bound,docker
 IMAGE='sha256:41217bae6667f04a767dc1b2c5c12b034dfc51a18226202003313aaf86832055'
+NORMAL3_AUTH='H-TREC81-NORMAL3-20260923-001'
+ORIGINAL_BUDGET=Path('/private/tmp/wo81-work/controls/container-budget.jsonl')
+def authorize_control(rows,scenario,authorization=None):
+ if any(r['event']=='start' and not any(e['event']=='end' and e['attempt']==r['attempt'] for e in rows) for r in rows):raise RuntimeError('unfinished_control_attempt')
+ count=sum(r['event']=='start' and r['scenario']==scenario for r in rows)
+ if sum(r.get('elapsed',0) for r in rows)>=1800:raise RuntimeError('control_budget_exhausted')
+ if authorization is not None:
+  if authorization!=NORMAL3_AUTH or scenario!='normal' or count!=2 or any(r.get('authorization')==NORMAL3_AUTH for r in rows):raise RuntimeError('diagnostic_authorization_refused')
+ elif count>=2:raise RuntimeError('control_budget_exhausted')
+ return len(rows)+1
 async def main():
  config=json.loads(await asyncio.to_thread(sys.stdin.readline));root=Path(config['output']);root.mkdir(parents=True,exist_ok=True)
- scenario=config['scenario'];budget=Path(config['budget']);rows=[json.loads(s) for s in budget.read_text().splitlines()] if budget.exists() else []
- if any(r['event']=='start' and not any(e['event']=='end' and e['attempt']==r['attempt'] for e in rows) for r in rows):raise RuntimeError('unfinished_control_attempt')
- if sum(r.get('elapsed',0) for r in rows)>=1800 or sum(r['event']=='start' and r['scenario']==scenario for r in rows)>=2:raise RuntimeError('control_budget_exhausted')
- start=time.monotonic();attempt=len(rows)+1
+ scenario=config['scenario'];budget=Path(config['budget']);authorization=config.get('authorization')
+ if authorization is not None and (budget.resolve()!=ORIGINAL_BUDGET or not budget.is_file()):raise RuntimeError('original_ledger_required')
+ # Serialize admission and keep the same append-only file; no cloned capacity.
+ budget_file=budget.open('a+')
+ fcntl.flock(budget_file.fileno(),fcntl.LOCK_EX|fcntl.LOCK_NB)
+ budget_file.seek(0);rows=[json.loads(s) for s in budget_file.read().splitlines()]
+ attempt=authorize_control(rows,scenario,authorization);start=time.monotonic()
  def log(row):
-  with budget.open('a') as f:f.write(json.dumps({'attempt':attempt,'scenario':scenario,**row})+'\n');f.flush();os.fsync(f.fileno())
+  budget_file.write(json.dumps({'attempt':attempt,'scenario':scenario,**({'authorization':authorization} if authorization else {}),**row})+'\n');budget_file.flush();os.fsync(budget_file.fileno())
  log({'event':'start','monotonic':start,'image':IMAGE})
  cid=None;stops=[];jobs=set()
  async def send(row):print(json.dumps(row),flush=True)
@@ -54,5 +67,5 @@ async def main():
    await docker('stop','-t','1',cid)
    state=json.loads(await docker('inspect',cid))[0]['State'];assert not state['Running'] and state['Pid']==0
    (root/'cleanup.json').write_text(json.dumps({'container':cid,'state':state,'stops':stops})+'\n')
-  log({'event':'end','monotonic':time.monotonic(),'elapsed':time.monotonic()-start})
+  log({'event':'end','monotonic':time.monotonic(),'elapsed':time.monotonic()-start});budget_file.close()
 if __name__=='__main__':asyncio.run(main())

@@ -126,3 +126,18 @@ class IdentityDiagnostics(unittest.IsolatedAsyncioTestCase):
    with self.assertRaises(CommandFailure):ManagedCommand.parse_snapshot(raw)
   for pid in ['0','-1','1;echo secret','2147483648','１２']:
    with self.assertRaises(CommandFailure):ManagedCommand.parse_pid(pid)
+
+class DiagnosticAdmission(unittest.TestCase):
+ def test_single_normal3_exception_preserves_all_other_limits(self):
+  from test_command_control import authorize_control,NORMAL3_AUTH
+  rows=[{'event':event,'scenario':'normal','attempt':n,**({'elapsed':1} if event=='end' else {})} for n in (1,2) for event in ('start','end')]
+  with self.assertRaises(RuntimeError):authorize_control(rows,'normal')
+  self.assertEqual(authorize_control(rows,'normal',NORMAL3_AUTH),5)
+  for auth in ['wrong','']:
+   with self.assertRaises(RuntimeError):authorize_control(rows,'normal',auth)
+  for scenario in ['nonzero','timeout','cancel','uncertain']:
+   with self.assertRaises(RuntimeError):authorize_control(rows,scenario,NORMAL3_AUTH)
+  for bad in [rows+[{'event':'start','scenario':'normal','attempt':3}],rows+[{'event':'start','scenario':'normal','attempt':3},{'event':'end','scenario':'normal','attempt':3,'elapsed':1}],rows+[{'event':'end','attempt':0,'elapsed':1800}],rows+[{'event':'end','attempt':0,'authorization':NORMAL3_AUTH}]]:
+   with self.assertRaises(RuntimeError):authorize_control(bad,'normal',NORMAL3_AUTH)
+  with self.assertRaises(RuntimeError):authorize_control([], 'normal',NORMAL3_AUTH)
+  self.assertEqual(authorize_control([], 'normal'),1)

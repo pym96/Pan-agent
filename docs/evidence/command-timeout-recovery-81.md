@@ -150,3 +150,17 @@ CLI rerun, plus 5 shared scenario fixtures and 13 Python checks. The first regre
 was 26/27: CLI `mkdtemp` saw an uncreated configured temporary root (ENOENT).
 Precreating that directory and rerunning the three CLI checks passed; original
 log retained. No production code or timeout was changed for that harness failure.
+
+## Criteria1.2 fixture correction — pre-probe
+
+[Master 1.2](https://github.com/pym96/Pan-agent/issues/81#issuecomment-5790249975)
+authorizes correcting the two-attempt guard before executing the already approved
+normal3 diagnostic. The old bound fixture and the 1.1 instruction were incompatible;
+Master records that preflight omission. Builder changes only fixture admission,
+launcher plumbing, offline tests and notes; broker/session algorithms are unchanged.
+The exact authorization selects only normal, requires exactly two old normal starts
+in the original ledger, refuses previous consumption, and appends under an exclusive
+file lock. Default cap2, total1800 seconds and unfinished-attempt refusal remain.
+Offline checks: 14 Python tests and 5 shared fake-environment scenarios pass.
+Actual results, runner identity and consumption are recorded separately after the
+single authorized attempt; no outcome is asserted here.

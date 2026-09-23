@@ -54,3 +54,9 @@ node --test scripts/harbor/pilot/test_cli.mjs
   spawn a broker, run a storage guard or touch the actual-container budget.
   `broker.py` now retains finite stage/reason diagnostics; this is not proof that
   the unresolved actual identity failure is fixed. No new actual attempt authorized.
+
+- Criteria1.2: `WO81_NORMAL3_AUTH=H-TREC81-NORMAL3-20260923-001` selects only
+  the approved third normal diagnostic. Admission uses the original cumulative
+  ledger under an exclusive file lock, refuses consumed/wrong authorization,
+  non-normal scenarios, unfinished attempts and exhausted time. Default remains
+  two attempts. This is not a reusable extra-attempt switch.
