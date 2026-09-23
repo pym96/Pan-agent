@@ -46,3 +46,8 @@ Raw artifacts remain at their stable source, Git, Trace, Test, evaluator, or ext
 - [WO81 command timeout recovery candidate](command-timeout-recovery-81.md) and
   [machine summary](command-timeout-recovery-81-summary.json): blocked actual-container
   controls, retained failed attempts and SC-TREC-81-01; no benchmark improvement claim.
+
+- [#82 post-timeout five-task live results](terminal-bench-post-timeout-82.md) —
+  [summary](terminal-bench-post-timeout-82-summary.json); all five attempted and unscored,
+  four confirmed local timeouts followed by further activity; Criteria1.0 independent
+  review pending, no measured zero-accuracy or causal-improvement claim.

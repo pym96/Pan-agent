@@ -1,0 +1,445 @@
+{
+  "run_id": "60592f7d-ef87-4483-8cfb-e428a55e7063",
+  "runner_sha": "b4870e0b797de13d81fa043b4bbe30cf148c7fab",
+  "denominator": 5,
+  "rows": [
+    {
+      "task": "overfull-hbox",
+      "machine_state": "agent_stopped",
+      "raw_reward": null,
+      "agent_status": "completed",
+      "stop_reason": "agent_timeout",
+      "verifier_exit_or_exception": null,
+      "dispatch_reservations": 16,
+      "tool_reservations": 15,
+      "tool_results": 15,
+      "tool_errors": 4,
+      "reported_input_tokens": 254478,
+      "reported_output_tokens": 11051,
+      "unknown_usage_dispatches": 0,
+      "local_timeouts": [
+        {
+          "tool_call_id": "tool_rP7bOnQQrmwg7zon13qHWk6g",
+          "confirmed": true,
+          "output_bytes": {
+            "stderr": 50,
+            "stdout": 12
+          },
+          "later_model_turn": true,
+          "next_tool_call_id": "tool_PBjfExO3F4aI9MpmGXeEyORL",
+          "subsequent_action": "Recompiled LaTeX and inspected overfull log and file diff.",
+          "feedback_evidence": "Archive tool.settled details, later model.turn_started and next tool.started; frozen session includes tool feedback in continuation. Outbound request body was not captured."
+        }
+      ],
+      "container_id": "558c6e0d8c3a7a770a97afcdf045df87ab34c6010ca27090d3ecbace9204c1c2",
+      "network_release": [
+        {
+          "id": "9a25f17eeb478bf570e7119a83c78df8eacec16e33a205f09a1a23e297e54985",
+          "name": "wo78-61ee7cebfe3249a5_default",
+          "project": "wo78-61ee7cebfe3249a5",
+          "containers": {},
+          "ipam": {
+            "Driver": "default",
+            "Options": null,
+            "Config": [
+              {
+                "Subnet": "192.168.240.0/20",
+                "Gateway": "192.168.240.1"
+              }
+            ]
+          },
+          "status": "removed"
+        }
+      ],
+      "archive_terminals": 1,
+      "raw_prefix": "campaign/overfull-hbox",
+      "reward_sha256": null,
+      "test_log_sha256": "cad1985c0e38e669162993bfa15d3fce9336e9bbbc55dae6aabf52a5dced3dcb",
+      "official_score_valid": false,
+      "classification": "verification_cancelled_unscored",
+      "diagnosis": "Agent completed; global agent timer cancelled official verifier during dependency preparation (Python download); no reward or pytest completion.",
+      "verifier_invoked": true,
+      "container_state": {
+        "Status": "exited",
+        "Running": false,
+        "Paused": false,
+        "Restarting": false,
+        "OOMKilled": false,
+        "Dead": false,
+        "Pid": 0,
+        "ExitCode": 137,
+        "Error": "",
+        "StartedAt": "2026-09-23T07:56:54.999340875Z",
+        "FinishedAt": "2026-09-23T08:09:36.186615172Z"
+      },
+      "container_wall_seconds": 761.187275,
+      "usage_reports": 16
+    },
+    {
+      "task": "dna-insert",
+      "machine_state": "agent_stopped",
+      "raw_reward": null,
+      "agent_status": "model_error",
+      "stop_reason": "transport",
+      "verifier_exit_or_exception": null,
+      "dispatch_reservations": 6,
+      "tool_reservations": 7,
+      "tool_results": 7,
+      "tool_errors": 5,
+      "reported_input_tokens": 36272,
+      "reported_output_tokens": 1782,
+      "unknown_usage_dispatches": 1,
+      "local_timeouts": [
+        {
+          "tool_call_id": "tool_ccGte5hOP9QBGDBkPnrsyZbE",
+          "confirmed": true,
+          "output_bytes": {
+            "stderr": 49,
+            "stdout": 0
+          },
+          "later_model_turn": true,
+          "next_tool_call_id": "tool_XtpsqgaViNqkmbnAivtaIUY6",
+          "subsequent_action": "Attempted primer3 package installation and checked executable paths.",
+          "feedback_evidence": "Archive tool.settled details, later model.turn_started and next tool.started; frozen session includes tool feedback in continuation. Outbound request body was not captured."
+        }
+      ],
+      "container_id": "7e0a0c4d9a6c65e9a0a54a8221e5eedfe3960531d8e4ddbbfe7afbd7603fce25",
+      "network_release": [
+        {
+          "id": "bd053b01f64d6e6568ed179f37935fe9a8abf694e577d71995c119aa9f2bc018",
+          "name": "wo78-9e803404deee4689_default",
+          "project": "wo78-9e803404deee4689",
+          "containers": {},
+          "ipam": {
+            "Driver": "default",
+            "Options": null,
+            "Config": [
+              {
+                "Subnet": "192.168.240.0/20",
+                "Gateway": "192.168.240.1"
+              }
+            ]
+          },
+          "status": "removed"
+        }
+      ],
+      "archive_terminals": 1,
+      "raw_prefix": "campaign/dna-insert",
+      "reward_sha256": null,
+      "test_log_sha256": null,
+      "official_score_valid": false,
+      "classification": "model_transport_error_unscored",
+      "diagnosis": "Confirmed local timeout during dependency installation; subsequent tool activity; final model transport failure, no verifier.",
+      "verifier_invoked": false,
+      "container_state": {
+        "Status": "exited",
+        "Running": false,
+        "Paused": false,
+        "Restarting": false,
+        "OOMKilled": false,
+        "Dead": false,
+        "Pid": 0,
+        "ExitCode": 137,
+        "Error": "",
+        "StartedAt": "2026-09-23T08:09:37.615485715Z",
+        "FinishedAt": "2026-09-23T08:14:02.744727087Z"
+      },
+      "container_wall_seconds": 265.129242,
+      "usage_reports": 5
+    },
+    {
+      "task": "nginx-request-logging",
+      "machine_state": "agent_stopped",
+      "raw_reward": null,
+      "agent_status": "cancelled",
+      "stop_reason": "command_stop_unconfirmed",
+      "verifier_exit_or_exception": null,
+      "dispatch_reservations": 4,
+      "tool_reservations": 4,
+      "tool_results": 4,
+      "tool_errors": 2,
+      "reported_input_tokens": 11575,
+      "reported_output_tokens": 485,
+      "unknown_usage_dispatches": 0,
+      "local_timeouts": [],
+      "container_id": "b5cac9537717c99ef5dc05ecfdf97589780208de694dd0ee2e38bd427e359e16",
+      "network_release": [
+        {
+          "id": "10cac1ab40c763ee65472dd81bbab5a0da065db2d9b595b5b88774da787e4b71",
+          "name": "wo78-1d33a64276144742_default",
+          "project": "wo78-1d33a64276144742",
+          "containers": {},
+          "ipam": {
+            "Driver": "default",
+            "Options": null,
+            "Config": [
+              {
+                "Subnet": "192.168.240.0/20",
+                "Gateway": "192.168.240.1"
+              }
+            ]
+          },
+          "status": "removed"
+        }
+      ],
+      "archive_terminals": 1,
+      "raw_prefix": "campaign/nginx-request-logging",
+      "reward_sha256": null,
+      "test_log_sha256": null,
+      "official_score_valid": false,
+      "classification": "command_stop_unconfirmed_container_stopped_unscored",
+      "diagnosis": "Dependency installation observed an unmanaged process at termination_snapshot; local confirmation false, whole-container fallback confirmed stopped; no verifier.",
+      "verifier_invoked": false,
+      "container_state": {
+        "Status": "exited",
+        "Running": false,
+        "Paused": false,
+        "Restarting": false,
+        "OOMKilled": false,
+        "Dead": false,
+        "Pid": 0,
+        "ExitCode": 137,
+        "Error": "",
+        "StartedAt": "2026-09-23T08:14:04.243216921Z",
+        "FinishedAt": "2026-09-23T08:15:52.167769263Z"
+      },
+      "container_wall_seconds": 107.924553,
+      "usage_reports": 4
+    },
+    {
+      "task": "merge-diff-arc-agi-task",
+      "machine_state": "agent_stopped",
+      "raw_reward": null,
+      "agent_status": "model_error",
+      "stop_reason": "dispatch_error",
+      "verifier_exit_or_exception": null,
+      "dispatch_reservations": 10,
+      "tool_reservations": 10,
+      "tool_results": 10,
+      "tool_errors": 5,
+      "reported_input_tokens": 61912,
+      "reported_output_tokens": 1181,
+      "unknown_usage_dispatches": 1,
+      "local_timeouts": [
+        {
+          "tool_call_id": "tool_ZhjK8NKnnN50xwekj8I0TOrm",
+          "confirmed": true,
+          "output_bytes": {
+            "stderr": 49,
+            "stdout": 0
+          },
+          "later_model_turn": true,
+          "next_tool_call_id": "tool_rpD8u6eYDUwk29MRdsu7w6bm",
+          "subsequent_action": "Issued another apt-get update.",
+          "feedback_evidence": "Archive tool.settled details, later model.turn_started and next tool.started; frozen session includes tool feedback in continuation. Outbound request body was not captured."
+        },
+        {
+          "tool_call_id": "tool_rpD8u6eYDUwk29MRdsu7w6bm",
+          "confirmed": true,
+          "output_bytes": {
+            "stderr": 50,
+            "stdout": 0
+          },
+          "later_model_turn": true,
+          "next_tool_call_id": "tool_zVbLUv02cgUkjImB0I61npLC",
+          "subsequent_action": "Read package-update log and checked Python/pip executables.",
+          "feedback_evidence": "Archive tool.settled details, later model.turn_started and next tool.started; frozen session includes tool feedback in continuation. Outbound request body was not captured."
+        }
+      ],
+      "container_id": "2348bccfd994c1357f87a29821ac114ee73995e6e89ef093348861ce91fd4cd4",
+      "network_release": [
+        {
+          "id": "af1518603196f0e7cf83b60af6316634ad5f12cf4997460657087a579d1db352",
+          "name": "wo78-6a844c03ee0d4cb3_default",
+          "project": "wo78-6a844c03ee0d4cb3",
+          "containers": {},
+          "ipam": {
+            "Driver": "default",
+            "Options": null,
+            "Config": [
+              {
+                "Subnet": "192.168.240.0/20",
+                "Gateway": "192.168.240.1"
+              }
+            ]
+          },
+          "status": "removed"
+        }
+      ],
+      "archive_terminals": 1,
+      "raw_prefix": "campaign/merge-diff-arc-agi-task",
+      "reward_sha256": null,
+      "test_log_sha256": null,
+      "official_score_valid": false,
+      "classification": "model_dispatch_error_unscored",
+      "diagnosis": "Two confirmed local apt-update timeouts followed by further model/tool activity; final dispatch_error with transport failure; no verifier.",
+      "verifier_invoked": false,
+      "container_state": {
+        "Status": "exited",
+        "Running": false,
+        "Paused": false,
+        "Restarting": false,
+        "OOMKilled": false,
+        "Dead": false,
+        "Pid": 0,
+        "ExitCode": 137,
+        "Error": "",
+        "StartedAt": "2026-09-23T08:15:53.669911958Z",
+        "FinishedAt": "2026-09-23T08:19:31.744832212Z"
+      },
+      "container_wall_seconds": 218.074921,
+      "usage_reports": 9
+    },
+    {
+      "task": "break-filter-js-from-html",
+      "machine_state": "agent_stopped",
+      "raw_reward": null,
+      "agent_status": "model_error",
+      "stop_reason": "transport",
+      "verifier_exit_or_exception": null,
+      "dispatch_reservations": 2,
+      "tool_reservations": 1,
+      "tool_results": 1,
+      "tool_errors": 0,
+      "reported_input_tokens": 423,
+      "reported_output_tokens": 90,
+      "unknown_usage_dispatches": 1,
+      "local_timeouts": [],
+      "container_id": "122889225a27f4c4e62ae73488e6ec1438eb689ffebac05129c6679c45a5b8dd",
+      "network_release": [
+        {
+          "id": "e00cf186181ac69cdb7622c0601ec504294c2e5a64a60d85b55dbf944bc9a6ba",
+          "name": "wo78-79c523a87239430e_default",
+          "project": "wo78-79c523a87239430e",
+          "containers": {},
+          "ipam": {
+            "Driver": "default",
+            "Options": null,
+            "Config": [
+              {
+                "Subnet": "192.168.240.0/20",
+                "Gateway": "192.168.240.1"
+              }
+            ]
+          },
+          "status": "removed"
+        }
+      ],
+      "archive_terminals": 1,
+      "raw_prefix": "campaign/break-filter-js-from-html",
+      "reward_sha256": null,
+      "test_log_sha256": null,
+      "official_score_valid": false,
+      "classification": "model_transport_error_unscored",
+      "diagnosis": "Second model exchange failed with transport category; no verifier.",
+      "verifier_invoked": false,
+      "container_state": {
+        "Status": "exited",
+        "Running": false,
+        "Paused": false,
+        "Restarting": false,
+        "OOMKilled": false,
+        "Dead": false,
+        "Pid": 0,
+        "ExitCode": 137,
+        "Error": "",
+        "StartedAt": "2026-09-23T08:19:33.112246087Z",
+        "FinishedAt": "2026-09-23T08:21:52.290791888Z"
+      },
+      "container_wall_seconds": 139.178545,
+      "usage_reports": 1
+    }
+  ],
+  "totals": {
+    "dispatch_reservations": 38,
+    "tool_reservations": 37,
+    "tool_results": 37,
+    "tool_errors": 16,
+    "reported_input_tokens": 364660,
+    "reported_output_tokens": 14589,
+    "unknown_usage_dispatches": 3,
+    "reported_tokens": 379249
+  },
+  "schema": 1,
+  "issue": 82,
+  "criteria_version": "1.0",
+  "status": "candidate_pending_independent_review",
+  "base_sha": "b4870e0b797de13d81fa043b4bbe30cf148c7fab",
+  "human_authorization_id": "H-LIVE82-20260923-001",
+  "activation_sha256": "b220c2ece07e318676fa6a87de4066ab082f7ead011c7d26c53bf59b7f3231a3",
+  "budget": {
+    "dispatchesPerTask": 40,
+    "dispatchesCampaign": 200,
+    "toolsPerTask": 80,
+    "maxTokens": 4096,
+    "requestBytes": 131072,
+    "responseBytes": 524288,
+    "dispatchSeconds": 120
+  },
+  "model": {
+    "provider": "kimi-code",
+    "model": "k3-256k",
+    "thinking": "high",
+    "endpoint": "https://api.kimi.com/coding/v1/chat/completions"
+  },
+  "cli_invocations": 1,
+  "cli_exit_code": 0,
+  "campaign_wall_seconds": 1501.3263344169827,
+  "automatic_request_retries": 0,
+  "verifier_invocations": 1,
+  "verifier_retries": 0,
+  "counts": {
+    "valid_official_scores": 0,
+    "confirmed_successes": 0,
+    "unscored": 5,
+    "not_started": 0,
+    "verification_cancelled": 1,
+    "model_transport_or_dispatch_errors": 3,
+    "command_stop_unconfirmed_container_stopped": 1
+  },
+  "prelaunch_seconds": 85.22696754100616,
+  "prelaunch_budget_seconds": 1800,
+  "evidence_root": "/Volumes/WD_BLACK/pan-agent/wo82-post-timeout-20260923/",
+  "ledger_sha256": "6d1c6ae4a4fdabf4cb5ce9cbc8bac117694b98744e27588279d673092bfd11bf",
+  "prior_ledgers": {
+    "6130046a-3003-4102-b450-f47b0d4601b5.jsonl": "61087c150935b7d19eba403e129e5ebf45c2a95d68c9359e660675b459a725f2",
+    "fc6f81d3-78c8-4e46-8dfd-b4123c787efa.jsonl": "472dbdcfc52f2da0786ae9a7550dbccc1f285e0bda3fbc5fd0fd249d72ad73c5"
+  },
+  "resources": {
+    "samples": 307,
+    "first": "2026-09-23T07:56:51.820Z",
+    "last": "2026-09-23T08:21:52.870Z",
+    "minimum_free_bytes": 86160392192,
+    "maximum_accounted_growth_bytes": 202129408,
+    "all_containers_stopped": true,
+    "own_networks_removed": 5
+  },
+  "comparison_79": {
+    "valid_official_scores": 2,
+    "confirmed_successes": 2,
+    "unscored": 3,
+    "dispatches": 56,
+    "tools": 60,
+    "reported_tokens": 408946,
+    "unknown_usage_dispatches": 0,
+    "interpretation": "Descriptive same public tasks/model/request limits; one run each, no held-out or causal improvement claim."
+  },
+  "limitations": [
+    "All rewards are null; zero valid scores does not establish a measured 0% task accuracy.",
+    "Three dispatched requests have unknown usage; reported token sum excludes these unknown amounts.",
+    "Transport categories do not expose the underlying network/timeout/auth cause; no probe or retry performed.",
+    "The frozen agent timer covers verifier dependency preparation; missing score is not official task failure.",
+    "Four confirmed local timeouts continued, but no official success demonstrates downstream benefit.",
+    "Commands issued again by the model are distinct budgeted tools within the same attempt, not campaign/task/verifier retries.",
+    "Container wall interval includes preparation, agent, possible verifier and stop; not model latency. Ledger has no per-dispatch timestamps.",
+    "Public archive omits private reasoning; outbound request bodies were not logged. Feedback delivery is supported by archive plus frozen continuation implementation.",
+    "Independent Regulator and H-LIVE82-RESULT review pending; no accepted claim, VPF or resume promotion."
+  ],
+  "root_checks": {
+    "knowledge_base": "BLOCK existing unexpected .DS_Store and 潘佳祥——agent简历.pdf",
+    "resume_package": "PASS files=4 facts=43 reality_refs=20 targets=8",
+    "source_of_truth": "Root navigation already points to #82 contract/activation; further integration/status updates belong to Master outside Builder write scope."
+  },
+  "raw_archive_sha256": "fc188d9310b0f3a0e329f5193a4d864d7407a5c3675fdfa57d188f9e6c0330bf",
+  "evidence_index_sha256": "11c08f3b1cb6bf29b86b1f0a5710a09709d9c77bf6eb6203d9e59ce62a622569"
+}
