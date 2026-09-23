@@ -1,9 +1,10 @@
 import test from 'node:test';import assert from 'node:assert/strict';
 import {generateKeyPairSync,sign,randomUUID} from 'node:crypto';import {mkdtempSync,mkdirSync,readFileSync,writeFileSync,readdirSync} from 'node:fs';import {tmpdir} from 'node:os';import {join} from 'node:path';
-import {main,dryRun} from './cli.mjs';import {MODEL,LIMITS,canonical,digest} from './policy.mjs';
+import {main,dryRun} from './cli.mjs';import {MODEL,LIMITS,METERED_LIMITS,canonical,digest} from './policy.mjs';
 const manifestRaw=readFileSync(new URL('./manifest.json',import.meta.url)),manifest=JSON.parse(manifestRaw),lock=JSON.parse(readFileSync(new URL('./package-identity.json',import.meta.url)));
-const entry=process.env.WO75_PAN_ENTRY??'/private/tmp/wo75-work/consumer/node_modules/pan-agent/dist/index.js';
+const entry=process.env.PAN_TEST_ENTRY??process.env.WO75_PAN_ENTRY;
 function fixture(){
+ if(!entry)throw Error('PAN_TEST_ENTRY must name the newly installed candidate');
  const root=mkdtempSync(join(process.env.WO75_TEST_ROOT??tmpdir(),'wo75-cli-')),home=join(root,'home'),state=join(home,'.local/state/pan-agent/wo75');mkdirSync(state,{recursive:true});
  const keys=generateKeyPairSync('ed25519'),sha='a'.repeat(40),secret='synthetic-'+randomUUID();
  writeFileSync(join(state,'authority.json'),JSON.stringify({publicKey:keys.publicKey.export({type:'spki',format:'pem'}),acceptedRunnerSha:sha}));
@@ -26,4 +27,11 @@ test('Criteria1.1 missing/invalid CLI authorization rejects before all injected 
 });
 test('visible-test permission is limited to exact original file; image status remains unknown',()=>{
  const d=dryRun(),visible=d.tasks.filter(t=>t.officialVisibleTest);assert.equal(visible.length,1);assert.equal(visible[0].id,'break-filter-js-from-html');assert.equal(visible[0].officialVisibleTest.visible_path,'/app/test_outputs.py');assert.equal(visible[0].officialVisibleTest.git_blob_sha1,'1bf2128a002d4014d85094c2223f87c62ae9088d');assert.match(visible[0].officialVisibleTest.status,/unverified/);assert(d.tasks.every(t=>t.digest===null));assert.equal(d.authorized,false);assert.deepEqual(d.sideEffects,{credentials:0,provider:0,docker:0});
+});
+
+for(const status of [401,429,402])test('metered CLI ends campaign on authentication or confirmed quota '+status,async()=>{
+ const f=fixture();Object.assign(f.activation,{version:2,validity:'run-bound',expiresAt:null});f.activation.binding.budget=METERED_LIMITS;f.save();
+ f.dependencies.fetchImplementation=async()=>{f.counts.dispatches++;return new Response(JSON.stringify({error:{code:'insufficient_quota'}}),{status});};
+ await assert.rejects(main(f.args,f.dependencies),/cancelled/);assert.equal(f.counts.environments,1);assert.equal(f.counts.dispatches,1);assert.equal(f.counts.verifiers,0);
+ const report=JSON.parse(readFileSync(join(f.root,'output/summary.json')));assert.equal(report.rows.filter(r=>r.state==='not_started').length,4);
 });

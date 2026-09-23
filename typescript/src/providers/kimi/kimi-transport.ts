@@ -13,6 +13,7 @@ export interface KimiTransportRequest {
 
 export interface KimiTransportResponse {
 	readonly status: number;
+	readonly retryAfterMs?: number;
 	readonly body: AsyncIterable<Uint8Array>;
 }
 
@@ -25,6 +26,8 @@ export type KimiFetch = typeof fetch;
 export interface KimiFetchTransportOptions {
 	readonly credentialSource?: KimiCredentialSource;
 	readonly fetchImplementation?: KimiFetch;
+	/** Durable local fetch-entry marker, not proof of server receipt. */
+	readonly onAttempt?: () => void;
 }
 
 export class KimiTransportConfigurationError extends Error {
@@ -65,10 +68,12 @@ export async function* abortableKimiBody(body: AsyncIterable<Uint8Array>, signal
 
 /** Production Fetch transport for the frozen official endpoint. Construction is inert; credentials resolve only in send(). */
 export class KimiFetchTransport implements KimiTransport {
+	private readonly onAttempt?: () => void;
 	private readonly credentialSource: KimiCredentialSource;
 	private readonly fetchImplementation: KimiFetch;
 
 	constructor(options: KimiFetchTransportOptions = {}) {
+		this.onAttempt = options.onAttempt;
 		this.credentialSource = options.credentialSource ?? defaultCredentialSource;
 		this.fetchImplementation = options.fetchImplementation ?? globalThis.fetch;
 	}
@@ -82,12 +87,15 @@ export class KimiFetchTransport implements KimiTransport {
 		if (!credential || credential.trim().length === 0) {
 			throw new KimiTransportConfigurationError("kimi_credential_unavailable");
 		}
+		request.signal.throwIfAborted();
+		this.onAttempt?.();
 		const response = await this.fetchImplementation(`${KIMI_OFFICIAL_CONTRACT.baseUrl}${request.path}`, {
 			method: request.method,
 			headers: { ...request.headers, authorization: `Bearer ${credential}` },
 			body: request.body,
 			signal: request.signal,
 		});
-		return { status: response.status, body: abortableKimiBody(response.body as AsyncIterable<Uint8Array>, request.signal) };
+		const seconds = Number(response.headers?.get("retry-after"));
+		return { status: response.status, ...(Number.isFinite(seconds) && seconds > 0 ? { retryAfterMs: Math.min(60000, seconds * 1000) } : {}), body: abortableKimiBody(response.body as AsyncIterable<Uint8Array>, request.signal) };
 	}
 }

@@ -1,0 +1,21 @@
+{
+  "criteria": "1.0",
+  "issue": 85,
+  "role": "Working Agent (Builder)",
+  "base_sha": "915a62e6a88d895b58fd08343cd9992f5a11560a",
+  "branch": "workorder/85-candidate",
+  "status": "candidate_pending_independent_review",
+  "real_model_calls": 0,
+  "official_task_runs": 0,
+  "official_verifier_runs": 0,
+  "container_calls": 0,
+  "cost": 0,
+  "package_sha256": "a469597067f30d0bb7655538aff2050f8c7f2f41bb6ba3c57fc2ea7aa2eacba4",
+  "installed_files": 80,
+  "source_tests": 36,
+  "python_tests": 19,
+  "tests_pending_final_receipt": true,
+  "history_audit": "history-audit.json",
+  "external_root": "/Volumes/WD_BLACK/pan-agent/wo85-transport-metering-20260923/",
+  "extra_review": "C-METER-02 different model family or H-METER-BOUNDARY pass/problem; pending"
+}

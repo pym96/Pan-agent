@@ -42,8 +42,9 @@ export type SessionObservation =
 export type ObservationSink = (observation: SessionObservation) => Promise<void> | void;
 
 export interface KernelLimits {
-	readonly maxModelTurns: number;
-	readonly maxToolSteps: number;
+	readonly mode?: "bounded" | "metered";
+	readonly maxModelTurns: number | null;
+	readonly maxToolSteps: number | null;
 }
 
 export const DEFAULT_KERNEL_LIMITS: KernelLimits = {
@@ -94,7 +95,13 @@ export interface AgentKernel {
 }
 
 export function resolveKernelLimits(input: Partial<KernelLimits> = {}): KernelLimits {
-	const limits = {
+	if (input.mode === "metered") {
+        if (input.maxModelTurns !== null || input.maxToolSteps !== null) throw new Error("metered limits must explicitly be null");
+        return { mode: "metered", maxModelTurns: null, maxToolSteps: null };
+    }
+    if (input.mode !== undefined && input.mode !== "bounded") throw new Error("unknown limit mode");
+    if (input.maxModelTurns === null || input.maxToolSteps === null) throw new Error("bounded limits cannot be null");
+    const limits = {
 		maxModelTurns: input.maxModelTurns ?? DEFAULT_KERNEL_LIMITS.maxModelTurns,
 		maxToolSteps: input.maxToolSteps ?? DEFAULT_KERNEL_LIMITS.maxToolSteps,
 	};

@@ -105,7 +105,7 @@ export class NativeKernel implements AgentKernel {
 			this.messages.push({ role: "user", content: [{ type: "text", text: request.task }], timestamp: Date.now() });
 			while (true) {
 				if (controller.signal.aborted) return terminal("cancelled", "operator_cancelled");
-				if (modelCalls >= this.limits.maxModelTurns) return terminal("incomplete", "turn_limit");
+				if (this.limits.maxModelTurns !== null && modelCalls >= this.limits.maxModelTurns) return terminal("incomplete", "turn_limit");
 				validateCanonicalContext(this.messages);
 
 				const turn = modelCalls + 1;
@@ -180,7 +180,7 @@ export class NativeKernel implements AgentKernel {
 
 				const calls = toolCalls(outcome.message);
 				if (calls.length === 0) return terminal("completed", "assistant_completed");
-				if (admittedToolCalls + calls.length > this.limits.maxToolSteps) {
+				if (this.limits.maxToolSteps !== null && admittedToolCalls + calls.length > this.limits.maxToolSteps) {
 					this.messages.pop();
 					return terminal("incomplete", "step_limit");
 				}

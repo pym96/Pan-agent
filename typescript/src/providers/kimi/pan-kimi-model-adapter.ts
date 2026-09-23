@@ -458,16 +458,39 @@ async function assembleSuccessfulResponse(response: KimiTransportResponse, reque
 }
 
 /** Status-only classification: the provider error body is never parsed into detail. */
-async function classifyHttpFailure(response: KimiTransportResponse, signal: AbortSignal): Promise<ModelFailure> {
+async function classifyHttpFailure(response: KimiTransportResponse, signal: AbortSignal, diagnostics = false): Promise<ModelFailure> {
+    if (diagnostics && (response.status === 401 || response.status === 403)) {
+        const mapped = KIMI_HTTP_FAILURE_TABLE[response.status];
+        try { void Promise.resolve(response.body[Symbol.asyncIterator]().return?.()).catch(() => {}); } catch { /* Do not wait on an untrusted error body. */ }
+        return failure(mapped.category, mapped.detail, false);
+    }
 	try {
-		await readBodyBytes(abortableKimiBody(response.body, signal));
+		const bytes = await readBodyBytes(abortableKimiBody(response.body, signal));
+        if (diagnostics) {
+            // Only recognized machine codes leave this scope; never provider text.
+            try {
+                const parsed = JSON.parse(new TextDecoder().decode(bytes));
+                if (["insufficient_quota", "quota_exceeded"].includes(parsed?.error?.code)) return failure("rate_limit", "kimi_quota_exhausted", false);
+            } catch { /* Status still evidences rate limiting, not confirmed exhaustion. */ }
+        }
 	} catch (error) {
 		if (isAbort(error, signal)) throw error;
-		throw error;
+        if (!diagnostics) throw error;
+        // A broken body cannot erase the observed HTTP status.
 	}
 	const mapped = KIMI_HTTP_FAILURE_TABLE[response.status as keyof typeof KIMI_HTTP_FAILURE_TABLE];
 	if (mapped) return failure(mapped.category, mapped.detail, mapped.retryable);
 	return failure("provider", `kimi_http_${response.status}`, response.status >= 500);
+}
+
+function diagnosticTransportFailure(error: unknown): ModelFailure {
+    const e = error as { code?: unknown; cause?: { code?: unknown }; name?: unknown } | null;
+    const code = e?.code ?? e?.cause?.code;
+    if (["ECONNRESET", "ETIMEDOUT", "EAI_AGAIN", "ECONNREFUSED", "UND_ERR_CONNECT_TIMEOUT", "UND_ERR_SOCKET"].includes(String(code))) {
+        return failure("transport", "kimi_network_" + String(code).toLowerCase(), true);
+    }
+    if (e?.name === "TimeoutError") return failure("transport", "kimi_transport_timeout", true);
+    return failure("unknown", "kimi_transport_unknown", false);
 }
 
 function isAbort(error: unknown, signal: AbortSignal): boolean {
@@ -476,6 +499,8 @@ function isAbort(error: unknown, signal: AbortSignal): boolean {
 
 export interface PanKimiModelAdapterOptions {
 	readonly transport?: KimiTransport;
+	/** Evaluation opt-in; legacy classification remains unchanged. */
+	readonly diagnostics?: boolean;
 }
 
 /** One canonical exchange per call. K3 state belongs to this adapter and exact session/message lineage. */
@@ -489,12 +514,14 @@ export class PanKimiModelAdapter implements ModelAdapter {
 	#controller?: AbortController;
 	private readonly profile: KimiProfile;
 	private readonly transport: KimiTransport;
+	private readonly diagnostics: boolean;
 
 	constructor(profile: KimiProfile = DEFAULT_KIMI_PROFILE, options: PanKimiModelAdapterOptions = {}) {
 		validateKimiProfile(profile);
 		this.profile = Object.freeze({ ...profile });
 		this.reasoningLevel = profile.modelId === KIMI_K3_MODEL_ID ? profile.thinkingLevel : "off";
 		this.modelId = profile.modelId;
+		this.diagnostics = options.diagnostics === true;
 		this.transport = options.transport ?? new KimiFetchTransport();
 	}
 
@@ -540,15 +567,15 @@ export class PanKimiModelAdapter implements ModelAdapter {
 			if (error instanceof KimiTransportConfigurationError) {
 				return failure("authentication", error.code, false);
 			}
-			return failure("transport", "kimi_transport_failure", true);
+			return this.diagnostics ? diagnosticTransportFailure(error) : failure("transport", "kimi_transport_failure", true);
 		}
 		if (request.signal.aborted) return failure("cancelled", "kimi_exchange_cancelled", false);
 		if (response.status < 200 || response.status >= 300) {
 			try {
-				return await classifyHttpFailure(response, request.signal);
+				return await classifyHttpFailure(response, request.signal, this.diagnostics);
 			} catch (error) {
 				if (isAbort(error, request.signal)) return failure("cancelled", "kimi_exchange_cancelled", false);
-				return failure("transport", "kimi_transport_failure", true);
+				return this.diagnostics ? diagnosticTransportFailure(error) : failure("transport", "kimi_transport_failure", true);
 			}
 		}
 
@@ -563,9 +590,10 @@ export class PanKimiModelAdapter implements ModelAdapter {
 		} catch (error) {
 			if (isAbort(error, request.signal)) return failure("cancelled", "kimi_exchange_cancelled", false);
 			if (error instanceof KimiProtocolError || error instanceof CanonicalProtocolError) {
-				return failure("protocol", safeCode(error), false);
+				if (this.diagnostics && safeCode(error) === "kimi_sse_done_missing") return failure("transport", "kimi_stream_incomplete", true);
+                return failure("protocol", safeCode(error), false);
 			}
-			return failure("transport", "kimi_transport_failure", true);
+			return this.diagnostics ? diagnosticTransportFailure(error) : failure("transport", "kimi_transport_failure", true);
 		}
 	}
 }

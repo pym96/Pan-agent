@@ -74,3 +74,24 @@ its reserved interval. Never use the old WO81 fixture/budget for this workorder.
 The fixture creates only uniquely labelled WO83 containers from the authorized
 cached image; no network, official tasks/verifier, real model, or live signature.
 Its FIFO service and delayed writer are synthetic controls, not benchmark scores.
+
+## WO85 diagnosis and explicit metered mode (Criteria1.0)
+
+See [design](../../../docs/design/transport-metering-85.md) and
+[evidence](../../../docs/evidence/transport-metering-85.md).
+`activation-metered-template.json` is a new unsigned, unauthorized version-2
+run-bound example. The old template and signed bounded mode do not upgrade.
+`test_85.mjs` covers diagnosis, signed metering through the actual installed Session,
+partial-stream recovery, permanent failures, and cancellation/deadline backoff.
+
+All Session/CLI/handoff tests now require `PAN_TEST_ENTRY` (legacy
+`WO75_PAN_ENTRY` is also supported) to identify the newly installed candidate;
+there is no fallback to the historical installed package. Example:
+
+```sh
+PAN_TEST_ENTRY=/path/to/new-consumer/node_modules/pan-agent/dist/index.js \
+  node --test scripts/harbor/pilot/test_85.mjs scripts/harbor/pilot/test_handoff.mjs
+```
+
+No live activation is included. The current contract, not the historical #47
+assignment map, controls WO85.
