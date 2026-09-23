@@ -40,3 +40,5 @@ Raw artifacts remain at their stable source, Git, Trace, Test, evaluator, or ext
 - [Terminal-Bench recovery #78](terminal-bench-recovery-78.md) — current address-pool exhaustion reproduced; blocked real ready comparison, no model calls or scoring.
 
 - [WO78 Criteria1.1 continuation](terminal-bench-recovery-78.md): five ordered ready/stop/network-release transitions, exact-ID old-network cleanup and retained failure evidence; zero real model/scoring calls.
+
+- [#79 fixed five-task live results](terminal-bench-baseline-79.md) — [summary](terminal-bench-baseline-79-summary.json); 2 valid official successes, 3 stopped/unscored; Criteria1.0 independent review pending, no equal-budget improvement claim.

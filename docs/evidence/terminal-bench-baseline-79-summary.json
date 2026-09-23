@@ -1,0 +1,297 @@
+{
+  "run_id": "fc6f81d3-78c8-4e46-8dfd-b4123c787efa",
+  "denominator": 5,
+  "rows": [
+    {
+      "task": "overfull-hbox",
+      "machine_state": "agent_stopped",
+      "raw_reward": null,
+      "agent_status": "cancelled",
+      "stop_reason": "agent_timeout",
+      "verifier_exit_or_exception": null,
+      "dispatch_reservations": 31,
+      "tool_reservations": 31,
+      "tool_proposals": 31,
+      "tool_results": 31,
+      "tool_errors": 2,
+      "invalid_argument_errors": 0,
+      "usage_reports": 31,
+      "reported_input_tokens": 330730,
+      "reported_output_tokens": 11745,
+      "unknown_usage_dispatches": 0,
+      "raw_prefix": "wo79-live/campaign-fc6f81d3/overfull-hbox",
+      "container_id": "2bf530c83abaea0a4187a64111830abc8b43f991812f4a6fc86bc73485e03d8d",
+      "network_release": [
+        {
+          "id": "a71595c8e8dfd7c0cf172b31e0c744c716e869accba024454a6ea1d878f26c18",
+          "name": "wo78-37a4fcf181bc467e_default",
+          "project": "wo78-37a4fcf181bc467e",
+          "containers": {},
+          "ipam": {
+            "Driver": "default",
+            "Options": null,
+            "Config": [
+              {
+                "Subnet": "192.168.240.0/20",
+                "Gateway": "192.168.240.1"
+              }
+            ]
+          },
+          "status": "removed"
+        }
+      ],
+      "official_score_valid": false,
+      "classification": "agent_stopped_unscored",
+      "diagnosis": "official agent deadline; repeated background-script checks observed"
+    },
+    {
+      "task": "dna-insert",
+      "machine_state": "agent_stopped",
+      "raw_reward": null,
+      "agent_status": "cancelled",
+      "stop_reason": "timeout",
+      "verifier_exit_or_exception": null,
+      "dispatch_reservations": 5,
+      "tool_reservations": 7,
+      "tool_proposals": 7,
+      "tool_results": 7,
+      "tool_errors": 3,
+      "invalid_argument_errors": 0,
+      "usage_reports": 5,
+      "reported_input_tokens": 20601,
+      "reported_output_tokens": 907,
+      "unknown_usage_dispatches": 0,
+      "raw_prefix": "wo79-live/campaign-fc6f81d3/dna-insert",
+      "container_id": "1fb8e0a32042976aba7962df07fcaf845ebdb5f2eaeb428f3ef4191e77377e0f",
+      "network_release": [
+        {
+          "id": "623b427c17fd5fac39e237136da9c30e10e78b20e04529a735c175127b8df4c8",
+          "name": "wo78-534fbbd692e34dcc_default",
+          "project": "wo78-534fbbd692e34dcc",
+          "containers": {},
+          "ipam": {
+            "Driver": "default",
+            "Options": null,
+            "Config": [
+              {
+                "Subnet": "192.168.240.0/20",
+                "Gateway": "192.168.240.1"
+              }
+            ]
+          },
+          "status": "removed"
+        }
+      ],
+      "official_score_valid": false,
+      "classification": "agent_stopped_unscored",
+      "diagnosis": "tool deadline during apt-get update; Python missing and primer3 unavailable in current package index"
+    },
+    {
+      "task": "nginx-request-logging",
+      "machine_state": "official_scored",
+      "raw_reward": {
+        "reward": 1
+      },
+      "agent_status": "completed",
+      "stop_reason": null,
+      "verifier_exit_or_exception": [
+        0,
+        0
+      ],
+      "dispatch_reservations": 9,
+      "tool_reservations": 8,
+      "tool_proposals": 8,
+      "tool_results": 8,
+      "tool_errors": 1,
+      "invalid_argument_errors": 0,
+      "usage_reports": 9,
+      "reported_input_tokens": 14483,
+      "reported_output_tokens": 1721,
+      "unknown_usage_dispatches": 0,
+      "raw_prefix": "wo79-live/campaign-fc6f81d3/nginx-request-logging",
+      "container_id": "29f292ec2e1c0427237bd3093a7d148d76a7c86b6428a7bae52df8b123f091ea",
+      "network_release": [
+        {
+          "id": "68d697009b903dc2dc95011d69b277a88defcddfeae098cc9f91a42752acb522",
+          "name": "wo78-27d326d3000645e4_default",
+          "project": "wo78-27d326d3000645e4",
+          "containers": {},
+          "ipam": {
+            "Driver": "default",
+            "Options": null,
+            "Config": [
+              {
+                "Subnet": "192.168.240.0/20",
+                "Gateway": "192.168.240.1"
+              }
+            ]
+          },
+          "status": "removed"
+        }
+      ],
+      "official_score_valid": true,
+      "classification": "official_success",
+      "diagnosis": "official pytest completed, 8 passed",
+      "tests_passed": 8,
+      "reward_path": "campaign-fc6f81d3/nginx-request-logging/harbor/verifier/reward.txt",
+      "reward_sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865",
+      "test_log_path": "campaign-fc6f81d3/nginx-request-logging/harbor/verifier/test-stdout.txt",
+      "test_log_sha256": "515bee58fab20a7851401dd0eb57a848bea95d6e507ef77bb08ec3986266c13a"
+    },
+    {
+      "task": "merge-diff-arc-agi-task",
+      "machine_state": "agent_stopped",
+      "raw_reward": null,
+      "agent_status": "cancelled",
+      "stop_reason": "timeout",
+      "verifier_exit_or_exception": null,
+      "dispatch_reservations": 5,
+      "tool_reservations": 9,
+      "tool_proposals": 9,
+      "tool_results": 9,
+      "tool_errors": 4,
+      "invalid_argument_errors": 0,
+      "usage_reports": 5,
+      "reported_input_tokens": 6702,
+      "reported_output_tokens": 1056,
+      "unknown_usage_dispatches": 0,
+      "raw_prefix": "wo79-live/campaign-fc6f81d3/merge-diff-arc-agi-task",
+      "container_id": "e187015c90e05406aaa49edfba0a5832becc210fb718f82b3d2a12afdada97be",
+      "network_release": [
+        {
+          "id": "974b14b793a1e965c2b301601f04174b5f7305ba50ea123e73aceadd35eb4bff",
+          "name": "wo78-5aec9a71cce0454c_default",
+          "project": "wo78-5aec9a71cce0454c",
+          "containers": {},
+          "ipam": {
+            "Driver": "default",
+            "Options": null,
+            "Config": [
+              {
+                "Subnet": "192.168.240.0/20",
+                "Gateway": "192.168.240.1"
+              }
+            ]
+          },
+          "status": "removed"
+        }
+      ],
+      "official_score_valid": false,
+      "classification": "agent_stopped_unscored",
+      "diagnosis": "tool deadline during repeated apt-get update; git missing and repository requests failed"
+    },
+    {
+      "task": "break-filter-js-from-html",
+      "machine_state": "official_scored",
+      "raw_reward": {
+        "reward": 1
+      },
+      "agent_status": "completed",
+      "stop_reason": null,
+      "verifier_exit_or_exception": [
+        0,
+        0
+      ],
+      "dispatch_reservations": 6,
+      "tool_reservations": 5,
+      "tool_proposals": 5,
+      "tool_results": 5,
+      "tool_errors": 0,
+      "invalid_argument_errors": 0,
+      "usage_reports": 6,
+      "reported_input_tokens": 17970,
+      "reported_output_tokens": 3031,
+      "unknown_usage_dispatches": 0,
+      "raw_prefix": "wo79-live/campaign-fc6f81d3/break-filter-js-from-html",
+      "container_id": "783e396e2430e699dd7aac384dfbfd41822e8cdcf4ba79f234192acc2797e682",
+      "network_release": [
+        {
+          "id": "e3c16095a7866010a9f7844a1ff7516c400e5924d919f99fc3eee8b64e900e26",
+          "name": "wo78-90983b69274b4f42_default",
+          "project": "wo78-90983b69274b4f42",
+          "containers": {},
+          "ipam": {
+            "Driver": "default",
+            "Options": null,
+            "Config": [
+              {
+                "Subnet": "192.168.240.0/20",
+                "Gateway": "192.168.240.1"
+              }
+            ]
+          },
+          "status": "removed"
+        }
+      ],
+      "official_score_valid": true,
+      "classification": "official_success",
+      "diagnosis": "official pytest completed, 1 passed",
+      "tests_passed": 1,
+      "reward_path": "campaign-fc6f81d3/break-filter-js-from-html/harbor/verifier/reward.txt",
+      "reward_sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865",
+      "test_log_path": "campaign-fc6f81d3/break-filter-js-from-html/harbor/verifier/test-stdout.txt",
+      "test_log_sha256": "54923136f9eb34817961acda879f7f6b3d956cf147723d439340aff86beb7af8"
+    }
+  ],
+  "totals": {
+    "dispatch_reservations": 56,
+    "tool_reservations": 60,
+    "tool_proposals": 60,
+    "tool_errors": 10,
+    "invalid_argument_errors": 0,
+    "reported_input_tokens": 390486,
+    "reported_output_tokens": 18460,
+    "unknown_usage_dispatches": 0,
+    "reported_tokens": 408946
+  },
+  "resources": {
+    "samples": 315,
+    "first": "2026-09-23T03:37:41.054Z",
+    "last": "2026-09-23T04:03:25.002Z",
+    "seconds": 1543.948,
+    "minimum_free_bytes": 84676087808,
+    "maximum_accounted_growth_bytes": 1344802816
+  },
+  "schema": 1,
+  "issue": 79,
+  "criteria_version": "1.0",
+  "status": "candidate_pending_independent_review",
+  "runner_sha": "08f6db5d2f8ce977acd2bc1b2180e634a0630102",
+  "base_sha": "08f6db5d2f8ce977acd2bc1b2180e634a0630102",
+  "human_authorization_id": "H-LIVE79-20260923-001",
+  "counts": {
+    "confirmed_successes": 2,
+    "valid_official_scores": 2,
+    "unscored": 3,
+    "agent_stopped": 3,
+    "environment_start_errors": 0,
+    "evaluation_errors": 0,
+    "not_started": 0
+  },
+  "cli_invocations": 1,
+  "cli_exit_code": 0,
+  "automatic_request_retries": 0,
+  "verifier_invocations": 2,
+  "budget": {
+    "dispatchesPerTask": 40,
+    "dispatchesCampaign": 200,
+    "toolsPerTask": 80,
+    "maxTokens": 4096,
+    "requestBytes": 131072,
+    "responseBytes": 524288,
+    "dispatchSeconds": 120
+  },
+  "evidence_root": "/Volumes/WD_BLACK/pan-agent/wo79-baseline-20260923/",
+  "old_ledger_sha256": "61087c150935b7d19eba403e129e5ebf45c2a95d68c9359e660675b459a725f2",
+  "limitations": [
+    "Three missing rewards remain null, not zero.",
+    "This is a fixed public diagnostic subset, not a held-out sample or full leaderboard.",
+    "Lifecycle, feedback and budget differ from WO77; no equal-budget or single-change causal claim.",
+    "Ledger lacks per-dispatch timestamps; resource/container times bound observed interval.",
+    "Input/output usage is provider-reported, no price or remaining-account quota inference.",
+    "Two agent stops involve missing dependencies/package-network failures; not official model-task failures.",
+    "Independent technical and Human/different-family new-result classification review pending."
+  ],
+  "raw_archive_sha256": "53d9e649582d3b3a695f7774de461cc99341818f425f8577efd8234cf05d582c",
+  "evidence_index_sha256": "46684a3f399703e4fbaa2183972fc29fd7e839c604425fbdbaa7fe88a887ee7f"
+}
