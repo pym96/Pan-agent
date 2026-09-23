@@ -65,12 +65,12 @@ export async function runAttempt({entry,task,instruction,output,environment,gate
   try{
    const r=scrub(await boundedWait(environment.exec(args.command,args.timeout),(args.timeout+15)*1000,'command_stop_unconfirmed'));effects.push({arguments:args,result:r});
    if(r.status==='stop_unconfirmed'||r.status==='timeout'&&r.termination?.confirmed!==true)hard('command_stop_unconfirmed');
-   if(phase==='agent')gateCheck();
+   if(phase==='agent'&&!hardReason)gateCheck();
    return {content:[{type:'text',text:JSON.stringify(r)}],isError:r.exit_code!==0||r.status!=='completed',details:r};
   }catch{
    if(phase==='agent'&&!hardReason)hard('tool_error');
    const r={status:hardReason??agentReason??'tool_error',exit_code:null,stdout:'',stderr:'task_command_failed'};
-   effects.push({arguments:args,result:r});return {content:[{type:'text',text:JSON.stringify(r)}],isError:true,details:r};
+   if(!effects.some(e=>e.arguments===args))effects.push({arguments:args,result:r});return {content:[{type:'text',text:JSON.stringify(r)}],isError:true,details:r};
   }finally{toolSignal.removeEventListener('abort',abort);}
  }};
  const cancel=()=>hard('cancelled');signal?.addEventListener('abort',cancel,{once:true});
@@ -94,12 +94,11 @@ export async function runAttempt({entry,task,instruction,output,environment,gate
     let timeoutResolve;const timeout=new Promise(resolve=>timeoutResolve=resolve);
     verifierTimer=timers.setTimeout(()=>{hard('verifier_timeout');timeoutResolve({status:'evaluation_error',rewards:null,verifier_exit_or_exception:'verifier_timeout'});},task.config.verifier.timeout_sec*1000,'verifier');
     const stopped=new Promise(resolve=>verifierStopResolve=resolve);
-    // Polling is unnecessary: stopPromise is populated synchronously by hard().
     const onAbort=()=>{if(hardReason)verifierStopResolve?.({status:'evaluation_error',rewards:null,verifier_exit_or_exception:hardReason});};
     const onGlobal=()=>onAbort();signal?.addEventListener('abort',onGlobal,{once:true});
     const pending=Promise.resolve().then(()=>{gateCheck();if(hardReason)throw Error('global_stop');return environment.verify();}).then(value=>{if(phase==='verifier'&&!hardReason)verifier=value;return value;},()=>({status:'evaluation_error',rewards:null,verifier_exit_or_exception:'broker_verifier_error'}));
-    // Expiry/resource stop also interrupts a broker via stop(). Keep waiting finite
-    // even if a faulty broker never settles its verifier promise.
+    // Hard stops settle this race immediately; broker stop independently bounds
+    // actual external effects even if its verifier promise never settles.
     try{const value=await Promise.race([pending,timeout,stopped]);if(verifier===null)verifier=value;}
     finally{signal?.removeEventListener('abort',onGlobal);timers.clearTimeout(verifierTimer);}
    }

@@ -36,3 +36,16 @@ test('verified result preceding cancellation is retained with cancellation recor
 test('unconfirmed handoff refuses verifier; no invented success',async()=>{
  const r=await fixture({env:{async quiesce(){return {confirmed:false};}}});assert.equal(r.report.verifier,null);assert(r.report.globalStops.some(x=>x.reason==='command_stop_unconfirmed'));assert.equal(r.report.stopConfirmed,true);
 });
+test('late verifier resolution after cancellation cannot invent a score',async()=>{
+ const abort=new AbortController();let release;
+ const r=await fixture({signal:abort.signal,env:{verify(){abort.abort();return new Promise(resolve=>release=resolve);}}});
+ release({status:'synthetic_control',rewards:{reward:1}});await new Promise(r=>setImmediate(r));
+ assert.equal(r.report.verifier.rewards,null);assert.equal(r.report.phases.filter(x=>x.phase==='ended').length,1);
+});
+test('handoff watchdog refuses grading when broker never confirms',async()=>{
+ const timers=clock();const r=await fixture({timers,env:{quiesce(){timers.fire('handoff_timeout');return new Promise(()=>{});}}});
+ assert.equal(r.report.verifier,null);assert.equal(r.report.quiescence.confirmed,false);assert(r.report.globalStops.some(x=>x.reason==='command_stop_unconfirmed'));
+});
+test('synthetic scores never enter official summary state',async()=>{
+ const {summary}=await import('./report.mjs');const r=await fixture();const s=summary({tasks:[{id:'control'}]},[r.report]);assert.equal(s.rows[0].state,'synthetic_control');
+});

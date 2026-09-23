@@ -56,7 +56,7 @@ test('official Agent deadline still closes recovery and no stop failure is calle
 });
 
 test('expiry and cancellation racing natural completion forbid next dispatch and settle once',async()=>{
- for(const options of [{expire:true},{cancelOnCompletion:true}]){const r=await execute(options);assert.equal(r.calls.length,1);assert.equal(r.dispatch,1);assert.equal(r.report.verifier,null);assert(r.phases.includes('stop'));assert.equal(r.ledgerRows.filter(x=>x.event==='attempt_finished').length,1);}
+ for(const options of [{expire:true},{cancelOnCompletion:true}]){const r=await execute(options);assert.equal(r.calls.length,1);assert.equal(r.report.effects.length,1);assert.equal(r.dispatch,1);assert.equal(r.report.verifier,null);assert(r.phases.includes('stop'));assert.equal(r.ledgerRows.filter(x=>x.event==='attempt_finished').length,1);}
 });
 test('tool output credential canary is scrubbed before model context and archive',async()=>{
  const r=await execute({echoOutput:true});assert(r.requests[1].messages.some(m=>m.role==='tool'&&m.content.includes('[REDACTED]')));assert.equal(r.ledgerRows.filter(x=>x.event==='tool_reserved').length,1);assert.equal(r.ledgerRows.filter(x=>x.event==='attempt_finished').length,1);

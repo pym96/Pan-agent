@@ -24,7 +24,7 @@ for(const scenario of selected)test('WO83 real controlled handoff '+scenario,{sk
   const env={...broker,exec(command,timeout){if(scenario==='cancel')cancelTimer=setTimeout(()=>abort.abort(),1000);return broker.exec(command,timeout);},verify(){if(scenario==='verifier_cancel')cancelTimer=setTimeout(()=>abort.abort(),100);return broker.verify();}};
   const report=await runAttempt({entry:'/private/tmp/wo75-work/consumer/node_modules/pan-agent/dist/index.js',task:{id:scenario,config:{agent:{timeout_sec:scenario==='deadline'?1.5:20},verifier:{timeout_sec:5}}},instruction,output:join(out,'attempt'),environment:env,gate,ledger,credentialSource:()=> 'synthetic-83-control',signal:abort.signal,fetchImplementation:async(u,o)=>{calls++;requests.push(JSON.parse(o.body));return new Response(wire(calls===1?first:scenario==='timeout'&&calls===2?'test -f /tmp/artifact; echo CONTINUED':null));}});
   writeFileSync(join(out,'result.json'),JSON.stringify({scenario,runner_sha:sha,synthetic_dispatches:calls,real_model_requests:0,report},null,2)+'\n');writeFileSync(join(out,'requests.json'),JSON.stringify(requests,null,2)+'\n');
-  assert.equal(report.stopConfirmed,true);
+  assert.equal(report.stopConfirmed,true);assert.equal(report.effects.length,scenario==='timeout'?2:1);
   if(['cancel','uncertain'].includes(scenario)){assert.equal(report.verifier,null);assert(report.globalStops.length);}
   else if(scenario==='verifier_cancel'){assert.equal(report.verifier.rewards,null);assert(report.globalStops.some(x=>x.reason==='cancelled'));}
   else{assert.equal(report.verifier?.status,'synthetic_control');assert.equal(report.verifier.rewards.reward,1);assert.equal(report.quiescence.confirmed,true);}
