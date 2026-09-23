@@ -271,3 +271,20 @@ source diffs, cumulative time and clean final matrix are retained externally und
 `wo81-timeout-recovery-20260923/criteria13/`. Final Handoff includes all hashes and
 per-criterion mapping. Independent Regulator and subsequent Human/different-family
 review of the new cancellation boundary remain required. Main remains untouched.
+
+
+### Final clean matrix receipt
+
+Clean executed source/runner SHA `21c69565729359f2dbc0b459771be6b8cad9f6c9`:
+6/6 actual scenarios,33/33 Node and16/16 Python passed, no skips. The timeout
+fixture independently confirmed its recorded child PID89 and all four managed
+PIDs absent before returning the ToolResult, while the separate control survived.
+It then completed the distinct delayed command and synthetic verifier (reward=null).
+Cancellation/deadline/uncertain each dispatched once, stopped the environment,
+and did not verify. All22 lifetime containers are confirmed stopped and retained.
+Total actual control time73.52249308198225/1800seconds; original normal3 ledger
+prefix and old archives are hash-verified unchanged. Minimum sampled free storage
+85,596,082,176bytes; maximum accounted incremental growth4,415,488bytes.
+The final reporting commit changes only report/summary; Handoff binds its SHA and
+checks execution/test source identity against the clean tested runner. No additional
+container replay is justified by these documentation-only result updates.

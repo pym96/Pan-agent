@@ -4,34 +4,8 @@
   "role": "Working Agent (Builder)",
   "base": "d290c95aefd8bef33770ea5ab4dec46b63309a38",
   "delivery": "candidate_pending_independent_review",
-  "scopeChallenge": "SC-TREC-81-01",
   "realModelProviderBalanceCalls": 0,
   "officialScoringCalls": 0,
-  "offlineTests": {
-    "nodePassed": 27,
-    "pythonPassed": 11
-  },
-  "containerControls": {
-    "initialAttempts": 5,
-    "repairAttempts": 1,
-    "successfulScenarios": 0,
-    "normalScenarioAttemptsUsed": 2,
-    "maxAttemptsPerScenario": 2,
-    "cumulativeWallSeconds": 12.974218667019159,
-    "wallLimitSeconds": 1800,
-    "containersConfirmedStopped": 6,
-    "matrixStopped": true
-  },
-  "storage": {
-    "minimumFreeBytes": 85596082176,
-    "maxAccountedGrowthBytes": 1228800
-  },
-  "criteriaEvidence": {
-    "C-TREC-01": "offline mechanism only; container recovery not demonstrated",
-    "C-TREC-02": "offline negatives and actual fallback stop; incomplete actual matrix",
-    "C-TREC-03": "not demonstrated: identity unavailable in normal repair",
-    "C-TREC-04": "targeted offline tests pass; failed controls preserved; not acceptance"
-  },
   "benefitsMeasured": false,
   "offlineRepair": {
     "authority": "https://github.com/pym96/Pan-agent/issues/81#issuecomment-5790032442",
@@ -83,6 +57,57 @@
     "historicalConsumptionCarried": true,
     "modelCalls": 0,
     "officialScoringCalls": 0,
-    "containment": "observed process groups; not adversarial universal containment"
+    "containment": "observed process groups; not adversarial universal containment",
+    "finalCleanMatrixPassed": 6
+  },
+  "initialHistoricalSnapshot": {
+    "offlineTests": {
+      "nodePassed": 27,
+      "pythonPassed": 11
+    },
+    "containerControls": {
+      "initialAttempts": 5,
+      "repairAttempts": 1,
+      "successfulScenarios": 0,
+      "normalScenarioAttemptsUsed": 2,
+      "maxAttemptsPerScenario": 2,
+      "cumulativeWallSeconds": 12.974218667019159,
+      "wallLimitSeconds": 1800,
+      "containersConfirmedStopped": 6,
+      "matrixStopped": true
+    },
+    "criteriaEvidence": {
+      "C-TREC-01": "offline mechanism only; container recovery not demonstrated",
+      "C-TREC-02": "offline negatives and actual fallback stop; incomplete actual matrix",
+      "C-TREC-03": "not demonstrated: identity unavailable in normal repair",
+      "C-TREC-04": "targeted offline tests pass; failed controls preserved; not acceptance"
+    },
+    "storage": {
+      "minimumFreeBytes": 85596082176,
+      "maxAccountedGrowthBytes": 1228800
+    },
+    "scopeChallenge": "SC-TREC-81-01"
+  },
+  "offlineTests": {
+    "nodePassed": 33,
+    "pythonPassed": 16
+  },
+  "containerControls": {
+    "actualRunnerSha": "21c69565729359f2dbc0b459771be6b8cad9f6c9",
+    "finalMatrixPassed": 6,
+    "lifetimeAttempts": 22,
+    "cumulativeWallSeconds": 73.52249308198225,
+    "wallLimitSeconds": 1800,
+    "confirmedStoppedContainers": 22
+  },
+  "storage": {
+    "minimumFreeBytes": 85596082176,
+    "maxAccountedGrowthBytes": 4415488
+  },
+  "criteriaEvidence": {
+    "C-TREC-01": "final real-container timeout output reaches next Session decision and same-container command; synthetic verifier only",
+    "C-TREC-02": "actual cancellation/deadline/uncertainty plus offline expiry/budget/races; no cancelled scoring",
+    "C-TREC-03": "managed child PID independently observed absent before recovery; control survives; late write absent; all owned containers stopped",
+    "C-TREC-04": "33 Node/16 Python pass; old evidence and ledger prefix retained; independent review pending"
   }
 }
