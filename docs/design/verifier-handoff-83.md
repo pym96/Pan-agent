@@ -1,33 +1,47 @@
-# Agent 停止与评分交接｜#83 Criteria1.0
+# Agent 停止与评分交接｜#83 Criteria1.1
 
-本设计属于 Product 的评测适配层，候选待独立验收；不改变 TypeScript 产品核心、安装包或上游 Harbor。原实现事实以 [Verified Project Facts](../evidence/verified-project-facts.md) 为准，本页不晋升事实。[合同](https://github.com/pym96/Pan-agent/issues/83#issuecomment-5792286554)批准本次阶段语义变更。
+Product 评测适配候选，待独立 Regulator 与新边界 Human 材料审阅，不晋升项目事实。[正式修订](https://github.com/pym96/Pan-agent/issues/83#issuecomment-5793143932)前瞻替换冲突的 1.0 边界；旧候选 `5552200379c3f4d45288b6942966d3ac755e3314`、技术 PASS、缺 Human 回执的 rejected Verdict 和原始日志保留。
 
-## 阶段及两类停止
+## 三个不同的对象
 
-`agent → handoff → verifier → ended` 单向推进；全局停止可在任一未结束阶段关闭环境。Agent 正常完成、agent_timeout、turn_limit、step_limit，及冻结 Ledger.reserve 直接抛出的 dispatch_budget/tool_budget 可进入 handoff。传输、协议、缺用量、输出截断、任意同名异常不因此获得评分资格。
+| 对象 | 生命周期与本地映射 | 冻结依据 |
+| --- | --- | --- |
+| 已启动任务进程（服务、编译、计算） | 正常工具返回不杀进程组；工具等待到期可能仍运行。保留共享容器到评分后，最终停止整个自有容器。没有初始 PID/PGID 门禁、服务注册或名称放行。 | Harbor `SingleStepTrial._run` 的共享环境先评分后停止；Docker exec 超时终止宿主客户端，未扫描或终止容器进程组。 |
+| 在途工具等待 | `timeout` 仍为 `(0,30]` 秒。超时／交接中断只结束宿主 Docker 客户端等待；TERM 等待至多 5 秒，再 KILL 等待至多 2 秒，输出收尾至多 2 秒。必须得到客户端已收尾的证据，不能把它写成任务进程已停止。 | 冻结 `DockerEnvironment._collect_buffered_output`、`_collect_streamed_output` 和 `_terminate_process`；Unix `exec_shell_args` 为 `bash -c`。 |
+| 可发起新动作的 Agent 控制器 | 正常完成、Agent 时限或明确调用预算结束关闭新决策、transport 与工具准入；取消 Session，有限等待控制器及工具收尾，再评分一次。保留任务状态不授权继续模型调用。 | `BaseAgent.run`、`Trial._run_agent_phase` 的 agent timeout 与 `_run_shared_verifier` 的独立 verifier timeout。 |
 
-软时限先关闭准入、向 broker 发 quiesce，再取消 Session 的在途模型／工具操作。它不会直接杀容器。运行、Session.close、交接都有额外有限等待；到期则停止确认失败，拒绝评分并停止环境。此等待不能接收新模型／工具操作。Ledger 预算异常只在直接调用冻结 Ledger 原方法处分类，policy/签名协议不改。
+这里是薄的本地 Docker exec 适配，不宣称直接调用 Harbor exec 或完全等同所有平台／服务路由。绑定原容器和 workdir，使用冻结 Linux shell 包装；输出每流保留 65536 字节。冻结 streamed collector 会累计全部输出，本地保留既有输出上限；冻结 buffered collector 没有通用取消收尾，本地为交接增加显式中断与有限收尾。这两处是本地安全映射，不是上游新增能力。
 
-Agent 定时器在 Agent 结束或软停止时清除，回调还检查阶段以拒绝迟到事件。评分入口新设独立 verifier 定时器，包含准备时间且使用原任务 verifier.timeout_sec；不增加官方时限。用户取消／资源停止共用外部信号，授权到期单独保持有效；命令停止不确定仍硬停止。硬停止通知评分等待并停止实际环境，迟到评分响应不能写入已结束报告。评分在取消前完整返回时，结果与晚到取消分别保留。
+模型可见工具描述与返回明确说明：等待超时不证明命令终止；后台服务须重定向标准输入输出；后续命令可检查任务状态，不可启动后台 Agent 控制循环。没有增加模型工具次数、请求预算或官方任务／评分时限。任务进程保留到评分后并非新增 Agent 准入。
 
-## broker 的停止证据与服务边界
+## 冻结源码与五题需求
 
-真实 broker ready 前抓取初始 Linux /proc PID、start-time、PGID 身份。它们属于可信环境建立阶段；不凭服务名称或模型自报放行。工具操作仍由 setsid 的受控进程组承载，锚点身份在放行命令前核对；正常结束和局部超时都会结束该命令组并确认无执行中成员。局部已确认超时继续支持下一轮工具反馈。
+Harbor commit `f9deaca7f44ab0b91f1dd445d79629e4d97a0716`，package-identity 固定 363 个 Harbor 文件、80 个安装包文件和 Python 身份。此次逐文件复核一致。原件 SHA256 及十份 instruction/config 身份在 Evidence 的 `source-identities.json`。
 
-quiesce 永久关闭新的 exec，置位当前命令的中断事件，等待其有界进程组清理，再重新读取进程清单。只允许初始固定身份仍存在；新独立进程、PID重用或无法确认均拒绝评分，并停止整个容器。评分至少需要这一份真实清单确认，不能仅靠 Session 退出。
+- `trial/single_step.py`：`fbf03d5e721177b3d35b0a778ec5224f2bb07b55d540542c8339843f21f0b06e`。
+- `trial/trial.py`：`04f95b4197a77c948f81e4f848adbdd383ba6f62db03cfd4a2be590084a95c7a`。
+- `environments/docker/docker.py`：`071d8d1f13dcb59b5f02cdcbf88dce36108cac4ccb3dd0db4a063fc988b5b35b`。
+- `environments/docker/docker_unix.py`：`56f1655b29ad222c315b2ea3c6d4172d6fdcd4a3788697eb9d3f80d1264b3152`。
+- `agents/base.py`：`5a0a59edb7406c8ad77f3667f5a4eff2a755509c6d0d2cd0c25ce8405de7773c`。
 
-本切片只保留**Agent 开始前已固定身份的服务**。不提供 Agent 动态注册服务、通用 daemon 发现、任意服务派生进程白名单或对抗性隔离。初始服务后续产生未知独立进程也可能触发保守拒绝。停止范围与这些限制是 Human 新边界审阅的对象。
+只读取五题 instruction.md/task.toml，未读取解题答案或运行任务。Nginx 题明确要求配置后服务仍可访问，并持续记录请求；其服务及评分触发的日志写入必须保留。overfull 的编译、dna 的计算、merge 的获取／合并及 break-filter 的产物生成可能需要较长操作，但 instruction 本身未要求普遍持久服务。不能从这些文本推导所有后台任务必须被杀，也不宣称本夹具已证明五题成功。
 
-合成真实控制使用 PID1 的单进程 FIFO echo 服务（容器内部，无宿主端口）。Agent 操作写入产物并创建等待 grade-entry 的写入子进程；评分入口先检查该写入进程已不存在或为 zombie，再触发 grade-entry、检查无迟到写入、产物存在并请求服务响应。正常、Agent时限、调用预算都沿实际 Session/Adapter/broker 路径。未知进程负例真实启动新的 setsid 进程，触发拒绝评分。
+## 阶段、取消与报告
 
-## 报告与边界
+`agent → handoff → verifier → ended` 单向推进。正常完成、agent_timeout、turn_limit、step_limit 及直接由冻结 Ledger.reserve 抛出的 dispatch_budget/tool_budget 可以进入 handoff。传输、协议、缺用量及任意同名异常不因此获得评分资格。
 
-`agentStatus`保留产品终态，`agentStopReason`保留 Agent 原因；兼容字段`stopReason`仍在。`globalStops`另列硬停止的原因／发生阶段，`quiescence`保存停止清单，`stopConfirmed`表示最后环境停止是否确认，`phases`记录单向阶段轨迹。verifier 状态/reward与Agent原因并存，不因原Agent超时清空已完成评分。合成结果为 synthetic_control，summary不把它归入official_scored；缺评分为null。
+quiesce 永久关闭 broker exec，置位客户端等待中断，等待在途 RPC 收尾，再检查实际容器仍运行。检查对象是控制等待与容器状态，不是任务进程身份。无法确认客户端／Session 停止、Docker 操作失败或环境已丢失则拒绝评分，记录实际失败并停止环境。局部超时及命令非零退出仍是可反馈工具结果。
 
-退出前停止环境，CLI对全局取消/过期/停止不确定等不再准入下一题。没有新live入口、自动重试或补题。旧#79/#82证据保持原值，#81旧“不评分”时限断言由本工单的新测试前瞻替代，不改历史日志。
+Agent 定时器在软结束时清除，迟到回调受阶段约束。评分入口使用原 verifier.timeout_sec 独立计时，包括准备。用户取消、授权到期、资源保护仍为全局停止，取消 Agent 与评分并停止自有容器。完整结果先返回时与晚到取消分别保留；迟到结果不能改写已结束报告。没有自动重试、补题、评分回流模型或新 live 入口。
 
-## 验证与资源
+`wait.settled` 只证明宿主客户端等待收尾；`quiescence` 是 Agent 准入关闭后的交接结果；`stopConfirmed` 是最终整个环境停止确认。`agentStatus`、`agentStopReason`、`globalStops`、verifier 与 phases 分开保留。合成分数为 synthetic_control；无评分为 null，不混入官方成绩。
 
-[Evidence](../evidence/verifier-handoff-83.md)绑定实际控制源码SHA、完整账本和原始证据。真实控制需显式授权，Builder及Regulator分别使用固定排他锁账本；未完成区间拒绝新尝试，必须先恢复核对。每个区间从首个Docker操作前到停止/清理后计时，包含失败与等待，60秒或剩余额度中较小者为watchdog；必要清理即使超预算也记录。
+## 真实控制与限制
 
-缓存镜像、network none、2CPU/4GiB、无挂载/特权/额外设备；内置盘活跃证据、5秒采样与60GiB/24GiB保护保持。只有本次命名容器在确认停止后删除。测试使用真实安装Session与脚本transport，真实Provider、官方任务、官方verifier调用均为0。
+ready 时只有 idle 容器。实际 Agent 工具第一步写产物并启动无害 FIFO 服务，无 PID 注册；第二步请求服务并留下成功标记；合成评分再次请求并写服务日志。正常和预算结束必须完成这一路径。
+
+长操作在第二步写 start 后等待 release，跨过工具等待超时；第三步释放并观察 done。Agent 时限控制则由评分释放并观察 done，允许任务状态在交接后继续变化。取消必须真正停止整个容器。实际控制失败负例停止本次自有容器，使 handoff 观察 environment_not_running，禁止评分；不再以新 PID 充当失败。
+
+全部真实夹具遵守原缓存镜像、network none、2CPU/4GiB、无挂载/特权/设备，独占累计 1800 秒账本、60 秒或剩余额度 watchdog、5 秒采样与 60GiB/24GiB 宿主保护。仅删除本次创建且确认停止的容器。旧 WO81 执行夹具前瞻停用，历史源码和原始 Evidence 不变。
+
+本轮红测发生一次未入账的虚构容器 docker exec，详见 [Evidence](../evidence/verifier-handoff-83.md) 的偏差记录。不得声称全部 Docker 操作均已入账；由独立方裁定 C-GRADE83-04。这不改变后续操作必须入原账本的约束。

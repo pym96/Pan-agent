@@ -107,4 +107,3 @@ class ScopeAdmission(unittest.TestCase):
   original=json.dumps(rows);self.assertEqual(authorize_control(rows,'normal',SCOPE_AUTH),17);self.assertEqual(json.dumps(rows),original)
   for bad,scenario in [(rows,'unknown'),(rows+[{'event':'end','elapsed':1800}],'normal'),(rows+[{'event':'start','attempt':9}],'normal')]:
    with self.assertRaises(RuntimeError):authorize_control(bad,scenario,SCOPE_AUTH)
-
