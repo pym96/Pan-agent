@@ -1,0 +1,333 @@
+{
+  "schema": 1,
+  "issue": 84,
+  "criteria_version": "1.0",
+  "status": "candidate_pending_independent_regulator_and_H-LIVE84-RESULT",
+  "base_and_runner_sha": "c2c30e7cdf90b26d03ef4cdf3697cd3cdb347ecf",
+  "run_id": "5262035a-b2cf-48cc-ad75-50d06decf8b5",
+  "authorization_id": "H-LIVE84-20260923-001",
+  "activation_sha256": "84eebdbe8d5fc3fb9c94ea7dcfb82ce74f1d09349bec4da3031b54e47d9d6839",
+  "model": {
+    "provider": "kimi-code",
+    "model": "k3-256k",
+    "thinking": "high",
+    "endpoint": "https://api.kimi.com/coding/v1/chat/completions"
+  },
+  "limits": {
+    "dispatchesPerTask": 40,
+    "dispatchesCampaign": 200,
+    "toolsPerTask": 80,
+    "maxTokens": 4096,
+    "requestBytes": 131072,
+    "responseBytes": 524288,
+    "dispatchSeconds": 120
+  },
+  "campaign_cli_invocations": 1,
+  "campaign_exit_code": 0,
+  "started_utc": "2026-09-23T11:39:11.043881+00:00",
+  "ended_utc": "2026-09-23T12:08:06.888063+00:00",
+  "campaign_elapsed_seconds": 1735.785645291995,
+  "preparation": {
+    "start_monotonic": 163551.270122958,
+    "end_monotonic": 163601.954922791,
+    "elapsed_seconds": 50.68479983299039,
+    "budget_seconds": 1800
+  },
+  "denominator": 5,
+  "counts": {
+    "official_success": 2,
+    "valid_official_scored": 2,
+    "official_failure": 0,
+    "not_scored": 3,
+    "not_started": 0
+  },
+  "dispatch_attempts": 67,
+  "tools": 68,
+  "model_turns": 68,
+  "usage": {
+    "known_input": 597383,
+    "known_output": 29350,
+    "reported_exchanges": 65,
+    "unavailable_exchanges": 3,
+    "reserved_dispatches_with_unknown_usage": 2,
+    "unreserved_failed_exchanges": 1
+  },
+  "resource_observations": {
+    "samples": 354,
+    "minimum_free_bytes": 82822639616,
+    "maximum_accounted_growth_bytes": 705400832
+  },
+  "rows": [
+    {
+      "task": "overfull-hbox",
+      "classification": "not_scored",
+      "official_reward": null,
+      "agent_status": "model_error",
+      "agent_stop_reason": "transport",
+      "dispatch_attempts": 4,
+      "tools": 4,
+      "model_turns": 4,
+      "usage": {
+        "known_input": 8163,
+        "known_output": 388,
+        "reported_exchanges": 3,
+        "unavailable_exchanges": 1,
+        "reserved_dispatches_with_unknown_usage": 1,
+        "unreserved_failed_exchanges": 0
+      },
+      "phase_elapsed_seconds": {
+        "agent_to_handoff": null,
+        "agent_to_end": 148.70540525,
+        "verifier_entry_to_end_including_final_stop": null
+      },
+      "verifier": null,
+      "official_test_summary": null,
+      "local_wait_timeouts": [],
+      "stop_confirmed": true,
+      "global_stops": [],
+      "raw_report": "campaign/overfull-hbox/pan/report.json",
+      "raw_events": "campaign/overfull-hbox/pan/archive/runs/ffa184c4-2584-4a3f-a78b-110ce3cb7cd1/events.jsonl"
+    },
+    {
+      "task": "dna-insert",
+      "classification": "not_scored",
+      "official_reward": null,
+      "agent_status": "model_error",
+      "agent_stop_reason": "transport",
+      "dispatch_attempts": 7,
+      "tools": 7,
+      "model_turns": 7,
+      "usage": {
+        "known_input": 29372,
+        "known_output": 1457,
+        "reported_exchanges": 6,
+        "unavailable_exchanges": 1,
+        "reserved_dispatches_with_unknown_usage": 1,
+        "unreserved_failed_exchanges": 0
+      },
+      "phase_elapsed_seconds": {
+        "agent_to_handoff": null,
+        "agent_to_end": 138.253361,
+        "verifier_entry_to_end_including_final_stop": null
+      },
+      "verifier": null,
+      "official_test_summary": null,
+      "local_wait_timeouts": [
+        {
+          "tool_number": 6,
+          "host_wait_settled": true,
+          "next_model_turn": 6,
+          "next_model_turn_has_reserved_dispatch": true,
+          "later_tool_count": 1,
+          "scope": "sequence observation; does not prove model saw feedback before already-planned tools or causal benefit"
+        }
+      ],
+      "stop_confirmed": true,
+      "global_stops": [],
+      "raw_report": "campaign/dna-insert/pan/report.json",
+      "raw_events": "campaign/dna-insert/pan/archive/runs/ef8a0514-9b74-4638-8679-cb829cd12cf1/events.jsonl"
+    },
+    {
+      "task": "nginx-request-logging",
+      "classification": "official_success",
+      "official_reward": 1.0,
+      "agent_status": "completed",
+      "agent_stop_reason": null,
+      "dispatch_attempts": 8,
+      "tools": 7,
+      "model_turns": 8,
+      "usage": {
+        "known_input": 17679,
+        "known_output": 1800,
+        "reported_exchanges": 8,
+        "unavailable_exchanges": 0,
+        "reserved_dispatches_with_unknown_usage": 0,
+        "unreserved_failed_exchanges": 0
+      },
+      "phase_elapsed_seconds": {
+        "agent_to_handoff": 92.12221554200002,
+        "agent_to_end": 122.282097375,
+        "verifier_entry_to_end_including_final_stop": 30.118278249999975
+      },
+      "verifier": {
+        "status": "official_scored",
+        "rewards": {
+          "reward": 1
+        },
+        "verifier_exit_or_exception": [
+          0,
+          0
+        ],
+        "raw_reward_paths": [
+          "verifier/reward.txt",
+          "verifier/reward.json"
+        ]
+      },
+      "official_test_summary": {
+        "tests": 8,
+        "passed": 8,
+        "failed": 0,
+        "skipped": 0,
+        "pending": 0,
+        "other": 0,
+        "start": 1790163956.3131938,
+        "stop": 1790163958.5941124
+      },
+      "local_wait_timeouts": [],
+      "stop_confirmed": true,
+      "global_stops": [],
+      "raw_report": "campaign/nginx-request-logging/pan/report.json",
+      "raw_events": "campaign/nginx-request-logging/pan/archive/runs/3b783c2f-8dec-4d3a-9ac5-25c40c69c401/events.jsonl"
+    },
+    {
+      "task": "merge-diff-arc-agi-task",
+      "classification": "official_success",
+      "official_reward": 1.0,
+      "agent_status": "completed",
+      "agent_stop_reason": null,
+      "dispatch_attempts": 21,
+      "tools": 23,
+      "model_turns": 21,
+      "usage": {
+        "known_input": 114046,
+        "known_output": 5465,
+        "reported_exchanges": 21,
+        "unavailable_exchanges": 0,
+        "reserved_dispatches_with_unknown_usage": 0,
+        "unreserved_failed_exchanges": 0
+      },
+      "phase_elapsed_seconds": {
+        "agent_to_handoff": 291.152122375,
+        "agent_to_end": 372.90637337500004,
+        "verifier_entry_to_end_including_final_stop": 81.72541783300007
+      },
+      "verifier": {
+        "status": "official_scored",
+        "rewards": {
+          "reward": 1
+        },
+        "verifier_exit_or_exception": [
+          0,
+          0
+        ],
+        "raw_reward_paths": [
+          "verifier/reward.txt",
+          "verifier/reward.json"
+        ]
+      },
+      "official_test_summary": {
+        "tests": 5,
+        "passed": 5,
+        "failed": 0,
+        "skipped": 0,
+        "pending": 0,
+        "other": 0,
+        "start": 1790164333.4925184,
+        "stop": 1790164333.5780053
+      },
+      "local_wait_timeouts": [
+        {
+          "tool_number": 5,
+          "host_wait_settled": true,
+          "next_model_turn": 5,
+          "next_model_turn_has_reserved_dispatch": true,
+          "later_tool_count": 18,
+          "scope": "sequence observation; does not prove model saw feedback before already-planned tools or causal benefit"
+        }
+      ],
+      "stop_confirmed": true,
+      "global_stops": [],
+      "raw_report": "campaign/merge-diff-arc-agi-task/pan/report.json",
+      "raw_events": "campaign/merge-diff-arc-agi-task/pan/archive/runs/973a0b58-579b-4850-baf7-b098ed616860/events.jsonl"
+    },
+    {
+      "task": "break-filter-js-from-html",
+      "classification": "not_scored",
+      "official_reward": null,
+      "agent_status": "model_error",
+      "agent_stop_reason": "transport",
+      "dispatch_attempts": 27,
+      "tools": 27,
+      "model_turns": 28,
+      "usage": {
+        "known_input": 428123,
+        "known_output": 20240,
+        "reported_exchanges": 27,
+        "unavailable_exchanges": 1,
+        "reserved_dispatches_with_unknown_usage": 0,
+        "unreserved_failed_exchanges": 1
+      },
+      "phase_elapsed_seconds": {
+        "agent_to_handoff": null,
+        "agent_to_end": 940.1198048330001,
+        "verifier_entry_to_end_including_final_stop": null
+      },
+      "verifier": null,
+      "official_test_summary": null,
+      "local_wait_timeouts": [
+        {
+          "tool_number": 3,
+          "host_wait_settled": true,
+          "next_model_turn": 4,
+          "next_model_turn_has_reserved_dispatch": true,
+          "later_tool_count": 24,
+          "scope": "sequence observation; does not prove model saw feedback before already-planned tools or causal benefit"
+        },
+        {
+          "tool_number": 7,
+          "host_wait_settled": true,
+          "next_model_turn": 8,
+          "next_model_turn_has_reserved_dispatch": true,
+          "later_tool_count": 20,
+          "scope": "sequence observation; does not prove model saw feedback before already-planned tools or causal benefit"
+        },
+        {
+          "tool_number": 27,
+          "host_wait_settled": true,
+          "next_model_turn": 28,
+          "next_model_turn_has_reserved_dispatch": false,
+          "later_tool_count": 0,
+          "scope": "sequence observation; does not prove model saw feedback before already-planned tools or causal benefit"
+        }
+      ],
+      "stop_confirmed": true,
+      "global_stops": [],
+      "raw_report": "campaign/break-filter-js-from-html/pan/report.json",
+      "raw_events": "campaign/break-filter-js-from-html/pan/archive/runs/e2c42f18-a40c-4637-b7ef-13cc3a43bd6e/events.jsonl"
+    }
+  ],
+  "scope": {
+    "implementation_changed": false,
+    "campaign_restarted": false,
+    "task_or_verifier_retried_by_builder": false,
+    "old_ledgers_unchanged": true,
+    "credential_scan_passed": true,
+    "all_five_containers_stopped": true,
+    "all_five_owned_networks_released": true,
+    "manual_cleanup": false
+  },
+  "limitations": [
+    "Three unscored results are null, not measured zero scores.",
+    "Generic transport labels do not establish network/provider root causes.",
+    "break-filter final failed model exchange had no new dispatch reservation; do not count it as an additional actual request.",
+    "No task ended by agent timeout or turn/tool budget exhaustion in this campaign.",
+    "Two successes on the debugged fixed five are not holdout accuracy or causal improvement.",
+    "Phase timings include controller settlement/final stop, not pure model or verifier compute.",
+    "Human result classification and independent Verdict pending."
+  ],
+  "archive": {
+    "root": "/Volumes/WD_BLACK/pan-agent/wo84-post-handoff-20260923",
+    "archive_file": "builder-evidence.tar.gz",
+    "archive_sha256": "fc6f5d87f78d7d324003fbc9c061ce87a771ba1f15a085212a4552c94e66598d",
+    "index_file": "evidence-index.json",
+    "index_sha256": "747fa7efb8286500871a3d98aa2f0345a785382942359bdd5f9917e854fb9b52",
+    "files": 69,
+    "readback_verified": true
+  },
+  "consumption_ledger_sha256": "ee4984a77d22662d11598ce2afe98b8e8d14a7e8ac905f2cef366648b096d793",
+  "host_checks": {
+    "human_feedback": "PASS",
+    "resume_package_structure": "PASS",
+    "knowledge_base": "BLOCK pre-existing .DS_Store and 潘佳祥——agent简历.pdf"
+  }
+}

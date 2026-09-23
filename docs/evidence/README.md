@@ -53,3 +53,5 @@ Raw artifacts remain at their stable source, Git, Trace, Test, evaluator, or ext
   review pending, no measured zero-accuracy or causal-improvement claim.
 
 - [WO83 verifier handoff](verifier-handoff-83.md) — [summary](verifier-handoff-83-summary.json): Criteria1.1 dynamic service/long-operation controls, independent verifier timing and known budget deviation; no real model or official scoring, independent review pending.
+
+- [WO84 fixed-five live results](terminal-bench-post-handoff-84.md) — [summary](terminal-bench-post-handoff-84-summary.json): one authorized campaign, two official successes and three unscored results; full consumption and stop evidence, independent review pending.
