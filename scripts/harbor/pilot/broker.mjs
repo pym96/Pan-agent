@@ -21,7 +21,7 @@ export function openBroker({python,config,home,dockerConfig,spawnImplementation=
  child.stdin.write(JSON.stringify(config)+'\n');
  const call=(method,args={})=>new Promise((resolve,reject)=>{if(child.exitCode!==null||child.signalCode)return reject(Error('broker_exited'));const id=++seq;pending.set(id,{resolve,reject});child.stdin.write(JSON.stringify({id,method,...args})+'\n');});
  const ready=timed(initial,(config.task.config.environment.build_timeout_sec+35)*1000,'broker_start_timeout');
- return {ready,exec:(command,timeout=30)=>call('exec',{command,timeout}),verify:()=>call('verify'),stop:reason=>timed(call('stop',{reason}),35000,'stop_unconfirmed'),async close(){
+ return {ready,exec:(command,timeout=30)=>call('exec',{command,timeout}),quiesce:()=>timed(call('quiesce'),15000,'handoff_unconfirmed'),verify:()=>call('verify'),stop:reason=>timed(call('stop',{reason}),35000,'stop_unconfirmed'),async close(){
   let stopError;try{if(isReady)await timed(call('stop',{reason:'controller_exit'}),35000,'stop_unconfirmed');}catch(e){stopError=e;}
   child.stdin.end();try{await timed(new Promise(resolve=>{if(child.exitCode!==null||child.signalCode)return resolve();child.once('exit',resolve);}),35000,'cleanup_unconfirmed');}catch(e){child.kill('SIGTERM');throw e;}if(stopError)throw stopError;
  }};

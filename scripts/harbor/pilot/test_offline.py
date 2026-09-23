@@ -45,6 +45,7 @@ class Routing(unittest.IsolatedAsyncioTestCase):
   env=create_autospec(BaseEnvironment,instance=True);env.exec=AsyncMock(return_value=SimpleNamespace(return_code=7,stdout='task-only',stderr=''))
   stop=AsyncMock();verify=AsyncMock(return_value={'status':'official_scored','rewards':{'reward':0}});bound=Bound(env,stop,verify)
   result=await bound.exec('exit 7');env.exec.assert_awaited_once_with('exit 7');self.assertEqual(result['exit_code'],7);verify.assert_not_awaited()
+  bound.quiet={'confirmed':True} # synthetic phase seam only; real proof in WO83 controls
   await bound.verify();verify.assert_awaited_once()
   with self.assertRaises(RuntimeError):await bound.exec('pwd')
   with self.assertRaises(RuntimeError):await bound.verify()
@@ -67,7 +68,7 @@ class CommandBoundary(unittest.IsolatedAsyncioTestCase):
   stop=AsyncMock();verify=AsyncMock(return_value={'status':'synthetic_control'});bound=Bound(None,stop,verify,commands)
   self.assertEqual((await bound.exec('first',.1))['status'],'timeout')
   self.assertEqual((await bound.exec('second',1))['status'],'completed')
-  stop.assert_not_awaited();await bound.verify();verify.assert_awaited_once()
+  stop.assert_not_awaited();bound.quiet={'confirmed':True};await bound.verify();verify.assert_awaited_once()
  async def test_unconfirmed_stop_is_not_recoverable_even_when_environment_stop_fails(self):
   for error in [False,True]:
    commands=SimpleNamespace(run=AsyncMock(return_value={'status':'stop_unconfirmed','termination':{'confirmed':False}}))

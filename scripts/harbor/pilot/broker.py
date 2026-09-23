@@ -46,7 +46,7 @@ class ManagedCommand:
  Only non-zombie members execute; PID/start-time identities guard signal targeting.
  """
  LIMIT=65536
- def __init__(self,container_id,cwd=None):self.cid=container_id;self.cwd=cwd;self.observations=[];self.stage='baseline_snapshot'
+ def __init__(self,container_id,cwd=None):self.cid=container_id;self.cwd=cwd;self.observations=[];self.stage='baseline_snapshot';self.interrupt=asyncio.Event();self.baseline=None
  async def control(self,script):
   clock=asyncio.get_running_loop().time;started=clock();p=None;first=None;size=0;parts=[];outcome='error'
   try:
@@ -90,6 +90,12 @@ class ManagedCommand:
  def parse_pid(value):
   if not value.isascii() or not value.isdecimal() or not 0<int(value)<=2147483647:raise CommandFailure('pid_malformed')
   return int(value)
+ async def initialize(self):
+  if self.baseline is None:self.baseline=await self.snapshot()
+ async def confirm_quiescent(self):
+  await self.initialize();self.stage="handoff_snapshot";after=await self.snapshot()
+  unknown={p:r for p,r in after.items() if p not in self.baseline or r["start"]!=self.baseline[p]["start"]}
+  return {"confirmed":not unknown,"baseline":[{"pid":p,**r} for p,r in self.baseline.items()],"remaining":[{"pid":p,**r} for p,r in after.items()],"scope":"pinned pre-Agent process identities; unknown processes reject handoff"}
  async def run(self,command,timeout):
   self.observations=[]
   token=uuid.uuid4().hex;directory='/tmp/pan-command-'+token
@@ -109,6 +115,8 @@ class ManagedCommand:
   identity=None;received_pid=None;launcher=None;foreign={};observed={};status='stop_unconfirmed';code=None;confirmed=False
   try:
    enter('baseline_snapshot');before=await self.snapshot()
+   if self.baseline is None:self.baseline=before
+   if any(p not in self.baseline or r['start']!=self.baseline[p]['start'] for p,r in before.items()):raise CommandFailure('unmanaged_process_observed')
    enter('launch');proc=await asyncio.create_subprocess_exec(*argv,stdin=asyncio.subprocess.DEVNULL,stdout=asyncio.subprocess.PIPE,stderr=asyncio.subprocess.PIPE)
    readers=[asyncio.create_task(drain(n,getattr(proc,n))) for n in chunks]
    deadline=asyncio.get_running_loop().time()+timeout
@@ -122,13 +130,14 @@ class ManagedCommand:
      identity={'pid':pid,'start':row['start']};observed.update(snap)
      parent=snap.get(row.get('ppid'))
      if parent and row['ppid'] not in before:launcher={'pid':row['ppid'],'start':parent['start']}
-     if asyncio.get_running_loop().time()>=deadline:break
+     if self.interrupt.is_set() or asyncio.get_running_loop().time()>=deadline:break
      enter('go_release');await self.control('touch '+directory+'/go');break
     if proc.returncode is not None:raise CommandFailure('command_setup_failed')
     await asyncio.sleep(.01)
    if identity is None:raise CommandFailure('pid_not_received')
    enter('settlement')
    while asyncio.get_running_loop().time()<deadline:
+    if self.interrupt.is_set():status='interrupted';break
     try:value=(await asyncio.wait_for(self.control('cat '+directory+'/rc 2>/dev/null || :'),max(.001,deadline-asyncio.get_running_loop().time()))).strip()
     except TimeoutError:status='timeout';break
     if value:code=int(value);status='completed';break
@@ -166,11 +175,11 @@ class ManagedCommand:
    'termination':{'confirmed':confirmed,'identity':identity,'managed':[{ 'pid':p,**r} for p,r in observed.items() if identity and r['pgid']==identity['pid']],
     'scope':'observed process group; not adversarial containment'}}
 class Bound:
- def __init__(self,env,stopper,verifier,commands=None):self.env=env;self.stopper=stopper;self.verifier=verifier;self.commands=commands;self.finished=False;self.active=False;self.stopped=False;self.stop_task=None
+ def __init__(self,env,stopper,verifier,commands=None):self.env=env;self.stopper=stopper;self.verifier=verifier;self.commands=commands;self.finished=False;self.active=False;self.stopped=False;self.stop_task=None;self.quiescing=False;self.quiet=None;self.active_task=None
  async def exec(self,command,timeout=30):
-  if self.active or self.finished or self.stopped:raise RuntimeError('invalid_environment_phase')
+  if self.active or self.finished or self.stopped or self.quiescing:raise RuntimeError('invalid_environment_phase')
   if not isinstance(command,str) or len(command)>32768 or isinstance(timeout,bool) or not isinstance(timeout,(int,float)) or not math.isfinite(timeout) or not 0<timeout<=30:raise RuntimeError('invalid_command')
-  self.active=True
+  self.active=True;self.active_task=asyncio.current_task()
   try:
    if self.commands is None:
     # Legacy offline BaseEnvironment seam is not used by the live broker.
@@ -179,14 +188,26 @@ class Bound:
    if not r['termination']['confirmed']:await self.stop('command_stop_unconfirmed')
    if self.stopped:r={**r,'status':'cancelled' if r['termination']['confirmed'] else 'stop_unconfirmed'}
    return r
-  finally:self.active=False
+  finally:self.active=False;self.active_task=None
+ async def quiesce(self):
+  self.quiescing=True
+  if self.commands is None:return {'confirmed':False,'reason':'no_process_controller'}
+  self.commands.interrupt.set()
+  try:
+   if self.active_task:await asyncio.wait_for(asyncio.shield(self.active_task),12)
+   if self.stopped:return {'confirmed':False,'reason':'environment_stopped'}
+   self.quiet=await self.commands.confirm_quiescent()
+   if not self.quiet['confirmed']:await self.stop('command_stop_unconfirmed')
+   return self.quiet
+  except Exception:
+   await self.stop('command_stop_unconfirmed');return {'confirmed':False,'reason':'handoff_failed'}
  async def stop(self,reason):
   self.stopped=True
   if self.stop_task is None:self.stop_task=asyncio.create_task(self.stopper(reason))
   await self.stop_task
   return {'stopped':True}
  async def verify(self):
-  if self.active or self.stopped or self.finished:raise RuntimeError('invalid_verifier_phase')
+  if self.active or self.stopped or self.finished or not self.quiet or not self.quiet['confirmed']:raise RuntimeError('invalid_verifier_phase')
   self.finished=True;return await self.verifier()
 async def main():
  current=asyncio.current_task();asyncio.get_running_loop().add_signal_handler(signal.SIGTERM,current.cancel)
@@ -225,12 +246,14 @@ async def main():
   # Do not inject tests/solutions before the Agent; baked upstream tests are a live blocker.
   absent=await env.exec('test ! -e /tests && test ! -e /solution');assert absent.return_code==0
   record_stage('ready')
-  bound=Bound(env,stop,verify,ManagedCommand(cid,cfg.workdir));await send({'ready':True,'instruction':task.instruction})
+  commands=ManagedCommand(cid,cfg.workdir);await commands.initialize()
+  bound=Bound(env,stop,verify,commands);await send({'ready':True,'instruction':task.instruction})
   async def handle(msg):
    try:
     assert set(msg)<= {'id','method','command','reason','timeout'}
     if msg['method']=='exec':r=await bound.exec(msg['command'],msg.get('timeout',30))
     elif msg['method']=='stop':r=await bound.stop(msg.get('reason','stop'))
+    elif msg['method']=='quiesce':r=await bound.quiesce()
     elif msg['method']=='verify':r=await bound.verify()
     else:raise ValueError('unknown_method')
     await send({'id':msg['id'],'result':r})

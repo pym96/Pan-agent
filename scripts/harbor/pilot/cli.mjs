@@ -42,6 +42,7 @@ export async function main(args=process.argv.slice(2),dependencies={}){
    env=host.openBroker({python:lock.python,home,dockerConfig,config:{task,task_root:resolve(options['--task-root']),image:expected.images[task.id],output:join(directory,'harbor')}});
    const instruction=await env.ready;
    phase='agent';const r=await runAttempt({entry,task,instruction,output:join(directory,'pan'),environment:env,gate,ledger,credentialSource:host.credentialSource,fetchImplementation:host.fetchImplementation,signal:controller.signal});reports.push(r);
+   if(r.stopConfirmed!==true||r.globalStops?.some(x=>['cancelled','activation_expired','command_stop_unconfirmed','session_stop_unconfirmed','ledger_error'].includes(x.reason)))controller.abort();
   }catch(error){const failure={task:task.id,agentStatus:phase==='agent'?'failed':null,stopReason:phase==='agent'?'agent_exception':null,verifier:null,usage:null,infrastructurePhase:phase,diagnostic:error.diagnostic??null};reports.push(failure);writeFileSync(join(directory,'failure.json'),JSON.stringify(failure,null,2)+'\n');}
   finally{await env?.close();writeFileSync(join(output,'summary.json'),JSON.stringify(summary(manifest,reports),null,2)+'\n');}
  }}finally{ledger.close();resources.close();}
