@@ -1,5 +1,7 @@
 # Terminal-Bench recovery #78 — candidate design
 
+Criteria1.1 continuation: the single-old-network cleanup was explicitly authorized and completed; all five real ordered lifecycles now have evidence. See the current evidence section. Implementation and prior tests are unchanged; independent and high-risk review remain pending.
+
 Criteria1.0. Builder scope: evaluation adapter only; no Product core changes, live calls, credential reads or formal scoring. [Contract](https://github.com/pym96/Pan-agent/issues/78#issuecomment-5779207476). [Evidence and unresolved scope](../evidence/terminal-bench-recovery-78.md).
 
 ## Failure and lifecycle

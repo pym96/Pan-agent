@@ -38,3 +38,5 @@ Raw artifacts remain at their stable source, Git, Trace, Test, evaluator, or ext
 - [Terminal-Bench environments #76](terminal-bench-environments-76.md): actual five-task broker preflight, retained failures and identity-bound assets.
 
 - [Terminal-Bench recovery #78](terminal-bench-recovery-78.md) — current address-pool exhaustion reproduced; blocked real ready comparison, no model calls or scoring.
+
+- [WO78 Criteria1.1 continuation](terminal-bench-recovery-78.md): five ordered ready/stop/network-release transitions, exact-ID old-network cleanup and retained failure evidence; zero real model/scoring calls.

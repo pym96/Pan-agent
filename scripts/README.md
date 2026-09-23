@@ -305,3 +305,5 @@ The active #60/#61/#62 PTY drivers now start at idle rather than submitting remo
 - [WO76 official environment preparation](harbor/pilot/environment-prep/README.md): fixed five-task source/image assets, bounded broker preflight and unsigned live proposal.
 
 - [WO78 bounded recovery adapter](harbor/pilot/README.md) — zero-model diagnosis, candidate ceilings and scoped lifecycle release.
+
+- [WO78 Criteria1.1 continuation](../docs/evidence/terminal-bench-recovery-78.md): authorized one-network cleanup and real five-task zero-model lifecycle evidence.

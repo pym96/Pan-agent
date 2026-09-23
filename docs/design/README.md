@@ -103,3 +103,5 @@ The Human-accepted architecture history remains indexed in [`../adr/README.md`](
 - [Terminal-Bench environments #76](terminal-bench-environments-76.md): fixed official assets, bounded preparation and future live prerequisites.
 
 - [Terminal-Bench recovery #78](terminal-bench-recovery-78.md) — candidate diagnostics, owned-network release and unsigned 40/200/80 ceilings.
+
+- [WO78 Criteria1.1 continuation](terminal-bench-recovery-78.md): unchanged adapter with real lifecycle evidence; independent review pending.
