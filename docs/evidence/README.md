@@ -65,3 +65,5 @@ Raw artifacts remain at their stable source, Git, Trace, Test, evaluator, or ext
 - [WO88 real five-task evidence](terminal-bench-response-88.md) and [summary](terminal-bench-response-88-summary.json): 1 success, 1 scored failure, 3 unscored; full metering/timeout/protocol diagnostics, pending independent and Human result review.
 
 - [WO89 protocol/verifier evidence](protocol-verifier-89.md) and [summary](protocol-verifier-89-summary.json): installed structural diagnosis, preserved protocol matrix, one dependency-only control; no real model or official scoring.
+
+- [WO90 live structure campaign](terminal-bench-structure-90.md) — Criteria1.0, all five outcomes, raw-score versus preparation-failure distinction, per-exchange snapshots; [summary](terminal-bench-structure-90-summary.json). Pending independent review.
