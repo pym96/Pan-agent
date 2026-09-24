@@ -1,0 +1,358 @@
+{
+  "issue": 88,
+  "criteria": "1.0",
+  "run_id": "56580f24-63f4-4c16-ac56-0792b51142b9",
+  "runner_sha": "0d9bc4a70910b329657e0e008779c2305acea756",
+  "denominator": 5,
+  "rows": [
+    {
+      "task": "overfull-hbox",
+      "state": "unscored",
+      "reward": null,
+      "agent_stop_reason": null,
+      "verifier_status": "evaluation_error",
+      "counts": {
+        "model_rounds": 16,
+        "exchanges": 17,
+        "reservations": 17,
+        "send_entries": 17,
+        "tools": 15,
+        "scheduled_retries": 1
+      },
+      "usage": {
+        "known_exchanges": 16,
+        "unknown_exchanges": 1,
+        "input": 162296,
+        "output": 9063
+      },
+      "diagnostics": [
+        {
+          "exchange": 4,
+          "modelRound": 4,
+          "stage": "stream",
+          "reserved": true,
+          "sendEntered": true,
+          "responseBytes": 309992,
+          "httpStatus": 200,
+          "reason": "dispatch_timeout",
+          "elapsedMs": 120017.93708300001,
+          "retryable": true,
+          "usage": null
+        }
+      ],
+      "global_stops": [
+        {
+          "reason": "verifier_timeout",
+          "phase": "verifier",
+          "at": 999289.682084
+        }
+      ],
+      "stopped": true,
+      "network_release": [
+        "removed"
+      ],
+      "container_id": "df4f89af194c088d481301d51bdb6b979e53b9c9f2cf54bfd728ba0e67839496",
+      "phases": [
+        {
+          "phase": "agent",
+          "at": 4295.9885
+        },
+        {
+          "phase": "handoff",
+          "at": 639253.779209
+        },
+        {
+          "phase": "verifier",
+          "at": 639287.348417
+        },
+        {
+          "phase": "ended",
+          "at": 1009553.708417
+        }
+      ],
+      "verifier_exit_codes": "verifier_timeout",
+      "response_bytes": {
+        "observed_total": 1008186,
+        "largest_exchange": 309992,
+        "above_old_cap": 0
+      }
+    },
+    {
+      "task": "dna-insert",
+      "state": "official_scored_failure",
+      "reward": {
+        "reward": 0
+      },
+      "agent_stop_reason": null,
+      "verifier_status": "official_scored",
+      "counts": {
+        "model_rounds": 16,
+        "exchanges": 16,
+        "reservations": 16,
+        "send_entries": 16,
+        "tools": 18,
+        "scheduled_retries": 0
+      },
+      "usage": {
+        "known_exchanges": 16,
+        "unknown_exchanges": 0,
+        "input": 141484,
+        "output": 6115
+      },
+      "diagnostics": [],
+      "global_stops": [],
+      "stopped": true,
+      "network_release": [
+        "removed"
+      ],
+      "container_id": "e4152d7904e8aa2ccc8c6ac0cfbc27e388d0bbfa3690a8b8d7c38370e09b7ee6",
+      "phases": [
+        {
+          "phase": "agent",
+          "at": 1011793.343584
+        },
+        {
+          "phase": "handoff",
+          "at": 1299213.260709
+        },
+        {
+          "phase": "verifier",
+          "at": 1299236.284792
+        },
+        {
+          "phase": "ended",
+          "at": 1444039.846209
+        }
+      ],
+      "verifier_exit_codes": [
+        0,
+        0
+      ],
+      "response_bytes": {
+        "observed_total": 504610,
+        "largest_exchange": 92199,
+        "above_old_cap": 0
+      }
+    },
+    {
+      "task": "nginx-request-logging",
+      "state": "unscored",
+      "reward": null,
+      "agent_stop_reason": "protocol",
+      "verifier_status": null,
+      "counts": {
+        "model_rounds": 3,
+        "exchanges": 3,
+        "reservations": 3,
+        "send_entries": 3,
+        "tools": 2,
+        "scheduled_retries": 0
+      },
+      "usage": {
+        "known_exchanges": 2,
+        "unknown_exchanges": 1,
+        "input": 1779,
+        "output": 281
+      },
+      "diagnostics": [
+        {
+          "exchange": 3,
+          "modelRound": 3,
+          "stage": "parse",
+          "reserved": true,
+          "sendEntered": true,
+          "responseBytes": 43980,
+          "httpStatus": 200,
+          "elapsedMs": 6557.32200000016,
+          "reason": "kimi_reasoning_missing",
+          "retryable": false,
+          "usage": null
+        }
+      ],
+      "global_stops": [],
+      "stopped": true,
+      "network_release": [
+        "removed"
+      ],
+      "container_id": "1ec419effed8170f602536d6f7e98ef45fd57f0393669626012b0f2df3deecef",
+      "phases": [
+        {
+          "phase": "agent",
+          "at": 1446912.19875
+        },
+        {
+          "phase": "ended",
+          "at": 1493987.952459
+        }
+      ],
+      "verifier_exit_codes": null,
+      "response_bytes": {
+        "observed_total": 84047,
+        "largest_exchange": 43980,
+        "above_old_cap": 0
+      }
+    },
+    {
+      "task": "merge-diff-arc-agi-task",
+      "state": "unscored",
+      "reward": null,
+      "agent_stop_reason": "protocol",
+      "verifier_status": null,
+      "counts": {
+        "model_rounds": 4,
+        "exchanges": 4,
+        "reservations": 4,
+        "send_entries": 4,
+        "tools": 5,
+        "scheduled_retries": 0
+      },
+      "usage": {
+        "known_exchanges": 3,
+        "unknown_exchanges": 1,
+        "input": 4462,
+        "output": 493
+      },
+      "diagnostics": [
+        {
+          "exchange": 4,
+          "modelRound": 4,
+          "stage": "parse",
+          "reserved": true,
+          "sendEntered": true,
+          "responseBytes": 4986,
+          "httpStatus": 200,
+          "elapsedMs": 6897.270708000055,
+          "reason": "kimi_reasoning_missing",
+          "retryable": false,
+          "usage": null
+        }
+      ],
+      "global_stops": [],
+      "stopped": true,
+      "network_release": [
+        "removed"
+      ],
+      "container_id": "e4f6b2d90f65dc1b83c1c70a015039c55d3625520af2ff9d8650990b27f4e237",
+      "phases": [
+        {
+          "phase": "agent",
+          "at": 1496133.867292
+        },
+        {
+          "phase": "ended",
+          "at": 1535073.032334
+        }
+      ],
+      "verifier_exit_codes": null,
+      "response_bytes": {
+        "observed_total": 63872,
+        "largest_exchange": 30460,
+        "above_old_cap": 0
+      }
+    },
+    {
+      "task": "break-filter-js-from-html",
+      "state": "official_success",
+      "reward": {
+        "reward": 1
+      },
+      "agent_stop_reason": null,
+      "verifier_status": "official_scored",
+      "counts": {
+        "model_rounds": 7,
+        "exchanges": 7,
+        "reservations": 7,
+        "send_entries": 7,
+        "tools": 7,
+        "scheduled_retries": 0
+      },
+      "usage": {
+        "known_exchanges": 7,
+        "unknown_exchanges": 0,
+        "input": 28431,
+        "output": 3751
+      },
+      "diagnostics": [],
+      "global_stops": [],
+      "stopped": true,
+      "network_release": [
+        "removed"
+      ],
+      "container_id": "6bd912405780dc0f98c09eb70ba70211b14851e22b0458250bcd63e3b9bc4133",
+      "phases": [
+        {
+          "phase": "agent",
+          "at": 1537214.368667
+        },
+        {
+          "phase": "handoff",
+          "at": 1687493.987625
+        },
+        {
+          "phase": "verifier",
+          "at": 1687529.376417
+        },
+        {
+          "phase": "ended",
+          "at": 1857326.823542
+        }
+      ],
+      "verifier_exit_codes": [
+        0,
+        0
+      ],
+      "response_bytes": {
+        "observed_total": 300974,
+        "largest_exchange": 188545,
+        "above_old_cap": 0
+      }
+    }
+  ],
+  "totals": {
+    "model_rounds": 46,
+    "exchanges": 47,
+    "reservations": 47,
+    "send_entries": 47,
+    "tools": 47,
+    "scheduled_retries": 1
+  },
+  "usage": {
+    "known_exchanges": 44,
+    "unknown_exchanges": 3,
+    "input": 338452,
+    "output": 19703
+  },
+  "completion": {
+    "run_id": "56580f24-63f4-4c16-ac56-0792b51142b9",
+    "exit_code": 0,
+    "elapsed_seconds": 1857.8869799579843,
+    "ended_utc": "2026-09-24T03:53:39.928187+00:00",
+    "supervisor_stop": null
+  },
+  "old_ledgers_unchanged": true,
+  "resources": {
+    "samples": 378,
+    "minimum_free_bytes": 81111494656,
+    "maximum_accounted_growth_bytes": 598994944
+  },
+  "scope": "single fixed development-set campaign; no causal improvement or holdout claim",
+  "independent_review": "pending",
+  "outcomes": {
+    "official_success": 1,
+    "official_scored_failure": 1,
+    "unscored": 3,
+    "not_started": 0,
+    "valid_scores": 2
+  },
+  "archive": {
+    "entries": 72,
+    "archive_sha256": "52280671fb95e9401661ee059a156618089661baf4074067b218e4744791edcc",
+    "index_sha256": "174adca82116b6de33cf14e4f650303ea7dbe41221c59a06e3ed2a6b93b97124"
+  },
+  "activation_sha256": "fdcbd9fe168c5b4076fdc7fcf42f9e56c8020b068063e5654776437b24dbabae",
+  "installation_entry": "/private/tmp/wo85-work/consumer-final/node_modules/pan-agent/dist/index.js",
+  "package_identity_sha256": "ff1be95187d83b90b2485255541b7f66fde54f5a6fcf2d86fa4db1eef5c525c8",
+  "preparation_check_seconds": 0.2561562920163851,
+  "earlier_navigation_seconds": null,
+  "human_result_gate": "pending independent technical review then H-LIVE88-RESULT"
+}
