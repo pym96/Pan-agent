@@ -74,3 +74,5 @@ Raw artifacts remain at their stable source, Git, Trace, Test, evaluator, or ext
 - [WO92 complete five-task campaign](terminal-bench-five-task-92.md) — Criteria1.0, all outcomes and raw/valid score distinction, [full structure summary](terminal-bench-five-task-92-summary.json); pending independent review.
 
 - [WO94 Kimi reasoning continuation](kimi-reasoning-continuation-94.md) — Criteria1.0 source-backed optional-field policy, complete source/packed tool round trips and new package identity; pending independent review.
+
+- [WO95 post-#94 full-five live report](terminal-bench-continuation-95.md) — Criteria1.0; [complete summary/structure observations](terminal-bench-continuation-95-summary.json); independent review pending.
