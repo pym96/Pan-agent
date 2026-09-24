@@ -65,7 +65,7 @@ test('WO91 signed single task runs only break and retains independent denominato
  assert.deepEqual(ledger.filter(r=>r.event==='attempt_reserved').map(r=>r.task),['break-filter-js-from-html']);assert(ledger.filter(r=>r.task).every(r=>r.task==='break-filter-js-from-html'));
  await assert.rejects(main(f.args,f.dependencies),/EEXIST/);assert.equal(f.counts.environments,1);
 });
-for(const mutation of ['empty','unknown','duplicate','missing','image-key','image-digest','extra-image','tampered-selection','tampered-image','cli-override'])test('WO91 selection rejects before effects: '+mutation,async()=>{
+for(const mutation of ['empty','unknown','duplicate','missing','image-key','image-digest','image-array','image-nested-array','image-null','image-object','extra-image','tampered-selection','tampered-image','cli-override'])test('WO91 selection rejects before effects: '+mutation,async()=>{
  const f=fixture();selectBreak(f);
  if(mutation==='empty')f.activation.binding.taskIds=[];
  if(mutation==='unknown')f.activation.binding.taskIds=['unknown'];
@@ -73,6 +73,10 @@ for(const mutation of ['empty','unknown','duplicate','missing','image-key','imag
  if(mutation==='missing')delete f.activation.binding.taskIds;
  if(mutation==='image-key')f.activation.binding.images={'dna-insert':'sha256:'+'b'.repeat(64)};
  if(mutation==='image-digest')f.activation.binding.images['break-filter-js-from-html']='not-an-image';
+ if(mutation==='image-array')f.activation.binding.images['break-filter-js-from-html']=['sha256:'+'b'.repeat(64)];
+ if(mutation==='image-nested-array')f.activation.binding.images['break-filter-js-from-html']=[['sha256:'+'b'.repeat(64)]];
+ if(mutation==='image-null')f.activation.binding.images['break-filter-js-from-html']=null;
+ if(mutation==='image-object')f.activation.binding.images['break-filter-js-from-html']={digest:'sha256:'+'b'.repeat(64)};
  if(mutation==='extra-image')f.activation.binding.images['dna-insert']='sha256:'+'b'.repeat(64);
  f.save();
  if(mutation==='tampered-selection'){f.activation.binding.taskIds=['dna-insert'];f.activation.binding.images={'dna-insert':'sha256:'+'b'.repeat(64)};writeFileSync(f.args[1],JSON.stringify(f.activation));}

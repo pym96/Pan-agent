@@ -27,7 +27,7 @@ export async function main(args=process.argv.slice(2),dependencies={}){
  const controller=new AbortController();const cancel=()=>controller.abort();process.once('SIGINT',cancel);process.once('SIGTERM',cancel);
  try{
  const gate=authorize(activation,authority,expected,{signal:controller.signal});
- check(expected.images&&expected.taskIds.every(id=>/^sha256:[0-9a-f]{64}$/.test(expected.images[id])),'image_resolution_missing');
+ check(expected.images&&expected.taskIds.every(id=>typeof expected.images[id]==='string'&&/^sha256:[0-9a-f]{64}$/.test(expected.images[id])),'image_resolution_missing');
  const entry=resolve(options['--entry']),installed=resolve(dirname(entry),'..');
  check(entry===join(installed,'dist/index.js'),'installed_entry_path');
  for(const [f,h] of Object.entries(lock.installed_files))check(digest(readFileSync(join(installed,f)))===h,'installed_pan_identity');
