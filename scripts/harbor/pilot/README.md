@@ -116,3 +116,13 @@ node --test scripts/harbor/pilot/test_response_stream_87.mjs scripts/harbor/pilo
 Provision the consumer from the unchanged accepted Product package and verify all
 `package-identity.json` installed hashes first. This work changes the external
 evaluation runner, not Product package bytes; never substitute a fake parser.
+
+## WO89 protocol diagnostics
+
+[test_protocol_89.mjs](test_protocol_89.mjs) exercises the installed Adapter and
+Session with missing/null/empty/nonempty/invalid reasoning, split events, partial
+tools and continuation. `PAN_TEST_ENTRY` must point at the new matching consumer.
+Completed/failed exchange rows now include fixed-shape `structure`; no wire body
+or private reasoning is logged. See [design](../../../docs/design/protocol-verifier-89.md)
+and [evidence](../../../docs/evidence/protocol-verifier-89.md). No live authority
+or verifier-environment change is introduced.

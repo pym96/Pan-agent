@@ -1,6 +1,6 @@
 {
   "baseline_sha": "915a62e6a88d895b58fd08343cd9992f5a11560a",
-  "package_sha256": "ff1be95187d83b90b2485255541b7f66fde54f5a6fcf2d86fa4db1eef5c525c8",
+  "package_sha256": "964e0852068e45f457b0502f8f654577240a64ae6c8c752fa5c22371c736dba9",
   "installed_files": {
     "README.md": "2f0b186157b0b10b78eed08bd2259938c3d6d010e9120a57a589b2ca06d8a241",
     "RUNBOOK.md": "6671a11250f310d700016f9f88bc355c2e70085f69a4d10735d9c143710fddb6",
@@ -45,10 +45,12 @@
     "dist/providers/kimi/kimi-continuation.js": "73df620009190b7afe3367e063ceee6de2619ab8cc03b631a4986b6942ea1740",
     "dist/providers/kimi/kimi-profile.d.ts": "fcbf1d92a854f2c763603fb0fc8b99f16d93b4f4f27f3cdf5ca15451f3369728",
     "dist/providers/kimi/kimi-profile.js": "704b8449ac5b9d5fe4828f1761a9669a613c677ebcdbf158bfdbb348e9ab748a",
+    "dist/providers/kimi/kimi-structure.d.ts": "3aab09db1447fd4b181370b281130cc2b51b21631f95eb634ff95fd154d9a9e9",
+    "dist/providers/kimi/kimi-structure.js": "f7aa6c2a07fee7e6f88e593402ad32cf1f016c561fc1c1d4d4cd9beb0671bcee",
     "dist/providers/kimi/kimi-transport.d.ts": "7b3abbcfe98e154832c807a7a9722865bdee79a3a9e449d01775c270f78150d2",
     "dist/providers/kimi/kimi-transport.js": "8bcac2760cf14cdc10503dd7a0f80339c32b42402c0f392727c5689039b4ac04",
-    "dist/providers/kimi/pan-kimi-model-adapter.d.ts": "a089a7cc7615ad21b4a1a4b2c548be2c93fd874e0222031a6aec57c1d454239a",
-    "dist/providers/kimi/pan-kimi-model-adapter.js": "458f39edc6447adf7fdf623703b0bce382e02cb8bfa9fb3962ac7eb48cf565dc",
+    "dist/providers/kimi/pan-kimi-model-adapter.d.ts": "fe2e5dc6928d66fc27f3bab856af1dc054f69c9ead3fd53b843e80c370fa92eb",
+    "dist/providers/kimi/pan-kimi-model-adapter.js": "a63dc2c4148a9848b65f2b504c361763dd8df4cace06e901ad0ceb8e956e0c15",
     "dist/runtime/agent-kernel.d.ts": "9e7209b45be0850d4d4b4ea85d2f7a3427311bfef139ff7c0acc3379e65ef3bc",
     "dist/runtime/agent-kernel.js": "f0af2b8e395457c49d06f498b881839ad0ff3df6c5e9b8b05995abe6ce2519e8",
     "dist/runtime/authorization.d.ts": "5095334827093a8d690cd1ec3c16417e5eaeeb268cc79ea61f1cbb0f890e50f9",

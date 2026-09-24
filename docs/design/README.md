@@ -111,3 +111,5 @@ The Human-accepted architecture history remains indexed in [`../adr/README.md`](
 - [WO85 transport diagnosis and metering](transport-metering-85.md): explicit signed run-bound mode, durable send evidence and deadline-bound recovery; offline candidate, pending independent review.
 
 - [WO87 response-stream boundary](response-stream-87.md): explicit signed null response cap for metered evaluation; historical numeric limits and cancellation retained.
+
+- [WO89 protocol/verifier preparation](protocol-verifier-89.md): reasoning matrix, private structural observations and dependency-only probe boundaries; no speculative compatibility relaxation.

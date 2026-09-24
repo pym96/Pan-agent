@@ -1,0 +1,107 @@
+{
+  "issue": 89,
+  "criteria": "1.0",
+  "base": "6317f1b8ec6823431cfb7a7c2ae017a379e0d23b",
+  "compatibility_change": false,
+  "historical_root_causes": "unknown; no original wire",
+  "diagnostic_change": "fixed-shape onStructure snapshot in actual Adapter, attached to pilot exchange records",
+  "tests": {
+    "pilot": {
+      "pass": 121,
+      "fail": 0
+    },
+    "final_protocol_matrix": {
+      "pass": 23,
+      "fail": 0,
+      "overlap": "19 cases included in pilot"
+    },
+    "provider": {
+      "pass": 15,
+      "excluded": "configure wizard"
+    },
+    "typecheck": "pass"
+  },
+  "package_sha256": "964e0852068e45f457b0502f8f654577240a64ae6c8c752fa5c22371c736dba9",
+  "installed_files": 82,
+  "dependency_probe": {
+    "stages": [
+      {
+        "stage": "identity",
+        "seconds": 1.0038171249907464,
+        "exit_code": 0,
+        "timeout": false
+      },
+      {
+        "stage": "apt_update",
+        "seconds": 53.18531895900378,
+        "exit_code": 0,
+        "timeout": false
+      },
+      {
+        "stage": "curl_install",
+        "seconds": 54.28516225001658,
+        "exit_code": 0,
+        "timeout": false
+      },
+      {
+        "stage": "uv_install",
+        "seconds": 12.078159374999814,
+        "exit_code": 0,
+        "timeout": false
+      },
+      {
+        "stage": "python_and_packages",
+        "seconds": 45.16623829200398,
+        "exit_code": 0,
+        "timeout": false
+      }
+    ],
+    "elapsed_seconds": 171.10378758297884,
+    "min_free_bytes": 81051078656,
+    "maximum_docker_growth_bytes": 156794880,
+    "official_tests": 0,
+    "models": 0
+  },
+  "sources": [
+    {
+      "file": "error-reference.html",
+      "url": "https://www.kimi.com/code/docs/en/kimi-code/error-reference.html",
+      "resolved_url": "https://www.kimi.com/code/docs/en/kimi-code/error-reference.html",
+      "sha256": "1aaa25322a801b18387858577c783e8a74cbc4b6531b6d81795d11e88bfc1861",
+      "retrieved": "2026-09-24T04:51:15.239752+00:00"
+    },
+    {
+      "file": "models.html",
+      "url": "https://www.kimi.com/code/docs/en/kimi-code/models.html",
+      "resolved_url": "https://www.kimi.com/code/docs/en/kimi-code/models.html",
+      "sha256": "d7f84723ac5f2abd061a2ecd11cd17049a1cdf79c0c402ba78391c09660f7e45",
+      "retrieved": "2026-09-24T04:51:16.616111+00:00"
+    },
+    {
+      "file": "kosong-kimi.html",
+      "url": "https://moonshotai.github.io/kosong/kosong/chat_provider/kimi.html",
+      "resolved_url": "https://moonshotai.github.io/kosong/kosong/chat_provider/kimi.html",
+      "sha256": "a5bb5f198f7280bd77b9721cbda70d3a43de239823ff4826f4cc216015c8143e",
+      "retrieved": "2026-09-24T04:51:19.426063+00:00"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/MoonshotAI/kimi-cli/9ab1286b8fe4e6bcd116949a27ce5e0ac3389c82/packages/kosong/src/kosong/chat_provider/kimi.py",
+      "revision": "9ab1286b8fe4e6bcd116949a27ce5e0ac3389c82",
+      "file": "kimi-sdk.py",
+      "sha256": "5976ede91e8a04e4c4dcbb9d6f6527369b863367eb1656b22896786103015b4b"
+    }
+  ],
+  "final_audit": {
+    "task_toml_sha256": "d24390ba221061b27cd05ef37504614cb76a489956640a3a74a3d7e773c5518b",
+    "test_sh_sha256": "ab4ef5988c8694f6049eac703b7683a7f846c4714a61b764bd8e66e116abe16f",
+    "historical_verifier_stdout_sha256": "6d19ce65a594ba95a21a293bfb6cd6b54fdcb1f42826f1bd38b96ae0c082f2d2",
+    "old_ledgers_verified": 6,
+    "container_stopped": true,
+    "container_no_oom": true,
+    "exact_resource_config": true,
+    "model_calls": 0,
+    "official_tests": 0,
+    "probe_count": 1
+  },
+  "independent_review": "pending"
+}

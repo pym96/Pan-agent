@@ -66,7 +66,7 @@ export async function runAttempt({entry,task,instruction,output,environment,gate
    return {...response,body:(async function*(){let bytes=0;attempt.stage='stream';try{for await(const chunk of response.body){admit();dispatchSignal.throwIfAborted();bytes+=chunk.byteLength;attempt.responseBytes=bytes;if(gate.binding.budget.responseBytes!==null&&bytes>gate.binding.budget.responseBytes){attempt.reason='response_size';throw Error('response_size');}yield chunk;}}catch(e){classify();throw e;}})()};
   }catch(e){classify();throw e;}
  }};
- const inner=new PanKimiModelAdapter({modelId:'k3-256k',thinkingLevel:'high'},{transport:bounded,diagnostics:true});
+ const inner=new PanKimiModelAdapter({modelId:'k3-256k',thinkingLevel:'high'},{transport:bounded,diagnostics:true,onStructure:value=>{attempt.structure=value;}});
  const fail=detail=>({kind:'failure',category:'protocol',detail,retryable:false,usage:{status:'unavailable'},identity:{provider:{status:'unavailable'},model:{status:'unavailable'},responseId:{status:'unavailable'}}});
  const pause=ms=>new Promise(resolve=>{
   let timer;const done=()=>{timers.clearTimeout(timer);agentAbort.signal.removeEventListener('abort',done);resolve();};
