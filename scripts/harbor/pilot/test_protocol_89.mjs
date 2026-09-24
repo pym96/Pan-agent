@@ -4,9 +4,9 @@ import {pathToFileURL} from 'node:url';
 import {wire} from './test_handoff_support.mjs';
 const {PanKimiModelAdapter}=await import(pathToFileURL(process.env.PAN_TEST_ENTRY));
 const req=()=>({sessionId:'offline89',signal:new AbortController().signal,context:{systemPrompt:'offline',messages:[{role:'user',content:[{type:'text',text:'task'}],timestamp:0}],tools:[]}});
-test('PV89 missing reasoning rejection carries distinguishable structure, never body',async()=>{
+test('PV89 missing reasoning acceptance carries distinguishable structure, never body',async()=>{
  const records=[];const adapter=new PanKimiModelAdapter({modelId:'k3-256k',thinkingLevel:'high'},{diagnostics:true,onStructure:d=>records.push(d),transport:{async send(){return {status:200,body:(async function*(){yield Buffer.from(wire('SYNTHETIC_COMMAND').replace(',"reasoning_content":"synthetic-private"',''));})()};}}});
- const outcome=await adapter.exchange(req());assert.equal(outcome.detail,'kimi_reasoning_missing');assert.equal(records.length,1);assert(records[0].reasoning.missing>0);assert.equal(records[0].reasoning.string,0);assert.equal(records[0].assembledReasoning,false);assert(!JSON.stringify(records).includes('SYNTHETIC_COMMAND'));
+ const outcome=await adapter.exchange(req());assert.equal(outcome.kind,'response');assert.equal(records.length,1);assert(records[0].reasoning.missing>0);assert.equal(records[0].reasoning.string,0);assert.equal(records[0].assembledReasoning,false);assert(!JSON.stringify(records).includes('SYNTHETIC_COMMAND'));
 });
 import {fixture} from './test_handoff_support.mjs';
 import {METERED_LIMITS} from './policy.mjs';
@@ -17,7 +17,7 @@ for(const kind of kinds)for(const chunk of [1,4096])test(`PV89 ${kind} reasoning
  const seen=[],bytes=Buffer.from(make(kind));const adapter=new PanKimiModelAdapter({modelId:'k3-256k',thinkingLevel:'high'},{diagnostics:true,onStructure:s=>seen.push(s),transport:{async send(){return {status:200,body:(async function*(){for(let i=0;i<bytes.length;i+=chunk)yield bytes.subarray(i,i+chunk);})()};}}});
  const result=await adapter.exchange(req());assert.equal(seen.length,1);const d=seen[0];assert(!JSON.stringify(d).includes('PRIVATE'));assert(!JSON.stringify(d).includes('ONCE'));
  assert.equal(d.reasoning[kind],kind==='missing'?2:1);assert.equal(d.assembledReasoning,['empty','string'].includes(kind));
- assert.equal(result.kind,['empty','string'].includes(kind)?'response':'failure');if(result.kind==='failure')assert.equal(result.detail,kind==='invalid'?'kimi_reasoning_invalid':'kimi_reasoning_missing');
+ assert.equal(result.kind,kind!=='invalid'?'response':'failure');if(result.kind==='failure')assert.equal(result.detail,kind==='invalid'?'kimi_reasoning_invalid':'kimi_reasoning_missing');
  if(kind!=='invalid'){assert.equal(d.done,1);assert.equal(d.completeTools,1);assert.equal(d.usageParsed,true);}
 });
 for(const kind of ['empty','string'])test('PV89 installed Session preserves '+kind+' exact continuation and executes once',async()=>{
@@ -45,6 +45,6 @@ test('PV89 multiple reasoning events including null/empty preserve assembly and 
  const tool=result.message.content.find(c=>c.type==='tool_call');const next={...first,context:{...first.context,messages:[...first.context.messages,result.message,{role:'tool_result',toolCallId:tool.id,toolName:tool.name,content:[{type:'text',text:'ok'}],isError:false,timestamp:2}]}};
  assert.equal((await adapter.exchange(next)).kind,'response');assert.equal(requestBody.messages.find(x=>x.role==='assistant').reasoning_content,'PRIVATE_APRIVATE_THOUGHT_89');assert(!JSON.stringify(seen).includes('PRIVATE'));
 });
-for(const kind of ['missing','null','invalid'])test('PV89 Session failure '+kind+' retains structure without tool execution',async()=>{
+for(const kind of ['invalid'])test('PV89 Session failure '+kind+' retains structure without tool execution',async()=>{
  const r=await fixture({fetcher:()=>new Response(make(kind))});assert.equal(r.report.effects.length,0);assert.equal(r.report.counts.sendEntries,1);assert.equal(r.report.counts.tools,0);assert.equal(r.report.diagnostics[0].structure.reasoning[kind],kind==='missing'?2:1);assert.deepEqual(r.report.usage,[null]);assert(!JSON.stringify(r.report).includes('PRIVATE'));
 });

@@ -72,3 +72,5 @@ Raw artifacts remain at their stable source, Git, Trace, Test, evaluator, or ext
 - WO91 [R91-01 additive repair](single-task-selection-91.md#additive-repair-r91-01--original-criteria10): scalar image type checks, retained red evidence, 144 passing offline regressions; new SHA awaits independent review.
 
 - [WO92 complete five-task campaign](terminal-bench-five-task-92.md) — Criteria1.0, all outcomes and raw/valid score distinction, [full structure summary](terminal-bench-five-task-92-summary.json); pending independent review.
+
+- [WO94 Kimi reasoning continuation](kimi-reasoning-continuation-94.md) — Criteria1.0 source-backed optional-field policy, complete source/packed tool round trips and new package identity; pending independent review.

@@ -88,7 +88,7 @@ async function sessionFor(adapter: Pick<PanKimiModelAdapter, "providerId" | "mod
 
 test('C-K3-02 invalid and truncated streams cannot execute tools', async () => {
  const single=wire('single');
- const invalid=[single.replace('data: [DONE]\n\n',''),single.replace('tool_calls"}', 'stop"}'),single.replace('\\"sample.txt\\"}', 'not-json'),wire('multiple').replaceAll('call-1','call-0'),single.replaceAll('reasoning_content','ignored_private'),single+'data: {}\n\n'];
+ const invalid=[single.replace('data: [DONE]\n\n',''),single.replace('tool_calls"}', 'stop"}'),single.replace('\\"sample.txt\\"}', 'not-json'),wire('multiple').replaceAll('call-1','call-0'),single+'data: {}\n\n'];
  for(const broken of invalid){
   const state=await sessionFor(fake(bytes(broken)));const result=await state.session.runTask('task');
   assert.equal(result.status,'model_error',broken);assert.equal(state.effects(),0);await state.session.close();

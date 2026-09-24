@@ -113,3 +113,5 @@ The Human-accepted architecture history remains indexed in [`../adr/README.md`](
 - [WO87 response-stream boundary](response-stream-87.md): explicit signed null response cap for metered evaluation; historical numeric limits and cancellation retained.
 
 - [WO89 protocol/verifier preparation](protocol-verifier-89.md): reasoning matrix, private structural observations and dependency-only probe boundaries; no speculative compatibility relaxation.
+
+- [WO94 Kimi reasoning continuation](kimi-reasoning-continuation-94.md): source-backed field matrix, private provenance and full tool-round verification; candidate pending independent review.

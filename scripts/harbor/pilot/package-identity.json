@@ -1,6 +1,6 @@
 {
   "baseline_sha": "915a62e6a88d895b58fd08343cd9992f5a11560a",
-  "package_sha256": "964e0852068e45f457b0502f8f654577240a64ae6c8c752fa5c22371c736dba9",
+  "package_sha256": "12a1e82bbb59c5572c3b59140c4222308d9bf4296deafa84b539c50d25fa7b61",
   "installed_files": {
     "README.md": "2f0b186157b0b10b78eed08bd2259938c3d6d010e9120a57a589b2ca06d8a241",
     "RUNBOOK.md": "6671a11250f310d700016f9f88bc355c2e70085f69a4d10735d9c143710fddb6",
@@ -50,7 +50,7 @@
     "dist/providers/kimi/kimi-transport.d.ts": "7b3abbcfe98e154832c807a7a9722865bdee79a3a9e449d01775c270f78150d2",
     "dist/providers/kimi/kimi-transport.js": "8bcac2760cf14cdc10503dd7a0f80339c32b42402c0f392727c5689039b4ac04",
     "dist/providers/kimi/pan-kimi-model-adapter.d.ts": "fe2e5dc6928d66fc27f3bab856af1dc054f69c9ead3fd53b843e80c370fa92eb",
-    "dist/providers/kimi/pan-kimi-model-adapter.js": "a63dc2c4148a9848b65f2b504c361763dd8df4cace06e901ad0ceb8e956e0c15",
+    "dist/providers/kimi/pan-kimi-model-adapter.js": "7c47bc63794255ce7092b417ebd31566848210467ec31b3349055f0e89e4202a",
     "dist/runtime/agent-kernel.d.ts": "9e7209b45be0850d4d4b4ea85d2f7a3427311bfef139ff7c0acc3379e65ef3bc",
     "dist/runtime/agent-kernel.js": "f0af2b8e395457c49d06f498b881839ad0ff3df6c5e9b8b05995abe6ce2519e8",
     "dist/runtime/authorization.d.ts": "5095334827093a8d690cd1ec3c16417e5eaeeb268cc79ea61f1cbb0f890e50f9",

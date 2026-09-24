@@ -443,7 +443,8 @@ async function assembleSuccessfulResponse(response: KimiTransportResponse, reque
 		return { outcome: failure("provider", "kimi_content_filtered", false, responseIdentity, usage) };
 	}
 	structure.stage="tools"; const toolCalls = completeToolCalls(calls); structure.completeTools=toolCalls.length;
-	if (k3 && toolCalls.length && !reasoning.observed) protocol("kimi_reasoning_missing");
+	// Kimi/Kosong chat completions admits tools independently of optional reasoning.
+	// Missing/null remains absent; observed strings (including empty) round-trip privately.
 	if (finishReason === "tool_calls" && toolCalls.length === 0) protocol("kimi_tool_calls_missing");
 	if (finishReason !== "tool_calls" && toolCalls.length > 0) protocol("kimi_partial_tool_call_not_admitted");
 	if (finishReason === "stop" && (!content.observed || content.value.length === 0)) {

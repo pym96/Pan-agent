@@ -9,6 +9,7 @@ export interface KimiRequestLineage {
 }
 interface Entry extends KimiRequestLineage {
  readonly digest: string;
+ /** Undefined is an admitted absence, not missing provenance; empty string stays present. */
  readonly reasoning?: string;
 }
 const digest = (message: Message): string => createHash("sha256").update(JSON.stringify(message)).digest("hex");

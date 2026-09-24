@@ -150,3 +150,18 @@ combined five-task score. Raw rewards alone do not prove valid task test executi
 `test_cli.mjs` and `test_selection_91.mjs` exercise actual CLI gates with synthetic
 I/O and the identity-matching accepted Product consumer. No live call, Docker
 startup, Product package change or Human trial belongs to this workorder.
+
+## WO94 optional reasoning and private continuation
+
+The new Product package admits otherwise valid K3 tools when reasoning is absent
+or null, omitting that field on subsequent history; observed empty/nonempty
+strings still round-trip exactly. Non-string values and invalid tools reject.
+[Decision and sources](../../../docs/design/kimi-reasoning-continuation-94.md),
+[evidence](../../../docs/evidence/kimi-reasoning-continuation-94.md).
+`test_protocol_94.mjs` runs complete two-tool-round Session/Adapter controls through
+explicit `PAN_TEST_ENTRY`; `test_protocol_89.mjs` now uses the prospective optional
+field policy while preserving diagnostic categories and unknown usage.
+
+Next live contract must use a newly accepted runner SHA and package identity with
+`/private/tmp/wo94-kimi/consumer/node_modules/pan-agent/dist/index.js`, a new signed
+run and fresh output/ledger. This README grants no activation; no old run restart.
