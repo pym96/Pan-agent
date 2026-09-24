@@ -57,3 +57,5 @@ Raw artifacts remain at their stable source, Git, Trace, Test, evaluator, or ext
 - [WO84 fixed-five live results](terminal-bench-post-handoff-84.md) — [summary](terminal-bench-post-handoff-84-summary.json): one authorized campaign, two official successes and three unscored results; full consumption and stop evidence, independent review pending.
 
 - [WO85 transport diagnosis and metering](transport-metering-85.md) — [summary](transport-metering-85-summary.json): explicit signed metering, safe stage evidence and offline recovery controls; no live calls, pending independent review. Historical #47 current-assignment is not execution authority.
+
+- [WO86 metered fixed-five live results](terminal-bench-metered-86.md) — [summary](terminal-bench-metered-86-summary.json): one campaign, two official successes, one scored failure and two unscored response-limit failures; pending independent review and Human result classification.

@@ -1,0 +1,381 @@
+{
+  "issue": 86,
+  "criteria": "1.0",
+  "run_id": "439d0fa4-0a8e-4c56-87b4-8cddc9647bc1",
+  "runner_sha": "5326bcc2b1bd45fc89c1b152fdb98a5dba0028ee",
+  "denominator": 5,
+  "rows": [
+    {
+      "task": "overfull-hbox",
+      "state": "unscored",
+      "reward": null,
+      "agent_stop_reason": "response_size",
+      "verifier_status": null,
+      "counts": {
+        "model_rounds": 4,
+        "exchanges": 4,
+        "reservations": 4,
+        "send_entries": 4,
+        "tools": 3,
+        "scheduled_retries": 0
+      },
+      "usage": {
+        "known_exchanges": 3,
+        "unknown_exchanges": 1,
+        "input": 7604,
+        "output": 303
+      },
+      "diagnostics": [
+        {
+          "exchange": 4,
+          "modelRound": 4,
+          "stage": "stream",
+          "reserved": true,
+          "sendEntered": true,
+          "responseBytes": 525319,
+          "httpStatus": 200,
+          "reason": "response_size",
+          "elapsedMs": 53275.7785,
+          "retryable": false,
+          "usage": null
+        }
+      ],
+      "global_stops": [],
+      "stopped": true,
+      "network_release": [
+        "removed"
+      ],
+      "container_id": "16f805f5109e712e1a1ed03ec15e17c22188f150e7f40118e92e9d048c207ba5",
+      "phases": [
+        {
+          "phase": "agent",
+          "at": 4824.408416
+        },
+        {
+          "phase": "ended",
+          "at": 81165.675916
+        }
+      ],
+      "verifier_exit_codes": null,
+      "recorded_attempt_seconds": 76.34126749999999
+    },
+    {
+      "task": "dna-insert",
+      "state": "official_scored_failure",
+      "reward": {
+        "reward": 0
+      },
+      "agent_stop_reason": null,
+      "verifier_status": "official_scored",
+      "counts": {
+        "model_rounds": 15,
+        "exchanges": 15,
+        "reservations": 15,
+        "send_entries": 15,
+        "tools": 16,
+        "scheduled_retries": 0
+      },
+      "usage": {
+        "known_exchanges": 15,
+        "unknown_exchanges": 0,
+        "input": 110528,
+        "output": 6331
+      },
+      "diagnostics": [],
+      "global_stops": [],
+      "stopped": true,
+      "network_release": [
+        "removed"
+      ],
+      "container_id": "62fa225917f63b5429c9baf24d295bce5be12db65e3db59961df5f0ee41e4cba",
+      "phases": [
+        {
+          "phase": "agent",
+          "at": 83385.2525
+        },
+        {
+          "phase": "handoff",
+          "at": 414581.859833
+        },
+        {
+          "phase": "verifier",
+          "at": 414610.443541
+        },
+        {
+          "phase": "ended",
+          "at": 568462.252041
+        }
+      ],
+      "verifier_exit_codes": [
+        0,
+        0
+      ],
+      "recorded_attempt_seconds": 485.0769995410001
+    },
+    {
+      "task": "nginx-request-logging",
+      "state": "official_success",
+      "reward": {
+        "reward": 1
+      },
+      "agent_stop_reason": null,
+      "verifier_status": "official_scored",
+      "counts": {
+        "model_rounds": 13,
+        "exchanges": 13,
+        "reservations": 13,
+        "send_entries": 13,
+        "tools": 12,
+        "scheduled_retries": 0
+      },
+      "usage": {
+        "known_exchanges": 13,
+        "unknown_exchanges": 0,
+        "input": 32806,
+        "output": 2802
+      },
+      "diagnostics": [],
+      "global_stops": [],
+      "stopped": true,
+      "network_release": [
+        "removed"
+      ],
+      "container_id": "ba2f29e5a2d4207affa20f72bcae6846c8941abd257c7cd9128da00871b25d33",
+      "phases": [
+        {
+          "phase": "agent",
+          "at": 570858.323208
+        },
+        {
+          "phase": "handoff",
+          "at": 749942.78725
+        },
+        {
+          "phase": "verifier",
+          "at": 749962.995625
+        },
+        {
+          "phase": "ended",
+          "at": 825658.165625
+        }
+      ],
+      "verifier_exit_codes": [
+        0,
+        0
+      ],
+      "recorded_attempt_seconds": 254.79984241699998
+    },
+    {
+      "task": "merge-diff-arc-agi-task",
+      "state": "official_success",
+      "reward": {
+        "reward": 1
+      },
+      "agent_stop_reason": null,
+      "verifier_status": "official_scored",
+      "counts": {
+        "model_rounds": 25,
+        "exchanges": 25,
+        "reservations": 25,
+        "send_entries": 25,
+        "tools": 29,
+        "scheduled_retries": 0
+      },
+      "usage": {
+        "known_exchanges": 25,
+        "unknown_exchanges": 0,
+        "input": 200573,
+        "output": 8658
+      },
+      "diagnostics": [],
+      "global_stops": [],
+      "stopped": true,
+      "network_release": [
+        "removed"
+      ],
+      "container_id": "8b4e067208ebfef7f09ec314178b92e292f61e6eedc01245b471aca102c59df4",
+      "phases": [
+        {
+          "phase": "agent",
+          "at": 827894.725208
+        },
+        {
+          "phase": "handoff",
+          "at": 1222335.451833
+        },
+        {
+          "phase": "verifier",
+          "at": 1222366.937541
+        },
+        {
+          "phase": "ended",
+          "at": 1590075.774041
+        }
+      ],
+      "verifier_exit_codes": [
+        0,
+        0
+      ],
+      "recorded_attempt_seconds": 762.181048833
+    },
+    {
+      "task": "break-filter-js-from-html",
+      "state": "unscored",
+      "reward": null,
+      "agent_stop_reason": "response_size",
+      "verifier_status": null,
+      "counts": {
+        "model_rounds": 2,
+        "exchanges": 2,
+        "reservations": 2,
+        "send_entries": 2,
+        "tools": 1,
+        "scheduled_retries": 0
+      },
+      "usage": {
+        "known_exchanges": 1,
+        "unknown_exchanges": 1,
+        "input": 465,
+        "output": 88
+      },
+      "diagnostics": [
+        {
+          "exchange": 2,
+          "modelRound": 2,
+          "stage": "stream",
+          "reserved": true,
+          "sendEntered": true,
+          "responseBytes": 527533,
+          "httpStatus": 200,
+          "reason": "response_size",
+          "elapsedMs": 77267.57816699985,
+          "retryable": false,
+          "usage": null
+        }
+      ],
+      "global_stops": [],
+      "stopped": true,
+      "network_release": [
+        "removed"
+      ],
+      "container_id": "cd9aa8ed4809e4712df0a14a3765c1f6423c32e258a9641c46a4171c1b22f01f",
+      "phases": [
+        {
+          "phase": "agent",
+          "at": 1592205.456958
+        },
+        {
+          "phase": "ended",
+          "at": 1688000.039625
+        }
+      ],
+      "verifier_exit_codes": null,
+      "recorded_attempt_seconds": 95.79458266699989
+    }
+  ],
+  "totals": {
+    "model_rounds": 59,
+    "exchanges": 59,
+    "reservations": 59,
+    "send_entries": 59,
+    "tools": 61,
+    "scheduled_retries": 0
+  },
+  "usage": {
+    "known_exchanges": 57,
+    "unknown_exchanges": 2,
+    "input": 351976,
+    "output": 18182
+  },
+  "completion": {
+    "run_id": "439d0fa4-0a8e-4c56-87b4-8cddc9647bc1",
+    "exit_code": 0,
+    "elapsed_seconds": 1688.5245506669744,
+    "ended_utc": "2026-09-24T02:13:43.543271+00:00",
+    "supervisor_stop": null
+  },
+  "old_ledgers_unchanged": true,
+  "resources": {
+    "samples": 344,
+    "minimum_free_bytes": 82046140416,
+    "maximum_accounted_growth_bytes": 781193216
+  },
+  "scope": "single fixed development-set campaign; no causal improvement or holdout claim",
+  "independent_review": "pending",
+  "package_sha256": "ff1be95187d83b90b2485255541b7f66fde54f5a6fcf2d86fa4db1eef5c525c8",
+  "activation_sha256": "d9b6602e92db8615750a0b685bf911ce440c112df7569fa98cd3dff2d79556e1",
+  "human_authorization_id": "H-LIVE86-20260924-001",
+  "mode": "metered",
+  "validity": "run-bound",
+  "count_limits": {
+    "dispatchesPerTask": null,
+    "dispatchesCampaign": null,
+    "toolsPerTask": null
+  },
+  "verifier_audit": [
+    {
+      "task": "dna-insert",
+      "reward": 0.0,
+      "test_summary": {
+        "tests": 1,
+        "passed": 0,
+        "failed": 1,
+        "skipped": 0,
+        "pending": 0,
+        "other": 0,
+        "start": 1790214892.6124847,
+        "stop": 1790214892.8473778
+      },
+      "reward_sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "stdout_sha256": "4abf84283e5a2933f061ef8613563c3b9acf94cefa897ab42cb05722650a14d2",
+      "ctrf_sha256": "78e557dbb5c6ec7111e9cb2a3512fbeef2f4c9942eaddb090ee41f959bd3fe01"
+    },
+    {
+      "task": "nginx-request-logging",
+      "reward": 1.0,
+      "test_summary": {
+        "tests": 8,
+        "passed": 8,
+        "failed": 0,
+        "skipped": 0,
+        "pending": 0,
+        "other": 0,
+        "start": 1790215147.5889845,
+        "stop": 1790215150.1572814
+      },
+      "reward_sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865",
+      "stdout_sha256": "474b3f0f6e7af2e35ccc903e12d46ef13a7a4dac6a48ff87ccbd64c78cc9372f",
+      "ctrf_sha256": "95cc727bd0f7d3d83f4f76d6b7d667091e3aa728f8706295fc17c0066d1de80c"
+    },
+    {
+      "task": "merge-diff-arc-agi-task",
+      "reward": 1.0,
+      "test_summary": {
+        "tests": 5,
+        "passed": 5,
+        "failed": 0,
+        "skipped": 0,
+        "pending": 0,
+        "other": 0,
+        "start": 1790215914.7055302,
+        "stop": 1790215914.7864597
+      },
+      "reward_sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865",
+      "stdout_sha256": "9eb6376abbc8373bb22802de7120523b8e7602cf3004cbef85453e8ec17efaf0",
+      "ctrf_sha256": "41a1ea4e67569beb28e7968e97358a474f37280a4b186d1ba44e8ada316c3cd2"
+    }
+  ],
+  "runtime_identity": {
+    "public_key_sha256": "ee47f04d15077305abf8fa913ac54cd529099f9931316c567fe600bb481c8ce8",
+    "previous_authority_sha256": "7f2852450f6bf21b0778765d74b19310b5c83547f5045a15a9f89e4f312b3788",
+    "node_version": "v26.7.0",
+    "node_executable_sha256": "1ef99ea25fe70c9b67e7efe768ef8ee22148d3cabc703db6131b57aeb617d040"
+  },
+  "additional_human_review": "H-LIVE86-RESULT pending after independent technical review",
+  "preparation": {
+    "timed_identity_checks_seconds": 0.2579384170239791,
+    "initial_reading_seconds": null,
+    "note": "Initial contract/navigation reading was not timed; do not substitute zero or claim this is all preparation time."
+  },
+  "evidence_root": "/Volumes/WD_BLACK/pan-agent/wo86-metered-20260924/"
+}
