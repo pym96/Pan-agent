@@ -95,3 +95,24 @@ PAN_TEST_ENTRY=/path/to/new-consumer/node_modules/pan-agent/dist/index.js \
 
 No live activation is included. The current contract, not the historical #47
 assignment map, controls WO85.
+
+## WO87 response streams (Criteria1.0)
+
+The unsigned metered template now explicitly sets `responseBytes: null`. Only this
+signed metered value disables cumulative response-byte rejection. Existing numeric
+permits retain their original cap; missing values never upgrade a permit. Byte and
+usage accounting, request limits, official deadlines and cancellation remain.
+See [design](../../../docs/design/response-stream-87.md) and
+[evidence](../../../docs/evidence/response-stream-87.md).
+
+Offline installed-path control (synthetic credentials, fetch and environment only):
+
+```sh
+TMPDIR=/private/tmp/wo87-artifacts/tmp \
+PAN_TEST_ENTRY=/private/tmp/wo87-artifacts/consumer/node_modules/pan-agent/dist/index.js \
+node --test scripts/harbor/pilot/test_response_stream_87.mjs scripts/harbor/pilot/test_cli.mjs
+```
+
+Provision the consumer from the unchanged accepted Product package and verify all
+`package-identity.json` installed hashes first. This work changes the external
+evaluation runner, not Product package bytes; never substitute a fake parser.

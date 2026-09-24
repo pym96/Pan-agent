@@ -35,3 +35,21 @@ for(const status of [401,429,402])test('metered CLI ends campaign on authenticat
  await assert.rejects(main(f.args,f.dependencies),/cancelled/);assert.equal(f.counts.environments,1);assert.equal(f.counts.dispatches,1);assert.equal(f.counts.verifiers,0);
  const report=JSON.parse(readFileSync(join(f.root,'output/summary.json')));assert.equal(report.rows.filter(r=>r.state==='not_started').length,4);
 });
+
+// #87: actual CLI admission, signature and package checks with synthetic I/O only.
+test('WO87 signed null reaches installed parser through CLI and retains byte/usage accounting',async()=>{
+ const f=fixture();Object.assign(f.activation,{version:2,validity:'run-bound',expiresAt:null});f.activation.binding.budget={...METERED_LIMITS};f.save();
+ const fetcher=f.dependencies.fetchImplementation;
+ f.dependencies.fetchImplementation=async(...args)=>{const r=await fetcher(...args);return new Response(':'+ 'p'.repeat(527533)+'\n\n'+await r.text());};
+ await main(f.args,f.dependencies);
+ assert.deepEqual(f.counts,{credentials:10,dispatches:10,environments:5,verifiers:5});
+ const log=readFileSync(join(f.root,'home/.local/state/pan-agent/wo75/ledger',f.activation.runId+'.jsonl'),'utf8').trim().split('\n').map(JSON.parse);
+ const completed=log.filter(x=>x.event==='exchange_completed');assert.equal(completed.length,10);assert(completed.every(x=>x.responseBytes>527533&&x.usage.input===5&&x.usage.output===2));
+ for(const mutation of ['missing','tampered','bounded-null']){
+  const n=fixture();Object.assign(n.activation,{version:2,validity:'run-bound',expiresAt:null});n.activation.binding.budget={...METERED_LIMITS};
+  if(mutation==='missing'){delete n.activation.binding.budget.responseBytes;n.save();}
+  else if(mutation==='bounded-null'){delete n.activation.version;delete n.activation.validity;n.activation.expiresAt=new Date(Date.now()+60000).toISOString();n.activation.binding.budget={...LIMITS,responseBytes:null};n.save();}
+  else {n.activation.binding.budget.responseBytes=524288;n.save();n.activation.binding.budget.responseBytes=null;writeFileSync(n.args[1],JSON.stringify(n.activation));}
+  await assert.rejects(main(n.args,n.dependencies));assert.deepEqual(n.counts,{credentials:0,dispatches:0,environments:0,verifiers:0});
+ }
+});

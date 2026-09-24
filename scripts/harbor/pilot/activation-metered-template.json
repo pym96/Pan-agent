@@ -20,7 +20,7 @@
       "toolsPerTask": null,
       "maxTokens": 4096,
       "requestBytes": 131072,
-      "responseBytes": 524288,
+      "responseBytes": null,
       "dispatchSeconds": 120,
       "mode": "metered"
     },

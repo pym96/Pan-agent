@@ -6,11 +6,16 @@ export const LIMITS=Object.freeze({dispatchesPerTask:40,dispatchesCampaign:200,t
 export const canonical=v=>JSON.stringify(v&&typeof v==='object'?Array.isArray(v)?v.map(x=>JSON.parse(canonical(x))):Object.fromEntries(Object.keys(v).sort().map(k=>[k,JSON.parse(canonical(v[k]))])):v);
 export const digest=v=>createHash('sha256').update(v).digest('hex');
 export const check=(condition,code)=>{if(!condition)throw new Error(code);};
-export const METERED_LIMITS=Object.freeze({...LIMITS,mode:'metered',dispatchesPerTask:null,dispatchesCampaign:null,toolsPerTask:null});
+export const METERED_LIMITS=Object.freeze({...LIMITS,mode:'metered',dispatchesPerTask:null,dispatchesCampaign:null,toolsPerTask:null,responseBytes:null});
 export function budgets(value){
  const metered=value?.mode==='metered',schema=metered?METERED_LIMITS:LIMITS;
  check(value&&canonical(Object.keys(value).sort())===canonical(Object.keys(schema).sort()),'budget_fields');
- for(const [k,max] of Object.entries(LIMITS))check(metered&&['dispatchesPerTask','dispatchesCampaign','toolsPerTask'].includes(k)?value[k]===null:Number.isInteger(value[k])&&value[k]>0&&value[k]<=max,'budget_range');
+ for(const [k,max] of Object.entries(LIMITS)){
+  // Only an explicit, signed null in metered mode disables the response cap.
+  // Historical numeric budgets remain bounded; omission never upgrades a permit.
+  const unlimited=metered&&k==='responseBytes'&&value[k]===null;
+  check(metered&&['dispatchesPerTask','dispatchesCampaign','toolsPerTask'].includes(k)?value[k]===null:unlimited||(Number.isInteger(value[k])&&value[k]>0&&value[k]<=max),'budget_range');
+ }
  return Object.freeze({...value});
 }
 const freeze=v=>{if(v&&typeof v==='object'){Object.values(v).forEach(freeze);Object.freeze(v);}return v;};

@@ -59,3 +59,5 @@ Raw artifacts remain at their stable source, Git, Trace, Test, evaluator, or ext
 - [WO85 transport diagnosis and metering](transport-metering-85.md) — [summary](transport-metering-85-summary.json): explicit signed metering, safe stage evidence and offline recovery controls; no live calls, pending independent review. Historical #47 current-assignment is not execution authority.
 
 - [WO86 metered fixed-five live results](terminal-bench-metered-86.md) — [summary](terminal-bench-metered-86-summary.json): one campaign, two official successes, one scored failure and two unscored response-limit failures; pending independent review and Human result classification.
+
+- [WO87 response-stream evidence](response-stream-87.md) and [machine summary](response-stream-87-summary.json): offline installed parsing, byte/usage accounting and signed-boundary candidate; no live benefit claim.

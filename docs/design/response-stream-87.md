@@ -1,0 +1,13 @@
+# WO87 response stream boundary — Criteria1.0
+
+Candidate against `fe0b23416606a7e7dffc9a9cf22ffe8592681cba`; [contract](https://github.com/pym96/Pan-agent/issues/87#issuecomment-5806602555). Product evaluation implementation, not a live result.
+
+`budget.responseBytes: null` explicitly disables only cumulative HTTP response-byte rejection in signed version-2 metered permits. Policy still requires every budget field. Numeric positive values up to the historical 524288 ceiling remain legal and enforced in both historical modes. Null is rejected in bounded mode; missing fields, invalid values, unsigned changes and signature tampering reject before effects. The signature already covers the entire binding, so no new signature format or implicit migration is needed. The new template remains unauthorized and unsigned.
+
+The Session increments the same scalar byte counter before handing each chunk to the existing installed Kimi Adapter. Its single cumulative-byte rejection now requires a non-null cap. Neither that counter nor this change retains a copy of the complete response. The existing SSE decoder retains partial framing and assembles protocol content/reasoning; its parser has no cumulative byte limit. Existing non-success HTTP handling may buffer an error body; this change neither adds such buffering nor claims constant-memory parsing. Finite representative controls support the source invariant, not infinite-stream feasibility.
+
+Provider input/output accounting and unavailable usage remain unchanged. The actual Adapter also parses `total_tokens` into canonical `totalTokens`; evaluation usage totals expose input/output only. Optional cache/reasoning breakdowns and money are not newly claimed (existing canonical cacheRead default is not evidence of Provider cache usage). Bytes are not tokens. Existing public assistant/tool archive semantics stay intact; no new raw HTTP/reasoning/body logging is introduced.
+
+Unchanged boundaries: max_tokens 4096 per request, encoded request 131072 bytes, dispatch waiting 120 seconds, task_command string 32768 characters and waiting timeout <=30 seconds, official per-task Agent/verifier deadlines from unchanged manifest, cancellation, exponential recovery waits, signed run binding, ledger exclusivity, 60GiB free-space floor and 24GiB growth protection. Metered request/tool counts remain uncapped as previously authorized. Large retained semantic context may still reach requestBytes; this work does not remove all limits.
+
+See [evidence](../evidence/response-stream-87.md) for installed-path tests, raw artifacts and limitations. Only Master may activate a new run after independent acceptance; #86 is not restarted or reclassified.

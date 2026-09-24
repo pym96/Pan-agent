@@ -63,7 +63,7 @@ export async function runAttempt({entry,task,instruction,output,environment,gate
    let response;try{response=await Promise.race([transport.send({...request,body,signal:dispatchSignal}),stopped]);}finally{dispatchSignal.removeEventListener('abort',abort);}
    attempt.stage='http';attempt.httpStatus=response.status;attempt.retryAfterMs=response.retryAfterMs;
    record({event:'http_observed',exchange:attempt.exchange,status:response.status});
-   return {...response,body:(async function*(){let bytes=0;attempt.stage='stream';try{for await(const chunk of response.body){admit();dispatchSignal.throwIfAborted();bytes+=chunk.byteLength;attempt.responseBytes=bytes;if(bytes>gate.binding.budget.responseBytes){attempt.reason='response_size';throw Error('response_size');}yield chunk;}}catch(e){classify();throw e;}})()};
+   return {...response,body:(async function*(){let bytes=0;attempt.stage='stream';try{for await(const chunk of response.body){admit();dispatchSignal.throwIfAborted();bytes+=chunk.byteLength;attempt.responseBytes=bytes;if(gate.binding.budget.responseBytes!==null&&bytes>gate.binding.budget.responseBytes){attempt.reason='response_size';throw Error('response_size');}yield chunk;}}catch(e){classify();throw e;}})()};
   }catch(e){classify();throw e;}
  }};
  const inner=new PanKimiModelAdapter({modelId:'k3-256k',thinkingLevel:'high'},{transport:bounded,diagnostics:true});
