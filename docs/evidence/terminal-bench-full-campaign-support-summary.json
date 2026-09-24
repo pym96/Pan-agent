@@ -1,0 +1,114 @@
+{
+  "workorder": 96,
+  "criteria": "1.0",
+  "base_sha": "c1381b72c4e014a802c9ece8d4432d5033b9d303",
+  "review": "pending independent Regulator; Human H-FULL-RESUME pending after technical review",
+  "population": {
+    "name": "terminal-bench",
+    "version": "2.0",
+    "count": 89,
+    "source_commit": "69671fbaac6d67a7ef0dfec016cc38a64ef7a77c",
+    "manifest_sha256": "bfb1b8f64ca539c9c9cc88de4450c0845c38dcc8d924a7d85c126b8794e3a403",
+    "registry_sha256": "da1446bce05eabbd72a25eb9eef5a2f5db94645ce88c28e2497581433b3d2e60",
+    "tree_sha256": "9c68057c768eefde8144228fbd64dc593ffcd63d1ac130c0a91086e7ae8f7a09",
+    "task_configs_verified": 89,
+    "manifest_rebuilt_identically": true
+  },
+  "checks": {
+    "node_total": 178,
+    "node_pass": 170,
+    "node_skip": 8,
+    "node_fail": 0,
+    "new_full_campaign_cases": [
+      "C01 exact frozen89 registry population/config provenance; old five intact",
+      "C03 actual CLI89 total: normal failures continue, raw0 unscored, retry usage preserved",
+      "C02 process death before_reservation then new-segment unstarted-only resume",
+      "C02 process death after_reservation then new-segment unstarted-only resume",
+      "C02 process death before_result then new-segment unstarted-only resume",
+      "C02 process death after_result then new-segment unstarted-only resume",
+      "C02 unknown residual prevents effects until exact owned reconciliation confirmed",
+      "C02 OS lock rejects concurrent double start; persistent cancel stops after current reservation",
+      "C02 signed identity/checkpoint/image/list mutation and consumed fresh permit reject before credential",
+      "C03 global model block pauses; new segment only remaining, cumulative resource baseline cannot reset",
+      "C03 preparation failure before reservation stays visible/unstarted, global preparation blocks next",
+      "C02 broker ticket: live owner blocks cleanup fence; death releases; late startup sees fenced",
+      "C01 full manifest tamper rejected by actual CLI before any fake effect",
+      "C04 full CLI uses actual packed Session/Adapter with pre-reserved Ledger and synthetic transport/tools",
+      "C02 signed reuse of an earlier run is refused even if its synthetic ledger disappears",
+      "C02 recovery refuses a re-chained foreign project before any cleanup capability"
+    ],
+    "python_pass": 19,
+    "targeted_strengthening": [
+      "old synthetic ledger removal still cannot reuse run",
+      "actual Python broker rejects fenced startup before Docker",
+      "re-chained foreign project rejected before cleanup"
+    ],
+    "all_counts_overlap_not_additive": true
+  },
+  "offline_demo": {
+    "path": "demo-delivery/transcript.json",
+    "sha256": "fad149581dd72d8123bccfae94b7940845958b98d4a89bc59d190f4e1a6db074",
+    "assertions": {
+      "uniqueStarts": 89,
+      "denominator": 89,
+      "unknownPreserved": true,
+      "realModelCalls": 0,
+      "officialTaskExecutions": 0
+    },
+    "synthetic_success_fraction": "85/89",
+    "synthetic_valid_scored_fraction": "86/89",
+    "unknown_rows": 1,
+    "observed_counts": {
+      "counts": {
+        "modelRounds": 89,
+        "exchanges": 90,
+        "reservations": 90,
+        "sendEntries": 90,
+        "tools": 89,
+        "retries": 1
+      },
+      "usage": {
+        "known": 89,
+        "unknown": 1,
+        "unsettled": 0,
+        "input": 890,
+        "output": 178
+      },
+      "unavailableTasks": [],
+      "incompleteTasks": [],
+      "recordedElapsedSeconds": 3.1299893329999993,
+      "unknownElapsedTasks": [
+        "bn-fit-modify"
+      ]
+    },
+    "label": "synthetic lifecycle fixture; NOT live benchmark performance"
+  },
+  "boundaries": {
+    "real_provider_calls": 0,
+    "official_task_executions": 0,
+    "official_scoring_executions": 0,
+    "docker_container_starts": 0,
+    "images_downloaded": 0,
+    "real_credential_reads": 0,
+    "product_files_unchanged": 82,
+    "harbor_files_unchanged": 363,
+    "historical_ledgers_unchanged": 9,
+    "frozen_five_manifest_and_package_lock_unchanged": true,
+    "free_bytes": 76307402752,
+    "owned_allocated_bytes": 83677184
+  },
+  "limitations": [
+    "Cached-image/source validation only; actual provisioning strategy must be frozen by next live WorkOrder",
+    "Automatic valid score requires consistent raw binary reward plus actual nonempty CTRF tests; other evidence formats remain unscored",
+    "No live environment/platform reliability or model score improvement demonstrated",
+    "Abrupt interruption retains unknown permanently and needs owned-residual reconciliation before fresh segment",
+    "Host whole-package check blocked by pre-existing root-extra files; later host stages not run"
+  ],
+  "archive": {
+    "path": "/Volumes/WD_BLACK/pan-agent/wo96-full-20260924/builder-evidence.tar.gz",
+    "entries": 9388,
+    "archive_sha256": "a611526bd64bffb25be8248b5ad120b21383cf2c52ed1facd9ef2efc76bf1a14",
+    "index_sha256": "29b554b84f2cc574fdeb1b04ecb3e7b7852f359c80b4e3033a0d3083c295f309",
+    "all_entries_rehashed": true
+  }
+}

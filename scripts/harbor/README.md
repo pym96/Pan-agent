@@ -63,3 +63,5 @@ The separate [pilot entry](pilot/README.md) selects the fixed Terminal-Bench fiv
 and exercises installed Pan/Kimi with fake transport and environment. It has no
 live authorization; Criteria1.1 resolves SC-TBP-75-01 only for the original visible test. WO74 control code and old
 identity/evidence records remain unchanged.
+
+- [WO96 full89 campaign CLI and offline demonstration](pilot/README.md#wo96-frozen-full89-workflow): persistent task reservation, fresh signed segments and unstarted-only continuation; [design](../../docs/design/terminal-bench-full-campaign.md). No live activation is granted by this documentation.

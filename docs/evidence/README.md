@@ -76,3 +76,5 @@ Raw artifacts remain at their stable source, Git, Trace, Test, evaluator, or ext
 - [WO94 Kimi reasoning continuation](kimi-reasoning-continuation-94.md) — Criteria1.0 source-backed optional-field policy, complete source/packed tool round trips and new package identity; pending independent review.
 
 - [WO95 post-#94 full-five live report](terminal-bench-continuation-95.md) — Criteria1.0; [complete summary/structure observations](terminal-bench-continuation-95-summary.json); independent review pending.
+
+- [WO96 frozen full89 execution and unstarted-only continuation](terminal-bench-full-campaign-support.md) — Criteria1.0 offline candidate; [summary](terminal-bench-full-campaign-support-summary.json), independent review pending.

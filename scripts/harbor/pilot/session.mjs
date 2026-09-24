@@ -3,9 +3,9 @@ import {mkdir,writeFile} from 'node:fs/promises';
 import {check,digest,Ledger} from './policy.mjs';
 
 /** Evaluation lifecycle only. Official task deadlines are retained across all exchanges and recovery waits. */
-export async function runAttempt({entry,task,instruction,output,environment,gate,ledger,credentialSource,fetchImplementation,signal,timers=globalThis}){
+export async function runAttempt({entry,task,instruction,output,environment,gate,ledger,credentialSource,fetchImplementation,signal,timers=globalThis,attemptAlreadyReserved=false}){
  const {GeneralAgentSession,PanKimiModelAdapter,KimiFetchTransport,RunArchiveStore}=await import(pathToFileURL(entry));
- gate.assert(signal);ledger.start(task.id);await mkdir(output,{recursive:false});
+ gate.assert(signal);if(!attemptAlreadyReserved)ledger.start(task.id);await mkdir(output,{recursive:false});
  const agentAbort=new AbortController();const usage=[],effects=[],phases=[],globalStops=[];
  let phase='agent',agentReason=null,hardReason=null,secret,session,result,verifier=null,stopPromise,stopConfirmed=null,quiescence=null,quiescePromise,agentTimer,verifierTimer,verifierStopResolve;
  const mark=value=>{phase=value;phases.push({phase:value,at:performance.now()});};mark('agent');

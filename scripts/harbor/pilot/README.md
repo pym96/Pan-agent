@@ -165,3 +165,87 @@ field policy while preserving diagnostic categories and unknown usage.
 Next live contract must use a newly accepted runner SHA and package identity with
 `/private/tmp/wo94-kimi/consumer/node_modules/pan-agent/dist/index.js`, a new signed
 run and fresh output/ledger. This README grants no activation; no old run restart.
+
+## WO96 frozen full89 workflow
+
+[Design](../../../docs/design/terminal-bench-full-campaign.md) and
+[evidence](../../../docs/evidence/terminal-bench-full-campaign-support.md).
+Legacy `cli.mjs` and frozen `manifest.json`/`package-identity.json` are unchanged.
+The new `full-cli.mjs` supports init, prepare, status, run, cancel and recover.
+These commands describe a future independently accepted/activated live runner;
+#96 itself performs only the offline demonstration below.
+
+Use a clean accepted checkout, the frozen installed Product entry and a fresh
+internal campaign path. `TASK_ROOT` must contain unchanged upstream task folders
+at source69671fbaac6d67a7ef0dfec016cc38a64ef7a77c (including official verifier files,
+which only the trusted verifier consumes). Do not show oracle/solution files to
+the model. Provision only the next task(s)' original cached images under the next
+live WorkOrder's approved strategy. This CLI never automatically pulls/builds or
+prunes images. It resolves their content IDs and records incompatibilities.
+
+```sh
+CAMPAIGN=/private/tmp/approved-full-run/campaign
+ENTRY=/private/tmp/wo94-kimi/consumer/node_modules/pan-agent/dist/index.js
+TASK_ROOT=/private/tmp/approved-full-run/tasks
+node scripts/harbor/pilot/full-cli.mjs init --campaign "$CAMPAIGN" --entry "$ENTRY"
+node scripts/harbor/pilot/full-cli.mjs prepare --campaign "$CAMPAIGN" --task adaptive-rejection-sampler --task-root "$TASK_ROOT"
+node scripts/harbor/pilot/full-cli.mjs status --campaign "$CAMPAIGN" --task adaptive-rejection-sampler
+```
+
+Status includes89 rows and `proposedBinding`. Master signs that complete binding
+with a new UUID, `authorized:true`, `version:2`, `validity:run-bound`,
+`notBefore`, `expiresAt:null` and Human authorization ID using the existing trusted
+authority; the CLI has no signing command. The new binding includes
+`manifestHash`, `panHash`, `runnerSha`, `model`, `budget`, `mode:live`, `taskIds`,
+`images` and `full:{campaignId,root,checkpoint,segmentIndex,preparations}`. Keep
+exactly what status emitted; editing preparation after signing invalidates it.
+Credentials are read only by the authorized Node controller; the broker receives
+no Provider credential.
+
+```sh
+node scripts/harbor/pilot/full-cli.mjs run --campaign "$CAMPAIGN" --activation /path/to/new-master-activation.json --entry "$ENTRY" --task-root "$TASK_ROOT"
+# In another terminal: read progress or request cancellation.
+node scripts/harbor/pilot/full-cli.mjs status --campaign "$CAMPAIGN"
+node scripts/harbor/pilot/full-cli.mjs cancel --campaign "$CAMPAIGN"
+# After controller exit/crash, reconcile owned leftovers; unknown stops block resume.
+node scripts/harbor/pilot/full-cli.mjs recover --campaign "$CAMPAIGN"
+```
+
+Select only status rows with state `not_started`, prepare their next small subset,
+obtain a **new** status binding and Master signature/run, and invoke run again on
+the same campaign. Already reserved failure/unknown/success rows are never eligible.
+A normal task failure continues within the signed subset; a global block pauses.
+No preloading of89 images is needed. Raw score may be0 while validScore is null;
+CTRF evidence is currently required for automatic valid-score classification.
+`status` reconstructs counters/known and unknown usage from segment ledger originals,
+not summary caches. Preserve the entire campaign and global run ledgers for review.
+
+### Reproducible offline demonstration and checks
+
+This creates synthetic authority, ledgers and fake I/O **only under a new directory**;
+never use a live campaign or credential home. The helper injects fake capabilities
+into the same public CLI parser; there is no production `--fake` override. It runs
+89 fake tasks in two segments, interrupts before one result commit and proves89
+unique starts plus retained unknown. Cancellation/double-start/ticket fencing and
+other negative scenarios are in the process-level test suite.
+
+```sh
+node scripts/harbor/pilot/full-demo.mjs /private/tmp/wo96-full/new-offline-demo
+WO96_TEST_ROOT=/private/tmp/wo96-full/new-offline-tests \
+PAN_TEST_ENTRY=/private/tmp/wo94-kimi/consumer/node_modules/pan-agent/dist/index.js \
+TMPDIR=/private/tmp/wo96-full/tmp \
+node --test scripts/harbor/pilot/test_full_96.mjs
+```
+
+Rebuild the population offline from the retained registry, tree and89 task.toml
+files (or allow public metadata downloads for absent configs):
+
+```sh
+python3 scripts/harbor/pilot/full-acquire.py --source /private/tmp/wo96-full --output /private/tmp/wo96-full/rebuilt-manifest.json
+cmp scripts/harbor/pilot/full-manifest.json /private/tmp/wo96-full/rebuilt-manifest.json
+```
+
+Required registry source is Harbor revision
+`f9deaca7f44ab0b91f1dd445d79629e4d97a0716/registry.json`; tree metadata is the GitHub
+Git tree API at the frozen task source commit, not a moving branch. Missing source
+metadata must be obtained at those exact revisions and checked, never substituted.

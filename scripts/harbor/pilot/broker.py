@@ -1,5 +1,5 @@
 """Credential-free Harbor capability server. Only the Node controller reads keys."""
-import asyncio,json,hashlib,sys,uuid,signal,math
+import asyncio,json,hashlib,sys,uuid,signal,math,re,fcntl,os
 from pathlib import Path
 from diagnostics import failure,release_network
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
@@ -131,8 +131,17 @@ class Bound:
   self.finished=True;return await self.verifier()
 async def main():
  current=asyncio.current_task();asyncio.get_running_loop().add_signal_handler(signal.SIGTERM,current.cancel)
- config=json.loads(await asyncio.to_thread(sys.stdin.readline));meta=config['task'];root=Path(config['task_root'])/meta['path'];trial=TrialPaths(trial_dir=Path(config['output']));trial.mkdir()
- stage='source_validation';sid='wo78-'+uuid.uuid4().hex[:16];cid=None
+ config=json.loads(await asyncio.to_thread(sys.stdin.readline));lifecycle=None
+ if config.get('lifecycle_path'):
+  # Full campaign reserves this ticket durably before spawn. Recovery fences it
+  # under the same OS lock; a late child cannot create an environment afterwards.
+  lifecycle=open(config['lifecycle_path'],'r+')
+  fcntl.flock(lifecycle,fcntl.LOCK_EX|fcntl.LOCK_NB)
+  assert json.load(lifecycle).get('state')=='pending','broker_start_fenced'
+  lifecycle.seek(0);lifecycle.truncate();json.dump({'state':'running','pid':os.getpid()},lifecycle);lifecycle.flush();os.fsync(lifecycle.fileno())
+ meta=config['task'];root=Path(config['task_root'])/meta['path'];trial=TrialPaths(trial_dir=Path(config['output']));trial.mkdir()
+ stage='source_validation';sid=config.get('project') or 'wo78-'+uuid.uuid4().hex[:16];cid=None
+ assert re.fullmatch(r'wo78-[a-f0-9]{16}',sid)
  def record_stage(value):
   nonlocal stage
   stage=value
