@@ -1,0 +1,3132 @@
+{
+  "issue": 92,
+  "criteria": "1.0",
+  "run_id": "8bbff9a8-9ce8-4131-965a-0fbf0bd99c1b",
+  "runner_sha": "3c0afd362e8ffb6cb1dee010125ae5c9b08215f9",
+  "denominator": 5,
+  "rows": [
+    {
+      "task": "overfull-hbox",
+      "state": "unscored",
+      "reward": null,
+      "agent_stop_reason": "protocol",
+      "verifier_status": null,
+      "counts": {
+        "model_rounds": 3,
+        "exchanges": 3,
+        "reservations": 3,
+        "send_entries": 3,
+        "tools": 2,
+        "scheduled_retries": 0
+      },
+      "usage": {
+        "known_exchanges": 2,
+        "unknown_exchanges": 1,
+        "input": 3908,
+        "output": 241
+      },
+      "diagnostics": [
+        {
+          "exchange": 3,
+          "modelRound": 3,
+          "stage": "parse",
+          "reserved": true,
+          "sendEntered": true,
+          "responseBytes": 4972,
+          "httpStatus": 200,
+          "structure": {
+            "version": 1,
+            "stage": "tools",
+            "events": 21,
+            "deltas": 19,
+            "reasoning": {
+              "missing": 19,
+              "null": 0,
+              "empty": 0,
+              "string": 0,
+              "invalid": 0
+            },
+            "assembledReasoning": false,
+            "reasoningCharacters": 0,
+            "toolFragments": 17,
+            "assembledTools": 1,
+            "completeTools": 1,
+            "finish": "tool_calls",
+            "done": 1,
+            "usagePresent": 1,
+            "usageParsed": true
+          },
+          "elapsedMs": 11188.358208999998,
+          "reason": "kimi_reasoning_missing",
+          "retryable": false,
+          "usage": null
+        }
+      ],
+      "global_stops": [],
+      "stopped": true,
+      "network_release": [
+        "removed"
+      ],
+      "container_id": "4f02410729bd81278260cae4aca4de51d89627e9e8a081c438659846e208b8e9",
+      "phases": [
+        {
+          "phase": "agent",
+          "at": 4935.165542
+        },
+        {
+          "phase": "ended",
+          "at": 43708.450417
+        }
+      ],
+      "verifier_exit_codes": null,
+      "exchange_observations": [
+        {
+          "event": "exchange_completed",
+          "exchange": 1,
+          "modelRound": 1,
+          "stage": "stream",
+          "reason": null,
+          "reserved": true,
+          "sendEntered": true,
+          "responseBytes": 8925,
+          "httpStatus": 200,
+          "elapsedMs": 9118.761584,
+          "structure": {
+            "version": 1,
+            "stage": "complete",
+            "events": 39,
+            "deltas": 37,
+            "reasoning": {
+              "missing": 29,
+              "null": 0,
+              "empty": 0,
+              "string": 8,
+              "invalid": 0
+            },
+            "assembledReasoning": true,
+            "reasoningCharacters": 31,
+            "toolFragments": 27,
+            "assembledTools": 1,
+            "completeTools": 1,
+            "finish": "tool_calls",
+            "done": 1,
+            "usagePresent": 1,
+            "usageParsed": true
+          }
+        },
+        {
+          "event": "exchange_completed",
+          "exchange": 2,
+          "modelRound": 2,
+          "stage": "stream",
+          "reason": null,
+          "reserved": true,
+          "sendEntered": true,
+          "responseBytes": 21651,
+          "httpStatus": 200,
+          "elapsedMs": 7678.422999999999,
+          "structure": {
+            "version": 1,
+            "stage": "complete",
+            "events": 96,
+            "deltas": 94,
+            "reasoning": {
+              "missing": 61,
+              "null": 0,
+              "empty": 0,
+              "string": 33,
+              "invalid": 0
+            },
+            "assembledReasoning": true,
+            "reasoningCharacters": 125,
+            "toolFragments": 59,
+            "assembledTools": 1,
+            "completeTools": 1,
+            "finish": "tool_calls",
+            "done": 1,
+            "usagePresent": 1,
+            "usageParsed": true
+          }
+        },
+        {
+          "event": "exchange_failed",
+          "exchange": 3,
+          "modelRound": 3,
+          "stage": "parse",
+          "reason": "kimi_reasoning_missing",
+          "reserved": true,
+          "sendEntered": true,
+          "responseBytes": 4972,
+          "httpStatus": 200,
+          "elapsedMs": 11188.358208999998,
+          "structure": {
+            "version": 1,
+            "stage": "tools",
+            "events": 21,
+            "deltas": 19,
+            "reasoning": {
+              "missing": 19,
+              "null": 0,
+              "empty": 0,
+              "string": 0,
+              "invalid": 0
+            },
+            "assembledReasoning": false,
+            "reasoningCharacters": 0,
+            "toolFragments": 17,
+            "assembledTools": 1,
+            "completeTools": 1,
+            "finish": "tool_calls",
+            "done": 1,
+            "usagePresent": 1,
+            "usageParsed": true
+          }
+        }
+      ],
+      "structure_snapshots": 3,
+      "response_bytes_total": 35548,
+      "response_bytes_max": 21651,
+      "reasoning_observation_counts": {
+        "missing": 109,
+        "null": 0,
+        "empty": 0,
+        "string": 41,
+        "invalid": 0
+      },
+      "parser_stages": {
+        "complete": 2,
+        "tools": 1
+      },
+      "report_structure_snapshots": [
+        {
+          "version": 1,
+          "stage": "tools",
+          "events": 21,
+          "deltas": 19,
+          "reasoning": {
+            "missing": 19,
+            "null": 0,
+            "empty": 0,
+            "string": 0,
+            "invalid": 0
+          },
+          "assembledReasoning": false,
+          "reasoningCharacters": 0,
+          "toolFragments": 17,
+          "assembledTools": 1,
+          "completeTools": 1,
+          "finish": "tool_calls",
+          "done": 1,
+          "usagePresent": 1,
+          "usageParsed": true
+        }
+      ],
+      "runner_state": "unscored",
+      "valid_task_score": null,
+      "classification_basis": "HTTP200 then kimi_reasoning_missing before verifier; raw reward absent"
+    },
+    {
+      "task": "dna-insert",
+      "state": "unscored_verifier_preparation_failure",
+      "reward": {
+        "reward": 0
+      },
+      "agent_stop_reason": null,
+      "verifier_status": "official_scored",
+      "counts": {
+        "model_rounds": 14,
+        "exchanges": 14,
+        "reservations": 14,
+        "send_entries": 14,
+        "tools": 15,
+        "scheduled_retries": 0
+      },
+      "usage": {
+        "known_exchanges": 14,
+        "unknown_exchanges": 0,
+        "input": 131115,
+        "output": 9595
+      },
+      "diagnostics": [],
+      "global_stops": [],
+      "stopped": true,
+      "network_release": [
+        "removed"
+      ],
+      "container_id": "91e450c4744163d222740895b40a210b005d7d2e76d5cc82d380c2ab306c8627",
+      "phases": [
+        {
+          "phase": "agent",
+          "at": 45794.8495
+        },
+        {
+          "phase": "handoff",
+          "at": 421412.622208
+        },
+        {
+          "phase": "verifier",
+          "at": 421457.622708
+        },
+        {
+          "phase": "ended",
+          "at": 514752.048583
+        }
+      ],
+      "verifier_exit_codes": [
+        0,
+        0
+      ],
+      "exchange_observations": [
+        {
+          "event": "exchange_completed",
+          "exchange": 1,
+          "modelRound": 1,
+          "stage": "stream",
+          "reason": null,
+          "reserved": true,
+          "sendEntered": true,
+          "responseBytes": 4425,
+          "httpStatus": 200,
+          "elapsedMs": 3182.658374999999,
+          "structure": {
+            "version": 1,
+            "stage": "complete",
+            "events": 19,
+            "deltas": 17,
+            "reasoning": {
+              "missing": 12,
+              "null": 0,
+              "empty": 1,
+              "string": 4,
+              "invalid": 0
+            },
+            "assembledReasoning": true,
+            "reasoningCharacters": 35,
+            "toolFragments": 10,
+            "assembledTools": 1,
+            "completeTools": 1,
+            "finish": "tool_calls",
+            "done": 1,
+            "usagePresent": 1,
+            "usageParsed": true
+          }
+        },
+        {
+          "event": "exchange_completed",
+          "exchange": 2,
+          "modelRound": 2,
+          "stage": "stream",
+          "reason": null,
+          "reserved": true,
+          "sendEntered": true,
+          "responseBytes": 31812,
+          "httpStatus": 200,
+          "elapsedMs": 11850.400500000003,
+          "structure": {
+            "version": 1,
+            "stage": "complete",
+            "events": 136,
+            "deltas": 134,
+            "reasoning": {
+              "missing": 99,
+              "null": 0,
+              "empty": 1,
+              "string": 34,
+              "invalid": 0
+            },
+            "assembledReasoning": true,
+            "reasoningCharacters": 330,
+            "toolFragments": 97,
+            "assembledTools": 2,
+            "completeTools": 2,
+            "finish": "tool_calls",
+            "done": 1,
+            "usagePresent": 1,
+            "usageParsed": true
+          }
+        },
+        {
+          "event": "exchange_completed",
+          "exchange": 3,
+          "modelRound": 3,
+          "stage": "stream",
+          "reason": null,
+          "reserved": true,
+          "sendEntered": true,
+          "responseBytes": 11443,
+          "httpStatus": 200,
+          "elapsedMs": 7562.157041000006,
+          "structure": {
+            "version": 1,
+            "stage": "complete",
+            "events": 51,
+            "deltas": 49,
+            "reasoning": {
+              "missing": 21,
+              "null": 0,
+              "empty": 1,
+              "string": 27,
+              "invalid": 0
+            },
+            "assembledReasoning": true,
+            "reasoningCharacters": 274,
+            "toolFragments": 19,
+            "assembledTools": 1,
+            "completeTools": 1,
+            "finish": "tool_calls",
+            "done": 1,
+            "usagePresent": 1,
+            "usageParsed": true
+          }
+        },
+        {
+          "event": "exchange_completed",
+          "exchange": 4,
+          "modelRound": 4,
+          "stage": "stream",
+          "reason": null,
+          "reserved": true,
+          "sendEntered": true,
+          "responseBytes": 266341,
+          "httpStatus": 200,
+          "elapsedMs": 86956.37229099999,
+          "structure": {
+            "version": 1,
+            "stage": "complete",
+            "events": 1273,
+            "deltas": 1271,
+            "reasoning": {
+              "missing": 46,
+              "null": 0,
+              "empty": 1,
+              "string": 1224,
+              "invalid": 0
+            },
+            "assembledReasoning": true,
+            "reasoningCharacters": 9551,
+            "toolFragments": 36,
+            "assembledTools": 2,
+            "completeTools": 2,
+            "finish": "tool_calls",
+            "done": 1,
+            "usagePresent": 1,
+            "usageParsed": true
+          }
+        },
+        {
+          "event": "exchange_completed",
+          "exchange": 5,
+          "modelRound": 5,
+          "stage": "stream",
+          "reason": null,
+          "reserved": true,
+          "sendEntered": true,
+          "responseBytes": 8284,
+          "httpStatus": 200,
+          "elapsedMs": 6061.994166999997,
+          "structure": {
+            "version": 1,
+            "stage": "complete",
+            "events": 36,
+            "deltas": 34,
+            "reasoning": {
+              "missing": 26,
+              "null": 0,
+              "empty": 1,
+              "string": 7,
+              "invalid": 0
+            },
+            "assembledReasoning": true,
+            "reasoningCharacters": 85,
+            "toolFragments": 18,
+            "assembledTools": 1,
+            "completeTools": 1,
+            "finish": "tool_calls",
+            "done": 1,
+            "usagePresent": 1,
+            "usageParsed": true
+          }
+        },
+        {
+          "event": "exchange_completed",
+          "exchange": 6,
+          "modelRound": 6,
+          "stage": "stream",
+          "reason": null,
+          "reserved": true,
+          "sendEntered": true,
+          "responseBytes": 4769,
+          "httpStatus": 200,
+          "elapsedMs": 14388.069709000003,
+          "structure": {
+            "version": 1,
+            "stage": "complete",
+            "events": 20,
+            "deltas": 18,
+            "reasoning": {
+              "missing": 17,
+              "null": 0,
+              "empty": 1,
+              "string": 0,
+              "invalid": 0
+            },
+            "assembledReasoning": true,
+            "reasoningCharacters": 0,
+            "toolFragments": 15,
+            "assembledTools": 1,
+            "completeTools": 1,
+            "finish": "tool_calls",
+            "done": 1,
+            "usagePresent": 1,
+            "usageParsed": true
+          }
+        },
+        {
+          "event": "exchange_completed",
+          "exchange": 7,
+          "modelRound": 7,
+          "stage": "stream",
+          "reason": null,
+          "reserved": true,
+          "sendEntered": true,
+          "responseBytes": 14014,
+          "httpStatus": 200,
+          "elapsedMs": 9030.789541999984,
+          "structure": {
+            "version": 1,
+            "stage": "complete",
+            "events": 63,
+            "deltas": 61,
+            "reasoning": {
+              "missing": 25,
+              "null": 0,
+              "empty": 1,
+              "string": 35,
+              "invalid": 0
+            },
+            "assembledReasoning": true,
+            "reasoningCharacters": 264,
+            "toolFragments": 23,
+            "assembledTools": 1,
+            "completeTools": 1,
+            "finish": "tool_calls",
+            "done": 1,
+            "usagePresent": 1,
+            "usageParsed": true
+          }
+        },
+        {
+          "event": "exchange_completed",
+          "exchange": 8,
+          "modelRound": 8,
+          "stage": "stream",
+          "reason": null,
+          "reserved": true,
+          "sendEntered": true,
+          "responseBytes": 7476,
+          "httpStatus": 200,
+          "elapsedMs": 11140.41191700002,
+          "structure": {
+            "version": 1,
+            "stage": "complete",
+            "events": 33,
+            "deltas": 31,
+            "reasoning": {
+              "missing": 22,
+              "null": 0,
+              "empty": 1,
+              "string": 8,
+              "invalid": 0
+            },
+            "assembledReasoning": true,
+            "reasoningCharacters": 103,
+            "toolFragments": 14,
+            "assembledTools": 1,
+            "completeTools": 1,
+            "finish": "tool_calls",
+            "done": 1,
+            "usagePresent": 1,
+            "usageParsed": true
+          }
+        },
+        {
+          "event": "exchange_completed",
+          "exchange": 9,
+          "modelRound": 9,
+          "stage": "stream",
+          "reason": null,
+          "reserved": true,
+          "sendEntered": true,
+          "responseBytes": 4995,
+          "httpStatus": 200,
+          "elapsedMs": 7523.0162080000155,
+          "structure": {
+            "version": 1,
+            "stage": "complete",
+            "events": 21,
+            "deltas": 19,
+            "reasoning": {
+              "missing": 18,
+              "null": 0,
+              "empty": 1,
+              "string": 0,
+              "invalid": 0
+            },
+            "assembledReasoning": true,
+            "reasoningCharacters": 0,
+            "toolFragments": 16,
+            "assembledTools": 1,
+            "completeTools": 1,
+            "finish": "tool_calls",
+            "done": 1,
+            "usagePresent": 1,
+            "usageParsed": true
+          }
+        },
+        {
+          "event": "exchange_completed",
+          "exchange": 10,
+          "modelRound": 10,
+          "stage": "stream",
+          "reason": null,
+          "reserved": true,
+          "sendEntered": true,
+          "responseBytes": 42988,
+          "httpStatus": 200,
+          "elapsedMs": 18293.839500000002,
+          "structure": {
+            "version": 1,
+            "stage": "complete",
+            "events": 188,
+            "deltas": 186,
+            "reasoning": {
+              "missing": 112,
+              "null": 0,
+              "empty": 1,
+              "string": 73,
+              "invalid": 0
+            },
+            "assembledReasoning": true,
+            "reasoningCharacters": 677,
+            "toolFragments": 105,
+            "assembledTools": 1,
+            "completeTools": 1,
+            "finish": "tool_calls",
+            "done": 1,
+            "usagePresent": 1,
+            "usageParsed": true
+          }
+        },
+        {
+          "event": "exchange_completed",
+          "exchange": 11,
+          "modelRound": 11,
+          "stage": "stream",
+          "reason": null,
+          "reserved": true,
+          "sendEntered": true,
+          "responseBytes": 79646,
+          "httpStatus": 200,
+          "elapsedMs": 45315.56349999999,
+          "structure": {
+            "version": 1,
+            "stage": "complete",
+            "events": 362,
+            "deltas": 360,
+            "reasoning": {
+              "missing": 123,
+              "null": 0,
+              "empty": 1,
+              "string": 236,
+              "invalid": 0
+            },
+            "assembledReasoning": true,
+            "reasoningCharacters": 2010,
+            "toolFragments": 121,
+            "assembledTools": 1,
+            "completeTools": 1,
+            "finish": "tool_calls",
+            "done": 1,
+            "usagePresent": 1,
+            "usageParsed": true
+          }
+        },
+        {
+          "event": "exchange_completed",
+          "exchange": 12,
+          "modelRound": 12,
+          "stage": "stream",
+          "reason": null,
+          "reserved": true,
+          "sendEntered": true,
+          "responseBytes": 43245,
+          "httpStatus": 200,
+          "elapsedMs": 21316.29033400002,
+          "structure": {
+            "version": 1,
+            "stage": "complete",
+            "events": 195,
+            "deltas": 193,
+            "reasoning": {
+              "missing": 77,
+              "null": 0,
+              "empty": 1,
+              "string": 115,
+              "invalid": 0
+            },
+            "assembledReasoning": true,
+            "reasoningCharacters": 915,
+            "toolFragments": 75,
+            "assembledTools": 1,
+            "completeTools": 1,
+            "finish": "tool_calls",
+            "done": 1,
+            "usagePresent": 1,
+            "usageParsed": true
+          }
+        },
+        {
+          "event": "exchange_completed",
+          "exchange": 13,
+          "modelRound": 13,
+          "stage": "stream",
+          "reason": null,
+          "reserved": true,
+          "sendEntered": true,
+          "responseBytes": 136789,
+          "httpStatus": 200,
+          "elapsedMs": 45956.959040999995,
+          "structure": {
+            "version": 1,
+            "stage": "complete",
+            "events": 631,
+            "deltas": 629,
+            "reasoning": {
+              "missing": 164,
+              "null": 0,
+              "empty": 1,
+              "string": 464,
+              "invalid": 0
+            },
+            "assembledReasoning": true,
+            "reasoningCharacters": 3378,
+            "toolFragments": 162,
+            "assembledTools": 1,
+            "completeTools": 1,
+            "finish": "tool_calls",
+            "done": 1,
+            "usagePresent": 1,
+            "usageParsed": true
+          }
+        },
+        {
+          "event": "exchange_completed",
+          "exchange": 14,
+          "modelRound": 14,
+          "stage": "stream",
+          "reason": null,
+          "reserved": true,
+          "sendEntered": true,
+          "responseBytes": 43125,
+          "httpStatus": 200,
+          "elapsedMs": 18230.852916000003,
+          "structure": {
+            "version": 1,
+            "stage": "complete",
+            "events": 212,
+            "deltas": 210,
+            "reasoning": {
+              "missing": 150,
+              "null": 0,
+              "empty": 1,
+              "string": 59,
+              "invalid": 0
+            },
+            "assembledReasoning": true,
+            "reasoningCharacters": 544,
+            "toolFragments": 0,
+            "assembledTools": 0,
+            "completeTools": 0,
+            "finish": "stop",
+            "done": 1,
+            "usagePresent": 1,
+            "usageParsed": true
+          }
+        }
+      ],
+      "structure_snapshots": 14,
+      "response_bytes_total": 699352,
+      "response_bytes_max": 266341,
+      "reasoning_observation_counts": {
+        "missing": 912,
+        "null": 0,
+        "empty": 14,
+        "string": 2286,
+        "invalid": 0
+      },
+      "parser_stages": {
+        "complete": 14
+      },
+      "report_structure_snapshots": [],
+      "runner_state": "official_scored_failure",
+      "valid_task_score": null,
+      "classification_basis": "raw reward0 preserved; astral.sh curl TLS failure, missing env and uvx; no executed task-test result/CTRF"
+    },
+    {
+      "task": "nginx-request-logging",
+      "state": "official_success",
+      "reward": {
+        "reward": 1
+      },
+      "agent_stop_reason": null,
+      "verifier_status": "official_scored",
+      "counts": {
+        "model_rounds": 18,
+        "exchanges": 18,
+        "reservations": 18,
+        "send_entries": 18,
+        "tools": 17,
+        "scheduled_retries": 0
+      },
+      "usage": {
+        "known_exchanges": 18,
+        "unknown_exchanges": 0,
+        "input": 64369,
+        "output": 3427
+      },
+      "diagnostics": [],
+      "global_stops": [],
+      "stopped": true,
+      "network_release": [
+        "removed"
+      ],
+      "container_id": "30da1fe612ab4c482bc41d61f2dea4c283b643ff859482e7646ebf870fadc77f",
+      "phases": [
+        {
+          "phase": "agent",
+          "at": 516961.684417
+        },
+        {
+          "phase": "handoff",
+          "at": 831471.036583
+        },
+        {
+          "phase": "verifier",
+          "at": 831496.765958
+        },
+        {
+          "phase": "ended",
+          "at": 1080189.605542
+        }
+      ],
+      "verifier_exit_codes": [
+        0,
+        0
+      ],
+      "exchange_observations": [
+        {
+          "event": "exchange_completed",
+          "exchange": 1,
+          "modelRound": 1,
+          "stage": "stream",
+          "reason": null,
+          "reserved": true,
+          "sendEntered": true,
+          "responseBytes": 5665,
+          "httpStatus": 200,
+          "elapsedMs": 5924.91399999999,
+          "structure": {
+            "version": 1,
+            "stage": "complete",
+            "events": 24,
+            "deltas": 22,
+            "reasoning": {
+              "missing": 17,
+              "null": 0,
+              "empty": 1,
+              "string": 4,
+              "invalid": 0
+            },
+            "assembledReasoning": true,
+            "reasoningCharacters": 43,
+            "toolFragments": 15,
+            "assembledTools": 1,
+            "completeTools": 1,
+            "finish": "tool_calls",
+            "done": 1,
+            "usagePresent": 1,
+            "usageParsed": true
+          }
+        },
+        {
+          "event": "exchange_completed",
+          "exchange": 2,
+          "modelRound": 2,
+          "stage": "stream",
+          "reason": null,
+          "reserved": true,
+          "sendEntered": true,
+          "responseBytes": 4560,
+          "httpStatus": 200,
+          "elapsedMs": 4451.682166999963,
+          "structure": {
+            "version": 1,
+            "stage": "complete",
+            "events": 19,
+            "deltas": 17,
+            "reasoning": {
+              "missing": 16,
+              "null": 0,
+              "empty": 1,
+              "string": 0,
+              "invalid": 0
+            },
+            "assembledReasoning": true,
+            "reasoningCharacters": 0,
+            "toolFragments": 14,
+            "assembledTools": 1,
+            "completeTools": 1,
+            "finish": "tool_calls",
+            "done": 1,
+            "usagePresent": 1,
+            "usageParsed": true
+          }
+        },
+        {
+          "event": "exchange_completed",
+          "exchange": 3,
+          "modelRound": 3,
+          "stage": "stream",
+          "reason": null,
+          "reserved": true,
+          "sendEntered": true,
+          "responseBytes": 5939,
+          "httpStatus": 200,
+          "elapsedMs": 5629.395125000039,
+          "structure": {
+            "version": 1,
+            "stage": "complete",
+            "events": 26,
+            "deltas": 24,
+            "reasoning": {
+              "missing": 13,
+              "null": 0,
+              "empty": 1,
+              "string": 10,
+              "invalid": 0
+            },
+            "assembledReasoning": true,
+            "reasoningCharacters": 88,
+            "toolFragments": 11,
+            "assembledTools": 1,
+            "completeTools": 1,
+            "finish": "tool_calls",
+            "done": 1,
+            "usagePresent": 1,
+            "usageParsed": true
+          }
+        },
+        {
+          "event": "exchange_completed",
+          "exchange": 4,
+          "modelRound": 4,
+          "stage": "stream",
+          "reason": null,
+          "reserved": true,
+          "sendEntered": true,
+          "responseBytes": 6438,
+          "httpStatus": 200,
+          "elapsedMs": 5947.758540999959,
+          "structure": {
+            "version": 1,
+            "stage": "complete",
+            "events": 27,
+            "deltas": 25,
+            "reasoning": {
+              "missing": 24,
+              "null": 0,
+              "empty": 1,
+              "string": 0,
+              "invalid": 0
+            },
+            "assembledReasoning": true,
+            "reasoningCharacters": 0,
+            "toolFragments": 22,
+            "assembledTools": 1,
+            "completeTools": 1,
+            "finish": "tool_calls",
+            "done": 1,
+            "usagePresent": 1,
+            "usageParsed": true
+          }
+        },
+        {
+          "event": "exchange_completed",
+          "exchange": 5,
+          "modelRound": 5,
+          "stage": "stream",
+          "reason": null,
+          "reserved": true,
+          "sendEntered": true,
+          "responseBytes": 15464,
+          "httpStatus": 200,
+          "elapsedMs": 8500.400458000018,
+          "structure": {
+            "version": 1,
+            "stage": "complete",
+            "events": 69,
+            "deltas": 67,
+            "reasoning": {
+              "missing": 38,
+              "null": 0,
+              "empty": 1,
+              "string": 28,
+              "invalid": 0
+            },
+            "assembledReasoning": true,
+            "reasoningCharacters": 282,
+            "toolFragments": 27,
+            "assembledTools": 1,
+            "completeTools": 1,
+            "finish": "tool_calls",
+            "done": 1,
+            "usagePresent": 1,
+            "usageParsed": true
+          }
+        },
+        {
+          "event": "exchange_completed",
+          "exchange": 6,
+          "modelRound": 6,
+          "stage": "stream",
+          "reason": null,
+          "reserved": true,
+          "sendEntered": true,
+          "responseBytes": 4061,
+          "httpStatus": 200,
+          "elapsedMs": 6317.187292000046,
+          "structure": {
+            "version": 1,
+            "stage": "complete",
+            "events": 17,
+            "deltas": 15,
+            "reasoning": {
+              "missing": 14,
+              "null": 0,
+              "empty": 1,
+              "string": 0,
+              "invalid": 0
+            },
+            "assembledReasoning": true,
+            "reasoningCharacters": 0,
+            "toolFragments": 12,
+            "assembledTools": 1,
+            "completeTools": 1,
+            "finish": "tool_calls",
+            "done": 1,
+            "usagePresent": 1,
+            "usageParsed": true
+          }
+        },
+        {
+          "event": "exchange_completed",
+          "exchange": 7,
+          "modelRound": 7,
+          "stage": "stream",
+          "reason": null,
+          "reserved": true,
+          "sendEntered": true,
+          "responseBytes": 9077,
+          "httpStatus": 200,
+          "elapsedMs": 7754.077208000002,
+          "structure": {
+            "version": 1,
+            "stage": "complete",
+            "events": 39,
+            "deltas": 37,
+            "reasoning": {
+              "missing": 28,
+              "null": 0,
+              "empty": 1,
+              "string": 8,
+              "invalid": 0
+            },
+            "assembledReasoning": true,
+            "reasoningCharacters": 101,
+            "toolFragments": 22,
+            "assembledTools": 1,
+            "completeTools": 1,
+            "finish": "tool_calls",
+            "done": 1,
+            "usagePresent": 1,
+            "usageParsed": true
+          }
+        },
+        {
+          "event": "exchange_completed",
+          "exchange": 8,
+          "modelRound": 8,
+          "stage": "stream",
+          "reason": null,
+          "reserved": true,
+          "sendEntered": true,
+          "responseBytes": 4526,
+          "httpStatus": 200,
+          "elapsedMs": 4023.3643340000417,
+          "structure": {
+            "version": 1,
+            "stage": "complete",
+            "events": 19,
+            "deltas": 17,
+            "reasoning": {
+              "missing": 16,
+              "null": 0,
+              "empty": 1,
+              "string": 0,
+              "invalid": 0
+            },
+            "assembledReasoning": true,
+            "reasoningCharacters": 0,
+            "toolFragments": 14,
+            "assembledTools": 1,
+            "completeTools": 1,
+            "finish": "tool_calls",
+            "done": 1,
+            "usagePresent": 1,
+            "usageParsed": true
+          }
+        },
+        {
+          "event": "exchange_completed",
+          "exchange": 9,
+          "modelRound": 9,
+          "stage": "stream",
+          "reason": null,
+          "reserved": true,
+          "sendEntered": true,
+          "responseBytes": 3830,
+          "httpStatus": 200,
+          "elapsedMs": 6894.623707999941,
+          "structure": {
+            "version": 1,
+            "stage": "complete",
+            "events": 16,
+            "deltas": 14,
+            "reasoning": {
+              "missing": 13,
+              "null": 0,
+              "empty": 1,
+              "string": 0,
+              "invalid": 0
+            },
+            "assembledReasoning": true,
+            "reasoningCharacters": 0,
+            "toolFragments": 11,
+            "assembledTools": 1,
+            "completeTools": 1,
+            "finish": "tool_calls",
+            "done": 1,
+            "usagePresent": 1,
+            "usageParsed": true
+          }
+        },
+        {
+          "event": "exchange_completed",
+          "exchange": 10,
+          "modelRound": 10,
+          "stage": "stream",
+          "reason": null,
+          "reserved": true,
+          "sendEntered": true,
+          "responseBytes": 8821,
+          "httpStatus": 200,
+          "elapsedMs": 11292.002542000031,
+          "structure": {
+            "version": 1,
+            "stage": "complete",
+            "events": 39,
+            "deltas": 37,
+            "reasoning": {
+              "missing": 21,
+              "null": 0,
+              "empty": 1,
+              "string": 15,
+              "invalid": 0
+            },
+            "assembledReasoning": true,
+            "reasoningCharacters": 147,
+            "toolFragments": 15,
+            "assembledTools": 1,
+            "completeTools": 1,
+            "finish": "tool_calls",
+            "done": 1,
+            "usagePresent": 1,
+            "usageParsed": true
+          }
+        },
+        {
+          "event": "exchange_completed",
+          "exchange": 11,
+          "modelRound": 11,
+          "stage": "stream",
+          "reason": null,
+          "reserved": true,
+          "sendEntered": true,
+          "responseBytes": 15894,
+          "httpStatus": 200,
+          "elapsedMs": 10413.088624999975,
+          "structure": {
+            "version": 1,
+            "stage": "complete",
+            "events": 68,
+            "deltas": 66,
+            "reasoning": {
+              "missing": 49,
+              "null": 0,
+              "empty": 1,
+              "string": 16,
+              "invalid": 0
+            },
+            "assembledReasoning": true,
+            "reasoningCharacters": 229,
+            "toolFragments": 41,
+            "assembledTools": 1,
+            "completeTools": 1,
+            "finish": "tool_calls",
+            "done": 1,
+            "usagePresent": 1,
+            "usageParsed": true
+          }
+        },
+        {
+          "event": "exchange_completed",
+          "exchange": 12,
+          "modelRound": 12,
+          "stage": "stream",
+          "reason": null,
+          "reserved": true,
+          "sendEntered": true,
+          "responseBytes": 3557,
+          "httpStatus": 200,
+          "elapsedMs": 5868.083458999987,
+          "structure": {
+            "version": 1,
+            "stage": "complete",
+            "events": 15,
+            "deltas": 13,
+            "reasoning": {
+              "missing": 12,
+              "null": 0,
+              "empty": 1,
+              "string": 0,
+              "invalid": 0
+            },
+            "assembledReasoning": true,
+            "reasoningCharacters": 0,
+            "toolFragments": 10,
+            "assembledTools": 1,
+            "completeTools": 1,
+            "finish": "tool_calls",
+            "done": 1,
+            "usagePresent": 1,
+            "usageParsed": true
+          }
+        },
+        {
+          "event": "exchange_completed",
+          "exchange": 13,
+          "modelRound": 13,
+          "stage": "stream",
+          "reason": null,
+          "reserved": true,
+          "sendEntered": true,
+          "responseBytes": 19185,
+          "httpStatus": 200,
+          "elapsedMs": 9520.946250000037,
+          "structure": {
+            "version": 1,
+            "stage": "complete",
+            "events": 81,
+            "deltas": 79,
+            "reasoning": {
+              "missing": 65,
+              "null": 0,
+              "empty": 1,
+              "string": 13,
+              "invalid": 0
+            },
+            "assembledReasoning": true,
+            "reasoningCharacters": 162,
+            "toolFragments": 55,
+            "assembledTools": 1,
+            "completeTools": 1,
+            "finish": "tool_calls",
+            "done": 1,
+            "usagePresent": 1,
+            "usageParsed": true
+          }
+        },
+        {
+          "event": "exchange_completed",
+          "exchange": 14,
+          "modelRound": 14,
+          "stage": "stream",
+          "reason": null,
+          "reserved": true,
+          "sendEntered": true,
+          "responseBytes": 7332,
+          "httpStatus": 200,
+          "elapsedMs": 5699.718499999959,
+          "structure": {
+            "version": 1,
+            "stage": "complete",
+            "events": 31,
+            "deltas": 29,
+            "reasoning": {
+              "missing": 28,
+              "null": 0,
+              "empty": 1,
+              "string": 0,
+              "invalid": 0
+            },
+            "assembledReasoning": true,
+            "reasoningCharacters": 0,
+            "toolFragments": 22,
+            "assembledTools": 1,
+            "completeTools": 1,
+            "finish": "tool_calls",
+            "done": 1,
+            "usagePresent": 1,
+            "usageParsed": true
+          }
+        },
+        {
+          "event": "exchange_completed",
+          "exchange": 15,
+          "modelRound": 15,
+          "stage": "stream",
+          "reason": null,
+          "reserved": true,
+          "sendEntered": true,
+          "responseBytes": 10777,
+          "httpStatus": 200,
+          "elapsedMs": 22077.981291999924,
+          "structure": {
+            "version": 1,
+            "stage": "complete",
+            "events": 45,
+            "deltas": 43,
+            "reasoning": {
+              "missing": 42,
+              "null": 0,
+              "empty": 1,
+              "string": 0,
+              "invalid": 0
+            },
+            "assembledReasoning": true,
+            "reasoningCharacters": 0,
+            "toolFragments": 35,
+            "assembledTools": 1,
+            "completeTools": 1,
+            "finish": "tool_calls",
+            "done": 1,
+            "usagePresent": 1,
+            "usageParsed": true
+          }
+        },
+        {
+          "event": "exchange_completed",
+          "exchange": 16,
+          "modelRound": 16,
+          "stage": "stream",
+          "reason": null,
+          "reserved": true,
+          "sendEntered": true,
+          "responseBytes": 12332,
+          "httpStatus": 200,
+          "elapsedMs": 9234.720417000004,
+          "structure": {
+            "version": 1,
+            "stage": "complete",
+            "events": 54,
+            "deltas": 52,
+            "reasoning": {
+              "missing": 35,
+              "null": 0,
+              "empty": 1,
+              "string": 16,
+              "invalid": 0
+            },
+            "assembledReasoning": true,
+            "reasoningCharacters": 174,
+            "toolFragments": 27,
+            "assembledTools": 1,
+            "completeTools": 1,
+            "finish": "tool_calls",
+            "done": 1,
+            "usagePresent": 1,
+            "usageParsed": true
+          }
+        },
+        {
+          "event": "exchange_completed",
+          "exchange": 17,
+          "modelRound": 17,
+          "stage": "stream",
+          "reason": null,
+          "reserved": true,
+          "sendEntered": true,
+          "responseBytes": 53526,
+          "httpStatus": 200,
+          "elapsedMs": 23627.73662500002,
+          "structure": {
+            "version": 1,
+            "stage": "complete",
+            "events": 250,
+            "deltas": 248,
+            "reasoning": {
+              "missing": 26,
+              "null": 0,
+              "empty": 1,
+              "string": 221,
+              "invalid": 0
+            },
+            "assembledReasoning": true,
+            "reasoningCharacters": 2274,
+            "toolFragments": 24,
+            "assembledTools": 1,
+            "completeTools": 1,
+            "finish": "tool_calls",
+            "done": 1,
+            "usagePresent": 1,
+            "usageParsed": true
+          }
+        },
+        {
+          "event": "exchange_completed",
+          "exchange": 18,
+          "modelRound": 18,
+          "stage": "stream",
+          "reason": null,
+          "reserved": true,
+          "sendEntered": true,
+          "responseBytes": 33865,
+          "httpStatus": 200,
+          "elapsedMs": 14709.789667000063,
+          "structure": {
+            "version": 1,
+            "stage": "complete",
+            "events": 166,
+            "deltas": 164,
+            "reasoning": {
+              "missing": 141,
+              "null": 0,
+              "empty": 1,
+              "string": 22,
+              "invalid": 0
+            },
+            "assembledReasoning": true,
+            "reasoningCharacters": 221,
+            "toolFragments": 0,
+            "assembledTools": 0,
+            "completeTools": 0,
+            "finish": "stop",
+            "done": 1,
+            "usagePresent": 1,
+            "usageParsed": true
+          }
+        }
+      ],
+      "structure_snapshots": 18,
+      "response_bytes_total": 224849,
+      "response_bytes_max": 53526,
+      "reasoning_observation_counts": {
+        "missing": 598,
+        "null": 0,
+        "empty": 18,
+        "string": 353,
+        "invalid": 0
+      },
+      "parser_stages": {
+        "complete": 18
+      },
+      "report_structure_snapshots": [],
+      "runner_state": "official_success",
+      "valid_task_score": 1,
+      "classification_basis": "raw reward1 plus all CTRF tests passed",
+      "official_test_summary": {
+        "tests": 8,
+        "passed": 8,
+        "failed": 0,
+        "skipped": 0,
+        "pending": 0,
+        "other": 0,
+        "start": 1790234805.5304003,
+        "stop": 1790234808.103065
+      }
+    },
+    {
+      "task": "merge-diff-arc-agi-task",
+      "state": "official_success",
+      "reward": {
+        "reward": 1
+      },
+      "agent_stop_reason": null,
+      "verifier_status": "official_scored",
+      "counts": {
+        "model_rounds": 30,
+        "exchanges": 30,
+        "reservations": 30,
+        "send_entries": 30,
+        "tools": 29,
+        "scheduled_retries": 0
+      },
+      "usage": {
+        "known_exchanges": 30,
+        "unknown_exchanges": 0,
+        "input": 205351,
+        "output": 6647
+      },
+      "diagnostics": [],
+      "global_stops": [],
+      "stopped": true,
+      "network_release": [
+        "removed"
+      ],
+      "container_id": "31ee6d6a7278b1fc084ca0c3773d24c94e2a9764cb04c3303ceeae8d1ccb966d",
+      "phases": [
+        {
+          "phase": "agent",
+          "at": 1082525.535542
+        },
+        {
+          "phase": "handoff",
+          "at": 1744272.869208
+        },
+        {
+          "phase": "verifier",
+          "at": 1744299.579
+        },
+        {
+          "phase": "ended",
+          "at": 2164769.264583
+        }
+      ],
+      "verifier_exit_codes": [
+        0,
+        0
+      ],
+      "exchange_observations": [
+        {
+          "event": "exchange_completed",
+          "exchange": 1,
+          "modelRound": 1,
+          "stage": "stream",
+          "reason": null,
+          "reserved": true,
+          "sendEntered": true,
+          "responseBytes": 6447,
+          "httpStatus": 200,
+          "elapsedMs": 6281.993458000012,
+          "structure": {
+            "version": 1,
+            "stage": "complete",
+            "events": 27,
+            "deltas": 25,
+            "reasoning": {
+              "missing": 21,
+              "null": 0,
+              "empty": 1,
+              "string": 3,
+              "invalid": 0
+            },
+            "assembledReasoning": true,
+            "reasoningCharacters": 42,
+            "toolFragments": 19,
+            "assembledTools": 1,
+            "completeTools": 1,
+            "finish": "tool_calls",
+            "done": 1,
+            "usagePresent": 1,
+            "usageParsed": true
+          }
+        },
+        {
+          "event": "exchange_completed",
+          "exchange": 2,
+          "modelRound": 2,
+          "stage": "stream",
+          "reason": null,
+          "reserved": true,
+          "sendEntered": true,
+          "responseBytes": 6902,
+          "httpStatus": 200,
+          "elapsedMs": 4084.2992499999236,
+          "structure": {
+            "version": 1,
+            "stage": "complete",
+            "events": 30,
+            "deltas": 28,
+            "reasoning": {
+              "missing": 20,
+              "null": 0,
+              "empty": 1,
+              "string": 7,
+              "invalid": 0
+            },
+            "assembledReasoning": true,
+            "reasoningCharacters": 73,
+            "toolFragments": 15,
+            "assembledTools": 1,
+            "completeTools": 1,
+            "finish": "tool_calls",
+            "done": 1,
+            "usagePresent": 1,
+            "usageParsed": true
+          }
+        },
+        {
+          "event": "exchange_completed",
+          "exchange": 3,
+          "modelRound": 3,
+          "stage": "stream",
+          "reason": null,
+          "reserved": true,
+          "sendEntered": true,
+          "responseBytes": 5279,
+          "httpStatus": 200,
+          "elapsedMs": 6863.125457999995,
+          "structure": {
+            "version": 1,
+            "stage": "complete",
+            "events": 22,
+            "deltas": 20,
+            "reasoning": {
+              "missing": 19,
+              "null": 0,
+              "empty": 1,
+              "string": 0,
+              "invalid": 0
+            },
+            "assembledReasoning": true,
+            "reasoningCharacters": 0,
+            "toolFragments": 17,
+            "assembledTools": 1,
+            "completeTools": 1,
+            "finish": "tool_calls",
+            "done": 1,
+            "usagePresent": 1,
+            "usageParsed": true
+          }
+        },
+        {
+          "event": "exchange_completed",
+          "exchange": 4,
+          "modelRound": 4,
+          "stage": "stream",
+          "reason": null,
+          "reserved": true,
+          "sendEntered": true,
+          "responseBytes": 4072,
+          "httpStatus": 200,
+          "elapsedMs": 3861.551790999947,
+          "structure": {
+            "version": 1,
+            "stage": "complete",
+            "events": 17,
+            "deltas": 15,
+            "reasoning": {
+              "missing": 14,
+              "null": 0,
+              "empty": 1,
+              "string": 0,
+              "invalid": 0
+            },
+            "assembledReasoning": true,
+            "reasoningCharacters": 0,
+            "toolFragments": 12,
+            "assembledTools": 1,
+            "completeTools": 1,
+            "finish": "tool_calls",
+            "done": 1,
+            "usagePresent": 1,
+            "usageParsed": true
+          }
+        },
+        {
+          "event": "exchange_completed",
+          "exchange": 5,
+          "modelRound": 5,
+          "stage": "stream",
+          "reason": null,
+          "reserved": true,
+          "sendEntered": true,
+          "responseBytes": 6657,
+          "httpStatus": 200,
+          "elapsedMs": 5926.310917000053,
+          "structure": {
+            "version": 1,
+            "stage": "complete",
+            "events": 29,
+            "deltas": 27,
+            "reasoning": {
+              "missing": 14,
+              "null": 0,
+              "empty": 1,
+              "string": 12,
+              "invalid": 0
+            },
+            "assembledReasoning": true,
+            "reasoningCharacters": 157,
+            "toolFragments": 12,
+            "assembledTools": 1,
+            "completeTools": 1,
+            "finish": "tool_calls",
+            "done": 1,
+            "usagePresent": 1,
+            "usageParsed": true
+          }
+        },
+        {
+          "event": "exchange_completed",
+          "exchange": 6,
+          "modelRound": 6,
+          "stage": "stream",
+          "reason": null,
+          "reserved": true,
+          "sendEntered": true,
+          "responseBytes": 8113,
+          "httpStatus": 200,
+          "elapsedMs": 21071.75270800013,
+          "structure": {
+            "version": 1,
+            "stage": "complete",
+            "events": 36,
+            "deltas": 34,
+            "reasoning": {
+              "missing": 23,
+              "null": 0,
+              "empty": 1,
+              "string": 10,
+              "invalid": 0
+            },
+            "assembledReasoning": true,
+            "reasoningCharacters": 106,
+            "toolFragments": 14,
+            "assembledTools": 1,
+            "completeTools": 1,
+            "finish": "tool_calls",
+            "done": 1,
+            "usagePresent": 1,
+            "usageParsed": true
+          }
+        },
+        {
+          "event": "exchange_completed",
+          "exchange": 7,
+          "modelRound": 7,
+          "stage": "stream",
+          "reason": null,
+          "reserved": true,
+          "sendEntered": true,
+          "responseBytes": 4546,
+          "httpStatus": 200,
+          "elapsedMs": 5870.458375000162,
+          "structure": {
+            "version": 1,
+            "stage": "complete",
+            "events": 19,
+            "deltas": 17,
+            "reasoning": {
+              "missing": 16,
+              "null": 0,
+              "empty": 1,
+              "string": 0,
+              "invalid": 0
+            },
+            "assembledReasoning": true,
+            "reasoningCharacters": 0,
+            "toolFragments": 14,
+            "assembledTools": 1,
+            "completeTools": 1,
+            "finish": "tool_calls",
+            "done": 1,
+            "usagePresent": 1,
+            "usageParsed": true
+          }
+        },
+        {
+          "event": "exchange_completed",
+          "exchange": 8,
+          "modelRound": 8,
+          "stage": "stream",
+          "reason": null,
+          "reserved": true,
+          "sendEntered": true,
+          "responseBytes": 18388,
+          "httpStatus": 200,
+          "elapsedMs": 10380.80700000003,
+          "structure": {
+            "version": 1,
+            "stage": "complete",
+            "events": 83,
+            "deltas": 81,
+            "reasoning": {
+              "missing": 26,
+              "null": 0,
+              "empty": 1,
+              "string": 54,
+              "invalid": 0
+            },
+            "assembledReasoning": true,
+            "reasoningCharacters": 563,
+            "toolFragments": 24,
+            "assembledTools": 1,
+            "completeTools": 1,
+            "finish": "tool_calls",
+            "done": 1,
+            "usagePresent": 1,
+            "usageParsed": true
+          }
+        },
+        {
+          "event": "exchange_completed",
+          "exchange": 9,
+          "modelRound": 9,
+          "stage": "stream",
+          "reason": null,
+          "reserved": true,
+          "sendEntered": true,
+          "responseBytes": 8839,
+          "httpStatus": 200,
+          "elapsedMs": 5598.599707999965,
+          "structure": {
+            "version": 1,
+            "stage": "complete",
+            "events": 39,
+            "deltas": 37,
+            "reasoning": {
+              "missing": 18,
+              "null": 0,
+              "empty": 1,
+              "string": 18,
+              "invalid": 0
+            },
+            "assembledReasoning": true,
+            "reasoningCharacters": 175,
+            "toolFragments": 16,
+            "assembledTools": 1,
+            "completeTools": 1,
+            "finish": "tool_calls",
+            "done": 1,
+            "usagePresent": 1,
+            "usageParsed": true
+          }
+        },
+        {
+          "event": "exchange_completed",
+          "exchange": 10,
+          "modelRound": 10,
+          "stage": "stream",
+          "reason": null,
+          "reserved": true,
+          "sendEntered": true,
+          "responseBytes": 13193,
+          "httpStatus": 200,
+          "elapsedMs": 7610.604583000066,
+          "structure": {
+            "version": 1,
+            "stage": "complete",
+            "events": 59,
+            "deltas": 57,
+            "reasoning": {
+              "missing": 24,
+              "null": 0,
+              "empty": 1,
+              "string": 32,
+              "invalid": 0
+            },
+            "assembledReasoning": true,
+            "reasoningCharacters": 292,
+            "toolFragments": 22,
+            "assembledTools": 1,
+            "completeTools": 1,
+            "finish": "tool_calls",
+            "done": 1,
+            "usagePresent": 1,
+            "usageParsed": true
+          }
+        },
+        {
+          "event": "exchange_completed",
+          "exchange": 11,
+          "modelRound": 11,
+          "stage": "stream",
+          "reason": null,
+          "reserved": true,
+          "sendEntered": true,
+          "responseBytes": 11980,
+          "httpStatus": 200,
+          "elapsedMs": 11230.905790999997,
+          "structure": {
+            "version": 1,
+            "stage": "complete",
+            "events": 53,
+            "deltas": 51,
+            "reasoning": {
+              "missing": 34,
+              "null": 0,
+              "empty": 1,
+              "string": 16,
+              "invalid": 0
+            },
+            "assembledReasoning": true,
+            "reasoningCharacters": 135,
+            "toolFragments": 25,
+            "assembledTools": 1,
+            "completeTools": 1,
+            "finish": "tool_calls",
+            "done": 1,
+            "usagePresent": 1,
+            "usageParsed": true
+          }
+        },
+        {
+          "event": "exchange_completed",
+          "exchange": 12,
+          "modelRound": 12,
+          "stage": "stream",
+          "reason": null,
+          "reserved": true,
+          "sendEntered": true,
+          "responseBytes": 7374,
+          "httpStatus": 200,
+          "elapsedMs": 5932.240457999986,
+          "structure": {
+            "version": 1,
+            "stage": "complete",
+            "events": 32,
+            "deltas": 30,
+            "reasoning": {
+              "missing": 19,
+              "null": 0,
+              "empty": 1,
+              "string": 10,
+              "invalid": 0
+            },
+            "assembledReasoning": true,
+            "reasoningCharacters": 100,
+            "toolFragments": 17,
+            "assembledTools": 1,
+            "completeTools": 1,
+            "finish": "tool_calls",
+            "done": 1,
+            "usagePresent": 1,
+            "usageParsed": true
+          }
+        },
+        {
+          "event": "exchange_completed",
+          "exchange": 13,
+          "modelRound": 13,
+          "stage": "stream",
+          "reason": null,
+          "reserved": true,
+          "sendEntered": true,
+          "responseBytes": 13908,
+          "httpStatus": 200,
+          "elapsedMs": 8326.09054200002,
+          "structure": {
+            "version": 1,
+            "stage": "complete",
+            "events": 62,
+            "deltas": 60,
+            "reasoning": {
+              "missing": 25,
+              "null": 0,
+              "empty": 1,
+              "string": 34,
+              "invalid": 0
+            },
+            "assembledReasoning": true,
+            "reasoningCharacters": 380,
+            "toolFragments": 23,
+            "assembledTools": 1,
+            "completeTools": 1,
+            "finish": "tool_calls",
+            "done": 1,
+            "usagePresent": 1,
+            "usageParsed": true
+          }
+        },
+        {
+          "event": "exchange_completed",
+          "exchange": 14,
+          "modelRound": 14,
+          "stage": "stream",
+          "reason": null,
+          "reserved": true,
+          "sendEntered": true,
+          "responseBytes": 9593,
+          "httpStatus": 200,
+          "elapsedMs": 10811.974582999945,
+          "structure": {
+            "version": 1,
+            "stage": "complete",
+            "events": 41,
+            "deltas": 39,
+            "reasoning": {
+              "missing": 33,
+              "null": 0,
+              "empty": 1,
+              "string": 5,
+              "invalid": 0
+            },
+            "assembledReasoning": true,
+            "reasoningCharacters": 52,
+            "toolFragments": 27,
+            "assembledTools": 1,
+            "completeTools": 1,
+            "finish": "tool_calls",
+            "done": 1,
+            "usagePresent": 1,
+            "usageParsed": true
+          }
+        },
+        {
+          "event": "exchange_completed",
+          "exchange": 15,
+          "modelRound": 15,
+          "stage": "stream",
+          "reason": null,
+          "reserved": true,
+          "sendEntered": true,
+          "responseBytes": 10576,
+          "httpStatus": 200,
+          "elapsedMs": 12311.126124999952,
+          "structure": {
+            "version": 1,
+            "stage": "complete",
+            "events": 46,
+            "deltas": 44,
+            "reasoning": {
+              "missing": 27,
+              "null": 0,
+              "empty": 1,
+              "string": 16,
+              "invalid": 0
+            },
+            "assembledReasoning": true,
+            "reasoningCharacters": 139,
+            "toolFragments": 25,
+            "assembledTools": 1,
+            "completeTools": 1,
+            "finish": "tool_calls",
+            "done": 1,
+            "usagePresent": 1,
+            "usageParsed": true
+          }
+        },
+        {
+          "event": "exchange_completed",
+          "exchange": 16,
+          "modelRound": 16,
+          "stage": "stream",
+          "reason": null,
+          "reserved": true,
+          "sendEntered": true,
+          "responseBytes": 4295,
+          "httpStatus": 200,
+          "elapsedMs": 8131.789125000127,
+          "structure": {
+            "version": 1,
+            "stage": "complete",
+            "events": 18,
+            "deltas": 16,
+            "reasoning": {
+              "missing": 15,
+              "null": 0,
+              "empty": 1,
+              "string": 0,
+              "invalid": 0
+            },
+            "assembledReasoning": true,
+            "reasoningCharacters": 0,
+            "toolFragments": 13,
+            "assembledTools": 1,
+            "completeTools": 1,
+            "finish": "tool_calls",
+            "done": 1,
+            "usagePresent": 1,
+            "usageParsed": true
+          }
+        },
+        {
+          "event": "exchange_completed",
+          "exchange": 17,
+          "modelRound": 17,
+          "stage": "stream",
+          "reason": null,
+          "reserved": true,
+          "sendEntered": true,
+          "responseBytes": 9194,
+          "httpStatus": 200,
+          "elapsedMs": 7692.190249999985,
+          "structure": {
+            "version": 1,
+            "stage": "complete",
+            "events": 40,
+            "deltas": 38,
+            "reasoning": {
+              "missing": 23,
+              "null": 0,
+              "empty": 1,
+              "string": 14,
+              "invalid": 0
+            },
+            "assembledReasoning": true,
+            "reasoningCharacters": 120,
+            "toolFragments": 21,
+            "assembledTools": 1,
+            "completeTools": 1,
+            "finish": "tool_calls",
+            "done": 1,
+            "usagePresent": 1,
+            "usageParsed": true
+          }
+        },
+        {
+          "event": "exchange_completed",
+          "exchange": 18,
+          "modelRound": 18,
+          "stage": "stream",
+          "reason": null,
+          "reserved": true,
+          "sendEntered": true,
+          "responseBytes": 5766,
+          "httpStatus": 200,
+          "elapsedMs": 6757.122124999994,
+          "structure": {
+            "version": 1,
+            "stage": "complete",
+            "events": 24,
+            "deltas": 22,
+            "reasoning": {
+              "missing": 21,
+              "null": 0,
+              "empty": 1,
+              "string": 0,
+              "invalid": 0
+            },
+            "assembledReasoning": true,
+            "reasoningCharacters": 0,
+            "toolFragments": 19,
+            "assembledTools": 1,
+            "completeTools": 1,
+            "finish": "tool_calls",
+            "done": 1,
+            "usagePresent": 1,
+            "usageParsed": true
+          }
+        },
+        {
+          "event": "exchange_completed",
+          "exchange": 19,
+          "modelRound": 19,
+          "stage": "stream",
+          "reason": null,
+          "reserved": true,
+          "sendEntered": true,
+          "responseBytes": 8920,
+          "httpStatus": 200,
+          "elapsedMs": 9180.744207999902,
+          "structure": {
+            "version": 1,
+            "stage": "complete",
+            "events": 38,
+            "deltas": 36,
+            "reasoning": {
+              "missing": 28,
+              "null": 0,
+              "empty": 1,
+              "string": 7,
+              "invalid": 0
+            },
+            "assembledReasoning": true,
+            "reasoningCharacters": 64,
+            "toolFragments": 26,
+            "assembledTools": 1,
+            "completeTools": 1,
+            "finish": "tool_calls",
+            "done": 1,
+            "usagePresent": 1,
+            "usageParsed": true
+          }
+        },
+        {
+          "event": "exchange_completed",
+          "exchange": 20,
+          "modelRound": 20,
+          "stage": "stream",
+          "reason": null,
+          "reserved": true,
+          "sendEntered": true,
+          "responseBytes": 5998,
+          "httpStatus": 200,
+          "elapsedMs": 5534.403374999994,
+          "structure": {
+            "version": 1,
+            "stage": "complete",
+            "events": 25,
+            "deltas": 23,
+            "reasoning": {
+              "missing": 22,
+              "null": 0,
+              "empty": 1,
+              "string": 0,
+              "invalid": 0
+            },
+            "assembledReasoning": true,
+            "reasoningCharacters": 0,
+            "toolFragments": 20,
+            "assembledTools": 1,
+            "completeTools": 1,
+            "finish": "tool_calls",
+            "done": 1,
+            "usagePresent": 1,
+            "usageParsed": true
+          }
+        },
+        {
+          "event": "exchange_completed",
+          "exchange": 21,
+          "modelRound": 21,
+          "stage": "stream",
+          "reason": null,
+          "reserved": true,
+          "sendEntered": true,
+          "responseBytes": 20420,
+          "httpStatus": 200,
+          "elapsedMs": 10727.270124999806,
+          "structure": {
+            "version": 1,
+            "stage": "complete",
+            "events": 92,
+            "deltas": 90,
+            "reasoning": {
+              "missing": 39,
+              "null": 0,
+              "empty": 1,
+              "string": 50,
+              "invalid": 0
+            },
+            "assembledReasoning": true,
+            "reasoningCharacters": 528,
+            "toolFragments": 28,
+            "assembledTools": 1,
+            "completeTools": 1,
+            "finish": "tool_calls",
+            "done": 1,
+            "usagePresent": 1,
+            "usageParsed": true
+          }
+        },
+        {
+          "event": "exchange_completed",
+          "exchange": 22,
+          "modelRound": 22,
+          "stage": "stream",
+          "reason": null,
+          "reserved": true,
+          "sendEntered": true,
+          "responseBytes": 6292,
+          "httpStatus": 200,
+          "elapsedMs": 5623.225624999963,
+          "structure": {
+            "version": 1,
+            "stage": "complete",
+            "events": 26,
+            "deltas": 24,
+            "reasoning": {
+              "missing": 23,
+              "null": 0,
+              "empty": 1,
+              "string": 0,
+              "invalid": 0
+            },
+            "assembledReasoning": true,
+            "reasoningCharacters": 0,
+            "toolFragments": 21,
+            "assembledTools": 1,
+            "completeTools": 1,
+            "finish": "tool_calls",
+            "done": 1,
+            "usagePresent": 1,
+            "usageParsed": true
+          }
+        },
+        {
+          "event": "exchange_completed",
+          "exchange": 23,
+          "modelRound": 23,
+          "stage": "stream",
+          "reason": null,
+          "reserved": true,
+          "sendEntered": true,
+          "responseBytes": 18150,
+          "httpStatus": 200,
+          "elapsedMs": 8972.819082999835,
+          "structure": {
+            "version": 1,
+            "stage": "complete",
+            "events": 81,
+            "deltas": 79,
+            "reasoning": {
+              "missing": 40,
+              "null": 0,
+              "empty": 1,
+              "string": 38,
+              "invalid": 0
+            },
+            "assembledReasoning": true,
+            "reasoningCharacters": 400,
+            "toolFragments": 31,
+            "assembledTools": 1,
+            "completeTools": 1,
+            "finish": "tool_calls",
+            "done": 1,
+            "usagePresent": 1,
+            "usageParsed": true
+          }
+        },
+        {
+          "event": "exchange_completed",
+          "exchange": 24,
+          "modelRound": 24,
+          "stage": "stream",
+          "reason": null,
+          "reserved": true,
+          "sendEntered": true,
+          "responseBytes": 83486,
+          "httpStatus": 200,
+          "elapsedMs": 35189.539916000096,
+          "structure": {
+            "version": 1,
+            "stage": "complete",
+            "events": 399,
+            "deltas": 397,
+            "reasoning": {
+              "missing": 36,
+              "null": 0,
+              "empty": 1,
+              "string": 360,
+              "invalid": 0
+            },
+            "assembledReasoning": true,
+            "reasoningCharacters": 2427,
+            "toolFragments": 21,
+            "assembledTools": 1,
+            "completeTools": 1,
+            "finish": "tool_calls",
+            "done": 1,
+            "usagePresent": 1,
+            "usageParsed": true
+          }
+        },
+        {
+          "event": "exchange_completed",
+          "exchange": 25,
+          "modelRound": 25,
+          "stage": "stream",
+          "reason": null,
+          "reserved": true,
+          "sendEntered": true,
+          "responseBytes": 25240,
+          "httpStatus": 200,
+          "elapsedMs": 10897.882417000132,
+          "structure": {
+            "version": 1,
+            "stage": "complete",
+            "events": 106,
+            "deltas": 104,
+            "reasoning": {
+              "missing": 95,
+              "null": 0,
+              "empty": 1,
+              "string": 8,
+              "invalid": 0
+            },
+            "assembledReasoning": true,
+            "reasoningCharacters": 87,
+            "toolFragments": 86,
+            "assembledTools": 1,
+            "completeTools": 1,
+            "finish": "tool_calls",
+            "done": 1,
+            "usagePresent": 1,
+            "usageParsed": true
+          }
+        },
+        {
+          "event": "exchange_completed",
+          "exchange": 26,
+          "modelRound": 26,
+          "stage": "stream",
+          "reason": null,
+          "reserved": true,
+          "sendEntered": true,
+          "responseBytes": 34047,
+          "httpStatus": 200,
+          "elapsedMs": 15305.406709000003,
+          "structure": {
+            "version": 1,
+            "stage": "complete",
+            "events": 158,
+            "deltas": 156,
+            "reasoning": {
+              "missing": 33,
+              "null": 0,
+              "empty": 1,
+              "string": 122,
+              "invalid": 0
+            },
+            "assembledReasoning": true,
+            "reasoningCharacters": 1405,
+            "toolFragments": 18,
+            "assembledTools": 1,
+            "completeTools": 1,
+            "finish": "tool_calls",
+            "done": 1,
+            "usagePresent": 1,
+            "usageParsed": true
+          }
+        },
+        {
+          "event": "exchange_completed",
+          "exchange": 27,
+          "modelRound": 27,
+          "stage": "stream",
+          "reason": null,
+          "reserved": true,
+          "sendEntered": true,
+          "responseBytes": 19611,
+          "httpStatus": 200,
+          "elapsedMs": 14987.998832999961,
+          "structure": {
+            "version": 1,
+            "stage": "complete",
+            "events": 82,
+            "deltas": 80,
+            "reasoning": {
+              "missing": 65,
+              "null": 0,
+              "empty": 1,
+              "string": 14,
+              "invalid": 0
+            },
+            "assembledReasoning": true,
+            "reasoningCharacters": 150,
+            "toolFragments": 63,
+            "assembledTools": 1,
+            "completeTools": 1,
+            "finish": "tool_calls",
+            "done": 1,
+            "usagePresent": 1,
+            "usageParsed": true
+          }
+        },
+        {
+          "event": "exchange_completed",
+          "exchange": 28,
+          "modelRound": 28,
+          "stage": "stream",
+          "reason": null,
+          "reserved": true,
+          "sendEntered": true,
+          "responseBytes": 18620,
+          "httpStatus": 200,
+          "elapsedMs": 9028.061040999833,
+          "structure": {
+            "version": 1,
+            "stage": "complete",
+            "events": 78,
+            "deltas": 76,
+            "reasoning": {
+              "missing": 66,
+              "null": 0,
+              "empty": 1,
+              "string": 9,
+              "invalid": 0
+            },
+            "assembledReasoning": true,
+            "reasoningCharacters": 127,
+            "toolFragments": 60,
+            "assembledTools": 1,
+            "completeTools": 1,
+            "finish": "tool_calls",
+            "done": 1,
+            "usagePresent": 1,
+            "usageParsed": true
+          }
+        },
+        {
+          "event": "exchange_completed",
+          "exchange": 29,
+          "modelRound": 29,
+          "stage": "stream",
+          "reason": null,
+          "reserved": true,
+          "sendEntered": true,
+          "responseBytes": 9012,
+          "httpStatus": 200,
+          "elapsedMs": 6981.033250000095,
+          "structure": {
+            "version": 1,
+            "stage": "complete",
+            "events": 40,
+            "deltas": 38,
+            "reasoning": {
+              "missing": 23,
+              "null": 0,
+              "empty": 1,
+              "string": 14,
+              "invalid": 0
+            },
+            "assembledReasoning": true,
+            "reasoningCharacters": 146,
+            "toolFragments": 15,
+            "assembledTools": 1,
+            "completeTools": 1,
+            "finish": "tool_calls",
+            "done": 1,
+            "usagePresent": 1,
+            "usageParsed": true
+          }
+        },
+        {
+          "event": "exchange_completed",
+          "exchange": 30,
+          "modelRound": 30,
+          "stage": "stream",
+          "reason": null,
+          "reserved": true,
+          "sendEntered": true,
+          "responseBytes": 33576,
+          "httpStatus": 200,
+          "elapsedMs": 15595.306499999948,
+          "structure": {
+            "version": 1,
+            "stage": "complete",
+            "events": 164,
+            "deltas": 162,
+            "reasoning": {
+              "missing": 130,
+              "null": 0,
+              "empty": 1,
+              "string": 31,
+              "invalid": 0
+            },
+            "assembledReasoning": true,
+            "reasoningCharacters": 335,
+            "toolFragments": 0,
+            "assembledTools": 0,
+            "completeTools": 0,
+            "finish": "stop",
+            "done": 1,
+            "usagePresent": 1,
+            "usageParsed": true
+          }
+        }
+      ],
+      "structure_snapshots": 30,
+      "response_bytes_total": 438494,
+      "response_bytes_max": 83486,
+      "reasoning_observation_counts": {
+        "missing": 992,
+        "null": 0,
+        "empty": 30,
+        "string": 884,
+        "invalid": 0
+      },
+      "parser_stages": {
+        "complete": 30
+      },
+      "report_structure_snapshots": [],
+      "runner_state": "official_success",
+      "valid_task_score": 1,
+      "classification_basis": "raw reward1 plus all CTRF tests passed",
+      "official_test_summary": {
+        "tests": 5,
+        "passed": 5,
+        "failed": 0,
+        "skipped": 0,
+        "pending": 0,
+        "other": 0,
+        "start": 1790235892.6892529,
+        "stop": 1790235892.7950704
+      }
+    },
+    {
+      "task": "break-filter-js-from-html",
+      "state": "official_success",
+      "reward": {
+        "reward": 1
+      },
+      "agent_stop_reason": null,
+      "verifier_status": "official_scored",
+      "counts": {
+        "model_rounds": 13,
+        "exchanges": 13,
+        "reservations": 13,
+        "send_entries": 13,
+        "tools": 14,
+        "scheduled_retries": 0
+      },
+      "usage": {
+        "known_exchanges": 13,
+        "unknown_exchanges": 0,
+        "input": 110535,
+        "output": 8799
+      },
+      "diagnostics": [],
+      "global_stops": [],
+      "stopped": true,
+      "network_release": [
+        "removed"
+      ],
+      "container_id": "529b1d395087373c69707a92a42b09a2e51cee23f25d46b6e4b80b7223c758b3",
+      "phases": [
+        {
+          "phase": "agent",
+          "at": 2166990.412542
+        },
+        {
+          "phase": "handoff",
+          "at": 2664759.926083
+        },
+        {
+          "phase": "verifier",
+          "at": 2664787.410958
+        },
+        {
+          "phase": "ended",
+          "at": 3044753.285542
+        }
+      ],
+      "verifier_exit_codes": [
+        0,
+        0
+      ],
+      "exchange_observations": [
+        {
+          "event": "exchange_completed",
+          "exchange": 1,
+          "modelRound": 1,
+          "stage": "stream",
+          "reason": null,
+          "reserved": true,
+          "sendEntered": true,
+          "responseBytes": 15355,
+          "httpStatus": 200,
+          "elapsedMs": 8646.6142500001,
+          "structure": {
+            "version": 1,
+            "stage": "complete",
+            "events": 67,
+            "deltas": 65,
+            "reasoning": {
+              "missing": 34,
+              "null": 0,
+              "empty": 1,
+              "string": 30,
+              "invalid": 0
+            },
+            "assembledReasoning": true,
+            "reasoningCharacters": 322,
+            "toolFragments": 32,
+            "assembledTools": 2,
+            "completeTools": 2,
+            "finish": "tool_calls",
+            "done": 1,
+            "usagePresent": 1,
+            "usageParsed": true
+          }
+        },
+        {
+          "event": "exchange_completed",
+          "exchange": 2,
+          "modelRound": 2,
+          "stage": "stream",
+          "reason": null,
+          "reserved": true,
+          "sendEntered": true,
+          "responseBytes": 154689,
+          "httpStatus": 200,
+          "elapsedMs": 55415.36516600009,
+          "structure": {
+            "version": 1,
+            "stage": "complete",
+            "events": 707,
+            "deltas": 705,
+            "reasoning": {
+              "missing": 169,
+              "null": 0,
+              "empty": 1,
+              "string": 535,
+              "invalid": 0
+            },
+            "assembledReasoning": true,
+            "reasoningCharacters": 4642,
+            "toolFragments": 167,
+            "assembledTools": 1,
+            "completeTools": 1,
+            "finish": "tool_calls",
+            "done": 1,
+            "usagePresent": 1,
+            "usageParsed": true
+          }
+        },
+        {
+          "event": "exchange_completed",
+          "exchange": 3,
+          "modelRound": 3,
+          "stage": "stream",
+          "reason": null,
+          "reserved": true,
+          "sendEntered": true,
+          "responseBytes": 11204,
+          "httpStatus": 200,
+          "elapsedMs": 36397.16662500007,
+          "structure": {
+            "version": 1,
+            "stage": "complete",
+            "events": 50,
+            "deltas": 48,
+            "reasoning": {
+              "missing": 22,
+              "null": 0,
+              "empty": 1,
+              "string": 25,
+              "invalid": 0
+            },
+            "assembledReasoning": true,
+            "reasoningCharacters": 214,
+            "toolFragments": 20,
+            "assembledTools": 1,
+            "completeTools": 1,
+            "finish": "tool_calls",
+            "done": 1,
+            "usagePresent": 1,
+            "usageParsed": true
+          }
+        },
+        {
+          "event": "exchange_completed",
+          "exchange": 4,
+          "modelRound": 4,
+          "stage": "stream",
+          "reason": null,
+          "reserved": true,
+          "sendEntered": true,
+          "responseBytes": 13967,
+          "httpStatus": 200,
+          "elapsedMs": 8314.454332999885,
+          "structure": {
+            "version": 1,
+            "stage": "complete",
+            "events": 63,
+            "deltas": 61,
+            "reasoning": {
+              "missing": 21,
+              "null": 0,
+              "empty": 1,
+              "string": 39,
+              "invalid": 0
+            },
+            "assembledReasoning": true,
+            "reasoningCharacters": 345,
+            "toolFragments": 19,
+            "assembledTools": 1,
+            "completeTools": 1,
+            "finish": "tool_calls",
+            "done": 1,
+            "usagePresent": 1,
+            "usageParsed": true
+          }
+        },
+        {
+          "event": "exchange_completed",
+          "exchange": 5,
+          "modelRound": 5,
+          "stage": "stream",
+          "reason": null,
+          "reserved": true,
+          "sendEntered": true,
+          "responseBytes": 47602,
+          "httpStatus": 200,
+          "elapsedMs": 18286.940874999855,
+          "structure": {
+            "version": 1,
+            "stage": "complete",
+            "events": 208,
+            "deltas": 206,
+            "reasoning": {
+              "missing": 111,
+              "null": 0,
+              "empty": 1,
+              "string": 94,
+              "invalid": 0
+            },
+            "assembledReasoning": true,
+            "reasoningCharacters": 744,
+            "toolFragments": 109,
+            "assembledTools": 1,
+            "completeTools": 1,
+            "finish": "tool_calls",
+            "done": 1,
+            "usagePresent": 1,
+            "usageParsed": true
+          }
+        },
+        {
+          "event": "exchange_completed",
+          "exchange": 6,
+          "modelRound": 6,
+          "stage": "stream",
+          "reason": null,
+          "reserved": true,
+          "sendEntered": true,
+          "responseBytes": 7532,
+          "httpStatus": 200,
+          "elapsedMs": 11382.544541999698,
+          "structure": {
+            "version": 1,
+            "stage": "complete",
+            "events": 33,
+            "deltas": 31,
+            "reasoning": {
+              "missing": 16,
+              "null": 0,
+              "empty": 1,
+              "string": 14,
+              "invalid": 0
+            },
+            "assembledReasoning": true,
+            "reasoningCharacters": 123,
+            "toolFragments": 14,
+            "assembledTools": 1,
+            "completeTools": 1,
+            "finish": "tool_calls",
+            "done": 1,
+            "usagePresent": 1,
+            "usageParsed": true
+          }
+        },
+        {
+          "event": "exchange_completed",
+          "exchange": 7,
+          "modelRound": 7,
+          "stage": "stream",
+          "reason": null,
+          "reserved": true,
+          "sendEntered": true,
+          "responseBytes": 200454,
+          "httpStatus": 200,
+          "elapsedMs": 78235.631666,
+          "structure": {
+            "version": 1,
+            "stage": "complete",
+            "events": 949,
+            "deltas": 947,
+            "reasoning": {
+              "missing": 35,
+              "null": 0,
+              "empty": 1,
+              "string": 911,
+              "invalid": 0
+            },
+            "assembledReasoning": true,
+            "reasoningCharacters": 7931,
+            "toolFragments": 33,
+            "assembledTools": 2,
+            "completeTools": 2,
+            "finish": "tool_calls",
+            "done": 1,
+            "usagePresent": 1,
+            "usageParsed": true
+          }
+        },
+        {
+          "event": "exchange_completed",
+          "exchange": 8,
+          "modelRound": 8,
+          "stage": "stream",
+          "reason": null,
+          "reserved": true,
+          "sendEntered": true,
+          "responseBytes": 138136,
+          "httpStatus": 200,
+          "elapsedMs": 62934.48604099965,
+          "structure": {
+            "version": 1,
+            "stage": "complete",
+            "events": 654,
+            "deltas": 652,
+            "reasoning": {
+              "missing": 14,
+              "null": 0,
+              "empty": 1,
+              "string": 637,
+              "invalid": 0
+            },
+            "assembledReasoning": true,
+            "reasoningCharacters": 5606,
+            "toolFragments": 12,
+            "assembledTools": 1,
+            "completeTools": 1,
+            "finish": "tool_calls",
+            "done": 1,
+            "usagePresent": 1,
+            "usageParsed": true
+          }
+        },
+        {
+          "event": "exchange_completed",
+          "exchange": 9,
+          "modelRound": 9,
+          "stage": "stream",
+          "reason": null,
+          "reserved": true,
+          "sendEntered": true,
+          "responseBytes": 46415,
+          "httpStatus": 200,
+          "elapsedMs": 27070.155459000263,
+          "structure": {
+            "version": 1,
+            "stage": "complete",
+            "events": 215,
+            "deltas": 213,
+            "reasoning": {
+              "missing": 35,
+              "null": 0,
+              "empty": 1,
+              "string": 177,
+              "invalid": 0
+            },
+            "assembledReasoning": true,
+            "reasoningCharacters": 1641,
+            "toolFragments": 33,
+            "assembledTools": 1,
+            "completeTools": 1,
+            "finish": "tool_calls",
+            "done": 1,
+            "usagePresent": 1,
+            "usageParsed": true
+          }
+        },
+        {
+          "event": "exchange_completed",
+          "exchange": 10,
+          "modelRound": 10,
+          "stage": "stream",
+          "reason": null,
+          "reserved": true,
+          "sendEntered": true,
+          "responseBytes": 69210,
+          "httpStatus": 200,
+          "elapsedMs": 31669.298959000036,
+          "structure": {
+            "version": 1,
+            "stage": "complete",
+            "events": 327,
+            "deltas": 325,
+            "reasoning": {
+              "missing": 20,
+              "null": 0,
+              "empty": 1,
+              "string": 304,
+              "invalid": 0
+            },
+            "assembledReasoning": true,
+            "reasoningCharacters": 2819,
+            "toolFragments": 18,
+            "assembledTools": 1,
+            "completeTools": 1,
+            "finish": "tool_calls",
+            "done": 1,
+            "usagePresent": 1,
+            "usageParsed": true
+          }
+        },
+        {
+          "event": "exchange_completed",
+          "exchange": 11,
+          "modelRound": 11,
+          "stage": "stream",
+          "reason": null,
+          "reserved": true,
+          "sendEntered": true,
+          "responseBytes": 39749,
+          "httpStatus": 200,
+          "elapsedMs": 22888.516416999977,
+          "structure": {
+            "version": 1,
+            "stage": "complete",
+            "events": 183,
+            "deltas": 181,
+            "reasoning": {
+              "missing": 42,
+              "null": 0,
+              "empty": 1,
+              "string": 138,
+              "invalid": 0
+            },
+            "assembledReasoning": true,
+            "reasoningCharacters": 1214,
+            "toolFragments": 40,
+            "assembledTools": 1,
+            "completeTools": 1,
+            "finish": "tool_calls",
+            "done": 1,
+            "usagePresent": 1,
+            "usageParsed": true
+          }
+        },
+        {
+          "event": "exchange_completed",
+          "exchange": 12,
+          "modelRound": 12,
+          "stage": "stream",
+          "reason": null,
+          "reserved": true,
+          "sendEntered": true,
+          "responseBytes": 25614,
+          "httpStatus": 200,
+          "elapsedMs": 14671.326166999992,
+          "structure": {
+            "version": 1,
+            "stage": "complete",
+            "events": 115,
+            "deltas": 113,
+            "reasoning": {
+              "missing": 45,
+              "null": 0,
+              "empty": 1,
+              "string": 67,
+              "invalid": 0
+            },
+            "assembledReasoning": true,
+            "reasoningCharacters": 593,
+            "toolFragments": 43,
+            "assembledTools": 1,
+            "completeTools": 1,
+            "finish": "tool_calls",
+            "done": 1,
+            "usagePresent": 1,
+            "usageParsed": true
+          }
+        },
+        {
+          "event": "exchange_completed",
+          "exchange": 13,
+          "modelRound": 13,
+          "stage": "stream",
+          "reason": null,
+          "reserved": true,
+          "sendEntered": true,
+          "responseBytes": 13491,
+          "httpStatus": 200,
+          "elapsedMs": 8237.267750000115,
+          "structure": {
+            "version": 1,
+            "stage": "complete",
+            "events": 64,
+            "deltas": 62,
+            "reasoning": {
+              "missing": 16,
+              "null": 0,
+              "empty": 1,
+              "string": 45,
+              "invalid": 0
+            },
+            "assembledReasoning": true,
+            "reasoningCharacters": 459,
+            "toolFragments": 0,
+            "assembledTools": 0,
+            "completeTools": 0,
+            "finish": "stop",
+            "done": 1,
+            "usagePresent": 1,
+            "usageParsed": true
+          }
+        }
+      ],
+      "structure_snapshots": 13,
+      "response_bytes_total": 783418,
+      "response_bytes_max": 200454,
+      "reasoning_observation_counts": {
+        "missing": 580,
+        "null": 0,
+        "empty": 13,
+        "string": 3016,
+        "invalid": 0
+      },
+      "parser_stages": {
+        "complete": 13
+      },
+      "report_structure_snapshots": [],
+      "runner_state": "official_success",
+      "valid_task_score": 1,
+      "classification_basis": "raw reward1 plus all CTRF tests passed",
+      "official_test_summary": {
+        "tests": 1,
+        "passed": 1,
+        "failed": 0,
+        "skipped": 0,
+        "pending": 0,
+        "other": 0,
+        "start": 1790236761.6012816,
+        "stop": 1790236772.6813376
+      }
+    }
+  ],
+  "totals": {
+    "model_rounds": 78,
+    "exchanges": 78,
+    "reservations": 78,
+    "send_entries": 78,
+    "tools": 77,
+    "scheduled_retries": 0
+  },
+  "usage": {
+    "known_exchanges": 77,
+    "unknown_exchanges": 1,
+    "input": 515278,
+    "output": 28709
+  },
+  "completion": {
+    "run_id": "8bbff9a8-9ce8-4131-965a-0fbf0bd99c1b",
+    "exit_code": 0,
+    "elapsed_seconds": 3045.3581135829736,
+    "ended_utc": "2026-09-24T07:59:43.839913+00:00",
+    "supervisor_stop": null
+  },
+  "old_ledgers_unchanged": true,
+  "resources": {
+    "samples": 615,
+    "minimum_free_bytes": 77744537600,
+    "maximum_accounted_growth_bytes": 808660992
+  },
+  "scope": "single fixed development-set campaign; no causal improvement or holdout claim",
+  "independent_review": "pending",
+  "structure_boundary": "Observed parser snapshots only; observations may end at rejection. No private reasoning text. Character and field counts and usageParsed flags are not token quantities. Unknown usage stays unknown.",
+  "result_counts": {
+    "denominator": 5,
+    "official_success": 3,
+    "valid_scored_failure": 0,
+    "unscored": 2,
+    "not_started": 0,
+    "raw_zero_files": 1,
+    "raw_one_files": 3
+  }
+}
