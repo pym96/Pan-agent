@@ -8,6 +8,7 @@ import {runAttempt} from './session.mjs';
 import {openBroker,childEnvironment} from './broker.mjs';
 import {resourceGuard} from './resources.mjs';
 import {summary} from './report.mjs';
+import {selectTasks} from './selection.mjs';
 const HERE=dirname(fileURLToPath(import.meta.url));
 export function dryRun(){const raw=readFileSync(join(HERE,'manifest.json')),manifest=JSON.parse(raw);return {authorized:false,manifestSha256:digest(raw),model:MODEL,budget:LIMITS,denominator:5,tasks:manifest.tasks.map(t=>({id:t.id,image:t.image_reference,digest:null,architecture:t.architecture,official:t.config,officialVisibleTest:t.official_visible_test??null})),sideEffects:{credentials:0,provider:0,docker:0}};}
 // Explicit module-level dependency injection for offline tests; no CLI override exists.
@@ -21,7 +22,8 @@ export async function main(args=process.argv.slice(2),dependencies={}){
  const repo=resolve(HERE,'../../..');const gitArgs={cwd:repo,encoding:'utf8',env:{PATH:'/usr/bin:/bin:/opt/homebrew/bin'}};
  const runnerSha=host.git('git',['rev-parse','HEAD'],gitArgs).trim();check(!host.git('git',['status','--porcelain'],gitArgs).trim(),'runner_dirty');
  const lock=JSON.parse(readFileSync(join(HERE,'package-identity.json'))),manifestRaw=readFileSync(join(HERE,'manifest.json')),manifest=JSON.parse(manifestRaw);
- const expected={runnerSha,panHash:lock.package_sha256,manifestHash:digest(manifestRaw),model:MODEL,budget:activation.binding?.budget,taskIds:manifest.tasks.map(t=>t.id),images:activation.binding?.images};
+ const selected=selectTasks(manifest,activation.binding?.taskIds,activation.binding?.images);
+ const expected={runnerSha,panHash:lock.package_sha256,manifestHash:digest(manifestRaw),model:MODEL,budget:activation.binding?.budget,taskIds:selected.tasks.map(t=>t.id),images:activation.binding?.images};
  const controller=new AbortController();const cancel=()=>controller.abort();process.once('SIGINT',cancel);process.once('SIGTERM',cancel);
  try{
  const gate=authorize(activation,authority,expected,{signal:controller.signal});
@@ -35,8 +37,8 @@ export async function main(args=process.argv.slice(2),dependencies={}){
  const resources=resourceGuard(output,controller);const reports=[];const home=join(output,'child-home'),dockerConfig=join(output,'docker-config');mkdirSync(home);mkdirSync(dockerConfig);
  // Only a public CLI plugin search path; no user's credential-bearing Docker config.
  writeFileSync(join(dockerConfig,'config.json'),JSON.stringify({cliPluginsExtraDirs:['/Applications/Docker.app/Contents/Resources/cli-plugins']}));
- writeFileSync(join(output,'summary.json'),JSON.stringify(summary(manifest,reports),null,2)+'\n');
- try{for(const task of manifest.tasks){
+ writeFileSync(join(output,'summary.json'),JSON.stringify(summary(selected,reports),null,2)+'\n');
+ try{for(const task of selected.tasks){
   gate.assert(controller.signal);resources.check();const directory=join(output,task.id);mkdirSync(directory);let env,phase='environment_start';
   try{
    env=host.openBroker({python:lock.python,home,dockerConfig,config:{task,task_root:resolve(options['--task-root']),image:expected.images[task.id],output:join(directory,'harbor')}});
@@ -44,7 +46,7 @@ export async function main(args=process.argv.slice(2),dependencies={}){
    phase='agent';const r=await runAttempt({entry,task,instruction,output:join(directory,'pan'),environment:env,gate,ledger,credentialSource:host.credentialSource,fetchImplementation:host.fetchImplementation,signal:controller.signal});reports.push(r);
    if(r.stopConfirmed!==true||r.globalStops?.some(x=>['cancelled','activation_expired','command_stop_unconfirmed','session_stop_unconfirmed','ledger_error','authentication','quota_exhausted'].includes(x.reason)))controller.abort();
   }catch(error){const failure={task:task.id,agentStatus:phase==='agent'?'failed':null,stopReason:phase==='agent'?'agent_exception':null,verifier:null,usage:null,infrastructurePhase:phase,diagnostic:error.diagnostic??null};reports.push(failure);writeFileSync(join(directory,'failure.json'),JSON.stringify(failure,null,2)+'\n');}
-  finally{await env?.close();writeFileSync(join(output,'summary.json'),JSON.stringify(summary(manifest,reports),null,2)+'\n');}
+  finally{await env?.close();writeFileSync(join(output,'summary.json'),JSON.stringify(summary(selected,reports),null,2)+'\n');}
  }}finally{ledger.close();resources.close();}
  }finally{process.removeListener('SIGINT',cancel);process.removeListener('SIGTERM',cancel);}
 }

@@ -126,3 +126,27 @@ Completed/failed exchange rows now include fixed-shape `structure`; no wire body
 or private reasoning is logged. See [design](../../../docs/design/protocol-verifier-89.md)
 and [evidence](../../../docs/evidence/protocol-verifier-89.md). No live authority
 or verifier-environment change is introduced.
+
+## WO91 signed task selection
+
+`selection.mjs` validates signed `binding.taskIds` as a nonempty, unique ordered
+subset of the frozen manifest. `binding.images` must contain exactly those IDs
+with resolved `sha256:<64 hex>` identities. Full signature verification still
+precedes ledger/broker/credential/provider effects. No `--task` override exists.
+The CLI executes and reports only this signed subset; full five-task bindings
+retain their execution order, five rows and denominator5.
+
+After independent acceptance, Master signs a **fresh run** with
+`binding.taskIds: ["break-filter-js-from-html"]` and
+`binding.images: {"break-filter-js-from-html": "sha256:<resolved approved image ID>"}`.
+This example is not an activation. Keep the full frozen manifest hash, accepted
+runner SHA, existing package hash, model, budget and validity; sign the complete
+payload with the trusted authority. Use the unchanged CLI flags with that new
+activation and a fresh output directory. Never reuse #90's run/ledger/signature.
+Denominator1 and one row describe an independent new attempt, not a backfill or
+combined five-task score. Raw rewards alone do not prove valid task test execution.
+
+[WO91 evidence](../../../docs/evidence/single-task-selection-91.md).
+`test_cli.mjs` and `test_selection_91.mjs` exercise actual CLI gates with synthetic
+I/O and the identity-matching accepted Product consumer. No live call, Docker
+startup, Product package change or Human trial belongs to this workorder.

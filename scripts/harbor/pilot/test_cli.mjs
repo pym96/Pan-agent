@@ -53,3 +53,36 @@ test('WO87 signed null reaches installed parser through CLI and retains byte/usa
   await assert.rejects(main(n.args,n.dependencies));assert.deepEqual(n.counts,{credentials:0,dispatches:0,environments:0,verifiers:0});
  }
 });
+
+// WO91: the signed binding is the only selection source; real CLI gates stay active.
+const selectBreak=f=>{f.activation.binding.taskIds=['break-filter-js-from-html'];f.activation.binding.images={'break-filter-js-from-html':'sha256:'+'b'.repeat(64)};};
+test('WO91 signed single task runs only break and retains independent denominator and ledger',async()=>{
+ const f=fixture();selectBreak(f);Object.assign(f.activation,{version:2,validity:'run-bound',expiresAt:null});f.activation.binding.budget=METERED_LIMITS;f.save();
+ await main(f.args,f.dependencies);
+ assert.deepEqual(f.counts,{credentials:2,dispatches:2,environments:1,verifiers:1});assert.deepEqual(f.seen.map(c=>c.task.id),['break-filter-js-from-html']);assert.equal(f.seen[0].image,f.activation.binding.images['break-filter-js-from-html']);
+ const report=JSON.parse(readFileSync(join(f.root,'output/summary.json')));assert.equal(report.denominator,1);assert.deepEqual(report.taskIds,['break-filter-js-from-html']);assert.equal(report.rows.length,1);assert.equal(report.rows[0].reward.reward,0);assert.match(report.attemptScope,/independent/);assert.match(report.rawRewardCaveat,/does not establish/);
+ const ledger=readFileSync(join(f.root,'home/.local/state/pan-agent/wo75/ledger',f.activation.runId+'.jsonl'),'utf8').trim().split('\n').map(JSON.parse);
+ assert.deepEqual(ledger.filter(r=>r.event==='attempt_reserved').map(r=>r.task),['break-filter-js-from-html']);assert(ledger.filter(r=>r.task).every(r=>r.task==='break-filter-js-from-html'));
+ await assert.rejects(main(f.args,f.dependencies),/EEXIST/);assert.equal(f.counts.environments,1);
+});
+for(const mutation of ['empty','unknown','duplicate','missing','image-key','image-digest','extra-image','tampered-selection','tampered-image','cli-override'])test('WO91 selection rejects before effects: '+mutation,async()=>{
+ const f=fixture();selectBreak(f);
+ if(mutation==='empty')f.activation.binding.taskIds=[];
+ if(mutation==='unknown')f.activation.binding.taskIds=['unknown'];
+ if(mutation==='duplicate')f.activation.binding.taskIds.push('break-filter-js-from-html');
+ if(mutation==='missing')delete f.activation.binding.taskIds;
+ if(mutation==='image-key')f.activation.binding.images={'dna-insert':'sha256:'+'b'.repeat(64)};
+ if(mutation==='image-digest')f.activation.binding.images['break-filter-js-from-html']='not-an-image';
+ if(mutation==='extra-image')f.activation.binding.images['dna-insert']='sha256:'+'b'.repeat(64);
+ f.save();
+ if(mutation==='tampered-selection'){f.activation.binding.taskIds=['dna-insert'];f.activation.binding.images={'dna-insert':'sha256:'+'b'.repeat(64)};writeFileSync(f.args[1],JSON.stringify(f.activation));}
+ if(mutation==='tampered-image'){f.activation.binding.images['break-filter-js-from-html']='sha256:'+'c'.repeat(64);writeFileSync(f.args[1],JSON.stringify(f.activation));}
+ if(mutation==='cli-override')f.args.push('--task','dna-insert');
+ await assert.rejects(main(f.args,f.dependencies));assert.deepEqual(f.counts,{credentials:0,dispatches:0,environments:0,verifiers:0});
+ assert(!readdirSync(join(f.root,'home/.local/state/pan-agent/wo75')).includes('ledger'));assert(!readdirSync(f.root).includes('output'));
+});
+test('WO91 single-task HTTP403 preserves unknown score and stops without another task',async()=>{
+ const f=fixture();selectBreak(f);f.save();f.dependencies.fetchImplementation=async()=>{f.counts.dispatches++;return new Response('',{status:403});};
+ await main(f.args,f.dependencies);assert.equal(f.counts.environments,1);assert.equal(f.counts.dispatches,1);assert.equal(f.counts.verifiers,0);
+ const r=JSON.parse(readFileSync(join(f.root,'output/summary.json')));assert.equal(r.denominator,1);assert.equal(r.rows.length,1);assert.equal(r.rows[0].reward,null);assert(r.rows[0].globalStops.some(s=>s.reason==='authentication'));
+});
