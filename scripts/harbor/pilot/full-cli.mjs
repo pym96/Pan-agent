@@ -2,6 +2,7 @@ import {readFileSync,mkdirSync,existsSync,writeFileSync,linkSync,appendFileSync}
 import {join,resolve,dirname} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {MODEL,METERED_LIMITS,authorize,Ledger,check,canonical,digest} from './policy.mjs';
+import {migrate97,validateSuccessor} from './full-migrate.mjs';
 import {selectTasks} from './selection.mjs';
 import {Store,initialize,lock,durable,aggregate} from './full-store.mjs';
 import {production,resourceCheck,projectFor} from './full-host.mjs';
@@ -9,7 +10,7 @@ const HERE=dirname(fileURLToPath(import.meta.url));
 const MANIFEST_HASH='bfb1b8f64ca539c9c9cc88de4450c0845c38dcc8d924a7d85c126b8794e3a403';
 function manifest(){const raw=readFileSync(join(HERE,'full-manifest.json'));check(digest(raw)===MANIFEST_HASH,'full_manifest_identity');return JSON.parse(raw);}
 const load=p=>JSON.parse(readFileSync(p));
-function args(argv){const [command,...rest]=argv,options={};check(['init','prepare','status','run','cancel','recover'].includes(command),'full_command');for(let i=0;i<rest.length;i+=2){check(['--campaign','--task','--task-root','--activation','--entry'].includes(rest[i])&&rest[i+1]&&!options[rest[i]],'full_option');options[rest[i]]=rest[i+1];}check(options['--campaign'],'campaign_required');return {command,o:options,root:resolve(options['--campaign'])};}
+function args(argv){const [command,...rest]=argv,options={};check(['init','prepare','status','run','cancel','recover','migrate97'].includes(command),'full_command');for(let i=0;i<rest.length;i+=2){check(['--campaign','--task','--task-root','--activation','--entry'].includes(rest[i])&&rest[i+1]&&!options[rest[i]],'full_option');options[rest[i]]=rest[i+1];}check(options['--campaign'],'campaign_required');return {command,o:options,root:resolve(options['--campaign'])};}
 const identity=(host,runnerSha,lock)=>({manifestHash:MANIFEST_HASH,panHash:lock.package_sha256,runnerSha,model:MODEL,budget:METERED_LIMITS,mode:host.mode});
 function snapshot(store,host){const s=host.sample(store.root);appendFileSync(join(store.root,'resources.jsonl'),JSON.stringify(s)+'\n');resourceCheck(store.root,store.meta.resourceBaseline,s);return s;}
 function lastPreparation(store,id){return store.rows.filter(r=>r.event==='preparation'&&r.task===id).at(-1);}
@@ -20,13 +21,14 @@ export function proposedBinding(store,m,ids){
 }
 export async function main(argv=process.argv.slice(2),dependencies={}){
  const host={...production,...dependencies},m=manifest(),{command,o,root}=args(argv);
+ if(command==='migrate97'){await migrate97(root,host,m);console.log(JSON.stringify(aggregate(new Store(root),m)));return;}
  if(command==='init'){
   check(o['--entry'],'entry_required');const pkg=host.verifyProduct(resolve(o['--entry'])),runnerSha=host.runnerSha();
   // The parent exists; no Docker or credential lookup is needed for initialization.
-  host.internal(dirname(root));const baseline=host.sample(dirname(root));check(baseline.free>=60*2**30,'resource_boundary');
+  host.internal(dirname(root));const baseline=host.sample(dirname(root));resourceCheck(dirname(root),baseline,{...baseline,owned:0});
   const store=initialize(root,{schema:1,campaignId:crypto.randomUUID(),identity:identity(host,runnerSha,pkg),resourceBaseline:{...baseline,owned:0},createdUTC:new Date().toISOString()});console.log(JSON.stringify(aggregate(store,m)));return;
  }
- const store=new Store(root);check(canonical(store.meta.identity)===canonical(identity(host,host.runnerSha(),{package_sha256:load(join(HERE,'package-identity.json')).package_sha256})),'campaign_identity');host.internal(root);
+ const store=new Store(root);validateSuccessor(store);check(canonical(store.meta.identity)===canonical(identity(host,host.runnerSha(),{package_sha256:load(join(HERE,'package-identity.json')).package_sha256})),'campaign_identity');host.internal(root);
  if(command==='status'){const out=aggregate(store,m);if(o['--task'])out.proposedBinding=proposedBinding(store,m,o['--task'].split(','));console.log(JSON.stringify(out));return out;}
  if(command==='cancel'){const pending=store.pending();check(pending.length===1,'no_active_segment');const path=join(root,'cancel-'+pending[0].runId+'.json');if(!existsSync(path))durable(path,{runId:pending[0].runId,requestedUTC:new Date().toISOString()});return;}
  const release=await lock(root);let controller,timer,ledger;

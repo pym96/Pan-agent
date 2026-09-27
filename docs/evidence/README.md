@@ -78,3 +78,5 @@ Raw artifacts remain at their stable source, Git, Trace, Test, evaluator, or ext
 - [WO95 post-#94 full-five live report](terminal-bench-continuation-95.md) — Criteria1.0; [complete summary/structure observations](terminal-bench-continuation-95-summary.json); independent review pending.
 
 - [WO96 frozen full89 execution and unstarted-only continuation](terminal-bench-full-campaign-support.md) — Criteria1.0 offline candidate; [summary](terminal-bench-full-campaign-support-summary.json), independent review pending.
+
+- [#98 disk policy and preparation successor](terminal-bench-disk-policy.md) — offline candidate, Criteria1.0; [summary](terminal-bench-disk-policy-summary.json).

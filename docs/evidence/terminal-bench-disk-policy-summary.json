@@ -1,0 +1,43 @@
+{
+  "workorder": 98,
+  "criteria": "1.0",
+  "base": "e0d88ecee96c2c1a45ccf1af8e34cf9ffebef2b1",
+  "status": "candidate-awaiting-independent-review",
+  "freeFloorBytes": 21474836480,
+  "incrementExclusiveUpperBytes": 25769803776,
+  "sourceInventorySha256": "9a593a277bf5b1781e36e7f085c2868477597c1f0a572de10c8f8e6f61212b20",
+  "tests": {
+    "disk": {
+      "pass": 11,
+      "fail": 0
+    },
+    "full": {
+      "pass": 23,
+      "fail": 0
+    },
+    "identity": {
+      "pass": 9,
+      "fail": 0
+    },
+    "hostAcceptance": "pass"
+  },
+  "preservation": {
+    "sourceFilesUnchanged": 99,
+    "sourceInventoryHash": "9a593a277bf5b1781e36e7f085c2868477597c1f0a572de10c8f8e6f61212b20",
+    "oldLedgersUnchanged": 9,
+    "productionSuccessorAbsent": true
+  },
+  "cachedImagesVerified": 59,
+  "realModels": 0,
+  "officialScoring": 0,
+  "taskContainers": 0,
+  "imageDownloads": 0,
+  "evidenceRoot": "/Volumes/WD_BLACK/pan-agent/wo98-disk-20260927/builder",
+  "indexSha256": "1d7d3955e366c6e8c271a05000b7b369a8594b99ae38702acf9aee5e3f452a73",
+  "limitations": [
+    "Independent Regulator and high-risk boundary review pending",
+    "No actual97 successor or activation created",
+    "Old Harbor installation remains missing; only issue98 test dependencies restored",
+    "Python pinned test dependencies downloaded into issue98 only; tests use synthetic transport"
+  ]
+}

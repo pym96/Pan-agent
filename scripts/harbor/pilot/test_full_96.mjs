@@ -11,11 +11,11 @@ import {requirements,resourceCheck} from './full-host.mjs';
 const BASE=process.env.WO96_TEST_ROOT;assert(BASE,'set WO96_TEST_ROOT to issue-owned directory');mkdirSync(BASE,{recursive:true});
 const driver=fileURLToPath(new URL('./test_full_driver.mjs',import.meta.url));
 const manifest=JSON.parse(readFileSync(new URL('./full-manifest.json',import.meta.url)));const ids=manifest.tasks.map(t=>t.id);
-function setup(){
+function setup(initial={}){
  const root=mkdtempSync(join(BASE,'case-')),home=join(root,'home'),campaign=join(root,'campaign'),fixture=join(root,'fixture.json');mkdirSync(home);const runner='f'.repeat(40);const keys=generateKeyPairSync('ed25519');
  const dir=join(home,'.local/state/pan-agent/wo75');mkdirSync(dir,{recursive:true});writeFileSync(join(dir,'authority.json'),JSON.stringify({acceptedRunnerSha:runner,publicKey:keys.publicKey.export({type:'spki',format:'pem'})}));
- const config={root,home,runner};const save=()=>writeFileSync(fixture,JSON.stringify(config));save();
- const env={PATH:process.env.PATH,HOME:home,TMPDIR:root,NPM_CONFIG_CACHE:join(root,'cache'),PYTHONDONTWRITEBYTECODE:'1'};
+ const config={root,home,runner,...initial};const save=()=>writeFileSync(fixture,JSON.stringify(config));save();
+ const env={PATH:process.env.PATH,HOME:home,TMPDIR:root,NPM_CONFIG_CACHE:join(root,'cache'),PYTHONDONTWRITEBYTECODE:'1',...(process.env.PYTHONPATH?{PYTHONPATH:process.env.PYTHONPATH}:{})};
  const argv=(command,options=[])=>[driver,fixture,command,'--campaign',campaign,...options];
  const cmd=(command,options=[],ok=true)=>{save();const p=spawnSync(process.execPath,argv(command,options),{env,encoding:'utf8',maxBuffer:16*1024*1024});if(ok)assert.equal(p.status,0,p.stderr);return p;};
  const status=()=>JSON.parse(cmd('status').stdout);
@@ -95,4 +95,22 @@ test('C02 recovery refuses a re-chained foreign project before any cleanup capab
  const c=setup();c.prepare([ids[0]]);c.config.crash='after_reservation';c.run(c.permit([ids[0]]),false);delete c.config.crash;const dir=join(c.campaign,'journal'),files=readdirSync(dir).filter(x=>/^\d{8}\.json$/.test(x)).sort();let head=digest(canonical(JSON.parse(readFileSync(join(c.campaign,'campaign.json')))));
  for(const f of files){const p=join(dir,f),v=JSON.parse(readFileSync(p));v.previous=head;if(v.event==='reserved')v.project='wo78-'+'0'.repeat(16);writeFileSync(p,JSON.stringify(v));head=digest(canonical(v));}
  const count=c.effects().length;assert.match(c.cmd('recover',[],false).stderr,/foreign_project/);assert.equal(c.effects().length,count);
+});
+
+for(const free of [20*2**30-1,20*2**30,20*2**30+1])test('C-DISK-01 actual CLI init/prepare/run free='+free,()=>{
+ if(free<20*2**30){assert.throws(()=>setup({free}),/resource_boundary/);return;}
+ const c=setup({free});c.prepare([ids[0]]);c.run(c.permit([ids[0]]));assert.equal(c.status().successes,1);
+});
+for(const delta of [24*2**30-1,24*2**30])test('C-DISK-01 actual CLI prepare/run cumulative='+delta,()=>{
+ const c=setup({free:20*2**30});c.prepare([ids[0]]);const p=c.permit([ids[0]]);c.config.owned=7;c.config.docker=delta-7;
+ if(delta<24*2**30){c.run(p);assert.equal(c.status().successes,1);}
+ else {const n=c.effects().length;assert.match(c.cmd('prepare',['--task',ids[0],'--task-root',c.root],false).stderr,/resource_boundary/);assert.match(c.run(p,false).stderr,/resource_boundary/);assert.equal(c.effects().length,n);}
+});
+test('C-DISK-01 periodic resource sample cancels before broker/model and later task',()=>{
+ const c=setup();c.prepare(ids.slice(0,2));const p=c.permit(ids.slice(0,2));c.config.dropFreeAt='after_reservation';c.config.hold='after_reservation';c.config.holdMs=1300;c.run(p);
+ assert.equal(c.effects().filter(e=>['start','model'].includes(e.kind)).length,0);assert.equal(c.status().rows[1].state,'not_started');assert.equal(c.status().pendingSegments.length,0);
+});
+test('C-DISK-01 free boundary on prepare and run rejects before credentials',()=>{
+ const c=setup();c.prepare([ids[0]]);const p=c.permit([ids[0]]);c.config.free=20*2**30-1;const n=c.effects().length;
+ assert.match(c.cmd('prepare',['--task',ids[0],'--task-root',c.root],false).stderr,/resource_boundary/);assert.match(c.run(p,false).stderr,/resource_boundary/);assert.equal(c.effects().length,n);
 });

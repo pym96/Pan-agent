@@ -10,7 +10,7 @@ The new CLI is separate from the legacy five/signed-subset CLI. `prepare` valida
 
 ## Immutable identity, segments and authorization
 
-`init` creates an exclusive campaign directory with dataset/package/model/budget/runner identity, mode and a fixed host resource baseline. A different location, manifest, runner, package, model, budget or offline/live mode cannot be mixed into it. Changing accepted runner requires a new campaign; no merging older best scores.
+`init` creates an exclusive campaign directory with dataset/package/model/budget/runner identity, mode and a fixed host resource baseline. A different location, manifest, runner, package, model, budget or offline/live mode cannot be mixed into it. Changing accepted runner requires a new campaign; #98 adds only the pinned, never-executed #97 successor described below. No merging older best scores.
 
 A segment signs the entire existing version2/run-bound activation schema plus the full binding: exact task IDs, image digests, campaign ID/absolute root, journal checkpoint, segment index and hashes of preparation records. `status --task` proposes this binding; it does not authorize/sign it. Master still supplies the trusted signature and authority. No #93 tool dependency or production signing/private-key helper is added. Signature/window, complete binding, source/package identity and consumed-run checks precede credentials and environment startup. The existing real ledger is exclusively created for the new run, then hard-linked into that segment's evidence. No old file is reopened for append. Replay of a journal-recorded run is refused even if its global ledger is missing.
 
@@ -32,7 +32,7 @@ Cancellation is a run-specific durable request created by another CLI process, o
 
 ## Accounting, resources and scoring
 
-The baseline Docker allocation is captured once at campaign creation. Every segment reuses it: `owned campaign bytes + max(0,current Docker bytes - initial Docker bytes) <24GiB`, with free>=60GiB and internal active disk. Sampling continues during attempts. No reset on resume; no shared image deletion/global prune.2CPU/4GiB constraints reject incompatible official requirements instead of rewriting them.
+The baseline Docker allocation is captured once at campaign creation. Every segment reuses it: `owned campaign bytes + max(0,current Docker bytes - initial Docker bytes) <24GiB`, with free>=20GiB (Human HF-20260927-001 / #98) and internal active disk. Sampling continues during attempts. No reset on resume; no shared image deletion/global prune.2CPU/4GiB constraints reject incompatible official requirements instead of rewriting them.
 
 Each of89 IDs has one aggregate row. It is unstarted until reserved, unknown if interrupted without a committed result, otherwise classified from result and official artifacts. Raw reward is always separate from valid score. Current automatic validity requires actual nonempty CTRF test totals consistent with raw binary reward; a raw0 without proof remains unscored. Tasks using another scoring-evidence format remain conservatively unscored pending explicit evidence handling, never false failures or deleted rows. Official verifier logic itself is unchanged.
 
@@ -43,3 +43,24 @@ Counts are recomputed from original segment ledgers, including retries in the sa
 #96 executes no real Provider, official task, verifier or Docker control. Offline CLI controls exercise the lifecycle; separate packed Session/Adapter controls use synthetic HTTP/tools. Future #97 must freeze actual image/source preparation policy and activate live identities. This work does not repair #95 output-length or dependency failures and does not prove a benchmark score increase.
 
 Human H-FULL-RESUME is pending after independent technical review: inspect already-started tasks never repeated, interrupted unknown preserved, fresh segment signature and cleanup restricted to that campaign. No extra budget approval or manual test execution is requested by this design.
+
+## #98 disk policy and preparation-only successor
+
+20GiB means exactly 20*2^30 bytes. Full CLI init and all prepare/run admission and periodic samples call the same resourceCheck. Admission is free>=20GiB AND owned bytes + max(0, Docker allocation - original Docker baseline)<24GiB. Legacy five-task tools retain their historical policy. The old 60GiB number appears only as predecessor provenance, never as an active full-run gate.
+
+`full-migrate.mjs` is deliberately a single-snapshot adapter, not a general campaign migration facility. It pins #97's whole campaign file inventory (metadata, resources, every preparation record and existing empty lock) to SHA256 `9a593a277bf5b1781e36e7f085c2868477597c1f0a572de10c8f8e6f61212b20`. The digest is SHA256 of canonical sorted JSON mapping relative file paths to SHA256 of original bytes. Symlinks, unexpected files, non-preparation journal events and nonempty segments are refused. Modifying/rechaining the source, baseline or identity cannot pass the frozen inventory digest. All 96 preparation records, including earlier failures, are retained; the manifest still gives 89 rows.
+
+The source's existing OS lock serializes import against preparation/run and concurrent import; the original files are never written. Exclusive destination mkdir claims a single fixed successor path. Duplicate import fails, including a destination left by a crash; do not delete it and retry automatically. A different target is rejected. A copied source cannot be selected by the production command. The successor archives original bytes under source-original, records predecessor identity/checkpoint and both floor values, retains resourceBaseline verbatim and imports preparations with original record hashes/timestamps. A completion marker fences partial import. CLI reads revalidate archived provenance, baseline, original identity and imported prefix before status, preparation or execution. The successor uses a fresh campaign UUID and the actual clean new runner SHA. Old activations cannot match the new binding. No key, authority, ledger, image pull or container operation is used by migration.
+
+Historical ready means a digest was prepared, not an assertion that it remains cached forever. After migration, use the new runner's prepare to revalidate selected cached images/source before status and Master signing. prepare never pulls; the run path also rechecks digest before reservation. Do not rerun the old wrapper, which retains its former disk margin. New pulls for remaining tasks belong to a future #97 activation, retaining the original increment baseline.
+
+### Prospective operator steps (not executed by #98)
+
+1. Independent Regulator verifies the exact candidate; complete the contract's high-risk boundary review. Master fast-forwards the same SHA and prospectively updates #97, selects a new clean runner, and leaves old runner/source read-only.
+2. Confirm the source inventory still matches the pinned digest. If it changed, stop and route the changed evidence; do not edit the pin ad hoc. Restore/verify frozen Product/Python/Harbor dependencies under separately authorized scope; #98's offline dependency copy is not a replacement production installation.
+3. From the new clean runner: `node scripts/harbor/pilot/full-cli.mjs migrate97 --campaign /private/tmp/wo97-live/campaign-disk20`. The path is fixed and must not exist. Source remains `/private/tmp/wo97-live/campaign`.
+4. `node scripts/harbor/pilot/full-cli.mjs prepare --campaign /private/tmp/wo97-live/campaign-disk20 --task <comma-separated-selected-IDs> --task-root /private/tmp/wo97-live/tasks`. Reuse existing images; no download is needed for the 59 currently verified cached digests. Keep the 2 incompatible tasks visible and unstarted.
+5. `node scripts/harbor/pilot/full-cli.mjs status --campaign /private/tmp/wo97-live/campaign-disk20 --task <same-selected-IDs>` supplies the new proposedBinding. Route to Master for fresh authority/activation tied to the actual new runner, campaign and checkpoint. No source preparation or old permission authorizes this successor.
+6. Only after #97 authorization/signature and dependency/resource/key-presence checks may its future Builder invoke run once. Preserve failures/unknown and follow existing stop/recovery semantics. #98 does not execute these steps.
+
+Source/legacy implementation Evidence remains valid only for unchanged mechanisms; boundary and successor behavior require new independent review. No benchmark outcome or performance improvement follows from these offline controls.
