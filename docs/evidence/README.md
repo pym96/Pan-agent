@@ -92,3 +92,5 @@ Raw artifacts remain at their stable source, Git, Trace, Test, evaluator, or ext
 - [#100 first Verdict repair](benchmark-recovery-100-repair-1.md): C-REC-03 real-path
   storage coverage/inode accounting and primitive memory-string validation;
   original candidate and independent rejection evidence retained.
+
+- [#97 Criteria1.4 persistent preparation](terminal-bench-persistent-prep-97.md) / [summary](terminal-bench-persistent-prep-97-summary.json): blocked before deployment by cumulative storage headroom; actual Docker memory also blocks two 8 GiB tasks. No new campaign, binding or live evaluation.

@@ -1,0 +1,62 @@
+{
+  "issue": 97,
+  "criteria": "1.4",
+  "role": "Working Agent (Builder)",
+  "status": "blocked_before_deployment",
+  "baseSha": "848f59f90b503a9eab5c46ad76bb44c646570161",
+  "contract": "https://github.com/pym96/Pan-agent/issues/97#issuecomment-5868102412",
+  "evidenceRoot": "/Volumes/WD_BLACK/pan-agent/wo97-full-live-20260925/persistent-criteria14",
+  "inventorySha256": "3fb13d2d21620a91f64ab438a3513c6003ba9055c39ab9e557c3ac4aad55c3a8",
+  "resource": {
+    "sample": {
+      "utc": "2026-09-28T10:32:48.501Z",
+      "free": 44734652416,
+      "owned": 2301550592,
+      "docker": 88021364736
+    },
+    "baselineDocker": 48503971840,
+    "limitExclusive": 41875931136,
+    "increment": 41818943488,
+    "remainingExclusive": 56987648,
+    "admitted": true,
+    "error": null
+  },
+  "existingSourceAllocatedBytes": {
+    "venv": 43900928,
+    "tasks": 48357376,
+    "consumer": 606208,
+    "runner": 10723328
+  },
+  "capacity": {
+    "cpu": 8,
+    "memoryBytes": 8218316800,
+    "officialLargeTaskMemoryBytes": 8589934592
+  },
+  "deploymentRootCreated": false,
+  "recoveredCampaign": null,
+  "proposedBinding": null,
+  "commandsInvoked": {
+    "restore97": 0,
+    "prepare": 0,
+    "status": 0,
+    "run": 0
+  },
+  "modelCalls": 0,
+  "taskRuns": 0,
+  "scoringCalls": 0,
+  "imagePulls": 0,
+  "dockerCleanup": 0,
+  "historicalCounts": {
+    "source": "accepted #100 handoff; not reimported this stage",
+    "total": 89,
+    "consumed": 57,
+    "unstarted": 32,
+    "secondSegmentUnknownScores": 20
+  },
+  "blockers": [
+    "Insufficient cumulative budget headroom for ordinary independent deployment copies plus recovery/installation overhead; sampler currently passes, no boundary failure was induced.",
+    "Actual Docker VM memory remains below 8 GiB; blocks only the two official 8 GiB tasks."
+  ],
+  "nextOwner": "Master",
+  "nextAction": "Resolve cumulative storage within original policy with explicit disposition of retained storage, or publish a revised budget authorization; then resample. Human applies Docker VM memory separately. Do not sign a run: no binding exists."
+}
