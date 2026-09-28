@@ -1,5 +1,7 @@
 # Project Evidence
 
+- [`terminal-bench-image-prep-97.md`](terminal-bench-image-prep-97.md) records #97 Criteria1.3 image preparation:30/32 cached,2 failed downloads, preserved reservations and resource evidence; candidate pending independent review, no task/model/scoring execution. [Machine-readable summary](terminal-bench-image-prep-97-summary.json).
+
 - [`verified-project-facts.md`](verified-project-facts.md) is the only project-level register of independently accepted implementation facts.
 - [`react-mvp-docker-gold-gate-2026-08-20.md`](react-mvp-docker-gold-gate-2026-08-20.md) records the candidate Docker/SWE-bench environment Gate, including the retained ARM image-resolution failure and the succeeding official gold evaluation. It is environment Evidence, not an Agent result or project fact.
 - [`react-mvp-deepseek-smoke-2026-08-20.md`](react-mvp-deepseek-smoke-2026-08-20.md) records the secret-free provider-path check and insufficient-balance stop condition. It contains no usable completion or Agent result.

@@ -1,0 +1,1717 @@
+{
+  "workOrder": 97,
+  "criteriaVersion": "1.3",
+  "classification": "image-cache preparation candidate; not task execution or benchmark scores",
+  "baseSha": "3571f80c57fb42cdd4a6f2899c5607e5ba8b1841",
+  "sourceIndexSha256": "294a67cb9db4a0efa982859f85ac8abfed1e13779de558c434c3c5660acfca4a",
+  "manifestSha256": "bfb1b8f64ca539c9c9cc88de4450c0845c38dcc8d924a7d85c126b8794e3a403",
+  "startedUTC": "2026-09-28T06:12:19.409214+00:00",
+  "finishedUTC": "2026-09-28T07:16:11.452955+00:00",
+  "counts": {
+    "cached": 30,
+    "pull_failed": 2,
+    "resource_blocked": 0,
+    "not_attempted": 0
+  },
+  "evidenceRoot": "/Volumes/WD_BLACK/pan-agent/wo97-full-live-20260925/image-prep-criteria13",
+  "inventorySha256": "628105a3564ce92b687980e03bf9911cb2995be34363872c909737cc9cf4e04c",
+  "progressPath": "/Users/panyiming/.local/state/pan-agent/wo97-image-prep/progress.json",
+  "verification": {
+    "scopeRows": 32,
+    "reservedExcluded": 57,
+    "cachedReinspected": 30,
+    "failedReinspected": 2,
+    "pullInvocations": 34,
+    "maximumAttemptsPerImage": 3,
+    "serialConfirmed": true,
+    "allPullProcessesExited": true,
+    "resourceSamples": 1634,
+    "allResourceSamplesWithinBounds": true,
+    "minFreeBytes": 45849325568,
+    "maxIncrementBytes": 39886565376,
+    "initialResource": {
+      "utc": "2026-09-28T06:12:26.934005+00:00",
+      "event": "resource",
+      "phase": "initial",
+      "task": null,
+      "free": 64558202880,
+      "owned": 213385216,
+      "ownedPaths": {
+        "/Users/panyiming/.local/state/pan-agent/wo97-image-prep": 10137600,
+        "/private/tmp/wo97-live": 148717568,
+        "/private/tmp/wo97-runner-disk39": 9920512,
+        "/private/tmp/wo74-work": 43900928,
+        "/private/tmp/wo94-kimi": 708608
+      },
+      "docker": 76392267776,
+      "originalDockerBaseline": 48503971840,
+      "increment": 28101681152,
+      "allowed": true
+    },
+    "finalResource": {
+      "utc": "2026-09-28T07:16:11.451520+00:00",
+      "event": "resource",
+      "phase": "final",
+      "task": null,
+      "free": 46111227904,
+      "owned": 215007232,
+      "ownedPaths": {
+        "/Users/panyiming/.local/state/pan-agent/wo97-image-prep": 11759616,
+        "/private/tmp/wo97-live": 148717568,
+        "/private/tmp/wo97-runner-disk39": 9920512,
+        "/private/tmp/wo74-work": 43900928,
+        "/private/tmp/wo94-kimi": 708608
+      },
+      "docker": 87913607168,
+      "originalDockerBaseline": 48503971840,
+      "increment": 39624642560,
+      "allowed": true
+    },
+    "protectedFilesUnchanged": 15,
+    "ledgerFilesUnchanged": 11,
+    "modelTaskScoreCalls": 0,
+    "campaignCommands": 0,
+    "cleanupCommands": 0
+  },
+  "rows": [
+    {
+      "task": "mcmc-sampling-stan",
+      "reference": "alexgshaw/mcmc-sampling-stan:20251031",
+      "status": "cached",
+      "imageId": "sha256:c7ba1f1f9d2df36db0338e4d1e429692aaf653ef6faa13dc4694a7c457593d6e",
+      "repoDigests": [
+        "alexgshaw/mcmc-sampling-stan@sha256:073fc36a3347b4f6b43bd6e98339542c41ed531c771af8bee40ba10f00cfabaf"
+      ],
+      "os": "linux",
+      "architecture": "amd64",
+      "attempts": [
+        {
+          "attempt": 1,
+          "startedUTC": "2026-09-28T06:12:27.033917+00:00",
+          "exitCode": 0,
+          "log": "logs/mcmc-sampling-stan/pull-1.log",
+          "pid": 78937,
+          "finishedUTC": "2026-09-28T06:14:51.447821+00:00",
+          "stopReason": null,
+          "processExitConfirmed": true
+        }
+      ],
+      "inspections": [
+        {
+          "startedUTC": "2026-09-28T06:12:19.981844+00:00",
+          "finishedUTC": "2026-09-28T06:12:22.613932+00:00",
+          "exitCode": 1,
+          "log": "logs/mcmc-sampling-stan/inspect-1.json"
+        },
+        {
+          "startedUTC": "2026-09-28T06:12:26.938759+00:00",
+          "finishedUTC": "2026-09-28T06:12:26.965178+00:00",
+          "exitCode": 1,
+          "log": "logs/mcmc-sampling-stan/inspect-2.json"
+        },
+        {
+          "startedUTC": "2026-09-28T06:14:53.210780+00:00",
+          "finishedUTC": "2026-09-28T06:14:53.267018+00:00",
+          "exitCode": 0,
+          "log": "logs/mcmc-sampling-stan/inspect-3.json"
+        },
+        {
+          "startedUTC": "2026-09-28T06:27:17.115679+00:00",
+          "finishedUTC": "2026-09-28T06:27:17.212526+00:00",
+          "exitCode": 0,
+          "log": "logs/mcmc-sampling-stan/inspect-4.json"
+        }
+      ],
+      "reason": null
+    },
+    {
+      "task": "mteb-retrieve",
+      "reference": "alexgshaw/mteb-retrieve:20251031",
+      "status": "pull_failed",
+      "imageId": null,
+      "repoDigests": [],
+      "os": null,
+      "architecture": null,
+      "attempts": [
+        {
+          "attempt": 1,
+          "startedUTC": "2026-09-28T06:14:53.486439+00:00",
+          "exitCode": 143,
+          "log": "logs/mteb-retrieve/pull-1.log",
+          "pid": 82101,
+          "finishedUTC": "2026-09-28T06:26:39.505371+00:00",
+          "stopReason": "operator_stop",
+          "processExitConfirmed": true
+        }
+      ],
+      "inspections": [
+        {
+          "startedUTC": "2026-09-28T06:12:22.617106+00:00",
+          "finishedUTC": "2026-09-28T06:12:22.802495+00:00",
+          "exitCode": 1,
+          "log": "logs/mteb-retrieve/inspect-1.json"
+        },
+        {
+          "startedUTC": "2026-09-28T06:14:53.300757+00:00",
+          "finishedUTC": "2026-09-28T06:14:53.397884+00:00",
+          "exitCode": 1,
+          "log": "logs/mteb-retrieve/inspect-2.json"
+        },
+        {
+          "startedUTC": "2026-09-28T06:27:17.216335+00:00",
+          "finishedUTC": "2026-09-28T06:27:17.348708+00:00",
+          "exitCode": 1,
+          "log": "logs/mteb-retrieve/inspect-3.json"
+        }
+      ],
+      "reason": "image_not_cached"
+    },
+    {
+      "task": "polyglot-c-py",
+      "reference": "alexgshaw/polyglot-c-py:20251031",
+      "status": "cached",
+      "imageId": "sha256:e1956576c394084e01441646e27f54bf0a246d83b764d9d14b04273e00302f07",
+      "repoDigests": [
+        "alexgshaw/polyglot-c-py@sha256:0f1c3b7816d70cf5551573fd6aeef76893f2ae3000be2419997b6871b5d987ed"
+      ],
+      "os": "linux",
+      "architecture": "amd64",
+      "attempts": [],
+      "inspections": [
+        {
+          "startedUTC": "2026-09-28T06:12:22.805287+00:00",
+          "finishedUTC": "2026-09-28T06:12:22.922680+00:00",
+          "exitCode": 0,
+          "log": "logs/polyglot-c-py/inspect-1.json"
+        },
+        {
+          "startedUTC": "2026-09-28T06:27:17.391335+00:00",
+          "finishedUTC": "2026-09-28T06:27:17.460179+00:00",
+          "exitCode": 0,
+          "log": "logs/polyglot-c-py/inspect-2.json"
+        }
+      ],
+      "reason": null
+    },
+    {
+      "task": "polyglot-rust-c",
+      "reference": "alexgshaw/polyglot-rust-c:20251031",
+      "status": "cached",
+      "imageId": "sha256:42e1c101034156ab6a0cbefc63ee654ab7fccb668e1580a090abba89244f6a93",
+      "repoDigests": [
+        "alexgshaw/polyglot-rust-c@sha256:3ba84f0e138a4b65e58c53f920a0fc852571e6402901c3bdbb876e9dab6e6c5e"
+      ],
+      "os": "linux",
+      "architecture": "amd64",
+      "attempts": [],
+      "inspections": [
+        {
+          "startedUTC": "2026-09-28T06:12:22.925884+00:00",
+          "finishedUTC": "2026-09-28T06:12:23.029712+00:00",
+          "exitCode": 0,
+          "log": "logs/polyglot-rust-c/inspect-1.json"
+        },
+        {
+          "startedUTC": "2026-09-28T06:27:17.463010+00:00",
+          "finishedUTC": "2026-09-28T06:27:17.523987+00:00",
+          "exitCode": 0,
+          "log": "logs/polyglot-rust-c/inspect-2.json"
+        }
+      ],
+      "reason": null
+    },
+    {
+      "task": "portfolio-optimization",
+      "reference": "alexgshaw/portfolio-optimization:20251031",
+      "status": "cached",
+      "imageId": "sha256:b0ef263fdd85ca609faafead645c86c8a03f534178b3368e3eedc0a273b3fed9",
+      "repoDigests": [
+        "alexgshaw/portfolio-optimization@sha256:93461db3cec697c31585941a3b9387c1398495aa1ff0aee2ac752c7230b50ef8"
+      ],
+      "os": "linux",
+      "architecture": "amd64",
+      "attempts": [
+        {
+          "attempt": 1,
+          "startedUTC": "2026-09-28T06:27:20.995628+00:00",
+          "exitCode": 0,
+          "log": "logs/portfolio-optimization/pull-1.log",
+          "pid": 98382,
+          "finishedUTC": "2026-09-28T06:28:29.749520+00:00",
+          "stopReason": null,
+          "processExitConfirmed": true
+        }
+      ],
+      "inspections": [
+        {
+          "startedUTC": "2026-09-28T06:12:23.032393+00:00",
+          "finishedUTC": "2026-09-28T06:12:23.258130+00:00",
+          "exitCode": 1,
+          "log": "logs/portfolio-optimization/inspect-1.json"
+        },
+        {
+          "startedUTC": "2026-09-28T06:27:17.526688+00:00",
+          "finishedUTC": "2026-09-28T06:27:17.642355+00:00",
+          "exitCode": 1,
+          "log": "logs/portfolio-optimization/inspect-2.json"
+        },
+        {
+          "startedUTC": "2026-09-28T06:27:20.822961+00:00",
+          "finishedUTC": "2026-09-28T06:27:20.911377+00:00",
+          "exitCode": 1,
+          "log": "logs/portfolio-optimization/inspect-3.json"
+        },
+        {
+          "startedUTC": "2026-09-28T06:28:30.451006+00:00",
+          "finishedUTC": "2026-09-28T06:28:30.518428+00:00",
+          "exitCode": 0,
+          "log": "logs/portfolio-optimization/inspect-4.json"
+        }
+      ],
+      "reason": null
+    },
+    {
+      "task": "protein-assembly",
+      "reference": "alexgshaw/protein-assembly:20251031",
+      "status": "cached",
+      "imageId": "sha256:910129dce5e537266cd7570ab1894c9ba4112acc63f1863bb393b9a91bdd368d",
+      "repoDigests": [
+        "alexgshaw/protein-assembly@sha256:94de701b57e7ecfdbada6044f8534876e4b58874f8f313184dadc4d7533e0818"
+      ],
+      "os": "linux",
+      "architecture": "amd64",
+      "attempts": [
+        {
+          "attempt": 1,
+          "startedUTC": "2026-09-28T06:28:30.636433+00:00",
+          "exitCode": 0,
+          "log": "logs/protein-assembly/pull-1.log",
+          "pid": 99915,
+          "finishedUTC": "2026-09-28T06:28:39.673469+00:00",
+          "stopReason": null,
+          "processExitConfirmed": true
+        }
+      ],
+      "inspections": [
+        {
+          "startedUTC": "2026-09-28T06:12:23.260492+00:00",
+          "finishedUTC": "2026-09-28T06:12:23.446927+00:00",
+          "exitCode": 1,
+          "log": "logs/protein-assembly/inspect-1.json"
+        },
+        {
+          "startedUTC": "2026-09-28T06:27:17.645512+00:00",
+          "finishedUTC": "2026-09-28T06:27:17.752950+00:00",
+          "exitCode": 1,
+          "log": "logs/protein-assembly/inspect-2.json"
+        },
+        {
+          "startedUTC": "2026-09-28T06:28:30.526932+00:00",
+          "finishedUTC": "2026-09-28T06:28:30.590852+00:00",
+          "exitCode": 1,
+          "log": "logs/protein-assembly/inspect-3.json"
+        },
+        {
+          "startedUTC": "2026-09-28T06:28:39.830020+00:00",
+          "finishedUTC": "2026-09-28T06:28:39.907282+00:00",
+          "exitCode": 0,
+          "log": "logs/protein-assembly/inspect-4.json"
+        }
+      ],
+      "reason": null
+    },
+    {
+      "task": "prove-plus-comm",
+      "reference": "alexgshaw/prove-plus-comm:20251031",
+      "status": "cached",
+      "imageId": "sha256:daba7f4d626336854298dd6e021c4b85486844e34474b2928e261fc35c312547",
+      "repoDigests": [
+        "alexgshaw/prove-plus-comm@sha256:e26741d01681a9da1beeff8b7b7b65fe2b921b8b122a306a3707a81ebd051f73"
+      ],
+      "os": "linux",
+      "architecture": "amd64",
+      "attempts": [
+        {
+          "attempt": 1,
+          "startedUTC": "2026-09-28T06:28:40.052784+00:00",
+          "exitCode": 0,
+          "log": "logs/prove-plus-comm/pull-1.log",
+          "pid": 196,
+          "finishedUTC": "2026-09-28T06:32:06.852963+00:00",
+          "stopReason": null,
+          "processExitConfirmed": true
+        }
+      ],
+      "inspections": [
+        {
+          "startedUTC": "2026-09-28T06:12:23.451851+00:00",
+          "finishedUTC": "2026-09-28T06:12:23.527480+00:00",
+          "exitCode": 1,
+          "log": "logs/prove-plus-comm/inspect-1.json"
+        },
+        {
+          "startedUTC": "2026-09-28T06:27:17.756519+00:00",
+          "finishedUTC": "2026-09-28T06:27:17.856876+00:00",
+          "exitCode": 1,
+          "log": "logs/prove-plus-comm/inspect-2.json"
+        },
+        {
+          "startedUTC": "2026-09-28T06:28:39.911635+00:00",
+          "finishedUTC": "2026-09-28T06:28:39.965598+00:00",
+          "exitCode": 1,
+          "log": "logs/prove-plus-comm/inspect-3.json"
+        },
+        {
+          "startedUTC": "2026-09-28T06:32:06.987696+00:00",
+          "finishedUTC": "2026-09-28T06:32:07.415106+00:00",
+          "exitCode": 0,
+          "log": "logs/prove-plus-comm/inspect-4.json"
+        }
+      ],
+      "reason": null
+    },
+    {
+      "task": "pypi-server",
+      "reference": "alexgshaw/pypi-server:20251031",
+      "status": "cached",
+      "imageId": "sha256:14bdb79aabffeb5b4635c42038a4eb7de3f4935f49d0bcd53dd9e726b1d6d1b2",
+      "repoDigests": [
+        "alexgshaw/pypi-server@sha256:d18bb30f47c7dcaa3acdbc31ac7413c98eadca2ea16540bbd380f2f063b95276"
+      ],
+      "os": "linux",
+      "architecture": "amd64",
+      "attempts": [
+        {
+          "attempt": 1,
+          "startedUTC": "2026-09-28T06:32:07.617105+00:00",
+          "exitCode": 0,
+          "log": "logs/pypi-server/pull-1.log",
+          "pid": 5266,
+          "finishedUTC": "2026-09-28T06:32:34.562650+00:00",
+          "stopReason": null,
+          "processExitConfirmed": true
+        }
+      ],
+      "inspections": [
+        {
+          "startedUTC": "2026-09-28T06:12:23.530553+00:00",
+          "finishedUTC": "2026-09-28T06:12:23.680691+00:00",
+          "exitCode": 1,
+          "log": "logs/pypi-server/inspect-1.json"
+        },
+        {
+          "startedUTC": "2026-09-28T06:27:17.859952+00:00",
+          "finishedUTC": "2026-09-28T06:27:17.985750+00:00",
+          "exitCode": 1,
+          "log": "logs/pypi-server/inspect-2.json"
+        },
+        {
+          "startedUTC": "2026-09-28T06:32:07.417566+00:00",
+          "finishedUTC": "2026-09-28T06:32:07.493054+00:00",
+          "exitCode": 1,
+          "log": "logs/pypi-server/inspect-3.json"
+        },
+        {
+          "startedUTC": "2026-09-28T06:32:35.906437+00:00",
+          "finishedUTC": "2026-09-28T06:32:35.998545+00:00",
+          "exitCode": 0,
+          "log": "logs/pypi-server/inspect-4.json"
+        }
+      ],
+      "reason": null
+    },
+    {
+      "task": "pytorch-model-cli",
+      "reference": "alexgshaw/pytorch-model-cli:20251031",
+      "status": "cached",
+      "imageId": "sha256:2d19236650cc866ba441762e3d89edfa452756e0e4833cfdb984257d50b446e7",
+      "repoDigests": [
+        "alexgshaw/pytorch-model-cli@sha256:c996884b5fb5fb2c0c07d67da2c4f974f271f07234ed28e1a868240375c57a67"
+      ],
+      "os": "linux",
+      "architecture": "amd64",
+      "attempts": [
+        {
+          "attempt": 1,
+          "startedUTC": "2026-09-28T06:32:36.248525+00:00",
+          "exitCode": 0,
+          "log": "logs/pytorch-model-cli/pull-1.log",
+          "pid": 5888,
+          "finishedUTC": "2026-09-28T06:32:43.369661+00:00",
+          "stopReason": null,
+          "processExitConfirmed": true
+        }
+      ],
+      "inspections": [
+        {
+          "startedUTC": "2026-09-28T06:12:23.690905+00:00",
+          "finishedUTC": "2026-09-28T06:12:23.914986+00:00",
+          "exitCode": 1,
+          "log": "logs/pytorch-model-cli/inspect-1.json"
+        },
+        {
+          "startedUTC": "2026-09-28T06:27:17.988736+00:00",
+          "finishedUTC": "2026-09-28T06:27:18.088819+00:00",
+          "exitCode": 1,
+          "log": "logs/pytorch-model-cli/inspect-2.json"
+        },
+        {
+          "startedUTC": "2026-09-28T06:32:36.010314+00:00",
+          "finishedUTC": "2026-09-28T06:32:36.167848+00:00",
+          "exitCode": 1,
+          "log": "logs/pytorch-model-cli/inspect-3.json"
+        },
+        {
+          "startedUTC": "2026-09-28T06:32:43.555582+00:00",
+          "finishedUTC": "2026-09-28T06:32:43.632486+00:00",
+          "exitCode": 0,
+          "log": "logs/pytorch-model-cli/inspect-4.json"
+        }
+      ],
+      "reason": null
+    },
+    {
+      "task": "pytorch-model-recovery",
+      "reference": "alexgshaw/pytorch-model-recovery:20251031",
+      "status": "pull_failed",
+      "imageId": null,
+      "repoDigests": [],
+      "os": null,
+      "architecture": null,
+      "attempts": [
+        {
+          "attempt": 1,
+          "startedUTC": "2026-09-28T06:32:43.771020+00:00",
+          "exitCode": 143,
+          "log": "logs/pytorch-model-recovery/pull-1.log",
+          "pid": 6040,
+          "finishedUTC": "2026-09-28T06:42:45.834847+00:00",
+          "stopReason": "pull_timeout_600s",
+          "processExitConfirmed": true
+        }
+      ],
+      "inspections": [
+        {
+          "startedUTC": "2026-09-28T06:12:23.918449+00:00",
+          "finishedUTC": "2026-09-28T06:12:24.228875+00:00",
+          "exitCode": 1,
+          "log": "logs/pytorch-model-recovery/inspect-1.json"
+        },
+        {
+          "startedUTC": "2026-09-28T06:27:18.119762+00:00",
+          "finishedUTC": "2026-09-28T06:27:18.181573+00:00",
+          "exitCode": 1,
+          "log": "logs/pytorch-model-recovery/inspect-2.json"
+        },
+        {
+          "startedUTC": "2026-09-28T06:32:43.637034+00:00",
+          "finishedUTC": "2026-09-28T06:32:43.675247+00:00",
+          "exitCode": 1,
+          "log": "logs/pytorch-model-recovery/inspect-3.json"
+        },
+        {
+          "startedUTC": "2026-09-28T06:42:46.097433+00:00",
+          "finishedUTC": "2026-09-28T06:42:46.334047+00:00",
+          "exitCode": 1,
+          "log": "logs/pytorch-model-recovery/inspect-4.json"
+        }
+      ],
+      "reason": "image_not_cached"
+    },
+    {
+      "task": "qemu-alpine-ssh",
+      "reference": "alexgshaw/qemu-alpine-ssh:20251031",
+      "status": "cached",
+      "imageId": "sha256:e868510787ba024e1fced364e94b5ae42c9b3076fa2345498edb833752188f93",
+      "repoDigests": [
+        "alexgshaw/qemu-alpine-ssh@sha256:541e8214a8c4faa7b556531b899d45da21048fa2ca6dd328d8cb6c4cffa8e964"
+      ],
+      "os": "linux",
+      "architecture": "amd64",
+      "attempts": [
+        {
+          "attempt": 1,
+          "startedUTC": "2026-09-28T06:42:46.469942+00:00",
+          "exitCode": 0,
+          "log": "logs/qemu-alpine-ssh/pull-1.log",
+          "pid": 18757,
+          "finishedUTC": "2026-09-28T06:51:27.686528+00:00",
+          "stopReason": null,
+          "processExitConfirmed": true
+        }
+      ],
+      "inspections": [
+        {
+          "startedUTC": "2026-09-28T06:12:24.231553+00:00",
+          "finishedUTC": "2026-09-28T06:12:24.376088+00:00",
+          "exitCode": 1,
+          "log": "logs/qemu-alpine-ssh/inspect-1.json"
+        },
+        {
+          "startedUTC": "2026-09-28T06:27:18.184017+00:00",
+          "finishedUTC": "2026-09-28T06:27:18.285471+00:00",
+          "exitCode": 1,
+          "log": "logs/qemu-alpine-ssh/inspect-2.json"
+        },
+        {
+          "startedUTC": "2026-09-28T06:42:46.337177+00:00",
+          "finishedUTC": "2026-09-28T06:42:46.425364+00:00",
+          "exitCode": 1,
+          "log": "logs/qemu-alpine-ssh/inspect-3.json"
+        },
+        {
+          "startedUTC": "2026-09-28T06:51:27.897360+00:00",
+          "finishedUTC": "2026-09-28T06:51:28.277961+00:00",
+          "exitCode": 0,
+          "log": "logs/qemu-alpine-ssh/inspect-4.json"
+        }
+      ],
+      "reason": null
+    },
+    {
+      "task": "qemu-startup",
+      "reference": "alexgshaw/qemu-startup:20251031",
+      "status": "cached",
+      "imageId": "sha256:7feacb1ee3f271a6a99b1ab8a04f0872411d651ef9319b5d6da2eb11b61bc210",
+      "repoDigests": [
+        "alexgshaw/qemu-startup@sha256:1a666e049db553c5e713830b1f5de1953210ab7c99212d006bb4e46cbc6b6d04"
+      ],
+      "os": "linux",
+      "architecture": "amd64",
+      "attempts": [
+        {
+          "attempt": 1,
+          "startedUTC": "2026-09-28T06:51:28.446053+00:00",
+          "exitCode": 0,
+          "log": "logs/qemu-startup/pull-1.log",
+          "pid": 29836,
+          "finishedUTC": "2026-09-28T06:51:34.667377+00:00",
+          "stopReason": null,
+          "processExitConfirmed": true
+        }
+      ],
+      "inspections": [
+        {
+          "startedUTC": "2026-09-28T06:12:24.383334+00:00",
+          "finishedUTC": "2026-09-28T06:12:24.566680+00:00",
+          "exitCode": 1,
+          "log": "logs/qemu-startup/inspect-1.json"
+        },
+        {
+          "startedUTC": "2026-09-28T06:27:18.288061+00:00",
+          "finishedUTC": "2026-09-28T06:27:18.378241+00:00",
+          "exitCode": 1,
+          "log": "logs/qemu-startup/inspect-2.json"
+        },
+        {
+          "startedUTC": "2026-09-28T06:51:28.308728+00:00",
+          "finishedUTC": "2026-09-28T06:51:28.377288+00:00",
+          "exitCode": 1,
+          "log": "logs/qemu-startup/inspect-3.json"
+        },
+        {
+          "startedUTC": "2026-09-28T06:51:34.766603+00:00",
+          "finishedUTC": "2026-09-28T06:51:34.813473+00:00",
+          "exitCode": 0,
+          "log": "logs/qemu-startup/inspect-4.json"
+        }
+      ],
+      "reason": null
+    },
+    {
+      "task": "query-optimize",
+      "reference": "alexgshaw/query-optimize:20251031",
+      "status": "cached",
+      "imageId": "sha256:5654e241057913a0f1a234583c62e12ed7bfab560d9c3f0dc5da985d9f3514eb",
+      "repoDigests": [
+        "alexgshaw/query-optimize@sha256:28de7da87004eab5b29bd5eaf1823579bc5b73ccea4b80349a5623185770da14"
+      ],
+      "os": "linux",
+      "architecture": "amd64",
+      "attempts": [
+        {
+          "attempt": 1,
+          "startedUTC": "2026-09-28T06:51:35.026728+00:00",
+          "exitCode": 1,
+          "log": "logs/query-optimize/pull-1.log",
+          "pid": 29972,
+          "finishedUTC": "2026-09-28T06:51:41.336668+00:00",
+          "stopReason": null,
+          "processExitConfirmed": true
+        },
+        {
+          "attempt": 2,
+          "startedUTC": "2026-09-28T06:51:46.842757+00:00",
+          "exitCode": 0,
+          "log": "logs/query-optimize/pull-2.log",
+          "pid": 30211,
+          "finishedUTC": "2026-09-28T06:52:20.362274+00:00",
+          "stopReason": null,
+          "processExitConfirmed": true
+        }
+      ],
+      "inspections": [
+        {
+          "startedUTC": "2026-09-28T06:12:24.569024+00:00",
+          "finishedUTC": "2026-09-28T06:12:24.803219+00:00",
+          "exitCode": 1,
+          "log": "logs/query-optimize/inspect-1.json"
+        },
+        {
+          "startedUTC": "2026-09-28T06:27:18.381170+00:00",
+          "finishedUTC": "2026-09-28T06:27:18.473259+00:00",
+          "exitCode": 1,
+          "log": "logs/query-optimize/inspect-2.json"
+        },
+        {
+          "startedUTC": "2026-09-28T06:51:34.819498+00:00",
+          "finishedUTC": "2026-09-28T06:51:34.938308+00:00",
+          "exitCode": 1,
+          "log": "logs/query-optimize/inspect-3.json"
+        },
+        {
+          "startedUTC": "2026-09-28T06:51:41.526628+00:00",
+          "finishedUTC": "2026-09-28T06:51:41.592723+00:00",
+          "exitCode": 1,
+          "log": "logs/query-optimize/inspect-4.json"
+        },
+        {
+          "startedUTC": "2026-09-28T06:51:46.612977+00:00",
+          "finishedUTC": "2026-09-28T06:51:46.741260+00:00",
+          "exitCode": 1,
+          "log": "logs/query-optimize/inspect-5.json"
+        },
+        {
+          "startedUTC": "2026-09-28T06:52:20.506110+00:00",
+          "finishedUTC": "2026-09-28T06:52:20.553636+00:00",
+          "exitCode": 0,
+          "log": "logs/query-optimize/inspect-6.json"
+        }
+      ],
+      "reason": null
+    },
+    {
+      "task": "raman-fitting",
+      "reference": "alexgshaw/raman-fitting:20251031",
+      "status": "cached",
+      "imageId": "sha256:64fc1c6d2f3db01a8defcf978d3a9dc2d3f0a71c536b0baf5155b24e3a092284",
+      "repoDigests": [
+        "alexgshaw/raman-fitting@sha256:401fa95d5d491f44a473eda9d2c52930f9565cc889c796eabcb6e20fec26852e"
+      ],
+      "os": "linux",
+      "architecture": "amd64",
+      "attempts": [
+        {
+          "attempt": 1,
+          "startedUTC": "2026-09-28T06:52:20.753907+00:00",
+          "exitCode": 0,
+          "log": "logs/raman-fitting/pull-1.log",
+          "pid": 30940,
+          "finishedUTC": "2026-09-28T06:52:27.197889+00:00",
+          "stopReason": null,
+          "processExitConfirmed": true
+        }
+      ],
+      "inspections": [
+        {
+          "startedUTC": "2026-09-28T06:12:24.805874+00:00",
+          "finishedUTC": "2026-09-28T06:12:24.926141+00:00",
+          "exitCode": 1,
+          "log": "logs/raman-fitting/inspect-1.json"
+        },
+        {
+          "startedUTC": "2026-09-28T06:27:18.478075+00:00",
+          "finishedUTC": "2026-09-28T06:27:18.565486+00:00",
+          "exitCode": 1,
+          "log": "logs/raman-fitting/inspect-2.json"
+        },
+        {
+          "startedUTC": "2026-09-28T06:52:20.606427+00:00",
+          "finishedUTC": "2026-09-28T06:52:20.664681+00:00",
+          "exitCode": 1,
+          "log": "logs/raman-fitting/inspect-3.json"
+        },
+        {
+          "startedUTC": "2026-09-28T06:52:27.286054+00:00",
+          "finishedUTC": "2026-09-28T06:52:27.332931+00:00",
+          "exitCode": 0,
+          "log": "logs/raman-fitting/inspect-4.json"
+        }
+      ],
+      "reason": null
+    },
+    {
+      "task": "regex-chess",
+      "reference": "alexgshaw/regex-chess:20251031",
+      "status": "cached",
+      "imageId": "sha256:f75b4cea8135bedd201959332e8a6f68acc00bd1cf55faedd966319d3f70e842",
+      "repoDigests": [
+        "alexgshaw/regex-chess@sha256:e3b6d61d2d3930fbbdc5f7bf091a7f8b7f6125e1951ef8a7dbe165b1ef62942c"
+      ],
+      "os": "linux",
+      "architecture": "amd64",
+      "attempts": [
+        {
+          "attempt": 1,
+          "startedUTC": "2026-09-28T06:52:27.503994+00:00",
+          "exitCode": 0,
+          "log": "logs/regex-chess/pull-1.log",
+          "pid": 31105,
+          "finishedUTC": "2026-09-28T06:52:37.936135+00:00",
+          "stopReason": null,
+          "processExitConfirmed": true
+        }
+      ],
+      "inspections": [
+        {
+          "startedUTC": "2026-09-28T06:12:24.928763+00:00",
+          "finishedUTC": "2026-09-28T06:12:25.033316+00:00",
+          "exitCode": 1,
+          "log": "logs/regex-chess/inspect-1.json"
+        },
+        {
+          "startedUTC": "2026-09-28T06:27:18.570689+00:00",
+          "finishedUTC": "2026-09-28T06:27:18.679918+00:00",
+          "exitCode": 1,
+          "log": "logs/regex-chess/inspect-2.json"
+        },
+        {
+          "startedUTC": "2026-09-28T06:52:27.339669+00:00",
+          "finishedUTC": "2026-09-28T06:52:27.415293+00:00",
+          "exitCode": 1,
+          "log": "logs/regex-chess/inspect-3.json"
+        },
+        {
+          "startedUTC": "2026-09-28T06:52:38.060292+00:00",
+          "finishedUTC": "2026-09-28T06:52:38.094273+00:00",
+          "exitCode": 0,
+          "log": "logs/regex-chess/inspect-4.json"
+        }
+      ],
+      "reason": null
+    },
+    {
+      "task": "regex-log",
+      "reference": "alexgshaw/regex-log:20251031",
+      "status": "cached",
+      "imageId": "sha256:0a15c19cc78685f8d322945e882ba702ef3d0265d1f621ee00991b8e64ddb750",
+      "repoDigests": [
+        "alexgshaw/regex-log@sha256:90101b2e815323a8da20528a1439bebc407eb9761c9c68a3d557730856c878e9"
+      ],
+      "os": "linux",
+      "architecture": "amd64",
+      "attempts": [
+        {
+          "attempt": 1,
+          "startedUTC": "2026-09-28T06:52:38.352954+00:00",
+          "exitCode": 0,
+          "log": "logs/regex-log/pull-1.log",
+          "pid": 31320,
+          "finishedUTC": "2026-09-28T06:52:44.620188+00:00",
+          "stopReason": null,
+          "processExitConfirmed": true
+        }
+      ],
+      "inspections": [
+        {
+          "startedUTC": "2026-09-28T06:12:25.035526+00:00",
+          "finishedUTC": "2026-09-28T06:12:25.142309+00:00",
+          "exitCode": 1,
+          "log": "logs/regex-log/inspect-1.json"
+        },
+        {
+          "startedUTC": "2026-09-28T06:27:18.684935+00:00",
+          "finishedUTC": "2026-09-28T06:27:18.779450+00:00",
+          "exitCode": 1,
+          "log": "logs/regex-log/inspect-2.json"
+        },
+        {
+          "startedUTC": "2026-09-28T06:52:38.127822+00:00",
+          "finishedUTC": "2026-09-28T06:52:38.254089+00:00",
+          "exitCode": 1,
+          "log": "logs/regex-log/inspect-3.json"
+        },
+        {
+          "startedUTC": "2026-09-28T06:52:44.763884+00:00",
+          "finishedUTC": "2026-09-28T06:52:44.815921+00:00",
+          "exitCode": 0,
+          "log": "logs/regex-log/inspect-4.json"
+        }
+      ],
+      "reason": null
+    },
+    {
+      "task": "reshard-c4-data",
+      "reference": "alexgshaw/reshard-c4-data:20251031",
+      "status": "cached",
+      "imageId": "sha256:a1ea118e6dbb44200cb77c4de3dc38023bf80387b0e781512c2d615189ad2562",
+      "repoDigests": [
+        "alexgshaw/reshard-c4-data@sha256:92d209e704785e17ad6b3f740e813dd72bc7ac33982ce435d197ab9d890eac2a"
+      ],
+      "os": "linux",
+      "architecture": "amd64",
+      "attempts": [
+        {
+          "attempt": 1,
+          "startedUTC": "2026-09-28T06:52:44.951807+00:00",
+          "exitCode": 0,
+          "log": "logs/reshard-c4-data/pull-1.log",
+          "pid": 31445,
+          "finishedUTC": "2026-09-28T07:01:00.712731+00:00",
+          "stopReason": null,
+          "processExitConfirmed": true
+        }
+      ],
+      "inspections": [
+        {
+          "startedUTC": "2026-09-28T06:12:25.147190+00:00",
+          "finishedUTC": "2026-09-28T06:12:25.267296+00:00",
+          "exitCode": 1,
+          "log": "logs/reshard-c4-data/inspect-1.json"
+        },
+        {
+          "startedUTC": "2026-09-28T06:27:18.784146+00:00",
+          "finishedUTC": "2026-09-28T06:27:18.891434+00:00",
+          "exitCode": 1,
+          "log": "logs/reshard-c4-data/inspect-2.json"
+        },
+        {
+          "startedUTC": "2026-09-28T06:52:44.821384+00:00",
+          "finishedUTC": "2026-09-28T06:52:44.878684+00:00",
+          "exitCode": 1,
+          "log": "logs/reshard-c4-data/inspect-3.json"
+        },
+        {
+          "startedUTC": "2026-09-28T07:01:01.094186+00:00",
+          "finishedUTC": "2026-09-28T07:01:01.216951+00:00",
+          "exitCode": 0,
+          "log": "logs/reshard-c4-data/inspect-4.json"
+        }
+      ],
+      "reason": null
+    },
+    {
+      "task": "rstan-to-pystan",
+      "reference": "alexgshaw/rstan-to-pystan:20251031",
+      "status": "cached",
+      "imageId": "sha256:1b14d62b12dd1cb5420463579116a69e26fafc7d56745f8f896eb503a656b000",
+      "repoDigests": [
+        "alexgshaw/rstan-to-pystan@sha256:b23d48839408524326095c15ada4145c772b87646cf299022ff1f58c97baba91"
+      ],
+      "os": "linux",
+      "architecture": "amd64",
+      "attempts": [
+        {
+          "attempt": 1,
+          "startedUTC": "2026-09-28T07:01:01.395854+00:00",
+          "exitCode": 1,
+          "log": "logs/rstan-to-pystan/pull-1.log",
+          "pid": 42120,
+          "finishedUTC": "2026-09-28T07:01:11.421607+00:00",
+          "stopReason": null,
+          "processExitConfirmed": true
+        },
+        {
+          "attempt": 2,
+          "startedUTC": "2026-09-28T07:01:17.441127+00:00",
+          "exitCode": 1,
+          "log": "logs/rstan-to-pystan/pull-2.log",
+          "pid": 42443,
+          "finishedUTC": "2026-09-28T07:01:19.511434+00:00",
+          "stopReason": null,
+          "processExitConfirmed": true
+        },
+        {
+          "attempt": 3,
+          "startedUTC": "2026-09-28T07:01:30.805545+00:00",
+          "exitCode": 0,
+          "log": "logs/rstan-to-pystan/pull-3.log",
+          "pid": 42761,
+          "finishedUTC": "2026-09-28T07:01:47.991990+00:00",
+          "stopReason": null,
+          "processExitConfirmed": true
+        }
+      ],
+      "inspections": [
+        {
+          "startedUTC": "2026-09-28T06:12:25.270474+00:00",
+          "finishedUTC": "2026-09-28T06:12:25.368259+00:00",
+          "exitCode": 1,
+          "log": "logs/rstan-to-pystan/inspect-1.json"
+        },
+        {
+          "startedUTC": "2026-09-28T06:27:18.894679+00:00",
+          "finishedUTC": "2026-09-28T06:27:18.999142+00:00",
+          "exitCode": 1,
+          "log": "logs/rstan-to-pystan/inspect-2.json"
+        },
+        {
+          "startedUTC": "2026-09-28T07:01:01.220216+00:00",
+          "finishedUTC": "2026-09-28T07:01:01.306548+00:00",
+          "exitCode": 1,
+          "log": "logs/rstan-to-pystan/inspect-3.json"
+        },
+        {
+          "startedUTC": "2026-09-28T07:01:12.226370+00:00",
+          "finishedUTC": "2026-09-28T07:01:12.273807+00:00",
+          "exitCode": 1,
+          "log": "logs/rstan-to-pystan/inspect-4.json"
+        },
+        {
+          "startedUTC": "2026-09-28T07:01:17.315762+00:00",
+          "finishedUTC": "2026-09-28T07:01:17.376020+00:00",
+          "exitCode": 1,
+          "log": "logs/rstan-to-pystan/inspect-5.json"
+        },
+        {
+          "startedUTC": "2026-09-28T07:01:20.168923+00:00",
+          "finishedUTC": "2026-09-28T07:01:20.204167+00:00",
+          "exitCode": 1,
+          "log": "logs/rstan-to-pystan/inspect-6.json"
+        },
+        {
+          "startedUTC": "2026-09-28T07:01:30.320532+00:00",
+          "finishedUTC": "2026-09-28T07:01:30.575308+00:00",
+          "exitCode": 1,
+          "log": "logs/rstan-to-pystan/inspect-7.json"
+        },
+        {
+          "startedUTC": "2026-09-28T07:01:48.096479+00:00",
+          "finishedUTC": "2026-09-28T07:01:48.141082+00:00",
+          "exitCode": 0,
+          "log": "logs/rstan-to-pystan/inspect-8.json"
+        }
+      ],
+      "reason": null
+    },
+    {
+      "task": "sam-cell-seg",
+      "reference": "alexgshaw/sam-cell-seg:20251031",
+      "status": "cached",
+      "imageId": "sha256:792f56b9413a280dfbeb0c5b64067e4f7217f0fba16cd84918eb28928f406fd2",
+      "repoDigests": [
+        "alexgshaw/sam-cell-seg@sha256:d76bdeef19d8113f4094013249c982eca93e62e46130484846269b2d378879d0"
+      ],
+      "os": "linux",
+      "architecture": "amd64",
+      "attempts": [
+        {
+          "attempt": 1,
+          "startedUTC": "2026-09-28T07:01:48.274649+00:00",
+          "exitCode": 0,
+          "log": "logs/sam-cell-seg/pull-1.log",
+          "pid": 43093,
+          "finishedUTC": "2026-09-28T07:04:04.467160+00:00",
+          "stopReason": null,
+          "processExitConfirmed": true
+        }
+      ],
+      "inspections": [
+        {
+          "startedUTC": "2026-09-28T06:12:25.371215+00:00",
+          "finishedUTC": "2026-09-28T06:12:25.461037+00:00",
+          "exitCode": 1,
+          "log": "logs/sam-cell-seg/inspect-1.json"
+        },
+        {
+          "startedUTC": "2026-09-28T06:27:19.001886+00:00",
+          "finishedUTC": "2026-09-28T06:27:19.093460+00:00",
+          "exitCode": 1,
+          "log": "logs/sam-cell-seg/inspect-2.json"
+        },
+        {
+          "startedUTC": "2026-09-28T07:01:48.152853+00:00",
+          "finishedUTC": "2026-09-28T07:01:48.222472+00:00",
+          "exitCode": 1,
+          "log": "logs/sam-cell-seg/inspect-3.json"
+        },
+        {
+          "startedUTC": "2026-09-28T07:04:04.633594+00:00",
+          "finishedUTC": "2026-09-28T07:04:04.868180+00:00",
+          "exitCode": 0,
+          "log": "logs/sam-cell-seg/inspect-4.json"
+        }
+      ],
+      "reason": null
+    },
+    {
+      "task": "sanitize-git-repo",
+      "reference": "alexgshaw/sanitize-git-repo:20251031",
+      "status": "cached",
+      "imageId": "sha256:aed7717e5fcd600ca2db5e8c5ce33954a20b5543f0c9775429915ced251d7f55",
+      "repoDigests": [
+        "alexgshaw/sanitize-git-repo@sha256:4b5234da5bb0d67f3b0bf8db40a2883c07a5219f62b64c2bf9ff1ac84cd0f672"
+      ],
+      "os": "linux",
+      "architecture": "amd64",
+      "attempts": [
+        {
+          "attempt": 1,
+          "startedUTC": "2026-09-28T07:04:05.063759+00:00",
+          "exitCode": 1,
+          "log": "logs/sanitize-git-repo/pull-1.log",
+          "pid": 46047,
+          "finishedUTC": "2026-09-28T07:04:11.427769+00:00",
+          "stopReason": null,
+          "processExitConfirmed": true
+        },
+        {
+          "attempt": 2,
+          "startedUTC": "2026-09-28T07:04:16.877532+00:00",
+          "exitCode": 0,
+          "log": "logs/sanitize-git-repo/pull-2.log",
+          "pid": 46268,
+          "finishedUTC": "2026-09-28T07:05:07.439633+00:00",
+          "stopReason": null,
+          "processExitConfirmed": true
+        }
+      ],
+      "inspections": [
+        {
+          "startedUTC": "2026-09-28T06:12:25.463989+00:00",
+          "finishedUTC": "2026-09-28T06:12:25.546674+00:00",
+          "exitCode": 1,
+          "log": "logs/sanitize-git-repo/inspect-1.json"
+        },
+        {
+          "startedUTC": "2026-09-28T06:27:19.096057+00:00",
+          "finishedUTC": "2026-09-28T06:27:19.265196+00:00",
+          "exitCode": 1,
+          "log": "logs/sanitize-git-repo/inspect-2.json"
+        },
+        {
+          "startedUTC": "2026-09-28T07:04:04.871286+00:00",
+          "finishedUTC": "2026-09-28T07:04:04.953418+00:00",
+          "exitCode": 1,
+          "log": "logs/sanitize-git-repo/inspect-3.json"
+        },
+        {
+          "startedUTC": "2026-09-28T07:04:11.534048+00:00",
+          "finishedUTC": "2026-09-28T07:04:11.578354+00:00",
+          "exitCode": 1,
+          "log": "logs/sanitize-git-repo/inspect-4.json"
+        },
+        {
+          "startedUTC": "2026-09-28T07:04:16.622507+00:00",
+          "finishedUTC": "2026-09-28T07:04:16.766066+00:00",
+          "exitCode": 1,
+          "log": "logs/sanitize-git-repo/inspect-5.json"
+        },
+        {
+          "startedUTC": "2026-09-28T07:05:07.517172+00:00",
+          "finishedUTC": "2026-09-28T07:05:07.557520+00:00",
+          "exitCode": 0,
+          "log": "logs/sanitize-git-repo/inspect-6.json"
+        }
+      ],
+      "reason": null
+    },
+    {
+      "task": "schemelike-metacircular-eval",
+      "reference": "alexgshaw/schemelike-metacircular-eval:20251031",
+      "status": "cached",
+      "imageId": "sha256:85149ed74db9444b32fe96d058048ecbe604dfd39f19cf5deb4c0d7c10db57c9",
+      "repoDigests": [
+        "alexgshaw/schemelike-metacircular-eval@sha256:b485be38bf80d56c1a4cd9da95bbf7ec129dc03f6786b86c0525518a96f6d1db"
+      ],
+      "os": "linux",
+      "architecture": "amd64",
+      "attempts": [
+        {
+          "attempt": 1,
+          "startedUTC": "2026-09-28T07:05:07.723268+00:00",
+          "exitCode": 0,
+          "log": "logs/schemelike-metacircular-eval/pull-1.log",
+          "pid": 47330,
+          "finishedUTC": "2026-09-28T07:05:14.043995+00:00",
+          "stopReason": null,
+          "processExitConfirmed": true
+        }
+      ],
+      "inspections": [
+        {
+          "startedUTC": "2026-09-28T06:12:25.548967+00:00",
+          "finishedUTC": "2026-09-28T06:12:25.639248+00:00",
+          "exitCode": 1,
+          "log": "logs/schemelike-metacircular-eval/inspect-1.json"
+        },
+        {
+          "startedUTC": "2026-09-28T06:27:19.297269+00:00",
+          "finishedUTC": "2026-09-28T06:27:19.430632+00:00",
+          "exitCode": 1,
+          "log": "logs/schemelike-metacircular-eval/inspect-2.json"
+        },
+        {
+          "startedUTC": "2026-09-28T07:05:07.560653+00:00",
+          "finishedUTC": "2026-09-28T07:05:07.642872+00:00",
+          "exitCode": 1,
+          "log": "logs/schemelike-metacircular-eval/inspect-3.json"
+        },
+        {
+          "startedUTC": "2026-09-28T07:05:14.106202+00:00",
+          "finishedUTC": "2026-09-28T07:05:14.154064+00:00",
+          "exitCode": 0,
+          "log": "logs/schemelike-metacircular-eval/inspect-4.json"
+        }
+      ],
+      "reason": null
+    },
+    {
+      "task": "sparql-university",
+      "reference": "alexgshaw/sparql-university:20251031",
+      "status": "cached",
+      "imageId": "sha256:4b477a009da63f0cff40da8caa52e09a382bf4a0ce011cd371c09650e665ba9c",
+      "repoDigests": [
+        "alexgshaw/sparql-university@sha256:92fa4304e51167f9fb4466144eba33ef9272a7df0ac1cab9fc3986bccd1ab708"
+      ],
+      "os": "linux",
+      "architecture": "amd64",
+      "attempts": [
+        {
+          "attempt": 1,
+          "startedUTC": "2026-09-28T07:05:14.330896+00:00",
+          "exitCode": 0,
+          "log": "logs/sparql-university/pull-1.log",
+          "pid": 47472,
+          "finishedUTC": "2026-09-28T07:05:20.758507+00:00",
+          "stopReason": null,
+          "processExitConfirmed": true
+        }
+      ],
+      "inspections": [
+        {
+          "startedUTC": "2026-09-28T06:12:25.642333+00:00",
+          "finishedUTC": "2026-09-28T06:12:25.735217+00:00",
+          "exitCode": 1,
+          "log": "logs/sparql-university/inspect-1.json"
+        },
+        {
+          "startedUTC": "2026-09-28T06:27:19.468135+00:00",
+          "finishedUTC": "2026-09-28T06:27:19.573198+00:00",
+          "exitCode": 1,
+          "log": "logs/sparql-university/inspect-2.json"
+        },
+        {
+          "startedUTC": "2026-09-28T07:05:14.157122+00:00",
+          "finishedUTC": "2026-09-28T07:05:14.253466+00:00",
+          "exitCode": 1,
+          "log": "logs/sparql-university/inspect-3.json"
+        },
+        {
+          "startedUTC": "2026-09-28T07:05:20.910931+00:00",
+          "finishedUTC": "2026-09-28T07:05:20.961772+00:00",
+          "exitCode": 0,
+          "log": "logs/sparql-university/inspect-4.json"
+        }
+      ],
+      "reason": null
+    },
+    {
+      "task": "sqlite-db-truncate",
+      "reference": "alexgshaw/sqlite-db-truncate:20251031",
+      "status": "cached",
+      "imageId": "sha256:33e71d5cd2768815d8c822af32020cd12ff3b0c35f4609dbd65523d8ee98d358",
+      "repoDigests": [
+        "alexgshaw/sqlite-db-truncate@sha256:aabac93c93bd1f310e6a6fb893911d7735026ed18491c72133c9196a09092ca4"
+      ],
+      "os": "linux",
+      "architecture": "amd64",
+      "attempts": [
+        {
+          "attempt": 1,
+          "startedUTC": "2026-09-28T07:05:21.160957+00:00",
+          "exitCode": 0,
+          "log": "logs/sqlite-db-truncate/pull-1.log",
+          "pid": 47595,
+          "finishedUTC": "2026-09-28T07:05:29.617249+00:00",
+          "stopReason": null,
+          "processExitConfirmed": true
+        }
+      ],
+      "inspections": [
+        {
+          "startedUTC": "2026-09-28T06:12:25.737825+00:00",
+          "finishedUTC": "2026-09-28T06:12:25.798535+00:00",
+          "exitCode": 1,
+          "log": "logs/sqlite-db-truncate/inspect-1.json"
+        },
+        {
+          "startedUTC": "2026-09-28T06:27:19.577969+00:00",
+          "finishedUTC": "2026-09-28T06:27:19.666040+00:00",
+          "exitCode": 1,
+          "log": "logs/sqlite-db-truncate/inspect-2.json"
+        },
+        {
+          "startedUTC": "2026-09-28T07:05:20.964471+00:00",
+          "finishedUTC": "2026-09-28T07:05:21.057198+00:00",
+          "exitCode": 1,
+          "log": "logs/sqlite-db-truncate/inspect-3.json"
+        },
+        {
+          "startedUTC": "2026-09-28T07:05:29.719291+00:00",
+          "finishedUTC": "2026-09-28T07:05:29.767583+00:00",
+          "exitCode": 0,
+          "log": "logs/sqlite-db-truncate/inspect-4.json"
+        }
+      ],
+      "reason": null
+    },
+    {
+      "task": "sqlite-with-gcov",
+      "reference": "alexgshaw/sqlite-with-gcov:20251031",
+      "status": "cached",
+      "imageId": "sha256:b9726244945382a5d73839440e391c88aceeb52346805eebd8712eb1b6ba8b3a",
+      "repoDigests": [
+        "alexgshaw/sqlite-with-gcov@sha256:f986820b00c74ce75db7288719d364df313fde7c7917bea6eb6352a08431a89f"
+      ],
+      "os": "linux",
+      "architecture": "amd64",
+      "attempts": [
+        {
+          "attempt": 1,
+          "startedUTC": "2026-09-28T07:05:29.945538+00:00",
+          "exitCode": 0,
+          "log": "logs/sqlite-with-gcov/pull-1.log",
+          "pid": 47797,
+          "finishedUTC": "2026-09-28T07:05:40.460937+00:00",
+          "stopReason": null,
+          "processExitConfirmed": true
+        }
+      ],
+      "inspections": [
+        {
+          "startedUTC": "2026-09-28T06:12:25.801103+00:00",
+          "finishedUTC": "2026-09-28T06:12:25.926214+00:00",
+          "exitCode": 1,
+          "log": "logs/sqlite-with-gcov/inspect-1.json"
+        },
+        {
+          "startedUTC": "2026-09-28T06:27:19.669547+00:00",
+          "finishedUTC": "2026-09-28T06:27:19.732376+00:00",
+          "exitCode": 1,
+          "log": "logs/sqlite-with-gcov/inspect-2.json"
+        },
+        {
+          "startedUTC": "2026-09-28T07:05:29.770356+00:00",
+          "finishedUTC": "2026-09-28T07:05:29.860514+00:00",
+          "exitCode": 1,
+          "log": "logs/sqlite-with-gcov/inspect-3.json"
+        },
+        {
+          "startedUTC": "2026-09-28T07:05:40.540477+00:00",
+          "finishedUTC": "2026-09-28T07:05:40.574455+00:00",
+          "exitCode": 0,
+          "log": "logs/sqlite-with-gcov/inspect-4.json"
+        }
+      ],
+      "reason": null
+    },
+    {
+      "task": "torch-pipeline-parallelism",
+      "reference": "alexgshaw/torch-pipeline-parallelism:20251031",
+      "status": "cached",
+      "imageId": "sha256:3e61cb3c7516e90e3a5a49171a673fd3d30f9a1e2ada2358a227bfa7369e2295",
+      "repoDigests": [
+        "alexgshaw/torch-pipeline-parallelism@sha256:3cb7b39d86f1704b20e668851da0b08b34b3270c01d583f136d65190984a8d1b"
+      ],
+      "os": "linux",
+      "architecture": "amd64",
+      "attempts": [
+        {
+          "attempt": 1,
+          "startedUTC": "2026-09-28T07:05:40.757023+00:00",
+          "exitCode": 0,
+          "log": "logs/torch-pipeline-parallelism/pull-1.log",
+          "pid": 48011,
+          "finishedUTC": "2026-09-28T07:05:47.049130+00:00",
+          "stopReason": null,
+          "processExitConfirmed": true
+        }
+      ],
+      "inspections": [
+        {
+          "startedUTC": "2026-09-28T06:12:25.929242+00:00",
+          "finishedUTC": "2026-09-28T06:12:26.006922+00:00",
+          "exitCode": 1,
+          "log": "logs/torch-pipeline-parallelism/inspect-1.json"
+        },
+        {
+          "startedUTC": "2026-09-28T06:27:19.735931+00:00",
+          "finishedUTC": "2026-09-28T06:27:19.786084+00:00",
+          "exitCode": 1,
+          "log": "logs/torch-pipeline-parallelism/inspect-2.json"
+        },
+        {
+          "startedUTC": "2026-09-28T07:05:40.608254+00:00",
+          "finishedUTC": "2026-09-28T07:05:40.685894+00:00",
+          "exitCode": 1,
+          "log": "logs/torch-pipeline-parallelism/inspect-3.json"
+        },
+        {
+          "startedUTC": "2026-09-28T07:05:47.182583+00:00",
+          "finishedUTC": "2026-09-28T07:05:47.216334+00:00",
+          "exitCode": 0,
+          "log": "logs/torch-pipeline-parallelism/inspect-4.json"
+        }
+      ],
+      "reason": null
+    },
+    {
+      "task": "torch-tensor-parallelism",
+      "reference": "alexgshaw/torch-tensor-parallelism:20251031",
+      "status": "cached",
+      "imageId": "sha256:fea44fb62b9c5cf7bb98548d09f2d5f3cb564773e9ea2688bcd184390c247dcf",
+      "repoDigests": [
+        "alexgshaw/torch-tensor-parallelism@sha256:c50ac169e11465f41b49749fe87e4487f24d31a0c39c0906cd3242cc5499c690"
+      ],
+      "os": "linux",
+      "architecture": "amd64",
+      "attempts": [
+        {
+          "attempt": 1,
+          "startedUTC": "2026-09-28T07:05:47.418582+00:00",
+          "exitCode": 0,
+          "log": "logs/torch-tensor-parallelism/pull-1.log",
+          "pid": 48124,
+          "finishedUTC": "2026-09-28T07:05:53.638780+00:00",
+          "stopReason": null,
+          "processExitConfirmed": true
+        }
+      ],
+      "inspections": [
+        {
+          "startedUTC": "2026-09-28T06:12:26.010267+00:00",
+          "finishedUTC": "2026-09-28T06:12:26.090219+00:00",
+          "exitCode": 1,
+          "log": "logs/torch-tensor-parallelism/inspect-1.json"
+        },
+        {
+          "startedUTC": "2026-09-28T06:27:19.789038+00:00",
+          "finishedUTC": "2026-09-28T06:27:20.010469+00:00",
+          "exitCode": 1,
+          "log": "logs/torch-tensor-parallelism/inspect-2.json"
+        },
+        {
+          "startedUTC": "2026-09-28T07:05:47.258475+00:00",
+          "finishedUTC": "2026-09-28T07:05:47.344825+00:00",
+          "exitCode": 1,
+          "log": "logs/torch-tensor-parallelism/inspect-3.json"
+        },
+        {
+          "startedUTC": "2026-09-28T07:05:53.721248+00:00",
+          "finishedUTC": "2026-09-28T07:05:53.771105+00:00",
+          "exitCode": 0,
+          "log": "logs/torch-tensor-parallelism/inspect-4.json"
+        }
+      ],
+      "reason": null
+    },
+    {
+      "task": "train-fasttext",
+      "reference": "alexgshaw/train-fasttext:20251031",
+      "status": "cached",
+      "imageId": "sha256:ea991ff9add049c6956d2501b6f38fc612948cb30edaf8f6d61f63f90808272e",
+      "repoDigests": [
+        "alexgshaw/train-fasttext@sha256:3c77da9617e7fa577de04aef73fb1ac3114be32d7ffef72609c83929d842b157"
+      ],
+      "os": "linux",
+      "architecture": "amd64",
+      "attempts": [
+        {
+          "attempt": 1,
+          "startedUTC": "2026-09-28T07:05:53.992143+00:00",
+          "exitCode": 0,
+          "log": "logs/train-fasttext/pull-1.log",
+          "pid": 48303,
+          "finishedUTC": "2026-09-28T07:08:39.415349+00:00",
+          "stopReason": null,
+          "processExitConfirmed": true
+        }
+      ],
+      "inspections": [
+        {
+          "startedUTC": "2026-09-28T06:12:26.093078+00:00",
+          "finishedUTC": "2026-09-28T06:12:26.188174+00:00",
+          "exitCode": 1,
+          "log": "logs/train-fasttext/inspect-1.json"
+        },
+        {
+          "startedUTC": "2026-09-28T06:27:20.034373+00:00",
+          "finishedUTC": "2026-09-28T06:27:20.129183+00:00",
+          "exitCode": 1,
+          "log": "logs/train-fasttext/inspect-2.json"
+        },
+        {
+          "startedUTC": "2026-09-28T07:05:53.778682+00:00",
+          "finishedUTC": "2026-09-28T07:05:53.913264+00:00",
+          "exitCode": 1,
+          "log": "logs/train-fasttext/inspect-3.json"
+        },
+        {
+          "startedUTC": "2026-09-28T07:08:39.648619+00:00",
+          "finishedUTC": "2026-09-28T07:08:39.775279+00:00",
+          "exitCode": 0,
+          "log": "logs/train-fasttext/inspect-4.json"
+        }
+      ],
+      "reason": null
+    },
+    {
+      "task": "tune-mjcf",
+      "reference": "alexgshaw/tune-mjcf:20251031",
+      "status": "cached",
+      "imageId": "sha256:9b16b1b03963fede220751f194eaa4e59c22a7341290a5a26fef85cbbaf09f14",
+      "repoDigests": [
+        "alexgshaw/tune-mjcf@sha256:56c197739db2db79562384581fcc9d3d71e6c171bf052104b1a7ee0282e7c3cf"
+      ],
+      "os": "linux",
+      "architecture": "amd64",
+      "attempts": [
+        {
+          "attempt": 1,
+          "startedUTC": "2026-09-28T07:08:39.954488+00:00",
+          "exitCode": 0,
+          "log": "logs/tune-mjcf/pull-1.log",
+          "pid": 51766,
+          "finishedUTC": "2026-09-28T07:08:59.013249+00:00",
+          "stopReason": null,
+          "processExitConfirmed": true
+        }
+      ],
+      "inspections": [
+        {
+          "startedUTC": "2026-09-28T06:12:26.190905+00:00",
+          "finishedUTC": "2026-09-28T06:12:26.260282+00:00",
+          "exitCode": 1,
+          "log": "logs/tune-mjcf/inspect-1.json"
+        },
+        {
+          "startedUTC": "2026-09-28T06:27:20.132129+00:00",
+          "finishedUTC": "2026-09-28T06:27:20.216126+00:00",
+          "exitCode": 1,
+          "log": "logs/tune-mjcf/inspect-2.json"
+        },
+        {
+          "startedUTC": "2026-09-28T07:08:39.778261+00:00",
+          "finishedUTC": "2026-09-28T07:08:39.876243+00:00",
+          "exitCode": 1,
+          "log": "logs/tune-mjcf/inspect-3.json"
+        },
+        {
+          "startedUTC": "2026-09-28T07:08:59.125170+00:00",
+          "finishedUTC": "2026-09-28T07:08:59.174756+00:00",
+          "exitCode": 0,
+          "log": "logs/tune-mjcf/inspect-4.json"
+        }
+      ],
+      "reason": null
+    },
+    {
+      "task": "video-processing",
+      "reference": "alexgshaw/video-processing:20251031",
+      "status": "cached",
+      "imageId": "sha256:48c2f3683967aff593e02b1ef5b138ae5e4db7980bccd403ea550694b6fa8e43",
+      "repoDigests": [
+        "alexgshaw/video-processing@sha256:a2c0f39e3ab04e67ac6e49cad9167bb0d987babe32511768c01aa0c6905a875f"
+      ],
+      "os": "linux",
+      "architecture": "amd64",
+      "attempts": [
+        {
+          "attempt": 1,
+          "startedUTC": "2026-09-28T07:08:59.307715+00:00",
+          "exitCode": 0,
+          "log": "logs/video-processing/pull-1.log",
+          "pid": 52183,
+          "finishedUTC": "2026-09-28T07:10:25.162657+00:00",
+          "stopReason": null,
+          "processExitConfirmed": true
+        }
+      ],
+      "inspections": [
+        {
+          "startedUTC": "2026-09-28T06:12:26.263045+00:00",
+          "finishedUTC": "2026-09-28T06:12:26.402028+00:00",
+          "exitCode": 1,
+          "log": "logs/video-processing/inspect-1.json"
+        },
+        {
+          "startedUTC": "2026-09-28T06:27:20.218891+00:00",
+          "finishedUTC": "2026-09-28T06:27:20.303002+00:00",
+          "exitCode": 1,
+          "log": "logs/video-processing/inspect-2.json"
+        },
+        {
+          "startedUTC": "2026-09-28T07:08:59.177903+00:00",
+          "finishedUTC": "2026-09-28T07:08:59.246436+00:00",
+          "exitCode": 1,
+          "log": "logs/video-processing/inspect-3.json"
+        },
+        {
+          "startedUTC": "2026-09-28T07:10:25.312228+00:00",
+          "finishedUTC": "2026-09-28T07:10:25.406193+00:00",
+          "exitCode": 0,
+          "log": "logs/video-processing/inspect-4.json"
+        }
+      ],
+      "reason": null
+    },
+    {
+      "task": "vulnerable-secret",
+      "reference": "alexgshaw/vulnerable-secret:20251031",
+      "status": "cached",
+      "imageId": "sha256:54e36ed5f26ccc7489bde8745c86e6d8f2ce8927d2a5719316480716f550bf54",
+      "repoDigests": [
+        "alexgshaw/vulnerable-secret@sha256:61ebb40454dd103aa2f7e71ad6dafd91cf2b301e6bb07e69d5b472412d1ee15b"
+      ],
+      "os": "linux",
+      "architecture": "amd64",
+      "attempts": [
+        {
+          "attempt": 1,
+          "startedUTC": "2026-09-28T07:10:25.613046+00:00",
+          "exitCode": 0,
+          "log": "logs/vulnerable-secret/pull-1.log",
+          "pid": 53986,
+          "finishedUTC": "2026-09-28T07:11:01.397547+00:00",
+          "stopReason": null,
+          "processExitConfirmed": true
+        }
+      ],
+      "inspections": [
+        {
+          "startedUTC": "2026-09-28T06:12:26.404667+00:00",
+          "finishedUTC": "2026-09-28T06:12:26.537444+00:00",
+          "exitCode": 1,
+          "log": "logs/vulnerable-secret/inspect-1.json"
+        },
+        {
+          "startedUTC": "2026-09-28T06:27:20.305390+00:00",
+          "finishedUTC": "2026-09-28T06:27:20.411428+00:00",
+          "exitCode": 1,
+          "log": "logs/vulnerable-secret/inspect-2.json"
+        },
+        {
+          "startedUTC": "2026-09-28T07:10:25.433855+00:00",
+          "finishedUTC": "2026-09-28T07:10:25.530460+00:00",
+          "exitCode": 1,
+          "log": "logs/vulnerable-secret/inspect-3.json"
+        },
+        {
+          "startedUTC": "2026-09-28T07:11:01.549815+00:00",
+          "finishedUTC": "2026-09-28T07:11:01.617767+00:00",
+          "exitCode": 0,
+          "log": "logs/vulnerable-secret/inspect-4.json"
+        }
+      ],
+      "reason": null
+    },
+    {
+      "task": "winning-avg-corewars",
+      "reference": "alexgshaw/winning-avg-corewars:20251031",
+      "status": "cached",
+      "imageId": "sha256:d372f2022972a03c8a7d16f631e9171dad3a65e1d119a97d4875167f8db3e6ca",
+      "repoDigests": [
+        "alexgshaw/winning-avg-corewars@sha256:ad7a6b1c53aed59e10916c692aa7e2ae00042a4283187430aee1e3e79f72d5c6"
+      ],
+      "os": "linux",
+      "architecture": "amd64",
+      "attempts": [
+        {
+          "attempt": 1,
+          "startedUTC": "2026-09-28T07:11:01.815831+00:00",
+          "exitCode": 0,
+          "log": "logs/winning-avg-corewars/pull-1.log",
+          "pid": 54788,
+          "finishedUTC": "2026-09-28T07:13:29.359482+00:00",
+          "stopReason": null,
+          "processExitConfirmed": true
+        }
+      ],
+      "inspections": [
+        {
+          "startedUTC": "2026-09-28T06:12:26.540387+00:00",
+          "finishedUTC": "2026-09-28T06:12:26.651214+00:00",
+          "exitCode": 1,
+          "log": "logs/winning-avg-corewars/inspect-1.json"
+        },
+        {
+          "startedUTC": "2026-09-28T06:27:20.414706+00:00",
+          "finishedUTC": "2026-09-28T06:27:20.565602+00:00",
+          "exitCode": 1,
+          "log": "logs/winning-avg-corewars/inspect-2.json"
+        },
+        {
+          "startedUTC": "2026-09-28T07:11:01.623712+00:00",
+          "finishedUTC": "2026-09-28T07:11:01.734422+00:00",
+          "exitCode": 1,
+          "log": "logs/winning-avg-corewars/inspect-3.json"
+        },
+        {
+          "startedUTC": "2026-09-28T07:13:29.476718+00:00",
+          "finishedUTC": "2026-09-28T07:13:29.527174+00:00",
+          "exitCode": 0,
+          "log": "logs/winning-avg-corewars/inspect-4.json"
+        }
+      ],
+      "reason": null
+    },
+    {
+      "task": "write-compressor",
+      "reference": "alexgshaw/write-compressor:20251031",
+      "status": "cached",
+      "imageId": "sha256:795a10ee52aa610a840b6587c5a1d2194175faa76c58879c8846a115b601902a",
+      "repoDigests": [
+        "alexgshaw/write-compressor@sha256:3618e1f8a997b437c09cd3dbaac736705809c05f6f12f584b65722175970ebe1"
+      ],
+      "os": "linux",
+      "architecture": "amd64",
+      "attempts": [
+        {
+          "attempt": 1,
+          "startedUTC": "2026-09-28T07:13:29.683598+00:00",
+          "exitCode": 0,
+          "log": "logs/write-compressor/pull-1.log",
+          "pid": 58019,
+          "finishedUTC": "2026-09-28T07:16:11.178976+00:00",
+          "stopReason": null,
+          "processExitConfirmed": true
+        }
+      ],
+      "inspections": [
+        {
+          "startedUTC": "2026-09-28T06:12:26.653551+00:00",
+          "finishedUTC": "2026-09-28T06:12:26.791750+00:00",
+          "exitCode": 1,
+          "log": "logs/write-compressor/inspect-1.json"
+        },
+        {
+          "startedUTC": "2026-09-28T06:27:20.568272+00:00",
+          "finishedUTC": "2026-09-28T06:27:20.682869+00:00",
+          "exitCode": 1,
+          "log": "logs/write-compressor/inspect-2.json"
+        },
+        {
+          "startedUTC": "2026-09-28T07:13:29.533525+00:00",
+          "finishedUTC": "2026-09-28T07:13:29.601363+00:00",
+          "exitCode": 1,
+          "log": "logs/write-compressor/inspect-3.json"
+        },
+        {
+          "startedUTC": "2026-09-28T07:16:11.315213+00:00",
+          "finishedUTC": "2026-09-28T07:16:11.406683+00:00",
+          "exitCode": 0,
+          "log": "logs/write-compressor/inspect-4.json"
+        }
+      ],
+      "reason": null
+    }
+  ],
+  "limitations": [
+    "mteb-retrieve pull stopped by Builder after repeated layer retries and 706 seconds; exit143 recorded",
+    "pytorch-model-recovery pull timed out at600 seconds; exit143 recorded",
+    "Both failed images remain absent at final inspect; no claim of permanent unavailability",
+    "Campaign recovery and4CPU/8GiB runtime admission adaptation are separately required; no live activation",
+    "32 image scope only;57 historical reserved tasks excluded; segment2 missing evidence remains unresolved"
+  ]
+}
