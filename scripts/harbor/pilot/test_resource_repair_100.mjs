@@ -15,12 +15,12 @@ function fixture(){
  const sample=roots=>{const url=new URL('./full-durable.mjs',import.meta.url).href;const code=`import {sampleDurable} from ${JSON.stringify(url)};console.log(JSON.stringify(sampleDurable(process.argv[1],JSON.parse(process.argv[2]))));`;const p=spawnSync(process.execPath,['--input-type=module','-e',code,root,JSON.stringify(roots)],{env:{PATH:process.env.PATH,HOME:home},encoding:'utf8'});assert.equal(p.status,0,p.stderr);return JSON.parse(p.stdout);};
  return {dir,root,outside,home,layout,sample,target:join(root,'new-campaign')};
 }
-test('R100-01 external active alias rejected unless its actual storage is declared; near39GiB remains closed',()=>{
+test('R100-01 external active alias rejected unless its actual storage is declared; near54GiB remains closed',()=>{
  const c=fixture(),file=join(c.outside,'entry.js');writeFileSync(file,randomBytes(65536));symlinkSync(file,c.layout.entry);
  assert.throws(()=>validateLayout(c.layout,c.target,'offline-control'),/durable_storage_omitted/);
  const rootsAlias=join(c.dir,'outside-alias');symlinkSync(c.outside,rootsAlias);c.layout.ownedRoots.push(rootsAlias);validateLayout(c.layout,c.target,'offline-control');
  const missing=c.sample([c.root]),complete=c.sample(c.layout.ownedRoots),allocated=statSync(file).blocks*512;assert(allocated>0);assert.equal(complete.owned-missing.owned,allocated);
- const baseline={docker:48503971840},docker=baseline.docker+39*2**30-complete.owned+1;
+ const baseline={docker:48503971840},docker=baseline.docker+54*2**30-complete.owned+1;
  resourceCheck('',baseline,{free:30*2**30,owned:missing.owned,docker});assert.throws(()=>resourceCheck('',baseline,{free:30*2**30,owned:complete.owned,docker}),/resource_boundary/);
 });
 test('R100-01 valid internal alias, root alias, overlapping roots and repeated inode count once',()=>{

@@ -16,10 +16,10 @@ const host={mode:'live',runnerSha:()=> 'f'.repeat(40),internal:()=>{},sample:()=
 function fixture(){const root=mkdtempSync(join(base,'case-')),source=join(root,'campaign-disk20'),target=join(root,'campaign-disk39');cpSync(process.env.WO99_SOURCE??EXECUTED_SOURCE,source,{recursive:true});return {root,source,target};}
 function ready(c){const store=new Store(c.target);attachHistory(store);return store;}
 test('C-GROW99-01 exact free/increment thresholds, old24 admitted, original baseline formula',()=>{
- for(const free of [20*2**30-1,20*2**30,20*2**30+1])for(const increment of [24*2**30-1,24*2**30,24*2**30+1,39*2**30-1,39*2**30,39*2**30+1]){
-  const call=()=>resourceCheck('',{docker:100},{free,owned:7,docker:100+increment-7});if(free>=20*2**30&&increment<39*2**30)call();else assert.throws(call,/resource_boundary/);
+ for(const free of [20*2**30-1,20*2**30,20*2**30+1])for(const increment of [24*2**30-1,24*2**30,24*2**30+1,54*2**30-1,54*2**30,54*2**30+1]){
+  const call=()=>resourceCheck('',{docker:100},{free,owned:7,docker:100+increment-7});if(free>=20*2**30&&increment<54*2**30)call();else assert.throws(call,/resource_boundary/);
  }
- assert.throws(()=>resourceCheck('',{docker:100},{free:30*2**30,owned:39*2**30,docker:0}),/resource_boundary/);
+ assert.throws(()=>resourceCheck('',{docker:100},{free:30*2**30,owned:54*2**30,docker:0}),/resource_boundary/);
 });
 test('C-GROW99-02 original37 outcomes+usage retained; actual CLI status, signed fake run only52 eligible',async()=>{
  const c=fixture(),before=inventory(c.source),original=aggregate(inspectExecuted(c.source),manifest);await executedSuccessor(c.source,c.target,host);assert.throws(()=>inspectExecuted(c.source).add('preparation',{}),/archive_read_only/);const imported=aggregate(ready(c),manifest);assert.deepEqual(imported.rows,original.rows);assert.deepEqual(imported.knownObservedTotals,original.knownObservedTotals);assert.equal(imported.notStarted,52);assert.deepEqual(inventory(c.source),before);
@@ -28,12 +28,12 @@ test('C-GROW99-02 original37 outcomes+usage retained; actual CLI status, signed 
  const cmd=(command,args=[],ok=true)=>{const p=spawnSync(process.execPath,[driver,fp,command,'--campaign',c.target,...args],{encoding:'utf8',env:{PATH:process.env.PATH,HOME:home,TMPDIR:c.root,PYTHONDONTWRITEBYTECODE:'1'},maxBuffer:16*1024*1024});if(ok)assert.equal(p.status,0,p.stderr);return p;};
  const sourceSnapshot=inventory(join(c.target,'history-original'));const ids=original.rows.filter(r=>r.state==='not_started').map(r=>r.task);assert.equal(ids.length,52);
  for(const row of original.rows.filter(r=>r.runId)){assert.notEqual(cmd('prepare',['--task',row.task,'--task-root',c.root],false).status,0);assert.notEqual(cmd('status',['--task',row.task],false).status,0);}
- cmd('prepare',['--task',ids.join(','),'--task-root',c.root]);const binding=JSON.parse(cmd('status',['--task',ids.join(',')]).stdout).proposedBinding;assert.equal(binding.full.resourcePolicy.incrementExclusiveBytes,39*2**30);assert.equal(binding.full.segmentIndex,2);
+ cmd('prepare',['--task',ids.join(','),'--task-root',c.root]);const binding=JSON.parse(cmd('status',['--task',ids.join(',')]).stdout).proposedBinding;assert.equal(binding.full.resourcePolicy.incrementExclusiveBytes,54*2**30);assert.equal(binding.full.segmentIndex,2);
  const payload={authorized:true,version:2,validity:'run-bound',runId:randomUUID(),humanAuthorizationId:'synthetic99',notBefore:'2020-01-01T00:00:00Z',expiresAt:null,binding};const path=join(c.root,'permit.json');const save=()=>writeFileSync(path,JSON.stringify({...payload,signature:sign(null,Buffer.from(canonical(payload)),keys.privateKey).toString('base64')}));
  const run=(ok)=>cmd('run',['--activation',path,'--entry',join(c.root,'entry'),'--task-root',c.root],ok);
  const newId=payload.runId;payload.runId='eecf5765-a6fe-47ab-9286-aa825fa0aba7';save();assert.match(run(false).stderr,/run_already_consumed/);payload.runId=newId;
  const newSha=binding.runnerSha;binding.runnerSha='dc42190f547f352250be986ed76587667c5e59db';save();assert.notEqual(run(false).status,0);binding.runnerSha=newSha;
- binding.full.resourcePolicy.incrementExclusiveBytes=24*2**30;save();assert.notEqual(run(false).status,0);binding.full.resourcePolicy.incrementExclusiveBytes=39*2**30;save();run(true);
+ binding.full.resourcePolicy.incrementExclusiveBytes=24*2**30;save();assert.notEqual(run(false).status,0);binding.full.resourcePolicy.incrementExclusiveBytes=54*2**30;save();run(true);
  const final=JSON.parse(cmd('status').stdout);assert.equal(final.notStarted,0);assert.equal(final.successes,68);assert.deepEqual(final.rows.filter(r=>r.runId==='eecf5765-a6fe-47ab-9286-aa825fa0aba7'),original.rows.filter(r=>r.runId));assert.deepEqual(inventory(join(c.target,'history-original')),sourceSnapshot);assert.deepEqual(inventory(c.source),before);
  const effects=readFileSync(join(c.root,'effects.jsonl'),'utf8').trim().split('\n').map(JSON.parse);const starts=effects.filter(r=>r.kind==='start');assert.equal(starts.length,52);assert.deepEqual(starts.map(r=>r.task),ids);
  await assert.rejects(executedSuccessor(c.source,c.target,host),/EEXIST/);

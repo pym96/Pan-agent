@@ -92,3 +92,5 @@ Raw artifacts remain at their stable source, Git, Trace, Test, evaluator, or ext
 - [#100 first Verdict repair](benchmark-recovery-100-repair-1.md): C-REC-03 real-path
   storage coverage/inode accounting and primitive memory-string validation;
   original candidate and independent rejection evidence retained.
+
+- [#101 disk54 candidate](disk54-101.md) / [summary](disk54-101-summary.json): prospective cumulative policy, historical consumption and old-permit rejection, offline evidence only.

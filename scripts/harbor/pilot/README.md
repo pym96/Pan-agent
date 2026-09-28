@@ -263,3 +263,5 @@ activate a real campaign, and the original manifests/package identity stay froze
 `test_resource_repair_100.mjs` covers the first #100 Verdict's storage aliases,
 physical-root coverage/inode accounting and strict memory-field typing. Run with
 `WO100_REPAIR_ROOT` set to a new issue-owned persistent fixture directory.
+
+- #101 prospective disk policy: strict cumulative <54 GiB, free >=20 GiB, original baseline unchanged. `test_disk_101.mjs` uses one retained-source recovery fixture (`WO101_SOURCE`, `WO101_TEST_ROOT`); no live effects. See [evidence](../../../docs/evidence/disk54-101.md).
