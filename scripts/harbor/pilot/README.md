@@ -259,3 +259,7 @@ See [durable recovery and runbook](../../../docs/design/benchmark-recovery-100.m
 interruptions, archive failure and resource/signature boundaries. `restore97` creates
 new identity; `archive` supplements copies without task execution. This does not
 activate a real campaign, and the original manifests/package identity stay frozen.
+
+`test_resource_repair_100.mjs` covers the first #100 Verdict's storage aliases,
+physical-root coverage/inode accounting and strict memory-field typing. Run with
+`WO100_REPAIR_ROOT` set to a new issue-owned persistent fixture directory.

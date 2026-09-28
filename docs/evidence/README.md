@@ -88,3 +88,7 @@ Raw artifacts remain at their stable source, Git, Trace, Test, evaluator, or ext
 - [#100 recovery candidate](benchmark-recovery-100.md) / [summary](benchmark-recovery-100-summary.json):
   pinned57-consumption recovery, unknown score retention, persistent task archives
   and official4CPU/8GiB admission. Offline evidence only; independent review pending.
+
+- [#100 first Verdict repair](benchmark-recovery-100-repair-1.md): C-REC-03 real-path
+  storage coverage/inode accounting and primitive memory-string validation;
+  original candidate and independent rejection evidence retained.

@@ -135,3 +135,21 @@ Do not recreate production paths merely to satisfy historical tests.
    the old run, delete ledgers or regenerate metadata to bypass a block.
 
 This workorder did not execute any of these live migration/activation steps.
+
+## Repair after first independent Verdict (Criteria1.0 unchanged)
+
+The first candidate allowed a lexical path to cover a symlink target outside the
+measured roots. Layout checks now compare resolved storage paths, including
+not-yet-created suffixes under resolved existing ancestors. Uncovered real targets,
+dangling links and temporary targets reject. An external persistent interpreter
+or entry alias requires its actual target in `ownedRoots`; the declared root itself
+may be an alias, because sampling resolves declared and mandatory retained roots
+before walking. Physical files reached by multiple roots/hardlinks count once.
+This does not follow arbitrary incidental links during recursive traversal: every
+accepted active target must resolve within a declared physical root.
+
+Memory admission also requires a primitive string before parsing. Arrays, nested
+arrays and boxed/coercible objects cannot acquire authority through string coercion.
+See the [repair evidence](../evidence/benchmark-recovery-100-repair-1.md) for both
+Verdict counterexamples and targeted controls. Official task bytes and disk formula
+remain unchanged.

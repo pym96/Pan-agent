@@ -1,14 +1,21 @@
 import {readFileSync,writeFileSync,existsSync,readdirSync,lstatSync,statSync,statfsSync,realpathSync,mkdirSync,openSync,fsyncSync,closeSync} from 'node:fs';
-import {join,resolve,dirname,isAbsolute} from 'node:path';
+import {join,resolve,dirname,isAbsolute,relative} from 'node:path';
 import {homedir} from 'node:os';
 import {check,canonical,digest} from './policy.mjs';
 import {durable} from './full-store.mjs';
 const within=(p,r)=>p===r||p.startsWith(r+'/');
-export function persistentPath(p){check(isAbsolute(p),'durable_absolute_path');let q=resolve(p);while(!existsSync(q))q=dirname(q);const actual=realpathSync(q);check(!['/private/tmp','/tmp','/var/tmp','/private/var/tmp','/private/var/folders','/var/folders'].some(r=>within(actual,r)),'temporary_runtime_path');}
+// Resolve existing aliases, preserving a not-yet-created suffix for layout planning.
+function storagePath(p){
+ check(typeof p==='string'&&isAbsolute(p),'durable_absolute_path');const path=resolve(p);let q=path;
+ while(!existsSync(q)){try{check(!lstatSync(q).isSymbolicLink(),'durable_dangling_alias');}catch(e){if(e.code!=='ENOENT')throw e;}q=dirname(q);}
+ return resolve(realpathSync(q),relative(q,path));
+}
+export function persistentPath(p){const actual=storagePath(p);check(!['/private/tmp','/tmp','/var/tmp','/private/var/tmp','/private/var/folders','/var/folders'].some(r=>within(actual,r)),'temporary_runtime_path');return actual;}
 export function validateLayout(layout,target,mode){
  check(layout?.version===1&&Array.isArray(layout.ownedRoots)&&layout.ownedRoots.length>0,'durable_layout');
  for(const p of [target,layout.runner,layout.entry,layout.python,layout.harborRoot,layout.taskRoot,...layout.ownedRoots])persistentPath(p);
- check(layout.ownedRoots.some(p=>within(resolve(target),resolve(p)))&&[layout.runner,layout.entry,layout.python,layout.harborRoot,layout.taskRoot].every(p=>layout.ownedRoots.some(r=>within(resolve(p),resolve(r)))),'durable_storage_omitted');
+ const roots=layout.ownedRoots.map(storagePath);
+ check([target,layout.runner,layout.entry,layout.python,layout.harborRoot,layout.taskRoot].every(p=>roots.some(r=>within(storagePath(p),r))),'durable_storage_omitted');
  check(isAbsolute(layout.archiveRoot)&&!within(resolve(layout.archiveRoot),resolve(target)),'durable_archive_path');
  if(mode==='live')check(layout.archiveRoot.startsWith('/Volumes/WD_BLACK/'),'durable_external_archive');
 }
@@ -17,7 +24,7 @@ export function sampleDurable(root,roots){
  // Restored old runtime, preparations and global ledgers remain cumulative costs.
  const required=[join(homedir(),'.local/state/pan-agent'),'/private/tmp/wo97-live','/private/tmp/wo97-runner-disk39','/private/tmp/wo74-work','/private/tmp/wo94-kimi'];
  const raw=join(homedir(),'Library/Containers/com.docker.docker/Data/vms/0/data/Docker.raw'),s=statfsSync(root);
- check(existsSync(raw),'resource_sample_unknown');return {utc:new Date().toISOString(),free:s.bavail*s.bsize,owned:[...roots,...required].reduce((n,p)=>n+walk(p),0),docker:statSync(raw).blocks*512};
+ check(existsSync(raw),'resource_sample_unknown');return {utc:new Date().toISOString(),free:s.bavail*s.bsize,owned:[...roots,...required].map(storagePath).reduce((n,p)=>n+walk(p),0),docker:statSync(raw).blocks*512};
 }
 export function flushTree(root){for(const name of readdirSync(root)){const p=join(root,name),s=lstatSync(p);check(!s.isSymbolicLink(),'archive_symlink');if(s.isDirectory())flushTree(p);else {check(s.isFile(),'archive_special');const fd=openSync(p,'r');try{fsyncSync(fd);}finally{closeSync(fd);}}}const fd=openSync(root,'r');try{fsyncSync(fd);}finally{closeSync(fd);}}
 function collect(root,rel='',out={}){for(const n of readdirSync(join(root,rel)).sort()){const key=rel?rel+'/'+n:n,p=join(root,key),s=lstatSync(p);check(!s.isSymbolicLink(),'archive_symlink');if(s.isDirectory())collect(root,key,out);else{check(s.isFile(),'archive_special');out[key]=digest(readFileSync(p));}}return out;}

@@ -36,7 +36,7 @@ export function validateFiles(task,root){
  for(const f of task.files){const b=readFileSync(join(dir,f.path));check(createHash('sha1').update(Buffer.concat([Buffer.from(`blob ${b.length}\0`),b])).digest('hex')===f.git_blob_sha1,'task_source_identity');}
 }
 export const EXECUTION_POLICY=Object.freeze({version:1,maxCpus:4,maxMemoryMiB:8192,serial:true,disk:DISK_POLICY});
-export function requirements(task,policy={maxCpus:2,maxMemoryMiB:4096}){const e=task.config.environment,m=/^(\d+(?:\.\d+)?)([MG])$/.exec(e.memory??'');return typeof e.cpus==='number'&&e.cpus>0&&Number.isFinite(e.cpus)&&e.cpus<=policy.maxCpus&&m&&Number(m[1])>0&&Number(m[1])*(m[2]==='G'?1024:1)<=policy.maxMemoryMiB;}
+export function requirements(task,policy={maxCpus:2,maxMemoryMiB:4096}){const e=task.config.environment,m=typeof e.memory==='string'?/^(\d+(?:\.\d+)?)([MG])$/.exec(e.memory):null;return typeof e.cpus==='number'&&e.cpus>0&&Number.isFinite(e.cpus)&&e.cpus<=policy.maxCpus&&m&&Number(m[1])>0&&Number(m[1])*(m[2]==='G'?1024:1)<=policy.maxMemoryMiB;}
 export async function prepare(task,taskRoot,policy){
  if(!requirements(task,policy))return {ready:false,reason:'official_resource_requirements_exceed_host',global:false};
  try{validateFiles(task,taskRoot);}catch{return {ready:false,reason:'task_source_missing_or_invalid',global:false};}
