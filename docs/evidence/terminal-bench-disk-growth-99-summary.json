@@ -1,0 +1,43 @@
+{
+  "issue": 99,
+  "criteria": "1.0",
+  "base": "dc42190f547f352250be986ed76587667c5e59db",
+  "status": "candidate; independent review pending",
+  "freeFloorBytes": 21474836480,
+  "incrementExclusiveBytes": 41875931136,
+  "sourceCheckpoint": "2042e9534a5943c8386d1f7e03150a02dd7ecf60ebc045a064900f26f59ac68f",
+  "sourceInventory": "fa179cba8ee9b278977322ad77e98846d23b3468b892e93e8a805272358ddc7d",
+  "preservation": {
+    "sourceFiles": 772,
+    "sourceInventory": "fa179cba8ee9b278977322ad77e98846d23b3468b892e93e8a805272358ddc7d",
+    "unchanged": true,
+    "historicalLedgersUnchanged": 10,
+    "productionSuccessorAbsent": true,
+    "main": "dc42190f547f352250be986ed76587667c5e59db"
+  },
+  "tests": {
+    "growth": 10,
+    "full": 28,
+    "preparation": 11,
+    "identity": 9,
+    "failures": 0,
+    "hostAcceptance": "PASS"
+  },
+  "syntheticContinuation": {
+    "historicalReservedPreserved": 37,
+    "unstartedEligible": 52,
+    "syntheticNewStarts": 52,
+    "historicalAttemptsRepeated": 0
+  },
+  "realCalls": 0,
+  "taskContainers": 0,
+  "officialScoring": 0,
+  "imageDownloads": 0,
+  "productionMigration": false,
+  "evidence": {
+    "archive": "/Volumes/WD_BLACK/pan-agent/wo99-disk-20260928/builder-evidence.tar.gz",
+    "sha256": "9004c6eabb1a938b9d7d3830d726684747149f974ccef2d8185c958ae4529467",
+    "indexSha256": "4fc53577733df8fa761f1694dbc06b9fcaad97347a0f812da1aeb6c5d4fcd667",
+    "entries": 2035
+  }
+}

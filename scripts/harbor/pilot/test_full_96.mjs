@@ -29,7 +29,7 @@ test('C01 exact frozen89 registry population/config provenance; old five intact'
  const old=JSON.parse(readFileSync(new URL('./manifest.json',import.meta.url)));assert.equal(ids.length,89);assert.equal(new Set(ids).size,89);assert.deepEqual(ids,old.registry_entry.tasks.map(t=>t.name));
  for(const t of manifest.tasks){assert.equal(t.git_commit_id,'69671fbaac6d67a7ef0dfec016cc38a64ef7a77c');assert(t.config_source.includes(t.git_commit_id));assert(t.files.some(f=>f.path==='task.toml'));}
  for(const t of old.tasks)assert.deepEqual(manifest.tasks.find(x=>x.id===t.id).config,t.config);
- assert(!requirements({config:{environment:{cpus:8,memory:'16G'}}}));assert.throws(()=>resourceCheck('unused',{docker:0},{free:100*2**30,owned:0,docker:25*2**30}),/resource_boundary/);
+ assert(!requirements({config:{environment:{cpus:8,memory:'16G'}}}));assert.throws(()=>resourceCheck('unused',{docker:0},{free:100*2**30,owned:0,docker:40*2**30}),/resource_boundary/);
 });
 test('C03 actual CLI89 total: normal failures continue, raw0 unscored, retry usage preserved',()=>{
  const c=setup();c.config.scenarios={[ids[0]]:'valid_failure',[ids[1]]:'prep_zero',[ids[2]]:'environment',[ids[3]]:'model',[ids[4]]:'retry'};
@@ -63,7 +63,7 @@ test('C02 signed identity/checkpoint/image/list mutation and consumed fresh perm
 });
 test('C03 global model block pauses; new segment only remaining, cumulative resource baseline cannot reset',()=>{
  const c=setup();c.config.scenarios={[ids[0]]:'global'};c.prepare(ids.slice(0,3));c.run(c.permit(ids.slice(0,3)));assert.deepEqual(c.effects().filter(e=>e.kind==='start').map(e=>e.task),[ids[0]]);assert.equal(c.status().notStarted,88);
- c.config.docker=25*2**30;assert.match(c.cmd('prepare',['--task',ids[1],'--task-root',c.root],false).stderr,/resource_boundary/);assert.equal(c.status().notStarted,88);
+ c.config.docker=40*2**30;assert.match(c.cmd('prepare',['--task',ids[1],'--task-root',c.root],false).stderr,/resource_boundary/);assert.equal(c.status().notStarted,88);
 });
 test('C03 preparation failure before reservation stays visible/unstarted, global preparation blocks next',()=>{
  const c=setup();c.config.scenarios={[ids[0]]:'not_cached',[ids[1]]:'global_prepare'};c.prepare(ids.slice(0,3));const s=c.status();assert.equal(s.notStarted,89);assert.equal(s.rows[0].preparations[0].reason,'image_not_cached');assert.equal(s.rows[1].preparations[0].global,true);assert.equal(s.rows[2].preparations.length,0);
@@ -101,9 +101,9 @@ for(const free of [20*2**30-1,20*2**30,20*2**30+1])test('C-DISK-01 actual CLI in
  if(free<20*2**30){assert.throws(()=>setup({free}),/resource_boundary/);return;}
  const c=setup({free});c.prepare([ids[0]]);c.run(c.permit([ids[0]]));assert.equal(c.status().successes,1);
 });
-for(const delta of [24*2**30-1,24*2**30])test('C-DISK-01 actual CLI prepare/run cumulative='+delta,()=>{
+for(const delta of [24*2**30-1,24*2**30,24*2**30+1,39*2**30-1,39*2**30,39*2**30+1])test('C-DISK-01 actual CLI prepare/run cumulative='+delta,()=>{
  const c=setup({free:20*2**30});c.prepare([ids[0]]);const p=c.permit([ids[0]]);c.config.owned=7;c.config.docker=delta-7;
- if(delta<24*2**30){c.run(p);assert.equal(c.status().successes,1);}
+ if(delta<39*2**30){c.run(p);assert.equal(c.status().successes,1);}
  else {const n=c.effects().length;assert.match(c.cmd('prepare',['--task',ids[0],'--task-root',c.root],false).stderr,/resource_boundary/);assert.match(c.run(p,false).stderr,/resource_boundary/);assert.equal(c.effects().length,n);}
 });
 test('C-DISK-01 periodic resource sample cancels before broker/model and later task',()=>{
@@ -113,4 +113,9 @@ test('C-DISK-01 periodic resource sample cancels before broker/model and later t
 test('C-DISK-01 free boundary on prepare and run rejects before credentials',()=>{
  const c=setup();c.prepare([ids[0]]);const p=c.permit([ids[0]]);c.config.free=20*2**30-1;const n=c.effects().length;
  assert.match(c.cmd('prepare',['--task',ids[0],'--task-root',c.root],false).stderr,/resource_boundary/);assert.match(c.run(p,false).stderr,/resource_boundary/);assert.equal(c.effects().length,n);
+});
+
+test('C-GROW99-01 periodic39GiB growth aborts before environment/model and later reservation',()=>{
+ const c=setup();c.prepare(ids.slice(0,2));const p=c.permit(ids.slice(0,2));c.config.growDiskAt='after_reservation';c.config.hold='after_reservation';c.config.holdMs=1300;c.run(p);
+ assert.equal(c.effects().filter(e=>['start','model'].includes(e.kind)).length,0);assert.equal(c.status().rows[1].state,'not_started');assert.equal(c.status().pendingSegments.length,0);
 });

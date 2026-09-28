@@ -80,3 +80,5 @@ Raw artifacts remain at their stable source, Git, Trace, Test, evaluator, or ext
 - [WO96 frozen full89 execution and unstarted-only continuation](terminal-bench-full-campaign-support.md) — Criteria1.0 offline candidate; [summary](terminal-bench-full-campaign-support-summary.json), independent review pending.
 
 - [#98 disk policy and preparation successor](terminal-bench-disk-policy.md) — offline candidate, Criteria1.0; [summary](terminal-bench-disk-policy-summary.json).
+
+- [#99 cumulative disk growth and executed history](terminal-bench-disk-growth-99.md) — Criteria1.0 offline candidate; [summary](terminal-bench-disk-growth-99-summary.json).

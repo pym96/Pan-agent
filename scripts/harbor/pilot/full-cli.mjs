@@ -2,25 +2,27 @@ import {readFileSync,mkdirSync,existsSync,writeFileSync,linkSync,appendFileSync}
 import {join,resolve,dirname} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {MODEL,METERED_LIMITS,authorize,Ledger,check,canonical,digest} from './policy.mjs';
+import {migrateExecuted97,attachHistory} from './full-history.mjs';
 import {migrate97,validateSuccessor} from './full-migrate.mjs';
 import {selectTasks} from './selection.mjs';
 import {Store,initialize,lock,durable,aggregate} from './full-store.mjs';
-import {production,resourceCheck,projectFor} from './full-host.mjs';
+import {production,resourceCheck,projectFor,DISK_POLICY} from './full-host.mjs';
 const HERE=dirname(fileURLToPath(import.meta.url));
 const MANIFEST_HASH='bfb1b8f64ca539c9c9cc88de4450c0845c38dcc8d924a7d85c126b8794e3a403';
 function manifest(){const raw=readFileSync(join(HERE,'full-manifest.json'));check(digest(raw)===MANIFEST_HASH,'full_manifest_identity');return JSON.parse(raw);}
 const load=p=>JSON.parse(readFileSync(p));
-function args(argv){const [command,...rest]=argv,options={};check(['init','prepare','status','run','cancel','recover','migrate97'].includes(command),'full_command');for(let i=0;i<rest.length;i+=2){check(['--campaign','--task','--task-root','--activation','--entry'].includes(rest[i])&&rest[i+1]&&!options[rest[i]],'full_option');options[rest[i]]=rest[i+1];}check(options['--campaign'],'campaign_required');return {command,o:options,root:resolve(options['--campaign'])};}
+function args(argv){const [command,...rest]=argv,options={};check(['init','prepare','status','run','cancel','recover','migrate97','migrate97-executed'].includes(command),'full_command');for(let i=0;i<rest.length;i+=2){check(['--campaign','--task','--task-root','--activation','--entry'].includes(rest[i])&&rest[i+1]&&!options[rest[i]],'full_option');options[rest[i]]=rest[i+1];}check(options['--campaign'],'campaign_required');return {command,o:options,root:resolve(options['--campaign'])};}
 const identity=(host,runnerSha,lock)=>({manifestHash:MANIFEST_HASH,panHash:lock.package_sha256,runnerSha,model:MODEL,budget:METERED_LIMITS,mode:host.mode});
 function snapshot(store,host){const s=host.sample(store.root);appendFileSync(join(store.root,'resources.jsonl'),JSON.stringify(s)+'\n');resourceCheck(store.root,store.meta.resourceBaseline,s);return s;}
-function lastPreparation(store,id){return store.rows.filter(r=>r.event==='preparation'&&r.task===id).at(-1);}
+function lastPreparation(store,id){return store.allRows.filter(r=>r.event==='preparation'&&r.task===id).at(-1);}
 export function proposedBinding(store,m,ids){
  const ps=ids.map(id=>{check(m.tasks.some(t=>t.id===id)&&!store.reserved(id),'task_not_unstarted');const p=lastPreparation(store,id);check(p?.detail.ready===true,'task_not_prepared');return p;});
  check(ids.length>0&&new Set(ids).size===ids.length,'task_selection');
- return {...store.meta.identity,taskIds:ids,images:Object.fromEntries(ps.map(p=>[p.task,p.detail.image])),full:{campaignId:store.meta.campaignId,root:store.root,checkpoint:store.head,segmentIndex:store.rows.filter(r=>r.event==='segment_open').length+1,preparations:Object.fromEntries(ps.map(p=>[p.task,digest(canonical(p))]))}};
+ return {...store.meta.identity,taskIds:ids,images:Object.fromEntries(ps.map(p=>[p.task,p.detail.image])),full:{campaignId:store.meta.campaignId,root:store.root,checkpoint:store.head,resourcePolicy:DISK_POLICY,segmentIndex:store.allRows.filter(r=>r.event==='segment_open').length+1,preparations:Object.fromEntries(ps.map(p=>[p.task,digest(canonical(p))]))}};
 }
 export async function main(argv=process.argv.slice(2),dependencies={}){
  const host={...production,...dependencies},m=manifest(),{command,o,root}=args(argv);
+ if(command==='migrate97-executed'){const s=await migrateExecuted97(root,host,m);console.log(JSON.stringify(aggregate(s,m)));return;}
  if(command==='migrate97'){await migrate97(root,host,m);console.log(JSON.stringify(aggregate(new Store(root),m)));return;}
  if(command==='init'){
   check(o['--entry'],'entry_required');const pkg=host.verifyProduct(resolve(o['--entry'])),runnerSha=host.runnerSha();
@@ -28,7 +30,7 @@ export async function main(argv=process.argv.slice(2),dependencies={}){
   host.internal(dirname(root));const baseline=host.sample(dirname(root));resourceCheck(dirname(root),baseline,{...baseline,owned:0});
   const store=initialize(root,{schema:1,campaignId:crypto.randomUUID(),identity:identity(host,runnerSha,pkg),resourceBaseline:{...baseline,owned:0},createdUTC:new Date().toISOString()});console.log(JSON.stringify(aggregate(store,m)));return;
  }
- const store=new Store(root);validateSuccessor(store);check(canonical(store.meta.identity)===canonical(identity(host,host.runnerSha(),{package_sha256:load(join(HERE,'package-identity.json')).package_sha256})),'campaign_identity');host.internal(root);
+ const store=new Store(root);attachHistory(store);validateSuccessor(store);check(canonical(store.meta.identity)===canonical(identity(host,host.runnerSha(),{package_sha256:load(join(HERE,'package-identity.json')).package_sha256})),'campaign_identity');host.internal(root);
  if(command==='status'){const out=aggregate(store,m);if(o['--task'])out.proposedBinding=proposedBinding(store,m,o['--task'].split(','));console.log(JSON.stringify(out));return out;}
  if(command==='cancel'){const pending=store.pending();check(pending.length===1,'no_active_segment');const path=join(root,'cancel-'+pending[0].runId+'.json');if(!existsSync(path))durable(path,{runId:pending[0].runId,requestedUTC:new Date().toISOString()});return;}
  const release=await lock(root);let controller,timer,ledger;
@@ -55,7 +57,7 @@ export async function main(argv=process.argv.slice(2),dependencies={}){
   controller=new AbortController();const cancel=()=>controller.abort();const gate=authorize(a,authority,expected,{signal:controller.signal});
   host.verifyProduct(resolve(o['--entry']));check(typeof host.credentialSource==='function','credential_source');
   // Read only after signature, immutable identities, selection and checkpoint pass.
-  const globalLedger=join(host.home,'.local/state/pan-agent/wo75/ledger',gate.runId+'.jsonl');check(!existsSync(globalLedger)&&!store.rows.some(r=>r.event==='segment_open'&&r.runId===gate.runId),'run_already_consumed');
+  const globalLedger=join(host.home,'.local/state/pan-agent/wo75/ledger',gate.runId+'.jsonl');check(!existsSync(globalLedger)&&!store.allRows.some(r=>r.event==='segment_open'&&r.runId===gate.runId),'run_already_consumed');
   const credential=host.credentialSource();check(typeof credential==='string'&&credential.trim(),'credential_missing');
   const dir=join(root,'segments',gate.runId);mkdirSync(dir,{recursive:false});
   durable(join(dir,'activation.json'),a);store.add('segment_open',{runId:gate.runId,taskIds:expected.taskIds,binding:expected});
