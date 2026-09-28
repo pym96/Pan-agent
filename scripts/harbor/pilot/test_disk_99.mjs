@@ -13,7 +13,7 @@ import {canonical,digest} from './policy.mjs';
 const base=process.env.WO99_TEST_ROOT;assert(base);mkdirSync(base,{recursive:true});
 const manifest=JSON.parse(readFileSync(new URL('./full-manifest.json',import.meta.url)));
 const host={mode:'live',runnerSha:()=> 'f'.repeat(40),internal:()=>{},sample:()=>({free:30*2**30,owned:10000000,docker:48503971840+25*2**30})};
-function fixture(){const root=mkdtempSync(join(base,'case-')),source=join(root,'campaign-disk20'),target=join(root,'campaign-disk39');cpSync(EXECUTED_SOURCE,source,{recursive:true});return {root,source,target};}
+function fixture(){const root=mkdtempSync(join(base,'case-')),source=join(root,'campaign-disk20'),target=join(root,'campaign-disk39');cpSync(process.env.WO99_SOURCE??EXECUTED_SOURCE,source,{recursive:true});return {root,source,target};}
 function ready(c){const store=new Store(c.target);attachHistory(store);return store;}
 test('C-GROW99-01 exact free/increment thresholds, old24 admitted, original baseline formula',()=>{
  for(const free of [20*2**30-1,20*2**30,20*2**30+1])for(const increment of [24*2**30-1,24*2**30,24*2**30+1,39*2**30-1,39*2**30,39*2**30+1]){

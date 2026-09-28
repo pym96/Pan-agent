@@ -1,0 +1,90 @@
+{
+  "workorder": 100,
+  "criteria": "1.0",
+  "base": "ab21c0f43af713b7fd33862d3c6ed8c88efca80b",
+  "scope": "offline candidate; not independent acceptance or new benchmark results",
+  "restored": {
+    "denominator": 89,
+    "consumed": 57,
+    "notStarted": 32,
+    "firstSegment": {
+      "success": 16,
+      "validFailure": 5,
+      "unscored": 16
+    },
+    "secondSegment": {
+      "consumed": 20,
+      "validScore": null,
+      "reason": "missing_evidence/unknown"
+    }
+  },
+  "checks": {
+    "recoveryAndFull": {
+      "pass": 46,
+      "fail": 0
+    },
+    "legacyMigrations": {
+      "pass": 21,
+      "fail": 0
+    },
+    "pilotSuiteInitial": {
+      "pass": 213,
+      "fail": 7,
+      "skip": 1,
+      "failure": "unchanged legacy60GiB floor on current host"
+    },
+    "legacyCliSyntheticFree": {
+      "pass": 23,
+      "fail": 0
+    },
+    "pythonPilot": {
+      "pass": 19,
+      "fail": 0
+    },
+    "hostControls": {
+      "tests": 82
+    },
+    "hostProjectPython": {
+      "tests": 259,
+      "skip": 6
+    },
+    "hostAcceptance": "PASS"
+  },
+  "realModelCalls": 0,
+  "realTasks": 0,
+  "realScores": 0,
+  "imagesPulled": 0,
+  "containersStarted": 0,
+  "productionMigrations": 0,
+  "sourceFilesUnchanged": 787,
+  "globalLedgersUnchanged": 11,
+  "environment": {
+    "sample": {
+      "utc": "2026-09-28T08:56:23.726Z",
+      "free": 44943507456,
+      "owned": 1635598336,
+      "docker": 88021381120
+    },
+    "originalDocker": 48503971840,
+    "increment": 41153007616,
+    "docker": {
+      "os": "linux",
+      "cpus": 8,
+      "memoryBytes": 8218316800
+    },
+    "eightGiB": 8589934592,
+    "realCalls": 0,
+    "containersStarted": 0,
+    "imagesPulled": 0
+  },
+  "evidenceRoot": "/Volumes/WD_BLACK/pan-agent/benchmark-recovery-20260928",
+  "inventorySha256": "3bb1c6db49c15afee051cdf7213ffaaecabc3e24f1b0b30e14ce863e5424670b",
+  "evidenceArchiveSha256": "83b7c852f6c473b2df5f9a233b6d9f578f9087b0991bd617b1b33bc9b677c829",
+  "remaining": [
+    "independent Regulator and H-REC-BOUNDARY",
+    "accepted runner/runtime deployment in non-temporary paths",
+    "Docker reported memory below official8GiB",
+    "two images remain uncached",
+    "Master new #97 binding/activation; no old run replay"
+  ]
+}

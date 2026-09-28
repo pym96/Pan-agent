@@ -84,3 +84,7 @@ Raw artifacts remain at their stable source, Git, Trace, Test, evaluator, or ext
 - [#98 disk policy and preparation successor](terminal-bench-disk-policy.md) — offline candidate, Criteria1.0; [summary](terminal-bench-disk-policy-summary.json).
 
 - [#99 cumulative disk growth and executed history](terminal-bench-disk-growth-99.md) — Criteria1.0 offline candidate; [summary](terminal-bench-disk-growth-99-summary.json).
+
+- [#100 recovery candidate](benchmark-recovery-100.md) / [summary](benchmark-recovery-100-summary.json):
+  pinned57-consumption recovery, unknown score retention, persistent task archives
+  and official4CPU/8GiB admission. Offline evidence only; independent review pending.

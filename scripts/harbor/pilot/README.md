@@ -249,3 +249,13 @@ Required registry source is Harbor revision
 `f9deaca7f44ab0b91f1dd445d79629e4d97a0716/registry.json`; tree metadata is the GitHub
 Git tree API at the frozen task source commit, not a moving branch. Missing source
 metadata must be obtained at those exact revisions and checked, never substituted.
+
+### #100 recovery candidate
+
+See [durable recovery and runbook](../../../docs/design/benchmark-recovery-100.md).
+`full-recovery.mjs` imports the pinned evidence without recreating the lost journal;
+`full-durable.mjs` owns persistent-path checks, cumulative sampling and task archives.
+`full-recovery-demo.mjs` and `test_recovery_100.mjs` exercise offline restoration,
+interruptions, archive failure and resource/signature boundaries. `restore97` creates
+new identity; `archive` supplements copies without task execution. This does not
+activate a real campaign, and the original manifests/package identity stay frozen.

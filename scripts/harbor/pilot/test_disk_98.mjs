@@ -12,7 +12,7 @@ const base=process.env.WO98_TEST_ROOT;assert(base);mkdirSync(base,{recursive:tru
 const manifest=JSON.parse(readFileSync(new URL('./full-manifest.json',import.meta.url)));
 const pkg=JSON.parse(readFileSync(new URL('./package-identity.json',import.meta.url)));
 const host={runnerSha:()=> 'f'.repeat(40),internal:()=>{},sample:()=>({free:20*2**30,owned:1000,docker:48503971840}),mode:'live',expectedModel:MODEL,expectedBudget:METERED_LIMITS,packageHash:pkg.package_sha256};
-function fixture(){const dir=mkdtempSync(join(base,'case-')),source=join(dir,'campaign'),target=join(dir,'campaign-disk20');cpSync(SOURCE_ROOT,source,{recursive:true});return {source,target};}
+function fixture(){const dir=mkdtempSync(join(base,'case-')),source=join(dir,'campaign'),target=join(dir,'campaign-disk20');cpSync(process.env.WO98_SOURCE??SOURCE_ROOT,source,{recursive:true});return {source,target};}
 test('C-DISK-01 exact free and original cumulative allocation boundaries',()=>{
  for(const free of [20*2**30-1,20*2**30,20*2**30+1])for(const delta of [39*2**30-1,39*2**30]){
   const fn=()=>resourceCheck('',{docker:123},{free,owned:7,docker:123+delta-7});if(free>=20*2**30&&delta<39*2**30)fn();else assert.throws(fn,/resource_boundary/);

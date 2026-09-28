@@ -13,17 +13,21 @@ const GiB=2**30;
 export const MIN_FREE_BYTES=20*GiB;
 export const DISK_POLICY=Object.freeze({minFreeBytes:MIN_FREE_BYTES,incrementExclusiveBytes:39*GiB});
 function allocated(p){if(!existsSync(p))return 0;const s=lstatSync(p);return s.isSymbolicLink()?0:s.isDirectory()?readdirSync(p).reduce((n,f)=>n+allocated(join(p,f)),0):s.blocks*512;}
-export function sample(root){const s=statfsSync(root),raw=join(homedir(),'Library/Containers/com.docker.docker/Data/vms/0/data/Docker.raw');return {utc:new Date().toISOString(),free:s.bavail*s.bsize,owned:allocated(root),docker:existsSync(raw)?statSync(raw).blocks*512:0};}
-export function resourceCheck(root,baseline,now=sample(root)){check(now.free>=MIN_FREE_BYTES&&now.owned+Math.max(0,now.docker-baseline.docker)<DISK_POLICY.incrementExclusiveBytes,'resource_boundary');return now;}
+export function sample(root){const s=statfsSync(root),raw=join(homedir(),'Library/Containers/com.docker.docker/Data/vms/0/data/Docker.raw');return {utc:new Date().toISOString(),free:s.bavail*s.bsize,owned:allocated(root),docker:existsSync(raw)?statSync(raw).blocks*512:null};}
+export function resourceCheck(root,baseline,now=sample(root)){check([now.free,now.owned,now.docker,baseline.docker].every(n=>Number.isFinite(n)&&n>=0),'resource_sample_unknown');check(now.free>=MIN_FREE_BYTES&&now.owned+Math.max(0,now.docker-baseline.docker)<DISK_POLICY.incrementExclusiveBytes,'resource_boundary');return now;}
 let dockerRoot;
 export function configure(root){dockerRoot=join(root,'docker-client');mkdirSync(dockerRoot,{recursive:true});}
 const env=()=>{check(dockerRoot,'docker_context_missing');return {PATH:'/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin',HOME:dockerRoot,DOCKER_CONFIG:dockerRoot,DOCKER_HOST:'unix://'+homedir()+'/.docker/run/docker.sock'};};
 function docker(...args){return execFileSync('docker',args,{env:env(),encoding:'utf8',timeout:35000,stdio:['ignore','pipe','pipe']});}
-export function verifyProduct(entry){
+export function verifyProduct(entry,runtime){
  const lock=JSON.parse(readFileSync(join(HERE,'package-identity.json'))),base=resolve(dirname(entry),'..');check(resolve(entry)===join(base,'dist/index.js'),'installed_entry_path');
  for(const [f,h] of Object.entries(lock.installed_files))check(digest(readFileSync(join(base,f)))===h,'installed_pan_identity');
- check(digest(readFileSync(lock.python))===lock.python_sha256,'python_identity');
- for(const [f,h] of Object.entries(lock.harbor_files))check(digest(readFileSync(join(lock.harbor_root,f)))===h,'harbor_identity');return lock;
+ check(digest(readFileSync(runtime?.python??lock.python))===lock.python_sha256,'python_identity');
+ if(runtime){const imported=execFileSync(runtime.python,['-c','import harbor,pathlib;print(pathlib.Path(harbor.__file__).parent.resolve())'],{env:{PATH:'/opt/homebrew/bin:/usr/bin:/bin',PYTHONDONTWRITEBYTECODE:'1'},encoding:'utf8',timeout:10000}).trim();check(resolve(imported)===resolve(runtime.harborRoot),'harbor_import_identity');
+  const frozen=Object.fromEntries(readFileSync(join(HERE,'../requirements.lock'),'utf8').trim().split('\n').filter(l=>l&&!l.startsWith('#')).map(l=>l.split('==')));
+  const versions=JSON.parse(execFileSync(runtime.python,['-c','import sys,json,importlib.metadata as m;print(json.dumps({n:m.version(n) for n in json.load(sys.stdin)}))'],{input:JSON.stringify(Object.keys(frozen)),env:{PATH:'/opt/homebrew/bin:/usr/bin:/bin',PYTHONDONTWRITEBYTECODE:'1'},encoding:'utf8',timeout:10000}));
+  check(Object.entries(frozen).every(([n,v])=>versions[n]===v),'python_dependency_identity');}
+ for(const [f,h] of Object.entries(lock.harbor_files))check(digest(readFileSync(join(runtime?.harborRoot??lock.harbor_root,f)))===h,'harbor_identity');return lock;
 }
 export function validateFiles(task,root){
  const dir=join(root,task.path),paths=[];
@@ -31,11 +35,12 @@ export function validateFiles(task,root){
  walk(dir);check(JSON.stringify(paths.sort())===JSON.stringify(task.files.map(f=>f.path).sort()),'task_source_inventory');
  for(const f of task.files){const b=readFileSync(join(dir,f.path));check(createHash('sha1').update(Buffer.concat([Buffer.from(`blob ${b.length}\0`),b])).digest('hex')===f.git_blob_sha1,'task_source_identity');}
 }
-export function requirements(task){const e=task.config.environment,m=/^(\d+(?:\.\d+)?)([MG])$/.exec(e.memory??'');return typeof e.cpus==='number'&&e.cpus>0&&e.cpus<=2&&m&&Number(m[1])*(m[2]==='G'?1024:1)<=4096;}
-export async function prepare(task,taskRoot){
- if(!requirements(task))return {ready:false,reason:'official_resource_requirements_exceed_host',global:false};
+export const EXECUTION_POLICY=Object.freeze({version:1,maxCpus:4,maxMemoryMiB:8192,serial:true,disk:DISK_POLICY});
+export function requirements(task,policy={maxCpus:2,maxMemoryMiB:4096}){const e=task.config.environment,m=/^(\d+(?:\.\d+)?)([MG])$/.exec(e.memory??'');return typeof e.cpus==='number'&&e.cpus>0&&Number.isFinite(e.cpus)&&e.cpus<=policy.maxCpus&&m&&Number(m[1])>0&&Number(m[1])*(m[2]==='G'?1024:1)<=policy.maxMemoryMiB;}
+export async function prepare(task,taskRoot,policy){
+ if(!requirements(task,policy))return {ready:false,reason:'official_resource_requirements_exceed_host',global:false};
  try{validateFiles(task,taskRoot);}catch{return {ready:false,reason:'task_source_missing_or_invalid',global:false};}
- try{if(docker('info','--format','{{.OSType}}').trim()!=='linux')return {ready:false,reason:'docker_unavailable',global:true};}catch{return {ready:false,reason:'docker_unavailable',global:true};}
+ try{const capacity=JSON.parse(docker('info','--format','{{json .}}'));if(capacity.OSType!=='linux')return {ready:false,reason:'docker_unavailable',global:true};const e=task.config.environment,mem=/^(\d+(?:\.\d+)?)([MG])$/.exec(e.memory);if(!Number.isFinite(capacity.NCPU)||!Number.isFinite(capacity.MemTotal)||capacity.NCPU<e.cpus||capacity.MemTotal<Number(mem[1])*(mem[2]==='G'?2**30:2**20))return {ready:false,reason:'docker_capacity_insufficient_or_unknown',global:false};}catch{return {ready:false,reason:'docker_unavailable',global:true};}
  let info;try{info=JSON.parse(docker('image','inspect',task.image_reference))[0];}catch{return {ready:false,reason:'image_not_cached',global:false};}
  if(info.Os!=='linux'||!['amd64','arm64'].includes(info.Architecture))return {ready:false,reason:'image_architecture_unsupported',global:false};
  return {ready:true,image:info.Id,architecture:info.Architecture,os:info.Os,reference:task.image_reference,sourceValidated:true};
@@ -64,4 +69,15 @@ export function scoreEvidence(directory,report){
  const files={};for(const f of ['reward.txt','reward.json','ctrf.json','test-stdout.txt'])if(existsSync(join(dir,f)))files[f]=digest(readFileSync(join(dir,f)));
  return {rawReward:raw,validScore:proven?raw:null,state:proven?(raw===1?'success':'valid_failure'):'unscored',reason:proven?'official_tests_executed':report?.agentStopReason??(raw!==null?'verifier_preparation_or_score_unverified':'no_valid_score_evidence'),evidence:{files,ctrf:test??null}};
 }
-export const production={home:homedir(),mode:'live',configure,sample,prepare,reconcile,verifyProduct,runAttempt,openBroker,scoreEvidence,credentialSource:()=>process.env.KIMI_API_KEY,runnerSha:()=>{const repo=resolve(HERE,'../../..');check(!execFileSync('git',['status','--porcelain'],{cwd:repo,encoding:'utf8'}).trim(),'runner_dirty');return execFileSync('git',['rev-parse','HEAD'],{cwd:repo,encoding:'utf8'}).trim();},internal:root=>check(statSync(root).dev===statSync('/private/tmp').dev,'active_work_must_be_internal')};
+export async function inspectResidual(r){
+ try{
+  check(/^wo78-[a-f0-9]{16}$/.test(r.project),'cleanup_identity');
+  // No fence file exists for the lost segment. Inspect old project and live process identity read-only.
+  const processes=execFileSync('ps',['-axo','command='],{encoding:'utf8',timeout:10000});
+  if(processes.split('\n').some(p=>p.includes('broker.py')||(p.includes('full-cli.mjs')&&(p.includes(r.oldRoot)||p.includes(r.runId)||p.includes(r.project)))))return {confirmed:false,reason:'old_process_present'};
+  const ids=docker('ps','-aq','--filter','label=com.docker.compose.project='+r.project).trim().split(/\s+/).filter(Boolean);
+  for(const id of ids){const x=JSON.parse(docker('inspect',id))[0];check(x.Config.Labels['com.docker.compose.project']===r.project&&x.Image===r.image&&!x.State.Running&&x.State.Pid===0,'historical_stop_unknown');}
+  return {confirmed:true,project:r.project,containers:ids,observedUTC:new Date().toISOString(),kind:'current_read_only_observation'};
+ }catch{return {confirmed:false,reason:'historical_stop_unknown'};}
+}
+export const production={home:homedir(),mode:'live',configure,sample,prepare,reconcile,inspectResidual,verifyProduct,runAttempt,openBroker,scoreEvidence,credentialSource:()=>process.env.KIMI_API_KEY,runnerSha:()=>{const repo=resolve(HERE,'../../..');check(!execFileSync('git',['status','--porcelain'],{cwd:repo,encoding:'utf8'}).trim(),'runner_dirty');return execFileSync('git',['rev-parse','HEAD'],{cwd:repo,encoding:'utf8'}).trim();},internal:root=>check(statSync(root).dev===statSync('/private/tmp').dev,'active_work_must_be_internal')};

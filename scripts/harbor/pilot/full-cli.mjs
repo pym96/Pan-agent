@@ -1,4 +1,4 @@
-import {readFileSync,mkdirSync,existsSync,writeFileSync,linkSync,appendFileSync} from 'node:fs';
+import {readFileSync,mkdirSync,existsSync,writeFileSync,linkSync,appendFileSync,realpathSync} from 'node:fs';
 import {join,resolve,dirname} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {MODEL,METERED_LIMITS,authorize,Ledger,check,canonical,digest} from './policy.mjs';
@@ -7,21 +7,27 @@ import {migrate97,validateSuccessor} from './full-migrate.mjs';
 import {selectTasks} from './selection.mjs';
 import {Store,initialize,lock,durable,aggregate} from './full-store.mjs';
 import {production,resourceCheck,projectFor,DISK_POLICY} from './full-host.mjs';
+import {restoreEvidence,attachRecovery,checkImportedStops} from './full-recovery.mjs';
+import {validateLayout,sampleDurable,archiveTask,pendingArchives,flushTree} from './full-durable.mjs';
 const HERE=dirname(fileURLToPath(import.meta.url));
 const MANIFEST_HASH='bfb1b8f64ca539c9c9cc88de4450c0845c38dcc8d924a7d85c126b8794e3a403';
 function manifest(){const raw=readFileSync(join(HERE,'full-manifest.json'));check(digest(raw)===MANIFEST_HASH,'full_manifest_identity');return JSON.parse(raw);}
 const load=p=>JSON.parse(readFileSync(p));
-function args(argv){const [command,...rest]=argv,options={};check(['init','prepare','status','run','cancel','recover','migrate97','migrate97-executed'].includes(command),'full_command');for(let i=0;i<rest.length;i+=2){check(['--campaign','--task','--task-root','--activation','--entry'].includes(rest[i])&&rest[i+1]&&!options[rest[i]],'full_option');options[rest[i]]=rest[i+1];}check(options['--campaign'],'campaign_required');return {command,o:options,root:resolve(options['--campaign'])};}
+function args(argv){const [command,...rest]=argv,options={};check(['init','prepare','status','run','cancel','recover','migrate97','migrate97-executed','restore97','archive'].includes(command),'full_command');for(let i=0;i<rest.length;i+=2){check(['--campaign','--task','--task-root','--activation','--entry','--source','--layout'].includes(rest[i])&&rest[i+1]&&!options[rest[i]],'full_option');options[rest[i]]=rest[i+1];}check(options['--campaign'],'campaign_required');return {command,o:options,root:resolve(options['--campaign'])};}
 const identity=(host,runnerSha,lock)=>({manifestHash:MANIFEST_HASH,panHash:lock.package_sha256,runnerSha,model:MODEL,budget:METERED_LIMITS,mode:host.mode});
-function snapshot(store,host){const s=host.sample(store.root);appendFileSync(join(store.root,'resources.jsonl'),JSON.stringify(s)+'\n');resourceCheck(store.root,store.meta.resourceBaseline,s);return s;}
+function snapshot(store,host){const s=store.meta.durability?(host.sampleRecovery??sampleDurable)(store.root,store.meta.durability.ownedRoots):host.sample(store.root);appendFileSync(join(store.root,'resources.jsonl'),JSON.stringify(s)+'\n');resourceCheck(store.root,store.meta.resourceBaseline,s);return s;}
 function lastPreparation(store,id){return store.allRows.filter(r=>r.event==='preparation'&&r.task===id).at(-1);}
 export function proposedBinding(store,m,ids){
+ check(store.pending().length===0,'reconciliation_required');
+ check(!store.meta.recovery||store.residualsChecked===true,'historical_stop_unknown');
+ check(pendingArchives(store).length===0,'archive_required');
  const ps=ids.map(id=>{check(m.tasks.some(t=>t.id===id)&&!store.reserved(id),'task_not_unstarted');const p=lastPreparation(store,id);check(p?.detail.ready===true,'task_not_prepared');return p;});
  check(ids.length>0&&new Set(ids).size===ids.length,'task_selection');
- return {...store.meta.identity,taskIds:ids,images:Object.fromEntries(ps.map(p=>[p.task,p.detail.image])),full:{campaignId:store.meta.campaignId,root:store.root,checkpoint:store.head,resourcePolicy:DISK_POLICY,segmentIndex:store.allRows.filter(r=>r.event==='segment_open').length+1,preparations:Object.fromEntries(ps.map(p=>[p.task,digest(canonical(p))]))}};
+ return {...store.meta.identity,taskIds:ids,images:Object.fromEntries(ps.map(p=>[p.task,p.detail.image])),full:{campaignId:store.meta.campaignId,root:store.root,checkpoint:store.head,resourcePolicy:DISK_POLICY,segmentIndex:(store.oldRunIds?.length??0)+store.allRows.filter(r=>r.event==='segment_open').length+1,preparations:Object.fromEntries(ps.map(p=>[p.task,digest(canonical(p))]))}};
 }
 export async function main(argv=process.argv.slice(2),dependencies={}){
  const host={...production,...dependencies},m=manifest(),{command,o,root}=args(argv);
+ if(command==='restore97'){check(o['--source']&&o['--layout'],'recovery_inputs');const s=restoreEvidence(resolve(o['--source']),root,load(o['--layout']),host,m);console.log(JSON.stringify(aggregate(s,m)));return;}
  if(command==='migrate97-executed'){const s=await migrateExecuted97(root,host,m);console.log(JSON.stringify(aggregate(s,m)));return;}
  if(command==='migrate97'){await migrate97(root,host,m);console.log(JSON.stringify(aggregate(new Store(root),m)));return;}
  if(command==='init'){
@@ -30,34 +36,38 @@ export async function main(argv=process.argv.slice(2),dependencies={}){
   host.internal(dirname(root));const baseline=host.sample(dirname(root));resourceCheck(dirname(root),baseline,{...baseline,owned:0});
   const store=initialize(root,{schema:1,campaignId:crypto.randomUUID(),identity:identity(host,runnerSha,pkg),resourceBaseline:{...baseline,owned:0},createdUTC:new Date().toISOString()});console.log(JSON.stringify(aggregate(store,m)));return;
  }
- const store=new Store(root);attachHistory(store);validateSuccessor(store);check(canonical(store.meta.identity)===canonical(identity(host,host.runnerSha(),{package_sha256:load(join(HERE,'package-identity.json')).package_sha256})),'campaign_identity');host.internal(root);
+ const store=new Store(root);attachHistory(store);attachRecovery(store,m);validateSuccessor(store);const expectedIdentity=identity(host,host.runnerSha(),{package_sha256:load(join(HERE,'package-identity.json')).package_sha256});if(store.meta.recovery)expectedIdentity.executionPolicy=store.meta.identity.executionPolicy;check(canonical(store.meta.identity)===canonical(expectedIdentity),'campaign_identity');host.internal(root);
+ if(store.meta.durability){validateLayout(store.meta.durability,root,host.mode);if(host.mode==='live')check(realpathSync(store.meta.durability.runner)===realpathSync(resolve(HERE,'../../..')),'durable_runner_identity');}
+ if(command==='status'&&o['--task']){host.configure?.(root);await checkImportedStops(store,host);if(store.meta.durability)for(const id of o['--task'].split(',')){const task=m.tasks.find(t=>t.id===id);check(task&&!store.reserved(id),'task_not_unstarted');const p=await host.prepare(task,store.meta.durability.taskRoot,store.meta.identity.executionPolicy);check(p.ready&&p.image===lastPreparation(store,id)?.detail.image,'task_not_prepared');}}
  if(command==='status'){const out=aggregate(store,m);if(o['--task'])out.proposedBinding=proposedBinding(store,m,o['--task'].split(','));console.log(JSON.stringify(out));return out;}
  if(command==='cancel'){const pending=store.pending();check(pending.length===1,'no_active_segment');const path=join(root,'cancel-'+pending[0].runId+'.json');if(!existsSync(path))durable(path,{runId:pending[0].runId,requestedUTC:new Date().toISOString()});return;}
  const release=await lock(root);let controller,timer,ledger;
  try{
   store.reload();host.configure?.(root);
+  if(command==='archive'){check(!store.pending().length,'reconciliation_required');for(const r of pendingArchives(store))archiveTask(store,r);console.log(JSON.stringify(aggregate(store,m)));return;}
   if(command==='recover'){
    for(const segment of store.pending()){
     const owned=store.rows.filter(r=>r.event==='reserved'&&r.runId===segment.runId);let confirmed=true;
     for(const r of owned){const result=await host.reconcile(r.project,r.image,{stop:true,ticket:join(root,'segments',r.runId,r.task,'broker-ticket.json')});store.add('reconciliation',{runId:segment.runId,task:r.task,result});if(!result.confirmed)confirmed=false;}
-    check(confirmed,'residual_stop_unknown');store.add('segment_reconciled',{runId:segment.runId,unknownResultsPreserved:true});
+    check(confirmed,'residual_stop_unknown');for(const r of owned)archiveTask(store,r);store.add('segment_reconciled',{runId:segment.runId,unknownResultsPreserved:true});
    }console.log(JSON.stringify(aggregate(store,m)));return;
   }
-  check(store.pending().length===0,'reconciliation_required');snapshot(store,host);
+  check(store.pending().length===0,'reconciliation_required');check(pendingArchives(store).length===0,'archive_required');snapshot(store,host);await checkImportedStops(store,host);
   if(command==='prepare'){
-   check(o['--task']&&o['--task-root'],'preparation_inputs');
+   check(o['--task']&&o['--task-root'],'preparation_inputs');if(store.meta.durability)check(resolve(o['--task-root'])===store.meta.durability.taskRoot,'durable_runtime_identity');
    for(const id of o['--task'].split(',')){
     const task=m.tasks.find(t=>t.id===id);check(task&&!store.reserved(id),'task_not_unstarted');snapshot(store,host);
-    const detail=await host.prepare(task,resolve(o['--task-root']));store.add('preparation',{task:id,detail});if(detail.global)break;
+    const detail=await host.prepare(task,resolve(o['--task-root']),store.meta.identity.executionPolicy);store.add('preparation',{task:id,detail});if(detail.global)break;
    }console.log(JSON.stringify(aggregate(store,m)));return;
   }
   check(o['--activation']&&o['--entry']&&o['--task-root'],'run_inputs');
   const a=load(o['--activation']),authority=load(join(host.home,'.local/state/pan-agent/wo75/authority.json'));
   const selected=selectTasks(m,a.binding?.taskIds,a.binding?.images);const expected=proposedBinding(store,m,selected.tasks.map(t=>t.id));
   controller=new AbortController();const cancel=()=>controller.abort();const gate=authorize(a,authority,expected,{signal:controller.signal});
-  host.verifyProduct(resolve(o['--entry']));check(typeof host.credentialSource==='function','credential_source');
+  const runtime=store.meta.durability;if(runtime)check(resolve(o['--entry'])===runtime.entry&&resolve(o['--task-root'])===runtime.taskRoot,'durable_runtime_identity');
+  host.verifyProduct(resolve(o['--entry']),runtime);check(typeof host.credentialSource==='function','credential_source');
   // Read only after signature, immutable identities, selection and checkpoint pass.
-  const globalLedger=join(host.home,'.local/state/pan-agent/wo75/ledger',gate.runId+'.jsonl');check(!existsSync(globalLedger)&&!store.allRows.some(r=>r.event==='segment_open'&&r.runId===gate.runId),'run_already_consumed');
+  const globalLedger=join(host.home,'.local/state/pan-agent/wo75/ledger',gate.runId+'.jsonl');check(!existsSync(globalLedger)&&!store.oldRunIds?.includes(gate.runId)&&!store.allRows.some(r=>r.event==='segment_open'&&r.runId===gate.runId),'run_already_consumed');
   const credential=host.credentialSource();check(typeof credential==='string'&&credential.trim(),'credential_missing');
   const dir=join(root,'segments',gate.runId);mkdirSync(dir,{recursive:false});
   durable(join(dir,'activation.json'),a);store.add('segment_open',{runId:gate.runId,taskIds:expected.taskIds,binding:expected});
@@ -68,19 +78,18 @@ export async function main(argv=process.argv.slice(2),dependencies={}){
   try{
    for(const task of selected.tasks){
     poll();if(controller.signal.aborted)break;gate.assert(controller.signal);
-    const prepared=await host.prepare(task,resolve(o['--task-root']));
+    const prepared=await host.prepare(task,resolve(o['--task-root']),store.meta.identity.executionPolicy);
     if(!prepared.ready||prepared.image!==expected.images[task.id]){store.add('preparation',{task:task.id,detail:{...prepared,ready:false,reason:prepared.reason??'signed_image_changed'}});if(prepared.global){controller.abort();break;}continue;}
     poll();if(controller.signal.aborted)break;
     await host.checkpoint?.('before_reservation',task.id);poll();if(controller.signal.aborted)break;
-    const project=projectFor(store.meta.campaignId,gate.runId,task.id,store.root),directory=join(dir,task.id);mkdirSync(directory);
+    const project=projectFor(store.meta.campaignId,gate.runId,task.id,store.root),directory=join(dir,task.id);mkdirSync(directory);durable(join(directory,'broker-ticket.json'),{state:'pending'});
     store.add('reserved',{task:task.id,runId:gate.runId,project,image:expected.images[task.id]});ledger.start(task.id);
     await host.checkpoint?.('after_reservation',task.id);
     let broker,report,classified,stopped=false;const start=performance.now();
     try{
      poll();gate.assert(controller.signal);
      const home=join(directory,'child-home'),dockerConfig=join(directory,'docker-config');mkdirSync(home);mkdirSync(dockerConfig);writeFileSync(join(dockerConfig,'config.json'),JSON.stringify({cliPluginsExtraDirs:['/Applications/Docker.app/Contents/Resources/cli-plugins']}));
-     durable(join(directory,'broker-ticket.json'),{state:'pending'});
-     broker=host.openBroker({python:load(join(HERE,'package-identity.json')).python,home,dockerConfig,config:{project,lifecycle_path:join(directory,'broker-ticket.json'),task,task_root:resolve(o['--task-root']),image:expected.images[task.id],output:join(directory,'harbor')}});
+     broker=host.openBroker({python:runtime?.python??load(join(HERE,'package-identity.json')).python,home,dockerConfig,config:{project,lifecycle_path:join(directory,'broker-ticket.json'),task,task_root:resolve(o['--task-root']),image:expected.images[task.id],output:join(directory,'harbor')}});
      const onAbort=()=>{void broker.stop('cancelled').catch(()=>{});};controller.signal.addEventListener('abort',onAbort,{once:true});
      try{
       const instruction=await broker.ready;gate.assert(controller.signal);
@@ -97,9 +106,11 @@ export async function main(argv=process.argv.slice(2),dependencies={}){
      const proof=await host.reconcile(project,expected.images[task.id],{stop:true,ticket:join(directory,'broker-ticket.json')});durable(join(directory,'cleanup.json'),proof);stopped=proof.confirmed===true;
      if(!stopped){controller.abort();uncertain=true;}
     }
+    if(runtime)flushTree(directory);
     await host.checkpoint?.('before_result',task.id);
     store.add('result',{task:task.id,runId:gate.runId,...classified,stopConfirmed:stopped,elapsedSeconds:(performance.now()-start)/1000});
     await host.checkpoint?.('after_result',task.id);
+    await host.checkpoint?.('before_archive',task.id);archiveTask(store,store.reserved(task.id));await host.checkpoint?.('after_archive',task.id);
     if(controller.signal.aborted)break;
    }
    if(!uncertain)store.add('segment_closed',{runId:gate.runId,paused:controller.signal.aborted});

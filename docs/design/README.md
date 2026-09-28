@@ -115,3 +115,6 @@ The Human-accepted architecture history remains indexed in [`../adr/README.md`](
 - [WO89 protocol/verifier preparation](protocol-verifier-89.md): reasoning matrix, private structural observations and dependency-only probe boundaries; no speculative compatibility relaxation.
 
 - [WO94 Kimi reasoning continuation](kimi-reasoning-continuation-94.md): source-backed field matrix, private provenance and full tool-round verification; candidate pending independent review.
+
+- [#100 durable benchmark recovery](benchmark-recovery-100.md): evidence import,
+  unknown retention, per-task archives, resource identity and deferred live runbook.
