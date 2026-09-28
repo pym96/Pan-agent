@@ -95,3 +95,5 @@ Raw artifacts remain at their stable source, Git, Trace, Test, evaluator, or ext
 
 - [#97 Criteria1.4 persistent preparation](terminal-bench-persistent-prep-97.md) / [summary](terminal-bench-persistent-prep-97-summary.json): blocked before deployment by cumulative storage headroom; actual Docker memory also blocks two 8 GiB tasks. No new campaign, binding or live evaluation.
 - [#101 disk54 candidate](disk54-101.md) / [summary](disk54-101-summary.json): prospective cumulative policy, historical consumption and old-permit rejection, offline evidence only.
+
+- [#97 Criteria1.5 persistent deployment](terminal-bench-persistent-prep-97.md):30 ready/unstarted tasks proposed for Master signature,57 consumption records preserved; no live evaluation. Prior1.4 blockage retained.
