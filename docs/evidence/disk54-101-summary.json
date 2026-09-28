@@ -1,0 +1,87 @@
+{
+  "issue": 101,
+  "criteria": "1.0",
+  "status": "candidate_pending_independent_review",
+  "baseSha": "848f59f90b503a9eab5c46ad76bb44c646570161",
+  "resourcePolicy": {
+    "minFreeBytes": 21474836480,
+    "incrementExclusiveBytes": 57982058496,
+    "originalDockerBaseline": 48503971840
+  },
+  "evidenceRoot": "/Volumes/WD_BLACK/pan-agent/disk54-20260928",
+  "inventorySha256": "d8f68684b9ad6c022a138dbe6cccda8773b746451739bef3a2f179121f9e6aa0",
+  "resourceBefore": {
+    "utc": "2026-09-28T10:49:48.139Z",
+    "free": 44650393600,
+    "owned": 2321735680,
+    "docker": 88021364736
+  },
+  "resourceAfter": {
+    "utc": "2026-09-28T10:53:41.047Z",
+    "free": 44623253504,
+    "owned": 2388107264,
+    "docker": 88021364736
+  },
+  "checks": {
+    "newBoundaryAndRecovery": {
+      "pass": 2
+    },
+    "fullCLI": {
+      "pass": 28
+    },
+    "aliasAndMemory": {
+      "pass": 5
+    },
+    "authorizationLedger": {
+      "pass": 6
+    },
+    "legacyBoundaries": {
+      "pass": 2
+    },
+    "legacyMigrationChains": {
+      "pass": 2
+    },
+    "hostControls": {
+      "pass": 82
+    },
+    "pythonRegression": {
+      "tests": 259,
+      "skipped": 6
+    }
+  },
+  "retainedFirstRegression": {
+    "pass": 30,
+    "fail": 3,
+    "causes": [
+      "Two superseded 40GiB over-limit test samples",
+      "Missing PAN_TEST_ENTRY environment parameter"
+    ],
+    "log": "regression.log"
+  },
+  "sourceFilesMatchedOriginal": 787,
+  "historicalReservations": 57,
+  "historicalUnstarted": 32,
+  "historicalUnknownSecondSegment": 20,
+  "productionEffects": {
+    "models": 0,
+    "tasks": 0,
+    "scores": 0,
+    "pulls": 0,
+    "cleanup": 0,
+    "migration": 0,
+    "signing": 0
+  },
+  "dockerInvestigation": {
+    "context": "desktop-linux",
+    "socket": "unix:///Users/panyiming/.docker/run/docker.sock",
+    "configuredMemoryMiB": 10240,
+    "observedMemoryBytes": 8218316800,
+    "cause": "unknown",
+    "blocking101": false
+  },
+  "limits": [
+    "Offline synthetic execution only; no production deployment or score",
+    "Independent Regulator review and exact-SHA integration required before revised #97 preparation",
+    "No change to production runner or old policy records"
+  ]
+}

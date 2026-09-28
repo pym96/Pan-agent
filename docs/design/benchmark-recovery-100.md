@@ -63,7 +63,7 @@ in the existing OS lock and broker ticket mechanisms.
 
 ## Resource identity
 
-Recovered campaigns bind `executionPolicy` (4 CPU, 8192 MiB, serial, disk20/39)
+Recovered campaigns bind `executionPolicy` (4 CPU, 8192 MiB, serial, disk20/54)
 in the signed identity. Legacy campaigns retain 2 CPU/4096 MiB admission; old
 signatures cannot grant the new policy. Official task resource values are passed
 unchanged through the broker; there is no blanket increase for smaller tasks.
@@ -71,7 +71,7 @@ Invalid, nonpositive, nonfinite or over-limit requirements fail. Actual Docker
 capacity must also be sufficient; unknown capacity is not assumed sufficient.
 
 Disk checks retain `free >= 20 GiB` and
-`owned + max(0, dockerAllocated - 48503971840) < 39 GiB`. Recovery imports preserve
+`owned + max(0, dockerAllocated - 48503971840) < 54 GiB`. Recovery imports preserve
 the exact original baseline. The sampler includes declared roots, all Pan state
 under the user's non-temporary state directory, and still-present restored #97,
 #74 and #94 temporary locations. Inodes are deduplicated, so hardlinks are not
@@ -153,3 +153,23 @@ arrays and boxed/coercible objects cannot acquire authority through string coerc
 See the [repair evidence](../evidence/benchmark-recovery-100-repair-1.md) for both
 Verdict counterexamples and targeted controls. Official task bytes and disk formula
 remain unchanged.
+
+## #101 forward deployment policy (pending independent acceptance)
+
+HF-20260928-002 authorizes strictly less than 54 GiB (57,982,058,496 bytes)
+cumulative growth; free remains at least 20 GiB (21,474,836,480 bytes).
+The Docker baseline remains 48,503,971,840 bytes and all owned roots/inode
+accounting are unchanged. Historical #97/#100 records and their 39 GiB policies
+retain their original meaning; no prior blocked result is reclassified.
+
+After #101 independent acceptance and exact-SHA integration, Master must revise
+#97 preparation authority before applying steps 1–6 above. Create a new clean
+persistent runner at that accepted SHA, verify unchanged frozen dependencies,
+restore the read-only original evidence into a fresh successor, and preserve
+57 consumed/32 unstarted plus all unknown results. New recovery identity and
+status binding both carry disk20/54; old permits cannot authorize this identity.
+Reobserve actual Docker capacity and cached images, prepare only eligible tasks,
+then submit the complete new binding and stop for Master signature. A new run ID
+is still required. This contract does not authorize production restore/prepare,
+pulls, cleanup, VM changes or live execution. The original #97 storage blocker
+fits the new policy only as an offline estimate, not as a completed deployment.

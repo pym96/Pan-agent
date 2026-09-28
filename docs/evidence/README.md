@@ -94,3 +94,4 @@ Raw artifacts remain at their stable source, Git, Trace, Test, evaluator, or ext
   original candidate and independent rejection evidence retained.
 
 - [#97 Criteria1.4 persistent preparation](terminal-bench-persistent-prep-97.md) / [summary](terminal-bench-persistent-prep-97-summary.json): blocked before deployment by cumulative storage headroom; actual Docker memory also blocks two 8 GiB tasks. No new campaign, binding or live evaluation.
+- [#101 disk54 candidate](disk54-101.md) / [summary](disk54-101-summary.json): prospective cumulative policy, historical consumption and old-permit rejection, offline evidence only.
