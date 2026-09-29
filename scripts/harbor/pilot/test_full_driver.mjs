@@ -1,3 +1,6 @@
+import {verifyProduct as actualVerifyProduct} from './full-host.mjs';
+import {execFileSync} from 'node:child_process';
+import {fileURLToPath} from 'node:url';
 // Explicit offline driver invokes the same public parser/controller. Not a production CLI switch.
 import {main} from './full-cli.mjs';
 import {runAttempt} from './session.mjs';
@@ -26,6 +29,13 @@ const deps={home:fixture.home,mode:fixture.mode??'offline-control',runnerSha:()=
   const report={task:task.id,stopConfirmed:true,globalStops:scenario==='global'?[{reason:'quota_exhausted'}]:[],agentStopReason:scenario==='model'?'synthetic_model_failure':null,verifier:['model','global'].includes(scenario)?null:{status:'official_scored'}};
   mkdirSync(output,{recursive:true});writeFileSync(join(output,'report.json'),JSON.stringify(report));return report;
  }};
+if(fixture.legacyPackage)deps.verifyProduct=()=>({...packageLock,package_sha256:'12a1e82bbb59c5572c3b59140c4222308d9bf4296deafa84b539c50d25fa7b61'});
+if(fixture.successor104){
+ deps.runnerSha=()=>execFileSync('git',['rev-parse','HEAD'],{cwd:fileURLToPath(new URL('../../../',import.meta.url)),encoding:'utf8'}).trim();
+ deps.verifyProduct=actualVerifyProduct;
+ deps.inspectResidual=async r=>{effect('inspect_residual',r.task);return {confirmed:!fixture.oldStopUnknown,project:r.project};};
+ deps.prepare=async task=>{effect('prepare',task.id,{configuration:task.config});return fixture.missing.includes(task.id)?{ready:false,reason:'image_not_cached',global:false}:{ready:true,image:fixture.changedImage??fixture.images[task.id],architecture:'amd64',os:'linux',sourceValidated:true};};
+}
 if(fixture.realSession){let calls=0;deps.runAttempt=runAttempt;deps.fetchImplementation=async()=>new Response(wire(++calls===1?'synthetic-command':null));}
 if(fixture.handoff103){
  const first=Object.keys(scenarios)[0],scenario=scenarios[first];let release;

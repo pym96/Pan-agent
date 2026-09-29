@@ -1,0 +1,34 @@
+{
+  "issue": 104,
+  "criteria": "1.0",
+  "status": "candidate_pending_independent_regulator",
+  "base": "13a85393bda66cb3e3ae51ea8f400d3986dd75be",
+  "sourceInventory": "b3b9248ae10a3f8da677b044c6c4d02ce46bcf72c93fbea2c9934f58c0850c30",
+  "sourceFiles": 963,
+  "consumed": 62,
+  "notStarted": 27,
+  "eligibleOffline": 25,
+  "missingImages": [
+    "mteb-retrieve",
+    "pytorch-model-recovery"
+  ],
+  "historicalUnknown": 20,
+  "historicalRunIds": 15,
+  "package": "5ecd3b9b4da688f90dfee3cc651b4a2f755595587b6d7d7287383cab23c8e580",
+  "productChanged": false,
+  "productionMutation": false,
+  "productionCalls": 0,
+  "baselineDockerBytes": 48503971840,
+  "tests": {
+    "affectedCoreRunner": 132,
+    "legacyArchiveUpgrade": 12,
+    "recoveryResource": 23,
+    "host": 82,
+    "python": 259,
+    "pythonSkipped": 6,
+    "successorScenarios": 6,
+    "postCommitResults": "external SHA-bound Handoff"
+  },
+  "evidenceRoot": "/Volumes/WD_BLACK/pan-agent/campaign-successor-20260929",
+  "internalRoot": "/Users/panyiming/.local/state/pan-agent/campaign-successor-work"
+}

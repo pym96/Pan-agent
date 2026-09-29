@@ -275,3 +275,5 @@ Use the #103 repaired candidate package matching `package-identity.json` via `PA
 `node --test scripts/harbor/pilot/test_handoff_103.mjs scripts/harbor/pilot/test_full_handoff_103.mjs`
 executes actual core + controller paths with synthetic transport/environment, no
 models or Docker. See [design](../../../docs/design/handoff-recovery-103.md).
+
+- #104 `successor97 --source SOURCE --layout NEW --campaign TARGET` imports only the fixed stopped segment6 source into a new #103-package successor. `recover` confirms stops and archives predecessor bytes before fresh prepare/status. No run is authorized by migration. See [design/runbook](../../../docs/design/campaign-successor-104.md); `test_successor_104.mjs` uses WO104_ROOT, WO104_SOURCE, WO104_EXTERNAL and PAN_TEST_ENTRY (actual new package).

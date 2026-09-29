@@ -6,6 +6,7 @@ import {initialize,durable,rawAccounting} from './full-store.mjs';
 import {projectFor,EXECUTION_POLICY,resourceCheck} from './full-host.mjs';
 import {validateLayout,sampleDurable,flushTree} from './full-durable.mjs';
 export const PINS=Object.freeze({archive:'34165656f7cc4b6f48ed1097d96bf524f624a120003f18badeb1627efd8f6f9e',index:'294a67cb9db4a0efa982859f85ac8abfed1e13779de558c434c3c5660acfca4a',ledgers:'a94398a3e395572655c5aa48733fd1aa922118f60c0b01702324a3f550ab743f',second:'1467312adb5193eaca0fe694e95e3c6ac2749f72bcaca3e7008a335c76013b0e'});
+export const RECOVERY_PACKAGE='12a1e82bbb59c5572c3b59140c4222308d9bf4296deafa84b539c50d25fa7b61';
 const FIRST='eecf5765-a6fe-47ab-9286-aa825fa0aba7',SECOND='16f4f98e-348f-41a3-b18f-ee9dad4dbc18';
 const json=p=>JSON.parse(readFileSync(p));
 function pinned(path,hash){const bytes=readFileSync(path);check(digest(bytes)===hash,'recovery_source_hash');return JSON.parse(bytes);}
@@ -13,8 +14,8 @@ function safe(name){check(typeof name==='string'&&!name.startsWith('/')&&!name.s
 function ledger(bytes,id,m){
  const text=bytes.toString();check(text.endsWith('\n'),'recovery_ledger_truncated');let rows;try{rows=text.slice(0,-1).split('\n').map(JSON.parse);}catch{throw Error('recovery_ledger_truncated');}
  const header=rows[0];check(header?.event==='campaign_reserved'&&header.runId===id&&rows.filter(r=>r.event==='campaign_reserved').length===1,'recovery_ledger_identity');
- const b=header.binding,pkg=json(new URL('./package-identity.json',import.meta.url));
- check(b.manifestHash===digest(readFileSync(new URL('./full-manifest.json',import.meta.url)))&&b.panHash===pkg.package_sha256&&canonical(b.model)===canonical(MODEL)&&canonical(b.budget)===canonical(METERED_LIMITS)&&b.mode==='live','recovery_binding_identity');
+ const b=header.binding;
+ check(b.manifestHash===digest(readFileSync(new URL('./full-manifest.json',import.meta.url)))&&b.panHash===RECOVERY_PACKAGE&&canonical(b.model)===canonical(MODEL)&&canonical(b.budget)===canonical(METERED_LIMITS)&&b.mode==='live','recovery_binding_identity');
  check(Array.isArray(b.taskIds)&&new Set(b.taskIds).size===b.taskIds.length&&b.taskIds.every(t=>m.tasks.some(x=>x.id===t)),'recovery_tasks');
  const used=new Set();for(const r of rows.slice(1)){check(b.taskIds.includes(r.task),'recovery_foreign_task');if(r.event==='attempt_reserved'){check(!used.has(r.task),'recovery_duplicate_attempt');used.add(r.task);}else check(used.has(r.task),'recovery_unreserved_event');}
  return {rows,b,used:[...used]};
@@ -80,6 +81,6 @@ export function attachRecovery(store,m){
 }
 export async function checkImportedStops(store,host){
  store.residualsChecked=false;
- for(const r of store.imported??[])if(r.stopConfirmed!==true){const p=await host.inspectResidual(r);check(p?.confirmed===true,'historical_stop_unknown');}
+ for(const r of store.imported??[])if(store.meta.successor104||r.stopConfirmed!==true){const p=await host.inspectResidual(r);check(p?.confirmed===true,'historical_stop_unknown');}
  store.residualsChecked=true;
 }

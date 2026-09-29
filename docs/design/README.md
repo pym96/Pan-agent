@@ -122,3 +122,5 @@ The Human-accepted architecture history remains indexed in [`../adr/README.md`](
 - [#102 archive transaction and explicit successor](archive-repair-102.md): external filesystem publication and preserved stopped-run identity.
 
 - [#103 handoff diagnosis and confirmed continuation](handoff-recovery-103.md): offline runner/transport candidate; original source settlement evidence, immutable fault history and strict unknown-stop boundary.
+
+- [#104 fixed campaign successor](campaign-successor-104.md) / [deployment runbook](campaign-successor-104-runbook.md): immutable historical import, new accepted package and freshly checked binding.

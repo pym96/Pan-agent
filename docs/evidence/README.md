@@ -101,3 +101,5 @@ Raw artifacts remain at their stable source, Git, Trace, Test, evaluator, or ext
 - [#102 external archive repair](archive-repair-102.md) / [summary](archive-repair-102-summary.json): actual external filesystem controls and synthetic58-consumption successor; pending independent review.
 
 - [#103 handoff diagnosis and confirmed continuation](handoff-recovery-103.md) / [summary](handoff-recovery-103-summary.json): offline actual-core failure reproduction and two-task confirmation tests; historical causes remain unknown, no #97 live run; repaired source-settlement transport and isolated candidate package pending independent review.
+
+- [#104 campaign successor](campaign-successor-104.md) / [summary](campaign-successor-104-summary.json): fixed-source history conservation, #103 package and fresh binding; offline candidate, no #97 production migration.
