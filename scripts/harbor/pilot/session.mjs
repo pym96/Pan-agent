@@ -1,3 +1,4 @@
+import {faultRecord,timeoutError,watchdogCode} from './handoff-state.mjs';
 import {pathToFileURL} from 'node:url';
 import {mkdir,writeFile} from 'node:fs/promises';
 import {check,digest,Ledger} from './policy.mjs';
@@ -10,8 +11,12 @@ export async function runAttempt({entry,task,instruction,output,environment,gate
  let phase='agent',agentReason=null,hardReason=null,secret,session,result,verifier=null,stopPromise,stopConfirmed=null,quiescence=null,quiescePromise,agentTimer,verifierTimer,verifierStopResolve;
  const mark=value=>{phase=value;phases.push({phase:value,at:performance.now()});};mark('agent');
  const scrub=value=>JSON.parse(JSON.stringify(value,(k,v)=>k==='reasoning_content'?undefined:typeof v==='string'&&secret?v.split(secret).join('[REDACTED]'):v));
- const boundedWait=(promise,ms,label)=>{let timer;return Promise.race([promise,new Promise((_,reject)=>{timer=timers.setTimeout(()=>reject(Error(label)),ms,label);})]).finally(()=>timers.clearTimeout(timer));};
- const stopEnvironment=reason=>stopPromise??=(async()=>{try{const r=await boundedWait(Promise.resolve().then(()=>environment.stop(reason)),35000,'environment_stop_timeout');stopConfirmed=r?.stopped===true;}catch{stopConfirmed=false;}})();
+ const faults=[],pending=new Map();let runState='absent',closeState='absent',runPromise,closePromise,localWatchdog=false,unclassifiedFault=false,waitingFor='session.create';
+ const fault=(error,source)=>{faults.push(faultRecord(error,source,phase,faults.length+1));if(!watchdogCode(error))unclassifiedFault=true;};
+ const track=(promise,source)=>{const p=Promise.resolve(promise);pending.set(p,source);p.then(()=>pending.delete(p),error=>{pending.delete(p);fault(error,source);});return p;};
+ const boundedWait=(promise,ms,label)=>{let timer;return Promise.race([promise,new Promise((_,reject)=>{timer=timers.setTimeout(()=>reject(timeoutError(label)),ms,label);})]).finally(()=>timers.clearTimeout(timer));};
+ const closeSession=()=>closePromise??=(async()=>{closeState='pending';try{await session.close();closeState='fulfilled';}catch(e){closeState='rejected';fault(e,'session.close');throw e;}})();
+ const stopEnvironment=reason=>stopPromise??=(async()=>{try{const r=await boundedWait(Promise.resolve().then(()=>environment.stop(reason)),35000,'environment_stop_timeout');stopConfirmed=r?.stopped===true;}catch(e){fault(e,'environment.stop');stopConfirmed=false;}})();
  const hard=reason=>{
   if(phase==='ended')return;
   if(!globalStops.some(x=>x.reason===reason))globalStops.push({reason,phase,at:performance.now()});
@@ -19,7 +24,7 @@ export async function runAttempt({entry,task,instruction,output,environment,gate
  };
  const quiesce=()=>quiescePromise??=(async()=>{
   try{quiescence=await boundedWait(Promise.resolve().then(()=>environment.quiesce()),15000,'handoff_timeout');}
-  catch{quiescence={confirmed:false,reason:'handoff_failed'};}
+  catch(e){fault(e,'environment.quiesce');quiescence={confirmed:false,reason:'handoff_failed'};}
   if(quiescence?.confirmed!==true)hard('command_stop_unconfirmed');
   return quiescence;
  })();
@@ -40,7 +45,7 @@ export async function runAttempt({entry,task,instruction,output,environment,gate
  };
  const diagnostics=[],counts={modelRounds:0,exchanges:0,reservations:0,sendEntries:0,retries:0,tools:0};
  const metered=gate.binding.budget.mode==='metered';let attempt;
- const record=row=>{try{ledger.record(task.id,row);}catch{hard('ledger_error');throw Error('ledger_error');}};
+ const record=row=>{check(phase!=='ended','attempt_closed');try{ledger.record(task.id,row);}catch{hard('ledger_error');throw Error('ledger_error');}};
  const local=reason=>{attempt.reason=reason;attempt.stage='local';throw Error(reason);};
  const transport=new KimiFetchTransport({credentialSource:()=>{admit();secret=credentialSource();return secret;},onAttempt:()=>{
   admit();record({event:'send_entered',exchange:attempt.exchange});attempt.sendEntered=true;attempt.stage='send';counts.sendEntries++;
@@ -60,12 +65,13 @@ export async function runAttempt({entry,task,instruction,output,environment,gate
   try{
    // The transport may ignore AbortSignal while sending; settlement is still bounded.
    let abort;const stopped=new Promise((_,reject)=>{abort=()=>reject(new DOMException('aborted','AbortError'));dispatchSignal.addEventListener('abort',abort,{once:true});if(dispatchSignal.aborted)abort();});
-   let response;try{response=await Promise.race([transport.send({...request,body,signal:dispatchSignal}),stopped]);}finally{dispatchSignal.removeEventListener('abort',abort);}
+   let response;try{response=await Promise.race([track(transport.send({...request,body,signal:dispatchSignal}),'transport.send'),stopped]);}finally{dispatchSignal.removeEventListener('abort',abort);}
    attempt.stage='http';attempt.httpStatus=response.status;attempt.retryAfterMs=response.retryAfterMs;
    record({event:'http_observed',exchange:attempt.exchange,status:response.status});
-   return {...response,body:(async function*(){let bytes=0;attempt.stage='stream';try{for await(const chunk of response.body){admit();dispatchSignal.throwIfAborted();bytes+=chunk.byteLength;attempt.responseBytes=bytes;if(gate.binding.budget.responseBytes!==null&&bytes>gate.binding.budget.responseBytes){attempt.reason='response_size';throw Error('response_size');}yield chunk;}}catch(e){classify();throw e;}})()};
+   return {...response,body:(async function*(){let bytes=0;attempt.stage='stream';try{for await(const chunk of trackedBody(response.body)){admit();dispatchSignal.throwIfAborted();bytes+=chunk.byteLength;attempt.responseBytes=bytes;if(gate.binding.budget.responseBytes!==null&&bytes>gate.binding.budget.responseBytes){attempt.reason='response_size';throw Error('response_size');}yield chunk;}}catch(e){classify();throw e;}})()};
   }catch(e){classify();throw e;}
  }};
+ const trackedBody=async function*(body){const iterator=body[Symbol.asyncIterator]();try{for(;;){const item=await track(iterator.next(),'transport.read');if(item.done)return;yield item.value;}}finally{if(iterator.return)await track(iterator.return(),'transport.return');}};
  const inner=new PanKimiModelAdapter({modelId:'k3-256k',thinkingLevel:'high'},{transport:bounded,diagnostics:true,onStructure:value=>{attempt.structure=value;}});
  const fail=detail=>({kind:'failure',category:'protocol',detail,retryable:false,usage:{status:'unavailable'},identity:{provider:{status:'unavailable'},model:{status:'unavailable'},responseId:{status:'unavailable'}}});
  const pause=ms=>new Promise(resolve=>{
@@ -81,7 +87,7 @@ export async function runAttempt({entry,task,instruction,output,environment,gate
    let outcome;try{outcome=await inner.exchange(request);}finally{attempt.clear?.();delete attempt.clear;}
    attempt.elapsedMs=performance.now()-exchangeStarted;
    const u=outcome.usage?.status==='reported'?{input:outcome.usage.value.input,output:outcome.usage.value.output}:null;
-   usage.push(u);ledger.usage(task.id,u);
+   check(phase!=='ended','attempt_closed');usage.push(u);ledger.usage(task.id,u);
    if(outcome.kind!=='failure'&&(!u||!Number.isFinite(u.input)||!Number.isFinite(u.output))){attempt.reason='usage_missing';outcome=fail('usage_missing');}
    if(secret&&JSON.stringify(outcome).includes(secret)){attempt.reason='credential_echo';outcome=fail('credential_echo');}
    if(outcome.kind==='failure'){
@@ -107,14 +113,15 @@ export async function runAttempt({entry,task,instruction,output,environment,gate
   admit();toolSignal.throwIfAborted();check(!secret||!args.command.includes(secret),'credential_echo');reserve('tool');counts.tools++;
   const abort=()=>{if(phase==='handoff'&&!hardReason)void quiesce();else hard('cancelled');};toolSignal.addEventListener('abort',abort,{once:true});
   try{
-   const r=scrub(await boundedWait(environment.exec(args.command,args.timeout),(args.timeout+15)*1000,'command_stop_unconfirmed'));effects.push({arguments:args,result:r});
+   const r=scrub(await boundedWait(track(environment.exec(args.command,args.timeout),'tool.wait'),(args.timeout+15)*1000,'command_stop_unconfirmed'));check(phase!=='ended','attempt_closed');effects.push({arguments:args,result:r});
    if(r.status==='stop_unconfirmed'||['timeout','interrupted'].includes(r.status)&&r.wait?.settled!==true)hard('command_stop_unconfirmed');
    if(phase==='agent'&&!hardReason)gateCheck();
    return {content:[{type:'text',text:JSON.stringify(r)}],isError:r.exit_code!==0||r.status!=='completed',details:r};
-  }catch{
+  }catch(e){
+   fault(e,'tool.execute');
    if(phase==='agent'&&!hardReason)hard('tool_error');
    const r={status:hardReason??agentReason??'tool_error',exit_code:null,stdout:'',stderr:'task_command_failed'};
-   if(!effects.some(e=>e.arguments===args))effects.push({arguments:args,result:r});return {content:[{type:'text',text:JSON.stringify(r)}],isError:true,details:r};
+   if(phase!=='ended'&&!effects.some(e=>e.arguments===args))effects.push({arguments:args,result:r});return {content:[{type:'text',text:JSON.stringify(r)}],isError:true,details:r};
   }finally{toolSignal.removeEventListener('abort',abort);}
  }};
  const cancel=()=>hard('cancelled');signal?.addEventListener('abort',cancel,{once:true});
@@ -125,14 +132,16 @@ export async function runAttempt({entry,task,instruction,output,environment,gate
   gateCheck();
   // The product and transport respect cancellation; this additional bound covers
   // broken implementations without permitting verification of uncertain activity.
-  result=await boundedWait(session.runTask(instruction),task.config.agent.timeout_sec*1000+15000,'agent_settlement_timeout');
+  waitingFor='session.run';runState='pending';runPromise=Promise.resolve(session.runTask(instruction)).then(value=>{runState='fulfilled';return value;},error=>{runState='rejected';fault(error,'session.run');throw error;});
+  result=await boundedWait(runPromise,task.config.agent.timeout_sec*1000+15000,'agent_settlement_timeout');
   timers.clearTimeout(agentTimer);
-  await boundedWait(session.close(),15000,'session_close_timeout');session=undefined;
+  waitingFor='session.close';await boundedWait(closeSession(),15000,'session_close_timeout');
   if(!agentReason&&result.status!=='completed')agentReason=result.reason??result.status;
   const eligible=(!agentReason&&result.status==='completed')||['agent_timeout','turn_limit','step_limit','dispatch_budget','tool_budget'].includes(agentReason);
   if(eligible&&!hardReason){
    if(phase==='agent'){mark('handoff');agentAbort.abort();}
    await quiesce();gateCheck();
+   if(pending.size)hard('local_work_unsettled');
    if(!hardReason){
     mark('verifier');
     let timeoutResolve;const timeout=new Promise(resolve=>timeoutResolve=resolve);
@@ -147,12 +156,20 @@ export async function runAttempt({entry,task,instruction,output,environment,gate
     finally{signal?.removeEventListener('abort',onGlobal);timers.clearTimeout(verifierTimer);}
    }
   }
- }catch{hard(hardReason??'attempt_error');}
+ }catch(e){fault(e,waitingFor);localWatchdog=['agent_settlement_timeout','session_close_timeout'].includes(watchdogCode(e));hard(hardReason??'attempt_error');}
  finally{
   timers.clearTimeout(agentTimer);timers.clearTimeout(verifierTimer);timers.clearTimeout(expiryTimer);
-  if(session){session.cancel();try{await boundedWait(session.close(),15000,'session_close_timeout');}catch{hard('session_stop_unconfirmed');}}
-  inner.dispose();await stopEnvironment(hardReason??'attempt_complete');signal?.removeEventListener('abort',cancel);mark('ended');
+  if(localWatchdog)await quiesce();
+  if(session){session.cancel();try{await boundedWait(closeSession(),15000,'session_close_timeout');}catch(e){fault(e,'session.close.wait');hard('session_stop_unconfirmed');}}
+  inner.dispose();await stopEnvironment(hardReason??'attempt_complete');
+  // One finite recovery observation window after destructive stop. No verifier restart.
+  // Wait for actual promises, not timeout races; admission stays permanently closed.
+  if(localWatchdog){try{await boundedWait(Promise.all([runPromise,closePromise,...pending.keys()]),15000,'recovery_timeout');}catch(e){fault(e,'recovery');hard('recovery_unconfirmed');}}
+  if(pending.size)hard('local_work_unsettled');
+  signal?.removeEventListener('abort',cancel);mark('ended');
  }
- const report={task:task.id,agentStatus:result?.status??'failed',agentStopReason:agentReason,stopReason:agentReason??hardReason,globalStops,stopConfirmed,quiescence,phases,usage,diagnostics,counts,verifier,effects:scrub(effects)};
+ const confirmations={admissionClosed:agentAbort.signal.aborted,runSettled:runState==='fulfilled',sessionClosed:closeState==='fulfilled',transportSettled:![...pending.values()].some(x=>x.startsWith('transport.')),toolsSettled:![...pending.values()].some(x=>x.startsWith('tool.')),quiesced:quiescence?.confirmed===true,environmentStopped:stopConfirmed===true};
+ const continuation={version:1,localWatchdog,confirmations,allowed:localWatchdog&&!unclassifiedFault&&!signal?.aborted&&Object.values(confirmations).every(Boolean)&&globalStops.every(x=>['attempt_error','session_stop_unconfirmed'].includes(x.reason)),scope:'local callback/entry settlement only; no claim about remote provider compute'};
+ const report={faults:[...faults],continuation,pendingOperations:[...pending.values()],task:task.id,agentStatus:result?.status??'failed',agentStopReason:agentReason,stopReason:agentReason??hardReason,globalStops,stopConfirmed,quiescence,phases,usage,diagnostics,counts,verifier,effects:scrub(effects)};
  ledger.finish(task.id,report.stopReason??report.agentStatus);await writeFile(output+'/report.json',JSON.stringify(report,null,2)+'\n');return report;
 }

@@ -267,3 +267,11 @@ physical-root coverage/inode accounting and strict memory-field typing. Run with
 - #101 prospective disk policy: strict cumulative <54 GiB, free >=20 GiB, original baseline unchanged. `test_disk_101.mjs` uses one retained-source recovery fixture (`WO101_SOURCE`, `WO101_TEST_ROOT`); no live effects. See [evidence](../../../docs/evidence/disk54-101.md).
 
 - #102: `upgrade97 --source OLD --layout NEW_LAYOUT --campaign NEW` imports the pinned stopped segment3 into a fresh successor; `recover` must settle its archive/stop obligation before prepare or binding. See [design](../../../docs/design/archive-repair-102.md). `test_archive_102.mjs` requires WO102_ROOT and WO102_EXTERNAL on separate actual volumes; `test_upgrade_102.mjs` also requires WO102_SOURCE. All controls are offline.
+
+## #103 offline handoff checks
+
+Use the unchanged accepted installed product via `PAN_TEST_ENTRY`; set `TMPDIR`,
+`WO103_TEST_ROOT` and `WO96_TEST_ROOT` to the issue-owned internal fixture directory.
+`node --test scripts/harbor/pilot/test_handoff_103.mjs scripts/harbor/pilot/test_full_handoff_103.mjs`
+executes actual core + controller paths with synthetic transport/environment, no
+models or Docker. See [design](../../../docs/design/handoff-recovery-103.md).

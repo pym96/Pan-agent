@@ -120,3 +120,5 @@ The Human-accepted architecture history remains indexed in [`../adr/README.md`](
   unknown retention, per-task archives, resource identity and deferred live runbook.
 
 - [#102 archive transaction and explicit successor](archive-repair-102.md): external filesystem publication and preserved stopped-run identity.
+
+- [#103 handoff diagnosis and confirmed continuation](handoff-recovery-103.md): offline runner candidate; actual settlement evidence, immutable fault history and strict unknown-stop boundary.

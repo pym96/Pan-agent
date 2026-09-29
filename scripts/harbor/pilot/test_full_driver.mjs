@@ -27,4 +27,19 @@ const deps={home:fixture.home,mode:fixture.mode??'offline-control',runnerSha:()=
   mkdirSync(output,{recursive:true});writeFileSync(join(output,'report.json'),JSON.stringify(report));return report;
  }};
 if(fixture.realSession){let calls=0;deps.runAttempt=runAttempt;deps.fetchImplementation=async()=>new Response(wire(++calls===1?'synthetic-command':null));}
+if(fixture.handoff103){
+ const first=Object.keys(scenarios)[0],scenario=scenarios[first];let release;
+ const oldCheckpoint=deps.checkpoint;
+ deps.checkpoint=async(stage,task)=>{await oldCheckpoint(stage,task);if(scenario==='archive_failure'&&stage==='before_archive'&&task===first)throw Error('synthetic_archive_failure');};
+ const oldBroker=deps.openBroker;
+ deps.openBroker=options=>{const b=oldBroker(options);if(options.config.task.id===first){b.exec=()=>new Promise(resolve=>{release=resolve;});b.stop=async()=>{if(scenario!=='never_settles')release?.({status:'interrupted',exit_code:null,stdout:'',stderr:'',wait:{settled:true}});return {stopped:scenario!=='stop_unknown'};};}return b;};
+ deps.runAttempt=async args=>{
+  const jobs=[];const timers={setTimeout(fn,ms,label){const t={fn,label,active:true};jobs.push(t);if(['session_close_timeout','recovery_timeout'].includes(label))setTimeout(()=>{if(t.active){t.active=false;fn();}},label==='recovery_timeout'?100:0);return t;},clearTimeout(t){if(t)t.active=false;}};
+  const fire=label=>{const t=jobs.findLast(t=>t.label===label&&t.active);if(!t)throw Error('missing timer '+label);t.active=false;t.fn();};
+  let n=0;const environment=args.environment;
+  const oldExec=environment.exec.bind(environment);
+  environment.exec=(...a)=>{const pending=oldExec(...a);if(args.task.id===first)setImmediate(()=>{fire('agent');fire('agent_settlement_timeout');});return pending;};
+  return runAttempt({...args,timers,fetchImplementation:async()=>new Response(wire(args.task.id===first&&++n===1?'synthetic-command':null))});
+ };
+}
 try{await main(process.argv.slice(3),deps);}catch(e){console.error(e.message);process.exitCode=1;}

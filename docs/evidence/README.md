@@ -99,3 +99,5 @@ Raw artifacts remain at their stable source, Git, Trace, Test, evaluator, or ext
 - [#97 Criteria1.5 persistent deployment](terminal-bench-persistent-prep-97.md):30 ready/unstarted tasks proposed for Master signature,57 consumption records preserved; no live evaluation. Prior1.4 blockage retained.
 
 - [#102 external archive repair](archive-repair-102.md) / [summary](archive-repair-102-summary.json): actual external filesystem controls and synthetic58-consumption successor; pending independent review.
+
+- [#103 handoff diagnosis and confirmed continuation](handoff-recovery-103.md) / [summary](handoff-recovery-103-summary.json): offline actual-core failure reproduction and two-task confirmation tests; historical causes remain unknown, no #97 live run or product package change; pending independent review.

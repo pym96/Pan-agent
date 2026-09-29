@@ -1,0 +1,60 @@
+{
+  "issue": 103,
+  "criteria": "1.0",
+  "status": "builder_candidate_pending_independent_regulator",
+  "baseline": "032fb0fba5e9d3893f90a4ff4baae89b43af37aa",
+  "productChanged": false,
+  "packageIdentityChanged": false,
+  "productionCalls": 0,
+  "productionMutation": false,
+  "historicalRootCause": "unknown",
+  "recoveryObservationMs": 15000,
+  "officialDeadlinesChanged": false,
+  "tests": {
+    "relatedPassed": 124,
+    "relatedFailed": 0,
+    "relatedSkipped": 0,
+    "hostAcceptance": {
+      "hostPassed": 82,
+      "pythonPassed": 259,
+      "pythonSkipped": 6,
+      "exit": 0
+    },
+    "finalFaultSnapshotRegression": {
+      "passed": 20,
+      "failed": 0
+    },
+    "finalRecoveryBoundaryRegression": {
+      "passed": 20,
+      "failed": 0
+    }
+  },
+  "criteriaEvidence": {
+    "C-HND-01": [
+      "red.stdout",
+      "historical-observations.json",
+      "test_handoff_103.mjs"
+    ],
+    "C-HND-02": [
+      "test_handoff_103.mjs",
+      "test_full_handoff_103.mjs"
+    ],
+    "C-HND-03": [
+      "regression-final.stdout",
+      "production-readonly-audit.json"
+    ],
+    "C-HND-04": [
+      "regression-final.stdout",
+      "host-acceptance.stdout",
+      "host-acceptance.stderr"
+    ]
+  },
+  "evidenceRoot": "/Volumes/WD_BLACK/pan-agent/handoff-recovery-20260929",
+  "actualProductEntry": "/Users/panyiming/.local/state/pan-agent/benchmark97-next/deploy-criteria15/consumer/node_modules/pan-agent/dist/index.js",
+  "deployment": "separate accepted runner/successor design and new activation required; no in-place identity change",
+  "productionIntegrity": {
+    "files": 979,
+    "unchanged": true,
+    "newLedger": false
+  }
+}

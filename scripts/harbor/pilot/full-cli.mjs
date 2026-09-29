@@ -1,3 +1,4 @@
+import {recoveryAllowed} from './handoff-state.mjs';
 import {upgrade97,attachUpgrade,reconcilePredecessor} from './full-upgrade-102.mjs';
 import {readFileSync,mkdirSync,existsSync,writeFileSync,linkSync,appendFileSync,realpathSync} from 'node:fs';
 import {join,resolve,dirname} from 'node:path';
@@ -100,7 +101,7 @@ export async function main(argv=process.argv.slice(2),dependencies={}){
       const instruction=await broker.ready;gate.assert(controller.signal);
       report=await host.runAttempt({entry:resolve(o['--entry']),task,instruction,output:join(directory,'pan'),environment:broker,gate,ledger,credentialSource:()=>credential,fetchImplementation:host.fetchImplementation,signal:controller.signal,attemptAlreadyReserved:true});
       classified=host.scoreEvidence(directory,report);
-      if(report.stopConfirmed!==true||report.globalStops?.length)controller.abort();
+      if(report.stopConfirmed!==true||(report.globalStops?.length&&!recoveryAllowed(report)))controller.abort();
      }finally{controller.signal.removeEventListener('abort',onAbort);}
     }catch(error){
      const reason=error.diagnostic?.reason??(controller.signal.aborted?'cancelled':'environment_or_execution_failed');classified={state:'unscored',rawReward:null,validScore:null,reason,evidence:null};
@@ -116,6 +117,7 @@ export async function main(argv=process.argv.slice(2),dependencies={}){
     store.add('result',{task:task.id,runId:gate.runId,...classified,stopConfirmed:stopped,elapsedSeconds:(performance.now()-start)/1000});
     await host.checkpoint?.('after_result',task.id);
     await host.checkpoint?.('before_archive',task.id);archiveTask(store,store.reserved(task.id));await host.checkpoint?.('after_archive',task.id);
+    store.add('continuation',{runId:gate.runId,task:task.id,allowed:!controller.signal.aborted&&stopped,session:report?.continuation??null,faults:report?.faults??[],globalStops:report?.globalStops??[],cleanupConfirmed:stopped,archiveComplete:true});
     if(controller.signal.aborted)break;
    }
    if(!uncertain)store.add('segment_closed',{runId:gate.runId,paused:controller.signal.aborted});
