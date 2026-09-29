@@ -99,3 +99,5 @@ Raw artifacts remain at their stable source, Git, Trace, Test, evaluator, or ext
 - [#97 Criteria1.5 persistent deployment](terminal-bench-persistent-prep-97.md):30 ready/unstarted tasks proposed for Master signature,57 consumption records preserved; no live evaluation. Prior1.4 blockage retained.
 
 - [#102 external archive repair](archive-repair-102.md) / [summary](archive-repair-102-summary.json): actual external filesystem controls and synthetic58-consumption successor; pending independent review.
+
+- [#97 Criteria1.7 archive recovery and preparation](terminal-bench-persistent-prep-97.md) / [complete binding](terminal-bench-persistent-prep-97-summary.json): new accepted runner and successor;58 consumed preserved,29 ready proposed,2 missing images,20 historical unknown. Awaiting Master new activation; no new evaluation.

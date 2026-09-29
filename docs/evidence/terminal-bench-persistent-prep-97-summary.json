@@ -1,14 +1,14 @@
 {
   "issue": 97,
-  "criteria": "1.5",
-  "status": "prepared_pending_master_signature_and_independent_review",
-  "runnerSha": "fce8cc2ad6cf6ab7755a7c7b4874cfe6cf777d71",
-  "deploymentRoot": "/Users/panyiming/.local/state/pan-agent/benchmark97-next/deploy-criteria15",
-  "evidenceRoot": "/Volumes/WD_BLACK/pan-agent/wo97-full-live-20260925/persistent-criteria15",
+  "criteria": "1.7",
+  "status": "prepared_pending_master_new_activation_and_final_independent_review",
+  "runnerSha": "032fb0fba5e9d3893f90a4ff4baae89b43af37aa",
+  "deploymentRoot": "/Users/panyiming/.local/state/pan-agent/benchmark97-next/deploy-criteria17",
+  "evidenceRoot": "/Volumes/WD_BLACK/pan-agent/wo97-full-live-20260925/persistent-criteria17",
   "proposedBinding": {
     "manifestHash": "bfb1b8f64ca539c9c9cc88de4450c0845c38dcc8d924a7d85c126b8794e3a403",
     "panHash": "12a1e82bbb59c5572c3b59140c4222308d9bf4296deafa84b539c50d25fa7b61",
-    "runnerSha": "fce8cc2ad6cf6ab7755a7c7b4874cfe6cf777d71",
+    "runnerSha": "032fb0fba5e9d3893f90a4ff4baae89b43af37aa",
     "model": {
       "provider": "kimi-code",
       "model": "k3-256k",
@@ -37,7 +37,6 @@
       }
     },
     "taskIds": [
-      "mcmc-sampling-stan",
       "polyglot-c-py",
       "polyglot-rust-c",
       "portfolio-optimization",
@@ -69,7 +68,6 @@
       "write-compressor"
     ],
     "images": {
-      "mcmc-sampling-stan": "sha256:c7ba1f1f9d2df36db0338e4d1e429692aaf653ef6faa13dc4694a7c457593d6e",
       "polyglot-c-py": "sha256:e1956576c394084e01441646e27f54bf0a246d83b764d9d14b04273e00302f07",
       "polyglot-rust-c": "sha256:42e1c101034156ab6a0cbefc63ee654ab7fccb668e1580a090abba89244f6a93",
       "portfolio-optimization": "sha256:b0ef263fdd85ca609faafead645c86c8a03f534178b3368e3eedc0a273b3fed9",
@@ -101,155 +99,391 @@
       "write-compressor": "sha256:795a10ee52aa610a840b6587c5a1d2194175faa76c58879c8846a115b601902a"
     },
     "full": {
-      "campaignId": "267ea540-6b8e-4736-b6ff-ecfe3ce9fba1",
-      "root": "/Users/panyiming/.local/state/pan-agent/benchmark97-next/deploy-criteria15/campaign",
-      "checkpoint": "377aa212db8829a6ad48803114f205d89c619cf1f73a0a44ced4bbed99ba407e",
+      "campaignId": "10d69769-d733-480a-bb37-5e08457cb512",
+      "root": "/Users/panyiming/.local/state/pan-agent/benchmark97-next/deploy-criteria17/campaign",
+      "checkpoint": "6f51a720866c0a2bb5735f033a1ed85e2254fe592d236dd6c17930eaa15a8df2",
       "resourcePolicy": {
         "minFreeBytes": 21474836480,
         "incrementExclusiveBytes": 57982058496
       },
-      "segmentIndex": 3,
+      "segmentIndex": 4,
       "preparations": {
-        "mcmc-sampling-stan": "79f597c28f6afaa61408eea9882789e3c48f30f56e72c7ed7d30cff4d6d8362e",
-        "polyglot-c-py": "f92e93dddfd7853b8d2553b4a3e199e2bf2dd1e3914848bffe23f98e3baf50ec",
-        "polyglot-rust-c": "be4332720c0665b4106a3ed3e24d940f3f13e6f1f87c0d394cd9956ecaf540d9",
-        "portfolio-optimization": "e34ad96142d9418fa4290c0274b42144d1769040e6d0203dc4b36d29b7366c30",
-        "protein-assembly": "ff81204030bca0afb0a00f1b0a1d6a0f04bfa628983f109a4f1220afbf033114",
-        "prove-plus-comm": "e7758401789a2f601f8ebd720a96cb27ea51a0222394f30128e05a31c1748a51",
-        "pypi-server": "0c6d32c134d4fe1f6e69996dff640f0f9ccf84a3a4d3cbdd2d0802a44ce170c1",
-        "pytorch-model-cli": "4eb8be5a44addce5b8b69dcdf31636fbca5918a2e597164446005a152a599b09",
-        "qemu-alpine-ssh": "23b9a3f36e9d3249a297d54e53beedd8ea0bfbbadeed574d995dc26df2ed172e",
-        "qemu-startup": "337d2d88258346c1d24cb392b22b42a818eb42fee8186de5ab6603ff44e86f9e",
-        "query-optimize": "37303f5583ddd7caf8536d66b8a0ce95d1011d62012ef975066f56a01cf64c1f",
-        "raman-fitting": "d2785c475d81689e042a1551d9b275171e7f0e5b7de62a1bcc04d06791cc1891",
-        "regex-chess": "7c7ab70200b0db08c2a983227f33753462175465b14e2e4e069b99b62530ebdf",
-        "regex-log": "d78bde11c884200efb3ae9077e28a6be4454b07c0f1b242eee8851dab8157025",
-        "reshard-c4-data": "8b67d9c88cee09cc566d36b6a5758e3a3e6989041ea6aca39f85e9533ceb10c9",
-        "rstan-to-pystan": "a945008691dcd47cd41e29ce14e72fe91737b3e9b3d9c23276ff6e4ef4a15ca8",
-        "sam-cell-seg": "d78f0980f784b31dfd51ce7b3e4fbce85c4626123f43ace0114f64697a251fd8",
-        "sanitize-git-repo": "8387eceb4aaf93bd5c75cadd57b07fd387b548e3449bee99c6c26258b1fa0f7f",
-        "schemelike-metacircular-eval": "3a89f0a635640b91249bb98f96870b292092b8baaedcdbe95ecb385bf9d9d679",
-        "sparql-university": "b7061f29eb900e4cc2090729ca694a3169af8f94dcd17a48c2a57403312b45ea",
-        "sqlite-db-truncate": "a48494469b5e40a901d81f0979f41373a81a8a262d6d6b4ca0bdafbd0d16478a",
-        "sqlite-with-gcov": "dd4b340e9474654fce24a5e8844147cdaf976d7e6a5d906719b1c4ef139035e3",
-        "torch-pipeline-parallelism": "140799ffa7daac9c91dfeb93ccf385fd3cf546aff84bf5f8edfd28c707c198d8",
-        "torch-tensor-parallelism": "cf059fd096c24f52dc7149741f21e72f22a379e7286dc7366ec0cd80bb3499a9",
-        "train-fasttext": "6b9da4554e8eee62f8a0943b1059bcf5ff551a1271f336c3e3e89596282a14cd",
-        "tune-mjcf": "903785b7f1a7c3aa203a469710020837d6a9c64d570ef4e8d9d39e93b9e40816",
-        "video-processing": "a6073d505213481b41bc7a348b9fc0b7c488de6e9f4bfa1388d8fdc6ea2adc15",
-        "vulnerable-secret": "a8d0730f80c276818a7eb9f6d8e0a656fe5acf075a71e984b46b2ef00bc27a68",
-        "winning-avg-corewars": "79be88687e7e501ea1092c05ddc85f3753f4009a2e5e0c1ace61ad084881f539",
-        "write-compressor": "377aa212db8829a6ad48803114f205d89c619cf1f73a0a44ced4bbed99ba407e"
+        "polyglot-c-py": "4e887c099b7946cc06e7c25c17d0309506716e279296e0c38fa83b9cb7edc77e",
+        "polyglot-rust-c": "713e099316242597457f713b3cc4392b5b81f660bf401269fb61cea8645d30ed",
+        "portfolio-optimization": "992aa6eb656de5b5e6cfc97c0ac575b090cdb1182d390ad45b19f158a664478a",
+        "protein-assembly": "8ba89b22f251193fbc144308b0ee8d3706faa0f6e8b77de94c7b48c353530fdc",
+        "prove-plus-comm": "a24b20283b305d2b455bf827367c81703884fb3149999939e70419ac4fa2167c",
+        "pypi-server": "18db25b3c9cfe250f376db202f879e04fa2e6e41714353f38cdab0b715ce50f7",
+        "pytorch-model-cli": "02079b08cfbae8fb6c24ab0bbcde995d372006e9c485810d14fa01aed906693b",
+        "qemu-alpine-ssh": "29f13d8c32e91740e0fe28e479e4642d84d4b30b0522c3c6e7236ee6d67ee324",
+        "qemu-startup": "d464c73094a6b51099fda4d3858ebd930e88e290a3e7275fba5644a580982f3c",
+        "query-optimize": "1b87afdc6c761b4fc5eec22e2d4b406c8f13bf381d33c23a8ce09f8349ac5897",
+        "raman-fitting": "a382294ae3a2ab875e6df0c420859db759e3db627d92aa315894b667ff7f9606",
+        "regex-chess": "e4c17e5aea999501975852d89c6937e9ed1405192223269dffb9f938a8fdaa83",
+        "regex-log": "22fea37675eb78a42ee69b0ea218ad2bfe36c9a21e1ddea42d98d3c828af9e8d",
+        "reshard-c4-data": "99d25e70c6d929b738262f64432144b343ae25d2b903cd8f61dc0d1987d56cc4",
+        "rstan-to-pystan": "fc24bf3a3acc646067932263376b062c5cc034639065cf3d8d9d988088963e8e",
+        "sam-cell-seg": "f69ad77b9f96fb9f0c02b1c195a78b396791f8d4454a38f8539503ffec35269b",
+        "sanitize-git-repo": "f5516c2625d975d8a5e1dd1032ddae30ab95a28b5c5b76767603a52602daeefe",
+        "schemelike-metacircular-eval": "5716a5e1794b9644a043c49c04f0605f7872638b6c78da91599e4445fa36bdef",
+        "sparql-university": "6b80854700e32b7cd6f32aebae6b47e13719383490e4666773a1ada7addc79c3",
+        "sqlite-db-truncate": "9981ba00b300a656ad7a45aa6f13470126cfef5dbeceb4cb4490c89cff500205",
+        "sqlite-with-gcov": "d3c4f823704bd37a282bdbb433310390318a028a389153f98f123aa7396c4409",
+        "torch-pipeline-parallelism": "4f7e18e4601ff93c588ab0327420a5873b8dbcb1b7edff67503fde65f9f17f5e",
+        "torch-tensor-parallelism": "1883aedd46d460b75ad01c7aa9404a6db481a8ddfc81781e0929231bad2ca2aa",
+        "train-fasttext": "f7c37d91eb668dd7fffa3d910fdecdeaaafc9437156fdca3359124920bf5816b",
+        "tune-mjcf": "d2c98d9801120fd65981766a346e266560552a695fff4cf5142764c3b1621108",
+        "video-processing": "a647a60e7bf3bcc0227e386d1151450777a9df34231873557b9d0b067c245cb8",
+        "vulnerable-secret": "a4491f5e177230b945f07503887707e230485575363d555f4137bef34f3adbad",
+        "winning-avg-corewars": "6d0802d645b31b8282eb767b21aede80a36f9d570437db1ce166980194f9cbb7",
+        "write-compressor": "6f51a720866c0a2bb5735f033a1ed85e2254fe592d236dd6c17930eaa15a8df2"
       }
     }
   },
-  "bindingFileSha256": "d1b1df8483bf22caa2adbed3a165e3d7027b2dd8f1f584a42e5ee16d6a8320b3",
-  "counts": {
-    "total": 89,
-    "consumed": 57,
-    "unstarted": 32,
-    "ready": 30,
-    "missingImages": 2,
-    "secondSegmentUnknown": 20,
-    "historicalValidScored": 21,
-    "historicalSuccesses": 16
+  "layout": {
+    "version": 1,
+    "runner": "/Users/panyiming/.local/state/pan-agent/benchmark97-next/deploy-criteria17/runner",
+    "entry": "/Users/panyiming/.local/state/pan-agent/benchmark97-next/deploy-criteria15/consumer/node_modules/pan-agent/dist/index.js",
+    "python": "/Users/panyiming/.local/state/pan-agent/benchmark97-next/deploy-criteria15/venv/bin/python",
+    "harborRoot": "/Users/panyiming/.local/state/pan-agent/benchmark97-next/deploy-criteria15/venv/lib/python3.12/site-packages/harbor",
+    "taskRoot": "/Users/panyiming/.local/state/pan-agent/benchmark97-next/deploy-criteria15/tasks",
+    "archiveRoot": "/Volumes/WD_BLACK/pan-agent/wo97-full-live-20260925/persistent-criteria17/task-archives",
+    "ownedRoots": [
+      "/Users/panyiming/.local/state/pan-agent/benchmark97-next/deploy-criteria15",
+      "/opt/homebrew/Cellar/python@3.12/3.12.9",
+      "/Users/panyiming/.local/state/pan-agent/benchmark97-next/deploy-criteria17"
+    ]
   },
-  "blockedTasks": [
-    "mteb-retrieve",
-    "pytorch-model-recovery"
+  "historicalCounts": {
+    "denominator": 89,
+    "successes": 17,
+    "validScored": 22,
+    "notStarted": 31,
+    "unscored": 36
+  },
+  "consumed": 58,
+  "secondSegmentUnknown": 20,
+  "excluded": [
+    {
+      "task": "mteb-retrieve",
+      "ready": false,
+      "reason": "image_not_cached",
+      "global": false
+    },
+    {
+      "task": "pytorch-model-recovery",
+      "ready": false,
+      "reason": "image_not_cached",
+      "global": false
+    }
   ],
-  "dockerCapacity": {
-    "NCPU": 8,
-    "MemTotal": 10420109312,
-    "OSType": "linux"
+  "resourceSample": {
+    "utc": "2026-09-29T03:25:49.907Z",
+    "free": 43371581440,
+    "owned": 3055697920,
+    "docker": 88621330432
   },
-  "previousCriteria14": {
+  "sourceInventory": "b58f31c35940e89823ebde01876ee9d601eec0becfccfa088726854032cc46c7",
+  "protectedSourceAnd12LedgersUnchanged": true,
+  "previousCriteria15": {
     "issue": 97,
-    "criteria": "1.4",
-    "role": "Working Agent (Builder)",
-    "status": "blocked_before_deployment",
-    "baseSha": "848f59f90b503a9eab5c46ad76bb44c646570161",
-    "contract": "https://github.com/pym96/Pan-agent/issues/97#issuecomment-5868102412",
-    "evidenceRoot": "/Volumes/WD_BLACK/pan-agent/wo97-full-live-20260925/persistent-criteria14",
-    "inventorySha256": "3fb13d2d21620a91f64ab438a3513c6003ba9055c39ab9e557c3ac4aad55c3a8",
-    "resource": {
-      "sample": {
-        "utc": "2026-09-28T10:32:48.501Z",
-        "free": 44734652416,
-        "owned": 2301550592,
-        "docker": 88021364736
+    "criteria": "1.5",
+    "status": "prepared_pending_master_signature_and_independent_review",
+    "runnerSha": "fce8cc2ad6cf6ab7755a7c7b4874cfe6cf777d71",
+    "deploymentRoot": "/Users/panyiming/.local/state/pan-agent/benchmark97-next/deploy-criteria15",
+    "evidenceRoot": "/Volumes/WD_BLACK/pan-agent/wo97-full-live-20260925/persistent-criteria15",
+    "proposedBinding": {
+      "manifestHash": "bfb1b8f64ca539c9c9cc88de4450c0845c38dcc8d924a7d85c126b8794e3a403",
+      "panHash": "12a1e82bbb59c5572c3b59140c4222308d9bf4296deafa84b539c50d25fa7b61",
+      "runnerSha": "fce8cc2ad6cf6ab7755a7c7b4874cfe6cf777d71",
+      "model": {
+        "provider": "kimi-code",
+        "model": "k3-256k",
+        "thinking": "high",
+        "endpoint": "https://api.kimi.com/coding/v1/chat/completions"
       },
-      "baselineDocker": 48503971840,
-      "limitExclusive": 41875931136,
-      "increment": 41818943488,
-      "remainingExclusive": 56987648,
-      "admitted": true,
-      "error": null
+      "budget": {
+        "dispatchesPerTask": null,
+        "dispatchesCampaign": null,
+        "toolsPerTask": null,
+        "maxTokens": 4096,
+        "requestBytes": 131072,
+        "responseBytes": null,
+        "dispatchSeconds": 120,
+        "mode": "metered"
+      },
+      "mode": "live",
+      "executionPolicy": {
+        "version": 1,
+        "maxCpus": 4,
+        "maxMemoryMiB": 8192,
+        "serial": true,
+        "disk": {
+          "minFreeBytes": 21474836480,
+          "incrementExclusiveBytes": 57982058496
+        }
+      },
+      "taskIds": [
+        "mcmc-sampling-stan",
+        "polyglot-c-py",
+        "polyglot-rust-c",
+        "portfolio-optimization",
+        "protein-assembly",
+        "prove-plus-comm",
+        "pypi-server",
+        "pytorch-model-cli",
+        "qemu-alpine-ssh",
+        "qemu-startup",
+        "query-optimize",
+        "raman-fitting",
+        "regex-chess",
+        "regex-log",
+        "reshard-c4-data",
+        "rstan-to-pystan",
+        "sam-cell-seg",
+        "sanitize-git-repo",
+        "schemelike-metacircular-eval",
+        "sparql-university",
+        "sqlite-db-truncate",
+        "sqlite-with-gcov",
+        "torch-pipeline-parallelism",
+        "torch-tensor-parallelism",
+        "train-fasttext",
+        "tune-mjcf",
+        "video-processing",
+        "vulnerable-secret",
+        "winning-avg-corewars",
+        "write-compressor"
+      ],
+      "images": {
+        "mcmc-sampling-stan": "sha256:c7ba1f1f9d2df36db0338e4d1e429692aaf653ef6faa13dc4694a7c457593d6e",
+        "polyglot-c-py": "sha256:e1956576c394084e01441646e27f54bf0a246d83b764d9d14b04273e00302f07",
+        "polyglot-rust-c": "sha256:42e1c101034156ab6a0cbefc63ee654ab7fccb668e1580a090abba89244f6a93",
+        "portfolio-optimization": "sha256:b0ef263fdd85ca609faafead645c86c8a03f534178b3368e3eedc0a273b3fed9",
+        "protein-assembly": "sha256:910129dce5e537266cd7570ab1894c9ba4112acc63f1863bb393b9a91bdd368d",
+        "prove-plus-comm": "sha256:daba7f4d626336854298dd6e021c4b85486844e34474b2928e261fc35c312547",
+        "pypi-server": "sha256:14bdb79aabffeb5b4635c42038a4eb7de3f4935f49d0bcd53dd9e726b1d6d1b2",
+        "pytorch-model-cli": "sha256:2d19236650cc866ba441762e3d89edfa452756e0e4833cfdb984257d50b446e7",
+        "qemu-alpine-ssh": "sha256:e868510787ba024e1fced364e94b5ae42c9b3076fa2345498edb833752188f93",
+        "qemu-startup": "sha256:7feacb1ee3f271a6a99b1ab8a04f0872411d651ef9319b5d6da2eb11b61bc210",
+        "query-optimize": "sha256:5654e241057913a0f1a234583c62e12ed7bfab560d9c3f0dc5da985d9f3514eb",
+        "raman-fitting": "sha256:64fc1c6d2f3db01a8defcf978d3a9dc2d3f0a71c536b0baf5155b24e3a092284",
+        "regex-chess": "sha256:f75b4cea8135bedd201959332e8a6f68acc00bd1cf55faedd966319d3f70e842",
+        "regex-log": "sha256:0a15c19cc78685f8d322945e882ba702ef3d0265d1f621ee00991b8e64ddb750",
+        "reshard-c4-data": "sha256:a1ea118e6dbb44200cb77c4de3dc38023bf80387b0e781512c2d615189ad2562",
+        "rstan-to-pystan": "sha256:1b14d62b12dd1cb5420463579116a69e26fafc7d56745f8f896eb503a656b000",
+        "sam-cell-seg": "sha256:792f56b9413a280dfbeb0c5b64067e4f7217f0fba16cd84918eb28928f406fd2",
+        "sanitize-git-repo": "sha256:aed7717e5fcd600ca2db5e8c5ce33954a20b5543f0c9775429915ced251d7f55",
+        "schemelike-metacircular-eval": "sha256:85149ed74db9444b32fe96d058048ecbe604dfd39f19cf5deb4c0d7c10db57c9",
+        "sparql-university": "sha256:4b477a009da63f0cff40da8caa52e09a382bf4a0ce011cd371c09650e665ba9c",
+        "sqlite-db-truncate": "sha256:33e71d5cd2768815d8c822af32020cd12ff3b0c35f4609dbd65523d8ee98d358",
+        "sqlite-with-gcov": "sha256:b9726244945382a5d73839440e391c88aceeb52346805eebd8712eb1b6ba8b3a",
+        "torch-pipeline-parallelism": "sha256:3e61cb3c7516e90e3a5a49171a673fd3d30f9a1e2ada2358a227bfa7369e2295",
+        "torch-tensor-parallelism": "sha256:fea44fb62b9c5cf7bb98548d09f2d5f3cb564773e9ea2688bcd184390c247dcf",
+        "train-fasttext": "sha256:ea991ff9add049c6956d2501b6f38fc612948cb30edaf8f6d61f63f90808272e",
+        "tune-mjcf": "sha256:9b16b1b03963fede220751f194eaa4e59c22a7341290a5a26fef85cbbaf09f14",
+        "video-processing": "sha256:48c2f3683967aff593e02b1ef5b138ae5e4db7980bccd403ea550694b6fa8e43",
+        "vulnerable-secret": "sha256:54e36ed5f26ccc7489bde8745c86e6d8f2ce8927d2a5719316480716f550bf54",
+        "winning-avg-corewars": "sha256:d372f2022972a03c8a7d16f631e9171dad3a65e1d119a97d4875167f8db3e6ca",
+        "write-compressor": "sha256:795a10ee52aa610a840b6587c5a1d2194175faa76c58879c8846a115b601902a"
+      },
+      "full": {
+        "campaignId": "267ea540-6b8e-4736-b6ff-ecfe3ce9fba1",
+        "root": "/Users/panyiming/.local/state/pan-agent/benchmark97-next/deploy-criteria15/campaign",
+        "checkpoint": "377aa212db8829a6ad48803114f205d89c619cf1f73a0a44ced4bbed99ba407e",
+        "resourcePolicy": {
+          "minFreeBytes": 21474836480,
+          "incrementExclusiveBytes": 57982058496
+        },
+        "segmentIndex": 3,
+        "preparations": {
+          "mcmc-sampling-stan": "79f597c28f6afaa61408eea9882789e3c48f30f56e72c7ed7d30cff4d6d8362e",
+          "polyglot-c-py": "f92e93dddfd7853b8d2553b4a3e199e2bf2dd1e3914848bffe23f98e3baf50ec",
+          "polyglot-rust-c": "be4332720c0665b4106a3ed3e24d940f3f13e6f1f87c0d394cd9956ecaf540d9",
+          "portfolio-optimization": "e34ad96142d9418fa4290c0274b42144d1769040e6d0203dc4b36d29b7366c30",
+          "protein-assembly": "ff81204030bca0afb0a00f1b0a1d6a0f04bfa628983f109a4f1220afbf033114",
+          "prove-plus-comm": "e7758401789a2f601f8ebd720a96cb27ea51a0222394f30128e05a31c1748a51",
+          "pypi-server": "0c6d32c134d4fe1f6e69996dff640f0f9ccf84a3a4d3cbdd2d0802a44ce170c1",
+          "pytorch-model-cli": "4eb8be5a44addce5b8b69dcdf31636fbca5918a2e597164446005a152a599b09",
+          "qemu-alpine-ssh": "23b9a3f36e9d3249a297d54e53beedd8ea0bfbbadeed574d995dc26df2ed172e",
+          "qemu-startup": "337d2d88258346c1d24cb392b22b42a818eb42fee8186de5ab6603ff44e86f9e",
+          "query-optimize": "37303f5583ddd7caf8536d66b8a0ce95d1011d62012ef975066f56a01cf64c1f",
+          "raman-fitting": "d2785c475d81689e042a1551d9b275171e7f0e5b7de62a1bcc04d06791cc1891",
+          "regex-chess": "7c7ab70200b0db08c2a983227f33753462175465b14e2e4e069b99b62530ebdf",
+          "regex-log": "d78bde11c884200efb3ae9077e28a6be4454b07c0f1b242eee8851dab8157025",
+          "reshard-c4-data": "8b67d9c88cee09cc566d36b6a5758e3a3e6989041ea6aca39f85e9533ceb10c9",
+          "rstan-to-pystan": "a945008691dcd47cd41e29ce14e72fe91737b3e9b3d9c23276ff6e4ef4a15ca8",
+          "sam-cell-seg": "d78f0980f784b31dfd51ce7b3e4fbce85c4626123f43ace0114f64697a251fd8",
+          "sanitize-git-repo": "8387eceb4aaf93bd5c75cadd57b07fd387b548e3449bee99c6c26258b1fa0f7f",
+          "schemelike-metacircular-eval": "3a89f0a635640b91249bb98f96870b292092b8baaedcdbe95ecb385bf9d9d679",
+          "sparql-university": "b7061f29eb900e4cc2090729ca694a3169af8f94dcd17a48c2a57403312b45ea",
+          "sqlite-db-truncate": "a48494469b5e40a901d81f0979f41373a81a8a262d6d6b4ca0bdafbd0d16478a",
+          "sqlite-with-gcov": "dd4b340e9474654fce24a5e8844147cdaf976d7e6a5d906719b1c4ef139035e3",
+          "torch-pipeline-parallelism": "140799ffa7daac9c91dfeb93ccf385fd3cf546aff84bf5f8edfd28c707c198d8",
+          "torch-tensor-parallelism": "cf059fd096c24f52dc7149741f21e72f22a379e7286dc7366ec0cd80bb3499a9",
+          "train-fasttext": "6b9da4554e8eee62f8a0943b1059bcf5ff551a1271f336c3e3e89596282a14cd",
+          "tune-mjcf": "903785b7f1a7c3aa203a469710020837d6a9c64d570ef4e8d9d39e93b9e40816",
+          "video-processing": "a6073d505213481b41bc7a348b9fc0b7c488de6e9f4bfa1388d8fdc6ea2adc15",
+          "vulnerable-secret": "a8d0730f80c276818a7eb9f6d8e0a656fe5acf075a71e984b46b2ef00bc27a68",
+          "winning-avg-corewars": "79be88687e7e501ea1092c05ddc85f3753f4009a2e5e0c1ace61ad084881f539",
+          "write-compressor": "377aa212db8829a6ad48803114f205d89c619cf1f73a0a44ced4bbed99ba407e"
+        }
+      }
     },
-    "existingSourceAllocatedBytes": {
-      "venv": 43900928,
-      "tasks": 48357376,
-      "consumer": 606208,
-      "runner": 10723328
-    },
-    "capacity": {
-      "cpu": 8,
-      "memoryBytes": 8218316800,
-      "officialLargeTaskMemoryBytes": 8589934592
-    },
-    "deploymentRootCreated": false,
-    "recoveredCampaign": null,
-    "proposedBinding": null,
-    "commandsInvoked": {
-      "restore97": 0,
-      "prepare": 0,
-      "status": 0,
-      "run": 0
-    },
-    "modelCalls": 0,
-    "taskRuns": 0,
-    "scoringCalls": 0,
-    "imagePulls": 0,
-    "dockerCleanup": 0,
-    "historicalCounts": {
-      "source": "accepted #100 handoff; not reimported this stage",
+    "bindingFileSha256": "d1b1df8483bf22caa2adbed3a165e3d7027b2dd8f1f584a42e5ee16d6a8320b3",
+    "counts": {
       "total": 89,
       "consumed": 57,
       "unstarted": 32,
-      "secondSegmentUnknownScores": 20
+      "ready": 30,
+      "missingImages": 2,
+      "secondSegmentUnknown": 20,
+      "historicalValidScored": 21,
+      "historicalSuccesses": 16
     },
-    "blockers": [
-      "Insufficient cumulative budget headroom for ordinary independent deployment copies plus recovery/installation overhead; sampler currently passes, no boundary failure was induced.",
-      "Actual Docker VM memory remains below 8 GiB; blocks only the two official 8 GiB tasks."
+    "blockedTasks": [
+      "mteb-retrieve",
+      "pytorch-model-recovery"
     ],
-    "nextOwner": "Master",
-    "nextAction": "Resolve cumulative storage within original policy with explicit disposition of retained storage, or publish a revised budget authorization; then resample. Human applies Docker VM memory separately. Do not sign a run: no binding exists."
+    "dockerCapacity": {
+      "NCPU": 8,
+      "MemTotal": 10420109312,
+      "OSType": "linux"
+    },
+    "previousCriteria14": {
+      "issue": 97,
+      "criteria": "1.4",
+      "role": "Working Agent (Builder)",
+      "status": "blocked_before_deployment",
+      "baseSha": "848f59f90b503a9eab5c46ad76bb44c646570161",
+      "contract": "https://github.com/pym96/Pan-agent/issues/97#issuecomment-5868102412",
+      "evidenceRoot": "/Volumes/WD_BLACK/pan-agent/wo97-full-live-20260925/persistent-criteria14",
+      "inventorySha256": "3fb13d2d21620a91f64ab438a3513c6003ba9055c39ab9e557c3ac4aad55c3a8",
+      "resource": {
+        "sample": {
+          "utc": "2026-09-28T10:32:48.501Z",
+          "free": 44734652416,
+          "owned": 2301550592,
+          "docker": 88021364736
+        },
+        "baselineDocker": 48503971840,
+        "limitExclusive": 41875931136,
+        "increment": 41818943488,
+        "remainingExclusive": 56987648,
+        "admitted": true,
+        "error": null
+      },
+      "existingSourceAllocatedBytes": {
+        "venv": 43900928,
+        "tasks": 48357376,
+        "consumer": 606208,
+        "runner": 10723328
+      },
+      "capacity": {
+        "cpu": 8,
+        "memoryBytes": 8218316800,
+        "officialLargeTaskMemoryBytes": 8589934592
+      },
+      "deploymentRootCreated": false,
+      "recoveredCampaign": null,
+      "proposedBinding": null,
+      "commandsInvoked": {
+        "restore97": 0,
+        "prepare": 0,
+        "status": 0,
+        "run": 0
+      },
+      "modelCalls": 0,
+      "taskRuns": 0,
+      "scoringCalls": 0,
+      "imagePulls": 0,
+      "dockerCleanup": 0,
+      "historicalCounts": {
+        "source": "accepted #100 handoff; not reimported this stage",
+        "total": 89,
+        "consumed": 57,
+        "unstarted": 32,
+        "secondSegmentUnknownScores": 20
+      },
+      "blockers": [
+        "Insufficient cumulative budget headroom for ordinary independent deployment copies plus recovery/installation overhead; sampler currently passes, no boundary failure was induced.",
+        "Actual Docker VM memory remains below 8 GiB; blocks only the two official 8 GiB tasks."
+      ],
+      "nextOwner": "Master",
+      "nextAction": "Resolve cumulative storage within original policy with explicit disposition of retained storage, or publish a revised budget authorization; then resample. Human applies Docker VM memory separately. Do not sign a run: no binding exists."
+    },
+    "productionEffects": {
+      "modelCalls": 0,
+      "taskRuns": 0,
+      "scoringCalls": 0,
+      "imagePulls": 0,
+      "cleanup": 0,
+      "signatures": 0
+    },
+    "restore97": 1,
+    "prepare": 1,
+    "statusWithSelection": 1,
+    "inventoryFile": "inventory-final.json",
+    "inventorySha256": "e44bbaee3c4b69f051062fce5e7840a07e6a316a818204c9a88a23e93221b2af",
+    "resourceFinal": {
+      "utc": "2026-09-28T11:21:11.592Z",
+      "free": 44553515008,
+      "owned": 2660298752,
+      "docker": 88021377024
+    },
+    "verification": {
+      "archiveFilesVerified": 5222,
+      "journalUnchanged": true,
+      "runnerClean": true,
+      "hostAcceptance": "PASS 82 controls + 259 tests, no skips",
+      "earlierExternalTmpErrors": 3,
+      "inventoryFinalIsAuthoritative": true
+    }
   },
-  "productionEffects": {
-    "modelCalls": 0,
-    "taskRuns": 0,
-    "scoringCalls": 0,
-    "imagePulls": 0,
-    "cleanup": 0,
-    "signatures": 0
+  "audit": {
+    "utc": "2026-09-29T03:26:29.999Z",
+    "consumed": 58,
+    "unstarted": 31,
+    "secondSegmentUnknown": 20,
+    "pendingArchives": [],
+    "predecessorReconciled": {
+      "event": "predecessor_reconciled",
+      "runId": "df271106-59db-4b02-8439-3799e3399e4b",
+      "sourceInventory": "b58f31c35940e89823ebde01876ee9d601eec0becfccfa088726854032cc46c7",
+      "notice": "successor records current archive/stop confirmation; original pending journal remains unchanged",
+      "previous": "77bd070c72030f2fd2ecbbf04c6100b98601fa42327d3e736f86a9db7160b0b7",
+      "utc": "2026-09-29T03:23:55.903Z"
+    },
+    "archived": [
+      {
+        "event": "archived",
+        "task": "mcmc-sampling-stan",
+        "runId": "df271106-59db-4b02-8439-3799e3399e4b",
+        "receipt": "6aeadd9260c756502d21cb0561b2eb64a9f761aa9c1a6b923b5030521c201237",
+        "path": "/Volumes/WD_BLACK/pan-agent/wo97-full-live-20260925/persistent-criteria17/task-archives/10d69769-d733-480a-bb37-5e08457cb512/df271106-59db-4b02-8439-3799e3399e4b/mcmc-sampling-stan",
+        "previous": "40dbdb66f5a80835dd9f88a888b717137eaefcaf2a7383f1c08064fe5462b574",
+        "utc": "2026-09-29T03:23:55.891Z"
+      }
+    ],
+    "checkpoint": "6f51a720866c0a2bb5735f033a1ed85e2254fe592d236dd6c17930eaa15a8df2",
+    "campaignInventoryHash": "90096f1f9f16096bd8c09711caa0cc61a92395273f4c8db3a2b3b8f57a8a75e6",
+    "runnerSha": "032fb0fba5e9d3893f90a4ff4baae89b43af37aa",
+    "runnerStatus": "",
+    "sourceAndLedgersUnchanged": true,
+    "noNewRun": true
   },
-  "restore97": 1,
-  "prepare": 1,
-  "statusWithSelection": 1,
-  "inventoryFile": "inventory-final.json",
-  "inventorySha256": "e44bbaee3c4b69f051062fce5e7840a07e6a316a818204c9a88a23e93221b2af",
-  "resourceFinal": {
-    "utc": "2026-09-28T11:21:11.592Z",
-    "free": 44553515008,
-    "owned": 2660298752,
-    "docker": 88021377024
+  "postCopyResourceSample": {
+    "utc": "2026-09-29T03:27:47.990Z",
+    "free": 43358081024,
+    "owned": 3064930304,
+    "docker": 88621334528
   },
-  "verification": {
-    "archiveFilesVerified": 5222,
-    "journalUnchanged": true,
-    "runnerClean": true,
-    "hostAcceptance": "PASS 82 controls + 259 tests, no skips",
-    "earlierExternalTmpErrors": 3,
-    "inventoryFinalIsAuthoritative": true
+  "validation": {
+    "hostAcceptanceExit": 0,
+    "hostTests": 82,
+    "pythonTests": 259,
+    "pythonSkipped": 6,
+    "candidateDiffCheck": 0,
+    "scope": "only three authorized report files; host structural validators resolve existing host, Python suite runs candidate"
   }
 }
