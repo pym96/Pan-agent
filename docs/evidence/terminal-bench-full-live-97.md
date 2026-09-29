@@ -1,3 +1,21 @@
+# #97 Criteria1.9 — segment5 Handoff; segment6 separately activated
+
+Candidate evidence, pending independent review. [Full classified summary](terminal-bench-full-live-97-summary.json). Prior segment4 report is preserved below and nested in JSON; segment5 is a separate terminal snapshot, not a current segment6 score.
+
+Actual runner remains032fb0fba5e9d3893f90a4ff4baae89b43af37aa. Campaign10d69769-d733-480a-bb37-5e08457cb512; segment5 run72bc37d8-dfb3-41d8-83ff-7c2a5c848eca. Started2026-09-29T04:53:23.785954Z, exited0 at2026-09-29T05:10:05.908671Z. Journal segment_closed paused=true. Only1/28 tasks started: **polyglot-rust-c**, agent_timeout/unscored, reward/validScore/verifier=null, elapsed985.164918916s. Exit0 is not task success.
+
+Raw pan/report records handoff **attempt_error** and **session_stop_unconfirmed**; nonempty globalStops invokes the unchanged full-cli global pause. Later report.stopConfirmed=true, cleanup.confirmed=true and archive success are retained without erasing earlier session-close anomalies. First exception root cause remains unknown; repeated pattern is not causal proof. This handoff does not demand that all failures be fixed before other tasks continue.
+
+Metering:3 model rounds,6 exchanges/sends,3 internal transport retries,3 tool reservations; known input9420/output7535 tokens from3 records,3 unknown usage records. No task retry. At segment5 close, cumulative89 = **60 consumed /29 unstarted;17 successes,5 valid failures,38 unscored**.20 historical missing scores remain unknown/null.27 signed unstarted tasks and2 missing-image tasks are distinct.
+
+All13 earlier ledgers match the preflight hashes. Archive receipt and all54 declared files verified. Original task/activation/ledger snapshot and segment events retained at `/Volumes/WD_BLACK/pan-agent/wo97-full-live-20260925/segment5-live-20260929`. Runtime304 samples stayed within54/20GiB policy: minimum free43215990784, maximum increment43196436480 bytes; original baseline48503971840. Terminal checkpoint `f2ac91609c95fd9fdacf816162d4c581d42ce70a39466409f3605bae03d6efd7`. Raw inventory hash and complete report SHA are bound in Handoff.
+
+Human/Master separately authorized Criteria1.10 run2f578c90-0957-4794-a271-5b37bf2b1074 for27 unstarted tasks. It was launched once with segment-6/activation.json and unchanged runner, without prepare. Its output is retained separately in segment6-live-20260929; no segment6 outcome is claimed here. A later global stop must not cause automatic restart. No main/implementation change, pull, old许可 reuse or consumed-task replay.
+
+Validation uses original ledger arithmetic, archive hashes, segment5 snapshot counts/unknown invariants, resource samples and candidate JSON/scope/whitespace checks. No official task/model rerun for validation. Independent Regulator still owns acceptance. Learning: preserve repeated failure classifications and later cleanup together; Human chose continued sampling, Builder executed the frozen controller, Master signed the new boundary. Repetition alone does not establish the failure cause.
+
+---
+
 # #97 Criteria1.8 — segment4 closed, paused
 
 Builder Handoff candidate; not independently accepted. [Full89-row classification and accounting](terminal-bench-full-live-97-summary.json). Criteria1.7 preparation reports and previous external raw evidence remain unchanged.
