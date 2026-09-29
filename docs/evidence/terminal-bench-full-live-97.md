@@ -1,3 +1,83 @@
+# #97 Criteria1.12 — segment7 closed with global pause; no restart
+
+Actual accepted runner **4eda9080d5d3bb6fd4750a6bd6fa07ab68475c00**, product **5ecd3b9b4da688f90dfee3cc651b4a2f755595587b6d7d7287383cab23c8e580**;
+new campaign **9061aef3-e803-46f1-80f4-f07b9993e172**, run **485eabee-aacc-4516-84a9-5f6a03b26a23** (controller segmentIndex16,
+human handoff segment7). One authorized invocation ended at
+**2026-09-29T13:57:21.229657+00:00**, exit0, segment_closed paused=true. Exit0 means the
+controller recorded its terminal state; it does not mean25 tasks passed or finished.
+
+Only **prove-plus-comm** started (1/25): agent_timeout, unscored;
+rawReward=validScore=verifier=null. Elapsed1163.3830887909999 seconds is the recorded
+attempt elapsed, including its handling; no valid0 or1 is inferred. The other24
+signed tasks were not started. The2 missing-image tasks remain not_started outside
+this activation. This task is consumed and was not retried/replayed.
+
+## Why continuation was refused
+
+The actual continuation event says allowed=false. At that decision, admissionClosed,
+transportSettled, toolsSettled and quiesced were true, but runSettled, sessionClosed
+and environmentStopped were false. The recorded fault chain begins with an
+unclassified AbortError from transport.send, followed by agent_settlement_timeout,
+environment_stop_timeout, session_close_timeout and recovery_timeout. Global stops
+are attempt_error, session_stop_unconfirmed and recovery_unconfirmed. No fault or
+stop was manually cleared and no next task was forced through.
+
+The second exchange diagnostic records dispatch_timeout at send stage, responseBytes0,
+elapsed212181.48745800008ms and unknown usage. This describes an observed timeout,
+not a proven provider/network/host root cause. The frozen dispatchSeconds120 was
+not changed; observed elapsed and configured limit are retained separately.
+Pan report stopConfirmed=false and earlier recovery confirmations are preserved.
+Later controller cleanup confirmed stopped, result.stopConfirmed=true, archive
+completed and the post-exit read-only project inspection confirmed stopped. These
+later facts do not erase the earlier uncertainty or authorize continuation.
+
+## Metering and complete population
+
+Segment7:2 model rounds,2 exchanges/reservations/send entries,2 tools,1 retry record
+(the record is not an extra successful send). Usage:1 known record with470 input
+and161 output tokens;1 unknown record,0 unsettled. Raw ledger and diagnostics remain
+in the external evidence; no token estimate substitutes for unknown usage.
+
+Cumulative: **63 consumed/26 not started**.89 rows comprise18success,5valid_failure,
+20unscored and20historical unknown_interrupted, plus26not_started. Success coverage
+is18/89; valid-scored coverage23/89;40 remain unscored including the20 historical
+unknowns. These are recorded development-run classifications pending independent
+review, not official leaderboard or general model-ability claims. Full per-task
+classifications/accounting and the previous snapshots remain in the summary.
+
+## Terminal evidence and integrity
+
+Evidence: `/Volumes/WD_BLACK/pan-agent/wo97-full-live-20260925/segment7-live-20260929/`. Actual task originals and ledger, command/activation/PIDs/exit,
+terminal status, ordered run journal, continuation diagnostics, archive proofs,
+current stop observation and resource samples are retained. All44 declared files
+in the task's external receipt were verified.15 prior global ledgers are unchanged;
+the only new ledger is this run. Old deploy-criteria17 source is unchanged. No
+pending recovery/archive obligation remains; the terminal checkpoint is
+**054995aff6b21e473d5a35d2352c85dcd3ec79fd384ba47327cef3446fc4fc1f**. No recover, prepare, signing or restart followed the pause.
+
+76 runtime resource samples stayed within the original policy:
+minimum free38996754432, maximum cumulative increment
+46122352640 bytes against baseline48503971840. All old/new
+owned roots stay counted; no cleanup or reset was used. Samples are observations,
+not a claim about an unmeasured continuous peak.
+
+The report branch is separate from the fixed runner. Only authorized report files
+change; main/implementation remain untouched. Segment6's final supplement is below
+and in segment6Final; the preparation and all earlier report snapshots remain.
+Master owns the next decision/activation; independent Regulator owns final review
+and the existing once-only Human classification gate remains. No automatic retry.
+
+Learning record: the accepted repair was actually exercised but did not establish
+safe recovery in this live case. Builder therefore retained the false confirmations
+and honored the global pause rather than treating later cleanup as retroactive
+permission. The diagnostic chain narrows observations but does not prove a historical
+root cause or a causal performance change. Human authorized sampling, Master signed,
+Builder executed/preserved, Regulator independently judges the evidence.
+
+---
+
+## Prior report retained verbatim
+
 # Segment6 final Handoff supplement; Criteria1.12 segment7 launched separately
 
 Segment6 used Criteria1.10, runner **032fb0fba5e9d3893f90a4ff4baae89b43af37aa**, product

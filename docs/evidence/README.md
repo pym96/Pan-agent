@@ -109,3 +109,5 @@ Raw artifacts remain at their stable source, Git, Trace, Test, evaluator, or ext
 #97 Criteria1.11: [production preparation report](terminal-bench-full-live-97.md) and [complete binding/history summary](terminal-bench-full-live-97-summary.json); actual runner fixed4eda908, campaign frozen pending Master signature.
 
 #97 Criteria1.12: segment6 final supplement and separate segment7 launch recorded in the existing [report](terminal-bench-full-live-97.md) and [summary](terminal-bench-full-live-97-summary.json). Segment7 terminal evidence remains pending.
+
+#97 Criteria1.12 terminal: segment7 paused after one unscored task; complete63/26 population and segment6 supplement retained in the existing report/summary. No automatic restart.
