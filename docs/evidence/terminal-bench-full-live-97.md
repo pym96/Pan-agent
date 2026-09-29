@@ -1,3 +1,66 @@
+# #97 Criteria1.11 — production successor prepared, awaiting Master signature
+
+Actual deployed runner **4eda9080d5d3bb6fd4750a6bd6fa07ab68475c00**, fixed #103 product
+**5ecd3b9b4da688f90dfee3cc651b4a2f755595587b6d7d7287383cab23c8e580**. Report branch workorder/97-candidate remains a separate
+append-only report line; its SHA is supplied by Handoff and is not the runtime.
+No implementation changes or main push occurred.
+
+Persistent deployment: `/Users/panyiming/.local/state/pan-agent/benchmark97-next/deploy-criteria111`.
+External evidence/archive root:
+`/Volumes/WD_BLACK/pan-agent/wo97-full-live-20260925/persistent-criteria111/`.
+Clean detached runner, new offline consumer (82 files verified), new layout and
+campaign use the frozen deploy-criteria15 Python/Harbor/tasks. Actual commands
+successor97 → recover → status → prepare → status completed with exit0. No fixture
+host or synthetic binding was used. Source remains deploy-criteria17, fixed963-file
+fingerprint b3b9248ae10a3f8da677b044c6c4d02ce46bcf72c93fbea2c9934f58c0850c30.
+
+New campaign **9061aef3-e803-46f1-80f4-f07b9993e172**; frozen checkpoint
+**5929f2ae233473229871a4ac63e228fac780b7f6b62d101572f5762bb69d6b56**. The complete production proposedBinding is in the adjacent
+summary JSON and external `reports/proposedBinding.json`; it binds the actual runner,
+product, task/image identities, preparations, root and checkpoint. All25 currently
+ready unconsumed tasks are included. mteb-retrieve and pytorch-model-recovery remain
+image_not_cached/not_started; no image was pulled and no task was silently dropped.
+Campaign writes stopped after the final status. Master must recheck and sign a new
+activation before any run; neither an old activation nor #104 offline binding is used.
+
+## History, integrity and preparation boundary
+
+62 consumed/27 not started,15 old run IDs and20 historical unknowns remain.
+Complete89-row classification is preserved in summary:18 success,5 valid_failure,
+19 unscored and20 unknown_interrupted, plus27 not_started. Unknown is not zero.
+Historical results and known/unknown usage projections match the source exactly;
+no benchmark score or new token consumption was produced by preparation. Segment6
+history (including portfolio-optimization/protein-assembly) is preserved in the
+source and successor; its previously pending segmented Handoff is not retrospectively
+claimed complete by this preparation report.
+
+All963 source inventory hashes and981 protected old file hashes match; the15 global
+ledger hashes and file set are unchanged. Actual read-only observations confirmed
+all62 prior reservations stopped. The new complete predecessor archive has a valid
+receipt and963-file snapshot on the external device; no recovery/archive obligation
+remains. New segment events and active full-cli run controllers are zero.
+
+Original Docker baseline48503971840 is retained. All old/new Pan roots, mandatory
+temporary roots, actual Python and shared dependencies are counted. Preparation
+resource samples and before/after observations meet strict increment<57982058496 and
+free>=21474836480; see runtime-resource-summary.json and resource-after.json. No
+cleanup, budget reset, credential discovery, signing, model, task/scoring container
+or pull was performed. These samples do not assert an unmeasured continuous peak.
+
+Validation uses accepted production CLI/Store, current Docker read-only checks,
+package/dependency hashes, state/accounting diffs, external receipt and source/global
+ledger inventories. No redundant #104 offline product suite was rerun. Evidence
+commands and full stdout/stderr/exit records accompany the SHA-bound Handoff.
+
+Human authorized continuation; Builder deployed/prepared, Master owns signing, and
+independent Regulator retains final #97 review. Existing failure evidence and pending
+review boundaries remain. The operational choice is to freeze the new proposal
+without letting report commits alter the actual runner or campaign checkpoint.
+
+---
+
+## Prior report retained verbatim
+
 # #97 Criteria1.9 — segment5 Handoff; segment6 separately activated
 
 Candidate evidence, pending independent review. [Full classified summary](terminal-bench-full-live-97-summary.json). Prior segment4 report is preserved below and nested in JSON; segment5 is a separate terminal snapshot, not a current segment6 score.
