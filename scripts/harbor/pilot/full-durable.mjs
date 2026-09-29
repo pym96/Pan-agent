@@ -1,8 +1,8 @@
-import {readFileSync,writeFileSync,existsSync,readdirSync,lstatSync,statSync,statfsSync,realpathSync,mkdirSync,openSync,fsyncSync,closeSync} from 'node:fs';
+import {readFileSync,writeFileSync,existsSync,readdirSync,lstatSync,statSync,statfsSync,realpathSync,mkdirSync,openSync,fsyncSync,closeSync,renameSync} from 'node:fs';
 import {join,resolve,dirname,isAbsolute,relative} from 'node:path';
 import {homedir} from 'node:os';
 import {check,canonical,digest} from './policy.mjs';
-import {durable} from './full-store.mjs';
+
 const within=(p,r)=>p===r||p.startsWith(r+'/');
 // Resolve existing aliases, preserving a not-yet-created suffix for layout planning.
 function storagePath(p){
@@ -29,29 +29,71 @@ export function sampleDurable(root,roots){
 export function flushTree(root){for(const name of readdirSync(root)){const p=join(root,name),s=lstatSync(p);check(!s.isSymbolicLink(),'archive_symlink');if(s.isDirectory())flushTree(p);else {check(s.isFile(),'archive_special');const fd=openSync(p,'r');try{fsyncSync(fd);}finally{closeSync(fd);}}}const fd=openSync(root,'r');try{fsyncSync(fd);}finally{closeSync(fd);}}
 function collect(root,rel='',out={}){for(const n of readdirSync(join(root,rel)).sort()){const key=rel?rel+'/'+n:n,p=join(root,key),s=lstatSync(p);check(!s.isSymbolicLink(),'archive_symlink');if(s.isDirectory())collect(root,key,out);else{check(s.isFile(),'archive_special');out[key]=digest(readFileSync(p));}}return out;}
 function copyFile(source,dest,hash){const b=readFileSync(source);check(digest(b)===hash,'archive_source_changed');mkdirSync(dirname(dest),{recursive:true});if(existsSync(dest))check(digest(readFileSync(dest))===hash,'archive_conflict');else writeFileSync(dest,b,{flag:'wx',mode:0o600});}
-export function archiveTask(store,reservation){
+// Publish a nonempty directory by same-filesystem rename: no hard links required.
+// Staged directories are retained on failure; only commit/receipt.json is committed.
+export function publishReceipt(target,receipt,checkpoint=()=>{}){
+ const stage=join(target,'receipt.stage-'+crypto.randomUUID());mkdirSync(stage);
+ const p=join(stage,'receipt.json'),fd=openSync(p,'wx',0o600);
+ try{writeFileSync(fd,JSON.stringify(receipt,null,2)+'\n');checkpoint('receipt_written');fsyncSync(fd);}finally{closeSync(fd);}
+ flushTree(stage);checkpoint('before_publish');
+ renameSync(stage,join(target,'commit'));checkpoint('after_publish');
+ const d=openSync(target,'r');try{fsyncSync(d);}finally{closeSync(d);}
+}
+function receiptAt(target){
+ const legacy=join(target,'receipt.json'),modern=join(target,'commit','receipt.json');
+ check(!(existsSync(legacy)&&existsSync(join(target,'commit'))),'archive_conflict');
+ if(existsSync(join(target,'commit')))check(existsSync(modern),'archive_incomplete_commit');
+ return existsSync(legacy)?legacy:existsSync(modern)?modern:null;
+}
+function verifyReceipt(store,reservation,target,path){
+ check(!lstatSync(path).isSymbolicLink(),'archive_symlink');
+ const receipt=JSON.parse(readFileSync(path)),{runId,task}=reservation;
+ check(receipt.campaignId===store.meta.campaignId&&receipt.runId===runId&&receipt.task===task,'archive_identity');
+ check(typeof receipt.snapshot==='string'&&/^[a-f0-9-]+$/.test(receipt.snapshot)&&receipt.files&&typeof receipt.files==='object','archive_receipt');
+ const snapshot=join(target,'snapshots',receipt.snapshot),actual=collect(snapshot);
+ check(Object.keys(receipt.files).every(f=>Object.hasOwn(actual,f))&&Object.keys(actual).every(f=>Object.hasOwn(receipt.files,f)||f.split('/').some(n=>n.startsWith('._'))),'archive_inventory');
+ check(receipt.files['campaign.json']&&Object.keys(receipt.files).some(f=>f.startsWith('segments/'+runId+'/'+task+'/')),'archive_receipt');
+ for(const [f,h] of Object.entries(receipt.files)){
+  check(!f.startsWith('/')&&!f.split('/').some(x=>['..','.',''].includes(x)),'archive_path');
+  check(actual[f]===h,'archive_hash');
+  const local=readFileSync(join(store.root,f)),archived=readFileSync(join(snapshot,f));
+  // A run ledger may grow after an earlier task archive; its sealed prefix may not change.
+  check(f==='segments/'+runId+'/ledger.jsonl'?local.subarray(0,archived.length).equals(archived):digest(local)===h,'archive_local_conflict');
+ }
+ for(const f of ['activation.json','ledger.jsonl'])if(existsSync(join(store.root,'segments',runId,f)))check(receipt.files['segments/'+runId+'/'+f],'archive_receipt');
+ let head=digest(canonical(JSON.parse(readFileSync(join(snapshot,'campaign.json'))))),index=0;
+ for(const f of Object.keys(receipt.files).filter(f=>f.startsWith('journal/')).sort()){
+  check(f==='journal/'+String(index++).padStart(8,'0')+'.json','archive_journal');
+  const row=JSON.parse(readFileSync(join(snapshot,f)));check(row.previous===head,'archive_journal');head=digest(canonical(row));
+ }
+ check(head===receipt.checkpoint,'archive_checkpoint');
+ const taskFiles=collect(join(store.root,'segments',runId,task));
+ check(Object.keys(taskFiles).every(f=>receipt.files['segments/'+runId+'/'+task+'/'+f]===taskFiles[f]),'archive_local_conflict');
+ const record=store.rows.find(r=>r.event==='archived'&&r.task===task&&r.runId===runId);
+ if(record)check(record.receipt===digest(readFileSync(path)),'archive_receipt_changed');
+ return receipt;
+}
+export function archiveTask(store,reservation,checkpoint=()=>{}){
  const layout=store.meta.durability;if(!layout)return;
  const {runId,task}=reservation,dir=join(store.root,'segments',runId,task);
- // A disappeared mount must not become a newly-created directory on the internal disk.
  check(existsSync(layout.archiveRoot),'archive_unavailable');if(store.meta.identity.mode==='live')check(statSync(layout.archiveRoot).dev!==statSync(store.root).dev,'archive_not_external');
- const target=join(layout.archiveRoot,store.meta.campaignId,runId,task),receiptPath=join(target,'receipt.json');
- if(existsSync(receiptPath)){
-  const receipt=JSON.parse(readFileSync(receiptPath)),record=store.rows.find(r=>r.event==='archived'&&r.task===task);if(record)check(record.receipt===digest(readFileSync(receiptPath)),'archive_receipt_changed');check(receipt.campaignId===store.meta.campaignId&&receipt.runId===runId&&receipt.task===task,'archive_identity');
-  for(const [f,h] of Object.entries(receipt.files))check(digest(readFileSync(join(target,'snapshots',receipt.snapshot,f)))===h,'archive_hash');
-  // Retry never executes a task; finished archives are immutable, including their ledger snapshot.
-  if(!store.rows.some(r=>r.event==='archived'&&r.task===task))store.add('archived',{task,runId,receipt:digest(readFileSync(receiptPath)),path:target});return;
+ const target=join(layout.archiveRoot,store.meta.campaignId,runId,task);
+ let path=receiptAt(target);
+ if(!path){
+  const files={'campaign.json':digest(readFileSync(join(store.root,'campaign.json')))};
+  for(const [f,h] of Object.entries(collect(dir)))files['segments/'+runId+'/'+task+'/'+f]=h;
+  for(const n of readdirSync(join(store.root,'journal')).filter(n=>/^\d{8}\.json$/.test(n)))files['journal/'+n]=digest(readFileSync(join(store.root,'journal',n)));
+  for(const f of ['activation.json','ledger.jsonl'])if(existsSync(join(store.root,'segments',runId,f)))files['segments/'+runId+'/'+f]=digest(readFileSync(join(store.root,'segments',runId,f)));
+  const snapshot=digest(canonical(files))+'-'+crypto.randomUUID(),dest=join(target,'snapshots',snapshot);mkdirSync(dest,{recursive:true});
+  for(const [f,h] of Object.entries(files)){copyFile(join(store.root,f),join(dest,f),h);checkpoint('copy');}
+  flushTree(dir);flushTree(dest);for(const [f,h] of Object.entries(files))check(digest(readFileSync(join(dest,f)))===h,'archive_hash');
+  // Flush the namespace chain before publishing a receipt pointing into it.
+  for(let p=target;;p=dirname(p)){const fd=openSync(p,'r');try{fsyncSync(fd);}finally{closeSync(fd);}if(p===resolve(layout.archiveRoot))break;check(p!==dirname(p),'archive_parent');}
+  try{publishReceipt(target,{campaignId:store.meta.campaignId,runId,task,checkpoint:store.head,utc:new Date().toISOString(),snapshot,files},checkpoint);}
+  catch(e){if(!['EEXIST','ENOTEMPTY'].includes(e.code))throw e;}
+  path=receiptAt(target);check(path,'archive_uncommitted');
  }
- const files={'campaign.json':digest(readFileSync(join(store.root,'campaign.json')))};
- for(const [f,h] of Object.entries(collect(dir)))files['segments/'+runId+'/'+task+'/'+f]=h;
- for(const n of readdirSync(join(store.root,'journal')).filter(n=>/^\d{8}\.json$/.test(n)))files['journal/'+n]=digest(readFileSync(join(store.root,'journal',n)));
- for(const f of ['activation.json','ledger.jsonl'])if(existsSync(join(store.root,'segments',runId,f)))files['segments/'+runId+'/'+f]=digest(readFileSync(join(store.root,'segments',runId,f)));
- // Copy under a fresh checkpoint key so an interrupted partial copy never overwrites evidence.
- const snapshot=digest(canonical(files))+'-'+crypto.randomUUID();const dest=join(target,'snapshots',snapshot);mkdirSync(dest,{recursive:true});
- for(const [f,h] of Object.entries(files))copyFile(join(store.root,f),join(dest,f),h);
- flushTree(dir);flushTree(dest);for(const [f,h] of Object.entries(files))check(digest(readFileSync(join(dest,f)))===h,'archive_hash');
- // Receipt paths are relative to target, with no links or writable aliases to live originals.
- for(let p=target;;p=dirname(p)){const fd=openSync(p,'r');try{fsyncSync(fd);}finally{closeSync(fd);}if(p===resolve(layout.archiveRoot))break;check(p!==dirname(p),'archive_parent');}
- durable(receiptPath,{campaignId:store.meta.campaignId,runId,task,checkpoint:store.head,utc:new Date().toISOString(),snapshot,files});
- store.add('archived',{task,runId,receipt:digest(readFileSync(receiptPath)),path:target});
+ verifyReceipt(store,reservation,target,path);checkpoint('before_journal');
+ if(!store.rows.some(r=>r.event==='archived'&&r.task===task&&r.runId===runId))store.add('archived',{task,runId,receipt:digest(readFileSync(path)),path:target});
 }
-export function pendingArchives(store){return store.meta.durability?store.rows.filter(r=>r.event==='reserved'&&!store.rows.some(x=>x.event==='archived'&&x.task===r.task)):[];}
+export function pendingArchives(store){return store.meta.durability?[...store.rows.filter(r=>r.event==='reserved'),...(store.imported??[]).filter(r=>r.requiresArchive)].filter(r=>!store.rows.some(x=>x.event==='archived'&&x.task===r.task&&x.runId===r.runId)):[];}

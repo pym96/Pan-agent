@@ -97,3 +97,5 @@ Raw artifacts remain at their stable source, Git, Trace, Test, evaluator, or ext
 - [#101 disk54 candidate](disk54-101.md) / [summary](disk54-101-summary.json): prospective cumulative policy, historical consumption and old-permit rejection, offline evidence only.
 
 - [#97 Criteria1.5 persistent deployment](terminal-bench-persistent-prep-97.md):30 ready/unstarted tasks proposed for Master signature,57 consumption records preserved; no live evaluation. Prior1.4 blockage retained.
+
+- [#102 external archive repair](archive-repair-102.md) / [summary](archive-repair-102-summary.json): actual external filesystem controls and synthetic58-consumption successor; pending independent review.

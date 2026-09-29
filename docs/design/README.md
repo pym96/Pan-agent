@@ -118,3 +118,5 @@ The Human-accepted architecture history remains indexed in [`../adr/README.md`](
 
 - [#100 durable benchmark recovery](benchmark-recovery-100.md): evidence import,
   unknown retention, per-task archives, resource identity and deferred live runbook.
+
+- [#102 archive transaction and explicit successor](archive-repair-102.md): external filesystem publication and preserved stopped-run identity.

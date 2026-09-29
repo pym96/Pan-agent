@@ -1,0 +1,68 @@
+{
+  "issue": 102,
+  "criteria": "1.0",
+  "status": "candidate_pending_independent_regulator",
+  "baseSha": "73c5bd19754ad4dc04124f01f1e01057f6fb7fb0",
+  "evidenceRoot": "/Volumes/WD_BLACK/pan-agent/archive-repair-20260929",
+  "inventorySha256": "f1113d9aedae7f07ca6665a06aa9215bd742209b0685c44880301e664e06b502",
+  "sourcePin": "b58f31c35940e89823ebde01876ee9d601eec0becfccfa088726854032cc46c7",
+  "tests": {
+    "archiveActualExternalAndInternal": 11,
+    "pinnedSourceSuccessorDemo": 1,
+    "recoveryRegression": 4,
+    "fullController": 28,
+    "hostControls": 82,
+    "projectPython": 259,
+    "existingPythonSkips": 6
+  },
+  "retainedFailures": [
+    "archive-first.log: metadata sidecars",
+    "upgrade-first.log: nested historical lock omission",
+    "upgrade-second.log: earlier rejection than assertion expected"
+  ],
+  "sourceIntegrity": {
+    "campaignFilesCompared": 841,
+    "globalLedgersCompared": 12,
+    "allUnchanged": true,
+    "topLevelLockExcluded": true,
+    "nestedHistoricalLocksAdditionallyPinnedByImporter": true
+  },
+  "resources": {
+    "sample": {
+      "utc": "2026-09-29T02:34:54.557Z",
+      "free": 43690291200,
+      "owned": 2905092096,
+      "docker": 88621334528
+    },
+    "declaredRoots": [
+      "/Users/panyiming/.local/state/pan-agent/benchmark97-next/deploy-criteria15",
+      "/opt/homebrew/Cellar/python@3.12/3.12.9"
+    ],
+    "increment": 43022454784
+  },
+  "productionEffects": {
+    "model": 0,
+    "task": 0,
+    "scoring": 0,
+    "pull": 0,
+    "container": 0,
+    "migration": 0,
+    "signatures": 0,
+    "cleanup": 0
+  },
+  "consumption": {
+    "retained": 58,
+    "unstartedBeforeSyntheticRun": 31,
+    "historicalSecondSegmentUnknown": 20,
+    "syntheticNewTask": "polyglot-c-py",
+    "syntheticExecutionCount": 1,
+    "unstartedAfterSyntheticRun": 30
+  },
+  "receiptProtocol": "fsynced unique staging directory -> rename to nonempty commit/ -> verify -> archived; legacy receipt read-only compatibility",
+  "limits": [
+    "Process-crash/API guarantees; no physical power-loss claim",
+    "Pinned one stopped predecessor, no arbitrary identity override",
+    "Corrupt published commits fail closed, no overwrite/delete",
+    "Master production workorder required after independent acceptance"
+  ]
+}
