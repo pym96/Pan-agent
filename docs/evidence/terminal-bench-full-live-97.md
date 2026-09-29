@@ -1,3 +1,64 @@
+# Segment6 final Handoff supplement; Criteria1.12 segment7 launched separately
+
+Segment6 used Criteria1.10, runner **032fb0fba5e9d3893f90a4ff4baae89b43af37aa**, product
+**12a1e82bbb59c5572c3b59140c4222308d9bf4296deafa84b539c50d25fa7b61**, campaign **10d69769-d733-480a-bb37-5e08457cb512**, run **2f578c90-0957-4794-a271-5b37bf2b1074**.
+The controller ended at **2026-09-29T07:19:37.655766+00:00**, exit0, segment_closed
+paused=true. Two of27 signed tasks started; no attempt was replayed.
+
+- portfolio-optimization: success, rawReward=validScore=1; official verifier4/4
+  tests passed.14 model rounds,15 sends,14 tools,1 internal retry; known112150 input
+  and7934 output tokens,14 known usage records and1 unknown.
+- protein-assembly: agent_timeout, unscored, rawReward=validScore=verifier=null.
+  Original handoff globalStops attempt_error and session_stop_unconfirmed remain.
+  Later stopConfirmed/cleanup and archive success do not erase that earlier event.
+  10 model rounds,14 sends,12 tools,4 internal retries; known117454 input and11828
+  output tokens,10 known usage records and4 unknown. Historical first-exception
+  root cause remains unknown; later repairs do not retroactively prove causality.
+
+Combined segment6:24 model rounds,29 exchanges/reservations/send entries,26 tools,
+5 transport retries;24 known/5 unknown usage,229604 input and19762 output tokens.
+At close:62 consumed/27 unstarted;18success,5valid_failure,19unscored plus20 historical
+unknown_interrupted.89-task population unchanged; null/unknown is not a valid0.
+The terminal checkpoint is **a59947b11662077e6568d0630fde7c6ad858b5b2a05edfe35f411c710084eb0e**.
+
+## Segment6 original evidence and validation
+
+Additive evidence lives at `/Volumes/WD_BLACK/pan-agent/wo97-full-live-20260925/segment6-live-20260929/handoff-criteria112/`, alongside untouched original segment6 controller,
+activation and exit logs. It includes the complete two-task segment copy, raw
+segment journal, original ledger, diagnostic/cleanup/verifier references, source
+inventory, terminal status, receipt proofs and resource samples. Both per-task
+external archive receipts and all declared file hashes were verified.14 earlier
+global ledger hashes remain unchanged; source inventory is unchanged.
+
+1114 runtime samples: minimum free42240925696,
+maximum cumulative increment43361320960 bytes, using
+Docker baseline48503971840 and the original54GiB/20GiB policy. No task/model/scoring
+rerun was used for this supplement. A first inspection script omitted the archive
+`snapshots/` component and got ENOENT; the corrected path follows accepted
+full-durable.mjs. That Builder inspection mistake and correction are preserved in
+prepare-notes.md, not presented as an archive failure.
+
+## Separately authorized segment7 launch
+
+Criteria1.12 uses actual accepted runner **4eda9080d5d3bb6fd4750a6bd6fa07ab68475c00** and fixed#103 product
+**5ecd3b9b4da688f90dfee3cc651b4a2f755595587b6d7d7287383cab23c8e580**; this report branch is not the runner. New real campaign
+**9061aef3-e803-46f1-80f4-f07b9993e172**, new run **485eabee-aacc-4516-84a9-5f6a03b26a23**, started **2026-09-29T13:36:54.735816+00:00**.
+The25-task signed activation passed identity/signature/checkpoint/unconsumed-ledger
+checks; only KIMI_API_KEY presence was checked, never its value. No prepare was
+repeated. The persistent one-shot supervisor records command, PID, stdout/stderr
+and final exit in `/Volumes/WD_BLACK/pan-agent/wo97-full-live-20260925/segment7-live-20260929/`, with no automatic restart.
+
+This is a launch record, not a terminal segment7 result. Its ongoing observations
+remain in the real journal/ledger; segment6 classification above is a historical
+snapshot, not current progress.62 previous consumed tasks and all old permits are
+excluded. A global pause requires Handoff, never swallowing errors or clearing
+stops to force completion. Final independent review still covers all segments and
+preparation; no accepted or causal performance claim is made here.
+
+---
+
+## Prior report retained verbatim
+
 # #97 Criteria1.11 — production successor prepared, awaiting Master signature
 
 Actual deployed runner **4eda9080d5d3bb6fd4750a6bd6fa07ab68475c00**, fixed #103 product

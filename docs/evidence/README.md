@@ -107,3 +107,5 @@ Raw artifacts remain at their stable source, Git, Trace, Test, evaluator, or ext
 - [#97 segment5 Handoff / Criteria1.9](terminal-bench-full-live-97.md): polyglot-rust-c timeout/unscored with handoff anomalies retained; terminal60 consumed/29 unstarted. Segment6 separately activated underCriteria1.10; no outcome inferred.
 
 #97 Criteria1.11: [production preparation report](terminal-bench-full-live-97.md) and [complete binding/history summary](terminal-bench-full-live-97-summary.json); actual runner fixed4eda908, campaign frozen pending Master signature.
+
+#97 Criteria1.12: segment6 final supplement and separate segment7 launch recorded in the existing [report](terminal-bench-full-live-97.md) and [summary](terminal-bench-full-live-97-summary.json). Segment7 terminal evidence remains pending.
