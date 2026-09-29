@@ -103,3 +103,5 @@ Raw artifacts remain at their stable source, Git, Trace, Test, evaluator, or ext
 - [#103 handoff diagnosis and confirmed continuation](handoff-recovery-103.md) / [summary](handoff-recovery-103-summary.json): offline actual-core failure reproduction and two-task confirmation tests; historical causes remain unknown, no #97 live run; repaired source-settlement transport and isolated candidate package pending independent review.
 
 - [#104 campaign successor](campaign-successor-104.md) / [summary](campaign-successor-104-summary.json): fixed-source history conservation, #103 package and fresh binding; offline candidate, no #97 production migration.
+
+#104 同 Criteria1.0 追加当前归档设备边界修复，保留原 rejected 及红绿证据；详见已有 campaign-successor-104 文档。

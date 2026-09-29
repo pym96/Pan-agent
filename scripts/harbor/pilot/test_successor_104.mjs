@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {readFileSync,writeFileSync,mkdirSync,mkdtempSync,existsSync,cpSync,readdirSync,renameSync} from 'node:fs';
+import {readFileSync,writeFileSync,mkdirSync,mkdtempSync,existsSync,cpSync,readdirSync,renameSync,symlinkSync,statSync,realpathSync} from 'node:fs';
 import {join} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {spawnSync,execFileSync} from 'node:child_process';
@@ -74,4 +74,31 @@ test('C-SUC-03 resource and external filesystem gates remain active',()=>{
  const c=setup();c.config.free=21474836479;assert.match(c.migrate(source,false).stderr,/resource_boundary/);assert(!existsSync(c.campaign));delete c.config.free;
  // Valid persistent-looking layout on internal storage is still not an external archive.
  c.layout.archiveRoot=join(c.root,'internal-archive');mkdirSync(c.layout.archiveRoot);assert.match(c.migrate(source,false).stderr,/durable_external_archive/);noExecution(c);
+});
+
+test('C-SUC-03 reconciled archive must remain external at every continuation entry',async()=>{
+ const c=setup();c.migrate();c.cmd('recover');c.prepare();const binding=c.binding();
+ const store=new Store(c.campaign);attachSuccessor(store,m);store.residualsChecked=true;
+ const activation=c.permit(binding),original=sourceInventory(c.campaign),observations=[];
+ // Each replacement keeps the external original and every archive byte intact.
+ // Also cover a nested namespace alias while archiveRoot itself stays external.
+ for(const target of [c.archive,join(c.archive,binding.full.campaignId,'predecessor')]){
+  const internal=join(c.root,'internal-copy-'+observations.length),retained=target+'-original-retained';
+  cpSync(target,internal,{recursive:true});renameSync(target,retained);symlinkSync(internal,target,'dir');
+  const observation={target,internal,retained,resolved:realpathSync(target),campaignDevice:statSync(c.campaign).dev,currentDevice:statSync(target).dev,externalDevice:statSync(retained).dev,commands:[]};
+  observations.push(observation);assert.equal(observation.currentDevice,observation.campaignDevice);assert.notEqual(observation.externalDevice,observation.campaignDevice);
+  for(const [command,args] of [['status',['--task',cached.join(',')]],['recover',[]],['prepare',['--task',cached[0],'--task-root',c.layout.taskRoot]],['run',['--activation',activation,'--entry',c.layout.entry,'--task-root',c.layout.taskRoot]]]){
+   const result=c.cmd(command,args,false);observation.commands.push({command,status:result.status,stderr:result.stderr,stdout:result.stdout});
+   writeFileSync(join(c.root,'archive-boundary.json'),JSON.stringify({binding,observations},null,2));
+   assert.notEqual(result.status,0,command+' must reject an archive resolving onto internal storage');assert.match(result.stderr,/archive_not_external/);
+   assert.deepEqual(sourceInventory(c.campaign),original);noExecution(c);
+  }
+  // Reusing an already-attached Store must not preserve a stale success either.
+  assert.throws(()=>proposedBinding(store,m,cached),/archive_not_external/);
+  // Retain the alias as evidence, restore only this test's original directory.
+  renameSync(target,target+'-internal-alias');renameSync(retained,target);
+  assert.deepEqual(c.binding(),binding);c.cmd('recover');assert.deepEqual(c.binding(),binding);
+ }
+ assert.deepEqual(sourceInventory(source),proof.files);noExecution(c);
+ writeFileSync(join(c.root,'archive-boundary.json'),JSON.stringify({binding,observations,legalExternalRestored:true,sourceUnchanged:true,zeroExecution:true},null,2));
 });

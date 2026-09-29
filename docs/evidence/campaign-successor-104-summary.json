@@ -26,9 +26,17 @@
     "host": 82,
     "python": 259,
     "pythonSkipped": 6,
-    "successorScenarios": 6,
+    "successorScenarios": 7,
     "postCommitResults": "external SHA-bound Handoff"
   },
   "evidenceRoot": "/Volumes/WD_BLACK/pan-agent/campaign-successor-20260929",
-  "internalRoot": "/Users/panyiming/.local/state/pan-agent/campaign-successor-work"
+  "internalRoot": "/Users/panyiming/.local/state/pan-agent/campaign-successor-work",
+  "repair": {
+    "previousCandidate": "3f1a6761db95d66a373c778e927e3b3301c19840",
+    "verdict": "rejected / C-SUC-03",
+    "scope": "revalidate current archive storage after reconciliation",
+    "evidence": "repair-boundary/",
+    "red": "status admitted an internal alias with exit 0",
+    "postCommitResults": "external SHA-bound repair Handoff"
+  }
 }

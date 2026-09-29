@@ -114,3 +114,42 @@ shared build dependencies. No new baseline or cleanup is used to fit the budget.
 After acceptance, Master must explicitly assign persistent deployment/preparation,
 then review the full binding and sign a new activation. This WorkOrder does not
 perform those steps and does not authorize #97 run.
+
+
+## C-SUC-03 repair — current archive device on reopen
+
+The initial candidate `3f1a6761db95d66a373c778e927e3b3301c19840` was independently
+rejected. C-SUC-01/02 passed; C-SUC-03 failed when an already-reconciled archive path
+was changed to a byte-identical internal copy. Original first-recover device tests
+and hash checks did not cover this state transition. The original Handoff and
+Regulator evidence remain unchanged; the previous test results do not establish
+acceptance of that candidate.
+
+Repair evidence is appended under external `repair-boundary/` and internal
+`campaign-successor-work/repair-boundary/`. `red.log` records the new regression
+failing on the original implementation: status returned zero after the alias
+change. `original-red-replayed-green.json` records the same retained fixture
+rejecting status/recover after repair. The new test covers actual migration,
+external archival, prepare/binding, archive-root and nested-predecessor aliases,
+all four status/recover/prepare/run admissions, a previously attached Store, and
+restoration of the legal external path with an unchanged binding. All old external
+copies and failing fixture artifacts are retained; no production path is modified.
+
+The repair unifies current storage and receipt verification; a completed journal
+event is not an exemption. The submitted Handoff supplies the new full SHA,
+post-commit binding, red/green and affected regression logs, source/ledger hashes,
+resource samples and the repair-only archive/inventory hashes. The fixed #103
+package remains unchanged. No model, real task, scoring, container, pull, production
+migration or signing was performed, and #97 remains paused.
+
+Learning correction: Builder's original reasoning equated historical successful
+archival with current valid storage. Regulator's byte-preserving path substitution
+separated these facts. The regression now changes location without changing
+content, and also tests the same substitution below the archive root. Human owns
+the goal, Builder the repair, Regulator independent acceptance, Master integration
+and subsequent deployment. This is protocol/storage evidence, not a benchmark gain.
+
+Repair working-tree validation: seven successor scenarios passed (0 skipped),
+167 affected/legacy regressions passed (0 skipped), and the host acceptance gate
+passed (82 host checks, 259 Python tests with 6 existing skips). Final committed-SHA
+binding validation and integrity samples are recorded in the appended Handoff.

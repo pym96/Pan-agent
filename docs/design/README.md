@@ -124,3 +124,5 @@ The Human-accepted architecture history remains indexed in [`../adr/README.md`](
 - [#103 handoff diagnosis and confirmed continuation](handoff-recovery-103.md): offline runner/transport candidate; original source settlement evidence, immutable fault history and strict unknown-stop boundary.
 
 - [#104 fixed campaign successor](campaign-successor-104.md) / [deployment runbook](campaign-successor-104-runbook.md): immutable historical import, new accepted package and freshly checked binding.
+
+#104 同 Criteria1.0 追加当前归档设备边界修复，保留原 rejected 及红绿证据；详见已有 campaign-successor-104 文档。

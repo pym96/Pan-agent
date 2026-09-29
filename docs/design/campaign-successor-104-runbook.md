@@ -101,3 +101,20 @@ writes** pending Master signature. No activation creation or run command belongs
 - Active/unknown residual, missing external volume, wrong package/dependency,
   resource breach, or changed task/image: stop and report the concrete condition.
   No automatic task rerun, model call, cleanup or permit reuse is authorized.
+
+
+### Current archive boundary after reconciliation
+
+A previous successful recover does not establish current storage availability.
+Every reopen checks both archive bytes and the current filesystem boundary,
+including the committed predecessor namespace, receipt and snapshot. A namespace
+that now resolves onto the campaign's internal device fails `archive_not_external`,
+even if its bytes match and the original external copy still exists elsewhere.
+Missing storage or damaged receipts remain blocking as well.
+
+On this error, retain the campaign, layout and original archive. Diagnose the
+mount/path resolution and restore the intended external namespace before using
+status/recover again within the assigned preparation scope. Do not substitute an
+internal copy, edit metadata/receipts, reset reconciliation or repin the source.
+A repaired storage path still needs the existing stop, resource, package and image
+checks. It does not authorize a production run or reuse of an activation.

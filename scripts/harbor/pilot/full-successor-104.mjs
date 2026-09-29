@@ -44,11 +44,26 @@ export async function successor97(source,target,layout,host,m){
  durable(join(target,'successor-complete.json'),{metadata:digest(canonical(s.meta)),inventory:SUCCESSOR_INVENTORY});attachSuccessor(s,m);return s;
 }
 function archivePath(s){return join(s.meta.durability.archiveRoot,s.meta.campaignId,'predecessor');}
+function checkArchiveStorage(s,paths=[]){
+ const archive=s.meta.durability.archiveRoot;check(existsSync(archive),'archive_unavailable');
+ if(s.meta.identity.mode==='live'){
+  const device=statSync(archive).dev;
+  check(device!==statSync(s.root).dev&&paths.every(p=>statSync(p).dev===device),'archive_not_external');
+ }
+}
 function verifyArchive(s){
- const root=archivePath(s),receipt=json(join(root,'commit/receipt.json'));
+ const root=archivePath(s),receiptPath=join(root,'commit/receipt.json');
+ // Hash equality proves bytes, not the filesystem currently serving those bytes.
+ checkArchiveStorage(s,[root,receiptPath]);const receipt=json(receiptPath);
  check(receipt.inventory===SUCCESSOR_INVENTORY&&receipt.metadata===digest(canonical(s.meta))&&typeof receipt.snapshot==='string'&&/^[a-f0-9-]{36}$/.test(receipt.snapshot),'successor_archive_identity');
+ checkArchiveStorage(s,[join(root,receipt.snapshot)]);
  check(digest(canonical(sourceInventory(join(root,receipt.snapshot))))===SUCCESSOR_INVENTORY,'successor_archive_hash');
  return digest(readFileSync(join(root,'commit/receipt.json')));
+}
+export function verifySuccessorArchive(s){
+ if(!s.meta.successor104)return;
+ const archived=s.rows.find(r=>r.event==='successor_reconciled');
+ if(archived)check(archived.receipt===verifyArchive(s),'successor_archive_changed');
 }
 export function attachSuccessor(s,m){
  if(!s.meta.successor104){check(!existsSync(join(s.root,'successor-original'))&&!existsSync(join(s.root,'successor-complete.json')),'successor_metadata_missing');return;}
@@ -58,15 +73,15 @@ export function attachSuccessor(s,m){
  check(done.inventory===SUCCESSOR_INVENTORY&&done.metadata===digest(canonical(s.meta))&&s.rows[0]?.event==='successor_import'&&s.rows[0].inventory===SUCCESSOR_INVENTORY&&canonical(s.rows[0].oldRunIds)===canonical(proof.oldRunIds),'successor_incomplete');
  for(const [f,h] of Object.entries(proof.files).filter(([f])=>f.startsWith('segments/')))check(digest(readFileSync(join(s.root,f)))===h,'successor_accounting_changed');
  s.imported=proof.imported;s.oldRunIds=proof.oldRunIds;s.reload();
- const archived=s.rows.find(r=>r.event==='successor_reconciled');if(archived)check(archived.receipt===verifyArchive(s),'successor_archive_changed');
+ verifySuccessorArchive(s);
 }
 export async function reconcileSuccessor(s,host){
- if(!s.meta.successor104||s.rows.some(r=>r.event==='successor_reconciled'))return;
+ if(!s.meta.successor104)return;
+ if(s.rows.some(r=>r.event==='successor_reconciled')){verifySuccessorArchive(s);return;}
  resourceCheck(s.root,s.meta.resourceBaseline,(host.sampleRecovery??sampleDurable)(s.root,s.meta.durability.ownedRoots));
  for(const r of s.imported){const p=await host.inspectResidual(r);check(p?.confirmed===true,'historical_stop_unknown');}
- check(existsSync(s.meta.durability.archiveRoot),'archive_unavailable');
- if(s.meta.identity.mode==='live')check(statSync(s.meta.durability.archiveRoot).dev!==statSync(s.root).dev,'archive_not_external');
- const root=archivePath(s);mkdirSync(root,{recursive:true});
+ checkArchiveStorage(s);
+ const root=archivePath(s);mkdirSync(root,{recursive:true});checkArchiveStorage(s,[root]);
  if(!existsSync(join(root,'commit/receipt.json'))){
   const snapshot=crypto.randomUUID(),source=join(s.root,'successor-original');copyFiles(source,join(root,snapshot),sourceInventory(source));flushTree(join(root,snapshot));
   await host.checkpoint?.('successor_before_archive');

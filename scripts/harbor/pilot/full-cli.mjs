@@ -1,4 +1,4 @@
-import {successor97,attachSuccessor,reconcileSuccessor} from './full-successor-104.mjs';
+import {successor97,attachSuccessor,reconcileSuccessor,verifySuccessorArchive} from './full-successor-104.mjs';
 import {recoveryAllowed} from './handoff-state.mjs';
 import {upgrade97,attachUpgrade,reconcilePredecessor} from './full-upgrade-102.mjs';
 import {readFileSync,mkdirSync,existsSync,writeFileSync,linkSync,appendFileSync,realpathSync} from 'node:fs';
@@ -21,6 +21,7 @@ const identity=(host,runnerSha,lock)=>({manifestHash:MANIFEST_HASH,panHash:lock.
 function snapshot(store,host){const s=store.meta.durability?(host.sampleRecovery??sampleDurable)(store.root,store.meta.durability.ownedRoots):host.sample(store.root);appendFileSync(join(store.root,'resources.jsonl'),JSON.stringify(s)+'\n');resourceCheck(store.root,store.meta.resourceBaseline,s);return s;}
 function lastPreparation(store,id){return (store.meta.successor104?store.rows:store.allRows).filter(r=>r.event==='preparation'&&r.task===id).at(-1);}
 export function proposedBinding(store,m,ids){
+ verifySuccessorArchive(store);
  check(!store.meta.successor104||store.rows.some(r=>r.event==='successor_reconciled'),'successor_reconciliation_required');
  check(!store.meta.upgrade102||store.rows.some(r=>r.event==='predecessor_reconciled'),'predecessor_reconciliation_required');
  check(store.pending().length===0,'reconciliation_required');
@@ -51,7 +52,7 @@ export async function main(argv=process.argv.slice(2),dependencies={}){
  if(command==='cancel'){const pending=store.pending();check(pending.length===1,'no_active_segment');const path=join(root,'cancel-'+pending[0].runId+'.json');if(!existsSync(path))durable(path,{runId:pending[0].runId,requestedUTC:new Date().toISOString()});return;}
  const release=await lock(root);let controller,timer,ledger;
  try{
-  store.reload();host.configure?.(root);
+  store.reload();verifySuccessorArchive(store);host.configure?.(root);
   if(command==='archive'){check(!store.pending().length,'reconciliation_required');for(const r of pendingArchives(store))archiveTask(store,r);console.log(JSON.stringify(aggregate(store,m)));return;}
   if(command==='recover'){
    await reconcilePredecessor(store,host);await reconcileSuccessor(store,host);

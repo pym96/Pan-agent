@@ -61,3 +61,25 @@ Master's production-preparation assignment, and a new signed activation are sepa
 The command has no permission to extend budgets, clear consumption or run tasks.
 The existing #103 session confirmations, scoring/archive gates and official timeouts
 remain unchanged. No core cancellation code or package identity is modified here.
+
+## Repair after independent C-SUC-03 rejection
+
+Candidate `3f1a6761db95d66a373c778e927e3b3301c19840` checked the actual
+archive device only during first reconciliation. Independent review preserved the
+external original but redirected its namespace to byte-identical internal storage;
+reopened status/recover incorrectly accepted it. The initial claim above about
+reopen verification covered hashes, not a fresh device check. That candidate and
+its rejected evidence remain part of the history.
+
+Archive verification now checks current filesystem devices before reading the
+receipt and snapshot. The archive root must differ from the internal campaign;
+the predecessor namespace, receipt and snapshot must be on that same external
+device. This also covers a nested alias beneath an otherwise external archiveRoot.
+A past `successor_reconciled` event cannot bypass verification. Reopen, repeated
+reconcile, the locked command path and `proposedBinding` use the same verification.
+No source pin, identity, budget, product or historical record changes.
+
+This is an admission-time check of actual storage, not a promise of atomicity
+against a concurrent OS mount change. Existing archive errors and stop conditions
+remain blocking. Tests exercise real CLI/Store and real external files; only host
+prepare/inspection responses and permits are synthetic.
