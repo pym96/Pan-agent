@@ -56,17 +56,17 @@ for(const kind of ['missing_usage','invalid','partial'])test('large '+kind+' rem
  const r=await fixture({prepare,budget:METERED_LIMITS,timers:clock(),fetcher:()=>kind==='partial'?{status:200,body:(async function*(){yield bytes.subarray(0,bytes.length-14);throw Error('PRIVATE_CANARY');})()}:response(bytes)});
  assert.equal(r.report.effects.length,0);assert.deepEqual(r.report.usage,[null]);assert.equal(r.report.verifier,null);assert.equal(r.report.counts.retries,0);assert(!JSON.stringify(r.report).includes('PRIVATE_CANARY'));assert.notEqual(r.report.diagnostics[0].reason,'response_size');receipt(r,{kind});
 });
-for(const mode of ['stream','waiting','backoff'])for(const cause of ['cancel','deadline'])test(`unlimited ${mode} stops on ${cause}`,async()=>{
+for(const mode of ['stream','waiting','backoff'])for(const cause of ['cancel','deadline'])for(const settled of mode==='backoff'?[true]:[true,false])test(`unlimited ${mode} stops on ${cause}, raw read settled=${settled}`,async()=>{
  const abort=new AbortController(),timers=clock();let ended=0;
  const stop=()=>cause==='cancel'?abort.abort():timers.fire('agent');
  const original=timers.setTimeout;timers.setTimeout=function(fn,ms,label){const t=original.call(this,fn,ms,label);if(mode==='backoff'&&label==='recovery')queueMicrotask(stop);return t;};
  const r=await fixture({signal:abort.signal,prepare,budget:METERED_LIMITS,timers,fetcher(){
   if(mode==='backoff')throw Object.assign(Error('synthetic'),{cause:{code:'ECONNRESET'}});
-  let n=0;return {status:200,body:{[Symbol.asyncIterator](){return {next(){if(mode==='stream'&&n++<9)return Promise.resolve({done:false,value:Buffer.from(':'+ 'p'.repeat(65536)+'\n\n')});queueMicrotask(stop);return new Promise(()=>{});},return(){ended++;return Promise.resolve({done:true});}};}}};
+  let n=0,releaseRead;return {status:200,body:{[Symbol.asyncIterator](){return {next(){if(mode==='stream'&&n++<9)return Promise.resolve({done:false,value:Buffer.from(':'+ 'p'.repeat(65536)+'\n\n')});queueMicrotask(stop);return new Promise(resolve=>releaseRead=resolve);},return(){ended++;if(settled)releaseRead?.({done:true});return Promise.resolve({done:true});}};}}};
  }});
  assert.equal(r.report.counts.sendEntries,1);assert.equal(r.report.effects.length,0);assert.equal(r.report.stopConfirmed,true);assert.deepEqual(r.report.usage,[null]);
  if(mode==='stream')assert(r.report.diagnostics[0].responseBytes>524288);if(mode!=='backoff')assert(ended>0);
- if(cause==='deadline'){assert.equal(r.report.agentStopReason,'agent_timeout');assert.equal(r.report.verifier.rewards.reward,1);}else{assert(r.report.globalStops.some(x=>x.reason==='cancelled'));assert.equal(r.report.verifier,null);}receipt(r,{mode,cause});
+ if(cause==='deadline'){assert.equal(r.report.agentStopReason,'agent_timeout');if(settled)assert.equal(r.report.verifier.rewards.reward,1);else{assert.equal(r.report.verifier,null);assert(r.report.globalStops.some(x=>x.reason==='local_work_unsettled'));assert(r.report.pendingOperations.includes('transport.source.read'));}}else{assert(r.report.globalStops.some(x=>x.reason==='cancelled'));assert.equal(r.report.verifier,null);}receipt(r,{mode,cause,settled});
 });
 test('large response with separate usage tail preserves Provider values',async()=>{
  let text=large(527533,undefined).toString();

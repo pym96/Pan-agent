@@ -270,7 +270,7 @@ physical-root coverage/inode accounting and strict memory-field typing. Run with
 
 ## #103 offline handoff checks
 
-Use the unchanged accepted installed product via `PAN_TEST_ENTRY`; set `TMPDIR`,
+Use the #103 repaired candidate package matching `package-identity.json` via `PAN_TEST_ENTRY`; set `TMPDIR`,
 `WO103_TEST_ROOT` and `WO96_TEST_ROOT` to the issue-owned internal fixture directory.
 `node --test scripts/harbor/pilot/test_handoff_103.mjs scripts/harbor/pilot/test_full_handoff_103.mjs`
 executes actual core + controller paths with synthetic transport/environment, no

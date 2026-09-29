@@ -47,7 +47,11 @@ export async function runAttempt({entry,task,instruction,output,environment,gate
  const metered=gate.binding.budget.mode==='metered';let attempt;
  const record=row=>{check(phase!=='ended','attempt_closed');try{ledger.record(task.id,row);}catch{hard('ledger_error');throw Error('ledger_error');}};
  const local=reason=>{attempt.reason=reason;attempt.stage='local';throw Error(reason);};
- const transport=new KimiFetchTransport({credentialSource:()=>{admit();secret=credentialSource();return secret;},onAttempt:()=>{
+ const transport=new KimiFetchTransport({onSourceOperation:(kind,promise)=>{
+  track(promise,'transport.source.'+kind);
+  // Cleanup rejection is not successful isolation, even when its wrapper ends.
+  if(kind==='return')promise.catch(()=>hard('transport_cleanup_failed'));
+ },credentialSource:()=>{admit();secret=credentialSource();return secret;},onAttempt:()=>{
   admit();record({event:'send_entered',exchange:attempt.exchange});attempt.sendEntered=true;attempt.stage='send';counts.sendEntries++;
  },...(fetchImplementation?{fetchImplementation}:{})});
  const bounded={async send(request){

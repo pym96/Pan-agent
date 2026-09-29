@@ -38,3 +38,17 @@ for(const scenario of ['confirmed','never_settles','stop_unknown','archive_failu
 test('real core+controller normal two tasks execute exactly once',()=>{
  const c=setup({entry:process.env.PAN_TEST_ENTRY,realSession:true});c.prepare(ids.slice(0,2));c.run(c.permit(ids.slice(0,2)));assert.deepEqual(c.effects().filter(x=>x.kind==='start').map(x=>x.task),ids.slice(0,2));assert.equal(c.status().validScored,2);
 });
+
+for(const mode of ['pending','finite','rejected','read_pending'])test('raw source settlement controls next task: '+mode,()=>{
+ const c=setup({entry:process.env.PAN_TEST_ENTRY,sourceSettlement103:mode});c.prepare(ids.slice(0,2));const permit=c.permit(ids.slice(0,2));c.run(permit);
+ const effects=c.effects(),starts=effects.filter(x=>x.kind==='start').map(x=>x.task);
+ assert.deepEqual(starts,mode==='finite'?ids.slice(0,2):[ids[0]]);
+ const first=effects.find(x=>x.kind==='source_report');assert.equal(first.continuation.allowed,mode==='finite');
+ if(mode==='finite'){assert.equal(effects.find(x=>x.kind==='next_after_source').rawSettled,true);assert(effects.findIndex(x=>x.kind==='raw_return_settled')<effects.findIndex(x=>x.kind==='source_report'));}
+ if(mode==='pending')assert(first.pendingOperations.includes('transport.source.return'));
+ if(mode==='read_pending')assert(first.pendingOperations.includes('transport.source.read'));
+ const report=JSON.parse(readFileSync(join(c.campaign,'segments',permit.a.runId,ids[0],'pan/report.json')));
+ assert.equal(report.verifier,null);assert.equal(c.status().rows[0].validScore,null);
+ if(mode==='rejected')assert(report.faults.some(x=>x.source==='transport.source.return'&&x.chain[0].code==='EPIPE'));
+ assert.notEqual(c.run(permit,false).status,0);assert.equal(c.effects().filter(x=>x.kind==='start').length,starts.length);
+});

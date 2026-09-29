@@ -5,6 +5,88 @@ not deployed, no #97 live call. [Design](../design/handoff-recovery-103.md) and
 [machine-readable evidence](handoff-recovery-103-summary.json). Full candidate SHA
 is bound in GitHub Handoff after push.
 
+## Repair after independent rejection (current candidate)
+
+Criteria1.0 unchanged. The first candidate `aa3ea59e4314ab5e872eb9ef583841507ef27987`
+was rejected on C-HND-02. Independent Verdict SHA256
+`a8e74cefc5c4f75b7ac2fca3bb48bbbdfc22a03b26a15dc5dfd9a0b168253e40` is in
+`regulator-20260929-criteria10-final/` under the original evidence root. The
+[Master repair order](https://github.com/pym96/Pan-agent/issues/103#issuecomment-5887709758)
+authorizes this append-only repair; the old SHA and raw evidence remain preserved.
+All new raw artifacts are in that root's `repair-source-settlement/` subdirectory.
+
+The copied independent source-return probe went red in139ms: original cleanup
+pending, but continuation allowed. A new actual-core/full-controller regression
+also showed the second task starting before cleanup and even after cleanup rejection.
+No tests substituted a static report. Original independent files were not edited;
+copies only change checkout paths and drive the new pending recovery timer at100ms.
+The production15s observation and official task/verifier limits do not change.
+
+Ranked hypotheses were lost source promises, recovery snapshot omission, and
+controller ignoring negative confirmation. Inspection and original-source event
+assertions establish the first: the frozen transport raced reads and discarded its
+return cleanup promise. Runner could not infer the missing state from wrapper
+completion. This does not establish the cause of the three historical live incidents.
+
+The product now exposes original source read/return promise settlement to its owner,
+without request/credential/response payloads in the observation interface. Prompt
+cancellation and source settlement remain separate. Late fetch fulfillment after
+abort closes an unentered body through the same observable cleanup path. Runner
+tracks both raw operations; rejected cleanup is a hard stop. Never-settled read or
+return cannot grade or continue; finite return completion permits at most one next
+task only after all existing session/tool/environment/archive/resource checks.
+Global failures, prior consumption, scores and immutable fault history stay intact.
+
+New isolated package SHA256:
+`5ecd3b9b4da688f90dfee3cc651b4a2f755595587b6d7d7287383cab23c8e580`.
+Installed entry:
+`/Users/panyiming/.local/state/pan-agent/handoff-recovery-work/repair-source-settlement/consumer/node_modules/pan-agent/dist/index.js`.
+Among82 pinned installed files, only `dist/providers/kimi/kimi-transport.js` and
+its `.d.ts` changed. `baseline_sha` is the prior candidate from which the package
+source repair starts; final source identity is the SHA-bound Handoff, with exact
+source/build/package hashes retained. Frozen Python/Harbor identities also verified.
+The unchanged #94 production package is preserved and no longer used as repair proof.
+
+Validation:132 runner tests passed against the newly installed package;203 product
+source tests plus typecheck passed; both copied independent source-return probes
+passed as Builder regression (not an independent Verdict). Source tests cover
+original pending read/return, synchronous cleanup throw, rejected/fulfilled cleanup,
+repeated cancel, late bytes, and late unentered fetch cleanup. Controller tests cover
+pending, finite, rejected and read-pending source paths; archived first result remains
+null and consumed run cannot execute again. Commands and full logs are retained.
+
+Failures retained: `green-controller.log` had23/24 pass because the new test looked
+for EPIPE at the watchdog-code field instead of the existing safe cause chain;
+correcting that assertion retained the same rejection requirement. Initial product
+check found5 strict TypeScript optional-index errors in the new test, fixed with
+explicit asserted indices. `runner-regression.log` had126/128 pass: two older tests
+left source.next permanently pending yet expected grading. Under C-HND-02/03 that
+is uncertain work. Those exact inputs now assert null/blocked; additional genuinely
+settled-read inputs assert normal grading. No pending-return red assertion was
+weakened to permit continuation. The full updated suite is132/132.
+
+Learning correction: Builder previously equated transport wrapper settlement with
+original resource settlement. Regulator supplied the counterexample; Human kept
+the original gate, Master returned the candidate, Builder repaired the missing seam.
+The prevention is a contract/test at the original source owner, not more timeout
+or more confirmation labels. No live-success improvement or Human implementation
+claim is inferred. This repair awaits independent review of its own SHA/package.
+
+Production campaign/ledger979-file hashes and file set remain unchanged. Cumulative
+resource policy is still strict54GiB/20GiB with baseline48503971840; sample evidence
+includes all mandatory roots, the actual Python framework, and shared build-tool
+node_modules. No live model/task/scoring/pull, deployment, migration or signature.
+#97 remains paused at62 consumed/27 unstarted and20 historical unknown scores.
+Accepted deployment and a separately authorized successor design/new binding are
+still needed: #102's fixed old source importer cannot directly migrate current #97.
+
+## First candidate record (historical; rejected, not current claims)
+
+The following original account is retained to show what was believed/tested at
+`aa3ea59e4314ab5e872eb9ef583841507ef27987`. Its no-product-change conclusion and
+raw-source confirmation claim were superseded by the independent counterexample
+and repair above. Its original logs and checks remain intact.
+
 ## Observed defect versus unknown historical cause
 
 Read-only inputs include the three late handoff reports (polyglot-c-py,

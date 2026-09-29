@@ -15,10 +15,14 @@ mechanism, not a reconstruction of the historical cause.
 
 Runner session owns one run promise and one close promise. It never uses a second
 concurrent close call as evidence that the first completed (the frozen session
-closes admission before its original close promise settles). Product code is not
-modified: retaining and awaiting the original promises supplies the needed seam.
-Raw transport send/read/iterator-return and tool wait promises are tracked by
-source; a timeout race never removes the underlying operation. Admission remains
+closes admission before its original close promise settles). The rejected first candidate only observed the transport's wrapper promises.
+The repair adds a Kimi transport `onSourceOperation` observer: original source
+read/return promises are registered before their completion, including synchronous
+exceptions. Cancellation still releases the wrapper promptly, while source cleanup
+is independently observed. Late fetch fulfillment after abort closes even an
+unentered response body and exposes that cleanup promise. Runner tracks these as
+`transport.source.read` and `transport.source.return`; rejected cleanup adds a hard
+`transport_cleanup_failed` stop. Wrapper send/read/return and tool waits remain tracked; a timeout race never removes the underlying operation. Admission remains
 closed after cancellation. Late output cannot append new ledger records, dispatch
 requests or admit tools after the attempt ends. Pending raw operations prevent
 verification and continuation, even if an upper cancellation race already settled.
@@ -78,9 +82,11 @@ failure, false single-layer evidence, spoofed watchdog strings, delayed callback
 close rejection, archive failure and resource failure. Synthetic scores are test
 fixture values, never #97 benchmark results.
 
-No TypeScript/product or package identity changed; the accepted #94 installed
-product is used directly in offline tests. No new product package is required by
-this candidate. A new accepted runner SHA requires a separately authorized
+The repaired candidate changes Kimi transport and requires the new isolated
+product package recorded in package-identity.json. Only its transport JS/declaration
+files differ among the82 pinned installed files. Python/Harbor remain frozen.
+The rejected runner's old package is not valid for this candidate. Neither new
+package nor runner is deployed to production. A new accepted runner SHA requires a separately authorized
 production deployment/successor design: existing campaign identity is frozen and
 #102's importer only accepts its old pinned predecessor. This work does not edit
 that pin or real campaign metadata and cannot be dropped into the active runner.

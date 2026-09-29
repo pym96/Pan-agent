@@ -42,4 +42,34 @@ if(fixture.handoff103){
   return runAttempt({...args,timers,fetchImplementation:async()=>new Response(wire(args.task.id===first&&++n===1?'synthetic-command':null))});
  };
 }
+// #103 raw-source regression: actual core/transport/controller, only host and source timing are synthetic.
+if(fixture.sourceSettlement103){
+ const {GeneralAgentSession}=await import((await import('node:url')).pathToFileURL(fixture.entry));
+ const original=GeneralAgentSession.prototype.close;let attempt=0,releaseReturn,releaseRead,rawSettled=false;
+ deps.runAttempt=async args=>{
+  attempt++;
+  if(attempt>1){effect('next_after_source',args.task.id,{rawSettled});return runAttempt({...args,fetchImplementation:async()=>new Response(wire())});}
+  const mode=fixture.sourceSettlement103,jobs=[];
+  const timers={setTimeout(fn,ms,label){const t={fn,label,active:true};jobs.push(t);
+   if(label==='recovery_timeout'){
+    if(mode==='finite')setTimeout(()=>releaseReturn?.(),10);
+    setTimeout(()=>{if(t.active){t.active=false;fn();}},100);
+   }
+   return t;
+  },clearTimeout(t){if(t)t.active=false;}};
+  const fire=label=>{const t=jobs.findLast(t=>t.label===label&&t.active);if(!t)throw Error('missing timer '+label);t.active=false;t.fn();};
+  GeneralAgentSession.prototype.close=async function(){await original.call(this);await new Promise(resolve=>setImmediate(()=>{fire('session_close_timeout');setImmediate(resolve)}));};
+  const body={ [Symbol.asyncIterator](){let sent=false;return {
+   next(){if(mode==='read_pending')return new Promise(resolve=>{releaseRead=()=>{effect('raw_read_settled',args.task.id);resolve({done:true});};setImmediate(()=>fire('agent'));});if(sent)return Promise.resolve({done:true});sent=true;return Promise.resolve({done:false,value:new TextEncoder().encode(wire())});},
+   return(){effect('raw_return_started',args.task.id);if(mode==='read_pending')return Promise.resolve({done:true});return new Promise((resolve,reject)=>{releaseReturn=()=>{rawSettled=true;effect('raw_return_settled',args.task.id);resolve({done:true});};if(mode==='rejected')reject(Object.assign(new Error('synthetic cleanup failure'),{code:'EPIPE'}));});}
+  };}};
+  try{
+   const report=await runAttempt({...args,timers,fetchImplementation:async()=>({status:200,headers:new Headers(),body})});
+   effect('source_report',args.task.id,{rawSettled,continuation:report.continuation,pendingOperations:report.pendingOperations});
+   // Release deliberately late only after an immutable report; never reinterpret it as permission.
+   releaseRead?.();if(!rawSettled)releaseReturn?.();await new Promise(resolve=>setImmediate(resolve));
+   return report;
+  }finally{GeneralAgentSession.prototype.close=original;}
+ };
+}
 try{await main(process.argv.slice(3),deps);}catch(e){console.error(e.message);process.exitCode=1;}
