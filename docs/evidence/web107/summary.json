@@ -1,0 +1,34 @@
+{
+  "criteria": "1.0",
+  "baseline": "6a0c0ec161af8f03489337aed70983e3b04d87f4",
+  "independentVerdict": "pending",
+  "providerCalls": 0,
+  "benchmarkCalls": 0,
+  "codingAgentTokens": null,
+  "checks": {
+    "apiLifecycle": 31,
+    "browser": 7,
+    "regression106": "passed",
+    "goRace": "passed",
+    "goVet": "passed",
+    "dockerCanary": "passed",
+    "workerHelper": "passed"
+  },
+  "image": {
+    "id": "sha256:8129910271f9764b5c05038d351ad7b9f9d94b85351355b69c5526eadd111775",
+    "repoDigests": [
+      "python@sha256:0dd364ba7e10242f07755449e3a3d0e35f9efd987952737b90def6709ab0c5ce"
+    ]
+  },
+  "resources": {
+    "utc": "2026-10-09T06:46:31.830Z",
+    "free": 34736279552,
+    "owned": 7633879040,
+    "docker": 88965808128,
+    "baselineDocker": 48503971840,
+    "cumulativeBytes": 48095715328,
+    "limitBytes": 57982058496,
+    "minimumFreeBytes": 21474836480
+  },
+  "rawEvidenceRoot": "/Users/panyiming/.local/state/pan-agent/web107/evidence"
+}

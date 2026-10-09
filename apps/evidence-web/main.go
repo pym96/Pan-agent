@@ -294,6 +294,10 @@ func (a *app) handler() http.Handler {
 			send(w, 200, map[string]string{"id": owner})
 		}
 	})
+	mux.HandleFunc("POST /api/bundles/{id}/tasks", a.submitTask)
+	mux.HandleFunc("GET /api/bundles/{id}/tasks", a.taskList)
+	mux.HandleFunc("GET /api/tasks/{id}", a.task)
+	mux.HandleFunc("GET /api/tasks/{id}/files/{name}", a.taskFile)
 	mux.HandleFunc("GET /api/bundles", a.list)
 	mux.HandleFunc("POST /api/bundles", a.upload)
 	mux.HandleFunc("GET /api/bundles/{id}", a.detail)
@@ -334,10 +338,20 @@ func run() error {
 	if db.Ping(ping) != nil {
 		return fmt.Errorf("database unavailable")
 	}
-	sql, _ := migrations.ReadFile("migrations/001.sql")
-	if _, e = db.Exec(ctx, string(sql)); e != nil {
-		return fmt.Errorf("database migration failed")
+	entries, _ := migrations.ReadDir("migrations")
+	for _, entry := range entries {
+		if !strings.HasSuffix(entry.Name(), ".sql") {
+			continue
+		}
+		sql, _ := migrations.ReadFile("migrations/" + entry.Name())
+		if _, e = db.Exec(ctx, string(sql)); e != nil {
+			return fmt.Errorf("database migration failed")
+		}
 	}
+	if len(os.Args) > 1 && os.Args[1] == "worker" {
+		return work(db)
+	}
+
 	if len(os.Args) > 1 && os.Args[1] == "account" {
 		email := strings.ToLower(strings.TrimSpace(os.Getenv("ACCOUNT_EMAIL")))
 		pw := os.Getenv("ACCOUNT_PASSWORD")

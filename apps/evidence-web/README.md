@@ -82,3 +82,44 @@ python3 scripts/local-dev.py test --runtime "$HOME/.local/state/pan-agent/web106
 Browser tests use Playwright plus installed macOS Chrome. Set CHROME_PATH to another installed compatible Chromium executable when necessary. Browser automation is a dev dependency, not used by the application. Logs and screenshots go to runtime/test-evidence; copy them before rerunning if needed. Exact API inputs, malformed imports, both account directions,89source pointers, inert script text, downloads and app/database restart are exercised. [Scripts](scripts/README.md), [migrations](migrations/README.md), [frontend](web/README.md), [design](../../docs/design/pan-web/README.md).
 
 Implementation references: [pgx connection pool](https://pkg.go.dev/github.com/jackc/pgx/v5/pgxpool) and [PostgreSQL14 pg_dump](https://www.postgresql.org/docs/14/app-pgdump.html). This slice does not implement backup automation; operators retain the owned database directory and can separately arrange PostgreSQL backups.
+
+## #107 single-question offline analysis
+
+The independent Web consumer now adds a PostgreSQL task queue, one Go Worker and a thin Node consumer of public Native Pan exports. The page is explicitly **Offline/Faux**. Deterministic scripted code runs in actual Docker and the real tool result returns through Pan before an answer is produced. This is not a natural-language-quality or live-model demonstration. Current single-question scope has no conversational context, cancellation/replacement UI, distributed workers, Redis or auto-resume.
+
+From a clean candidate checkout, use a **new** issue-owned runtime. Retain the #106 data and runtimes; do not repoint this helper at them.
+
+```sh
+# From apps/evidence-web
+(cd web && npm ci --no-audit --no-fund && npm run build)
+python3 scripts/local-dev.py init --issue 107 \
+  --runtime "$HOME/.local/state/pan-agent/web107/runtime/app" \
+  --pg-bin /opt/homebrew/opt/postgresql@14/bin --port 8107 --db-port 54107
+# Copy/build the public Pan package without changing its source in the checkout.
+cp -R ../../typescript "$HOME/.local/state/pan-agent/web107/runtime/pan-source"
+npm ci --prefix "$HOME/.local/state/pan-agent/web107/runtime/pan-source" --no-audit --no-fund
+npm run build --prefix "$HOME/.local/state/pan-agent/web107/runtime/pan-source"
+# Fixed standard-library image; pull has no user-evidence mounts.
+docker pull python:3.11-slim
+python3 scripts/worker-control.py configure \
+  --runtime "$HOME/.local/state/pan-agent/web107/runtime/app" \
+  --pan-entry "$HOME/.local/state/pan-agent/web107/runtime/pan-source/dist/index.js" \
+  --image python:3.11-slim
+python3 scripts/local-dev.py start --issue 107 --runtime "$HOME/.local/state/pan-agent/web107/runtime/app" --pg-bin /opt/homebrew/opt/postgresql@14/bin
+python3 scripts/worker-control.py start --runtime "$HOME/.local/state/pan-agent/web107/runtime/app"
+```
+
+For exact evidence reproduction, use the digest/image identity in the #107 Handoff rather than assuming the mutable tag has not moved. configure resolves and stores the actual local image ID. Current worker settings are in private runtime/worker.json; provider secrets are not settings. Pin PAN_ENTRY and do not edit it while the worker runs. Initialization credentials remain private runtime/config.json; accounts retain a@web106.test / b@web106.test for compatibility with the existing invited-account test flow.
+
+Open loopback8107, import the generated source copy as before, select the bundle and submit the analysis question. Inspect status, answer, citations, CSV, usage/Run Archive identity and canonical tool/error trace. Faux usage values are labelled test values; real sends0. Unknown model-error usage is not filled with zero. Queued tasks persist without a Worker. Running tasks lose authoritative liveness after10s without the database heartbeat; no automatic retry occurs. Restarting a Worker reconciles owned Node/container stops before claiming new queued tasks. An ambiguous stop prevents admission; preserve logs, do not delete leases/tasks/archives to bypass it.
+
+Stop explicitly in this order:
+
+```sh
+python3 scripts/worker-control.py stop --runtime "$HOME/.local/state/pan-agent/web107/runtime/app"
+python3 scripts/local-dev.py stop --issue 107 --runtime "$HOME/.local/state/pan-agent/web107/runtime/app" --pg-bin /opt/homebrew/opt/postgresql@14/bin
+```
+
+Worker process exit is not a claim that every prior container stopped. API cleanupConfirmed and retained diagnostics express that separately. SIGTERM stops admission and settles active work as interrupted if it cannot finish normally; SIGKILL is an interruption, not a cancellation protocol. Later #109/#110 own user cancellation and durable execution recovery. Task directories preserve archive/event/diagnostic records even for interrupted runs; they are never reopened to continue that run.
+
+Testing: [executor boundary/probes](executor/README.md), scripts/check107.py and scripts/run-browser107.py. Set WEB107_RUNTIME to the initialized app directory, PAN_IMAGE to the pinned local ID, EVIDENCE_DIR to a new private output directory; browser runner also needs PREVIOUS_RESULT pointing to check107 result.json. Each harness starts/stops only its own app/Worker. check107 restarts the owned database; do not run against a shared cluster. #106 integration.py remains the core regression. [#107 evidence](../../docs/evidence/web107/README.md).

@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 """Own persistent local PostgreSQL and application processes; never manage shared services."""
 import argparse,json,os,pathlib,secrets,signal,subprocess,time,urllib.parse
-p=argparse.ArgumentParser();p.add_argument('command',choices=['init','start','stop','test']);p.add_argument('--runtime',required=True);p.add_argument('--pg-bin',required=True);p.add_argument('--db-port',type=int,default=54106);p.add_argument('--port',type=int,default=8106);a=p.parse_args()
-r=pathlib.Path(a.runtime).resolve();root=pathlib.Path(__file__).resolve().parents[1];pg=pathlib.Path(a.pg_bin).resolve();cfg=r/'config.json';mark=r/'web106-owner.json'
+p=argparse.ArgumentParser();p.add_argument('--issue',type=int,choices=[106,107],default=106);p.add_argument('command',choices=['init','start','stop','test']);p.add_argument('--runtime',required=True);p.add_argument('--pg-bin',required=True);p.add_argument('--db-port',type=int,default=54106);p.add_argument('--port',type=int,default=8106);a=p.parse_args()
+r=pathlib.Path(a.runtime).resolve();root=pathlib.Path(__file__).resolve().parents[1];pg=pathlib.Path(a.pg_bin).resolve();cfg=r/'config.json';mark=r/f'web{a.issue}-owner.json'
 def run(args,**kw):return subprocess.run([str(x) for x in args],check=True,**kw)
 if a.command=='init':
  if r.exists() and any(r.iterdir()):raise SystemExit('init requires a new empty runtime directory')
  r.mkdir(parents=True,exist_ok=True);r.chmod(0o700)
  data={'DATABASE_URL':f'postgres://web106:{secrets.token_hex(24)}@127.0.0.1:{a.db_port}/web106?sslmode=disable','ACCOUNT_A_PASSWORD':secrets.token_hex(16),'ACCOUNT_B_PASSWORD':secrets.token_hex(16),'APP_ORIGIN':f'http://127.0.0.1:{a.port}','LISTEN_ADDR':f'127.0.0.1:{a.port}'}
- cfg.write_text(json.dumps(data,indent=2));cfg.chmod(0o600);mark.write_text(json.dumps({'issue':106,'runtime':str(r)}));
+ cfg.write_text(json.dumps(data,indent=2));cfg.chmod(0o600);mark.write_text(json.dumps({'issue':a.issue,'runtime':str(r)}));
  pw=r/'db-password';pw.write_text(urllib.parse.urlsplit(data['DATABASE_URL']).password+'\n');pw.chmod(0o600)
  with (r/'setup.log').open('w') as log:run([pg/'initdb','-D',r/'pgdata','-U','web106','--auth=scram-sha-256','--pwfile='+str(pw)],stdout=log,stderr=log)
  # Persist service settings so stop/start does not revert to PostgreSQL defaults.
@@ -20,7 +20,7 @@ if a.command=='init':
  for who in ['a','b']:
   account=env.copy();account['ACCOUNT_EMAIL']=who+'@web106.test';account['ACCOUNT_PASSWORD']=data['ACCOUNT_'+who.upper()+'_PASSWORD'];run([r/'evidence-web','account'],env=account,cwd=root)
  print('Initialized own database and invited accounts. Passwords are only in',cfg);raise SystemExit(0)
-if not mark.exists() or json.loads(mark.read_text())!={'issue':106,'runtime':str(r)}:raise SystemExit('not an owned web106 runtime')
+if not mark.exists() or json.loads(mark.read_text())!={'issue':a.issue,'runtime':str(r)}:raise SystemExit('not an owned web106 runtime')
 data=json.loads(cfg.read_text());env=os.environ.copy();env.update(data);env['WEB_DIR']=str(root/'web/dist');pidfile=r/'app.pid'
 def stop_app():
  if not pidfile.exists():return

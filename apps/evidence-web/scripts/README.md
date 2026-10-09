@@ -6,3 +6,11 @@
 - browser-test.mjs: actual React controls, citations, inert HTML text, download, two-account view and optional persisted-bundle reopen. Uses installed Chrome (CHROME_PATH override). No Provider calls.
 
 See [app README](../README.md) for exact runnable commands. Evidence/screenshots and generated input copies stay in the authorized private runtime, not source control.
+
+#107 additions:
+- local-dev.py `--issue 107` creates a separately marked runtime; use distinct ports8107/54107. Existing default106 behavior remains.
+- worker-control.py configures a pinned image/Pan entry, starts the single worker and stops only its receipt-bound PID. Stop Worker before app/database; task cleanup confirmation is separate from process exit.
+- check107.py: real API/Pan/Docker positives, tool failure→success, model error, second Worker rejection, forced termination and persistent restart.
+- browser107.mjs / run-browser107.py: actual page submission, source/download and a different B-owned synthetic report. Inputs/credentials are local environment only.
+
+All tests preserve records. They are offline/Faux and create only owned local tasks/containers. Keep old failed output directories when repeating; choose a new EVIDENCE_DIR. No benchmark/Provider calls.

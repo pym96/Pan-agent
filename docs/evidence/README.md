@@ -120,3 +120,5 @@ Raw artifacts remain at their stable source, Git, Trace, Test, evaluator, or ext
 - [#58 Criteria2.1 offline runner adaptation](demo-video-58.md) / [configuration](../demo/wo58/runner-config.md): independent signed demo paths and inherited cumulative accounting;121 offline tests passed. Stage A originals retained; candidate awaits independent Regulator, no production preparation or live execution.
 
 - [#106 Criteria1.0 private evidence Web candidate](web106/README.md): invited-account imports,89-row classification and segment7 provenance, real Go/PostgreSQL/browser persistence checks. Builder delivery pending independent Regulator; no new benchmark execution or resume fact.
+
+- [web107](web107/README.md): Criteria1.0 Builder evidence for offline Pan/Docker single-question analysis; no live model or new benchmark result.

@@ -11,3 +11,15 @@ Atomic database storage was chosen over filesystem blobs for this16MiB first sli
 Boundary checks: cookie sessions plus exact Origin on mutations; per-account queries on every evidence endpoint; strict upload filenames/hash/schema validation before writes; text-only rendering, CSP and download attachment headers. Normal invalid imports return file/field-specific errors; infrastructure/login errors do not echo credentials. Tests cover actual HTTP/DB/browser behavior. Public deployment, comprehensive identity operations, rate limiting, Redis, executor access, performance claims and new benchmark results remain out of scope.
 
 [Evidence](../../evidence/web106/README.md) · [source navigation](SOURCE_OF_TRUTH.md).
+
+## #107 single-question execution
+
+The Product candidate adds an independently deployed Go Worker, holding a PostgreSQL session advisory lock and heartbeat. HTTP creates owned queued tasks; one Worker claims one task, copies only that bundle to an exclusive task directory and starts a thin Node public-Pan consumer. GeneralAgentSession/NativeKernel own the actual model/tool loop, canonical observations and sealed Run Archive. Go persists structured observations, terminal results and validated artifacts; it does not parse a TUI or Provider reasoning.
+
+The offline composition injects FauxModelAdapter: scripted Python code calculates the immutable report inside Docker, then Faux consumes the actual ToolResult to form the answer. It is deterministic integration evidence, not a language-understanding evaluation. Changing account B's fixture changes computed results. A future separately authorized ModelAdapter can use the consumer seam. No live provider is configured in this slice.
+
+Docker is unprivileged, network-none, read-only root, user65534, cap-drop ALL, no-new-privileges, bounded processes/memory/CPU. Only task input(read-only) and task output are mounted. Node's environment is whitelisted; it receives neither DB nor Provider credentials. Output admission accepts only bounded regular, non-symlink, single-link analysis.json/details.csv; HTTP downloads read account-owned database bytes. Trusted local operators/DB admins remain outside this isolation claim.
+
+Completed artifacts/results/events survive app/database restarts. Heartbeat loss marks running work interrupted; restarting reconciles only owned Node/container identities before admission, never replays interrupted work. Unknown cleanup blocks admission. This conservative policy avoids claiming exactly-once or using a sealed archive as a checkpoint. No distributed lease takeover, user cancellation or conversations are implemented here.
+
+[#107 evidence](../../evidence/web107/README.md) · [executor](../../../apps/evidence-web/executor/README.md).
