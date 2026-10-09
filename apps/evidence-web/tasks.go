@@ -81,7 +81,10 @@ func (a *app) task(w http.ResponseWriter, r *http.Request) {
 	var result json.RawMessage
 	var reason *string
 	var cleanup bool
-	e := a.db.QueryRow(r.Context(), "SELECT question,state,bundle_id,result,reason,cleanup_confirmed FROM ew_tasks WHERE id=$1 AND account_id=$2", r.PathValue("id"), owner).Scan(&q, &state, &bid, &result, &reason, &cleanup)
+	var contextText, contextHash, conversationID *string
+	var sequence *int64
+	var startedAt, finishedAt *time.Time
+	e := a.db.QueryRow(r.Context(), "SELECT question,state,bundle_id,result,reason,cleanup_confirmed,context_text,context_sha256,conversation_id,message_sequence,started_at,finished_at FROM ew_tasks WHERE id=$1 AND account_id=$2", r.PathValue("id"), owner).Scan(&q, &state, &bid, &result, &reason, &cleanup, &contextText, &contextHash, &conversationID, &sequence, &startedAt, &finishedAt)
 	if e != nil {
 		fail(w, 404, "任务不存在")
 		return
@@ -102,7 +105,7 @@ func (a *app) task(w http.ResponseWriter, r *http.Request) {
 		events = append(events, b)
 	}
 	rows.Close()
-	send(w, 200, map[string]any{"id": r.PathValue("id"), "question": q, "state": state, "bundleId": bid, "result": result, "reason": reason, "cleanupConfirmed": cleanup, "events": events, "mode": "offline-faux", "notice": "确定性 Faux 经真实 Native Pan/Docker；不验证自然语言理解或真实模型质量"})
+	send(w, 200, map[string]any{"id": r.PathValue("id"), "question": q, "state": state, "bundleId": bid, "result": result, "reason": reason, "cleanupConfirmed": cleanup, "events": events, "mode": "offline-faux", "startedAt": startedAt, "finishedAt": finishedAt, "contextText": contextText, "contextSHA256": contextHash, "conversationId": conversationID, "sequence": sequence, "notice": "确定性 Faux 经真实 Native Pan/Docker；不验证自然语言理解或真实模型质量"})
 }
 func (a *app) taskFile(w http.ResponseWriter, r *http.Request) {
 	owner := a.owner(w, r)

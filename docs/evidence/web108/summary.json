@@ -1,0 +1,59 @@
+{
+  "criteria": "1.0",
+  "baseline": "f1df4b8e2de3de7850fa99db951943384c4ebbea",
+  "independentVerdict": "pending",
+  "providerSends": 0,
+  "benchmarkCalls": 0,
+  "scoringCalls": 0,
+  "codingAgentTokens": null,
+  "checks": {
+    "conversation": {
+      "passed": true,
+      "checklistEntries": 37,
+      "evidence": "first/result.json"
+    },
+    "browser": {
+      "passed": true,
+      "checklistEntries": 7,
+      "evidence": "browser-final/browser108.json"
+    },
+    "edgeCases": {
+      "passed": true,
+      "checklistEntries": 4,
+      "evidence": "edges/result.json"
+    },
+    "regression107": {
+      "passed": true,
+      "checklistEntries": 31,
+      "evidence": "regression107/result.json"
+    },
+    "regression106": {
+      "passed": true,
+      "checklistEntries": 36,
+      "evidence": "regression106/integration.json"
+    }
+  },
+  "migration": "passed idempotent old-schema preservation",
+  "goRace": "passed",
+  "goVet": "passed",
+  "dockerCanary": "passed",
+  "timestampNonoverlap": "passed for10 retained conversations",
+  "image": {
+    "id": "sha256:8129910271f9764b5c05038d351ad7b9f9d94b85351355b69c5526eadd111775",
+    "repoDigests": [
+      "python@sha256:0dd364ba7e10242f07755449e3a3d0e35f9efd987952737b90def6709ab0c5ce"
+    ]
+  },
+  "resources": {
+    "utc": "2026-10-09T07:36:38.116Z",
+    "free": 34361139200,
+    "owned": 7944798208,
+    "docker": 88965808128,
+    "baselineDocker": 48503971840,
+    "cumulativeBytes": 48406634496,
+    "limitBytes": 57982058496,
+    "minimumFreeBytes": 21474836480
+  },
+  "rawEvidenceRoot": "/Users/panyiming/.local/state/pan-agent/web108/evidence",
+  "services": "owned app/Worker/PostgreSQL stopped; web108 containers absent; data retained"
+}

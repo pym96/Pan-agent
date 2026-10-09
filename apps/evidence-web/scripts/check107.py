@@ -55,7 +55,7 @@ try:
   stop(worker);worker=None
  worker=start('worker','hold');_,x=jreq(a,f'/api/bundles/{bid}/tasks',{'question':'controlled interruption'});interrupted=x['id']
  for _ in range(480):
-  if subprocess.check_output(['docker','ps','-q','--filter','name=^/web107-'+interrupted+'$'],env=env).strip():break
+  if subprocess.check_output(['docker','ps','-q','--filter','name=^/'+env.get('WEB_ISSUE','web107')+'-'+interrupted+'$'],env=env).strip():break
   time.sleep(.5)
  else:raise AssertionError('hold container never started')
  worker.kill();worker.wait();worker=None;time.sleep(11);lost=jreq(a,'/api/tasks/'+interrupted)[1];check(lost['state']=='interrupted' and not lost['cleanupConfirmed'],'worker loss interrupted with unconfirmed stop')
@@ -64,7 +64,7 @@ try:
   lost=jreq(a,'/api/tasks/'+interrupted)[1]
   if lost['cleanupConfirmed']:break
   time.sleep(.5)
- check(lost['state']=='interrupted' and lost['cleanupConfirmed'],'restart reconciles without replay');check(not subprocess.check_output(['docker','ps','-aq','--filter','name=^/web107-'+interrupted+'$'],env=env).strip(),'interrupted container absent');(OUT/'interrupted.json').write_text(json.dumps(lost,indent=2))
+ check(lost['state']=='interrupted' and lost['cleanupConfirmed'],'restart reconciles without replay');check(not subprocess.check_output(['docker','ps','-aq','--filter','name=^/'+env.get('WEB_ISSUE','web107')+'-'+interrupted+'$'],env=env).strip(),'interrupted container absent');(OUT/'interrupted.json').write_text(json.dumps(lost,indent=2))
  stop(worker);worker=None;stop(app);app=None;pg=os.environ.get('PG_BIN','/opt/homebrew/opt/postgresql@14/bin');subprocess.run([pg+'/pg_ctl','-D',str(R/'pgdata'),'-m','fast','stop'],check=True,stdout=subprocess.DEVNULL);subprocess.run([pg+'/pg_ctl','-D',str(R/'pgdata'),'-l',str(R/'postgres.log'),'start'],check=True,stdout=subprocess.DEVNULL)
  app=start('app');time.sleep(.5);login(a,'a');again=jreq(a,'/api/tasks/'+tid)[1];check(again['result']==t['result'] and again['state']=='completed','app/DB restart retains result');check(req(a,f'/api/tasks/{tid}/files/details.csv')[1]==csv_bytes,'restart retains exact CSV');check(jreq(a,'/api/tasks/'+interrupted)[1]['state']=='interrupted','no interrupted replay')
  (OUT/'result.json').write_text(json.dumps({'passed':True,'checks':checks,'bundleId':bid,'taskId':tid,'interruptedTaskId':interrupted,'providerCalls':0},indent=2))

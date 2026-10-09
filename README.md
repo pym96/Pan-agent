@@ -236,3 +236,5 @@ Current candidate #44: [public text streaming, English compact UI and installed 
 [#106 local private report import and inspection](apps/evidence-web/README.md): Go API, PostgreSQL and React; separate from Pan execution. [Design](docs/design/pan-web/README.md) and [candidate evidence](docs/evidence/web106/README.md). No model calls or new benchmark results.
 
 - [#107 single-question Web analysis candidate](docs/evidence/web107/README.md): real offline Pan/Docker computation, persisted tasks and artifacts; independent review pending.
+
+- [#108 ordered evidence conversations](docs/evidence/web108/README.md): persistent follow-ups, idempotent submission and public execution context; Builder candidate, independent review pending.

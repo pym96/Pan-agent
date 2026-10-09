@@ -25,7 +25,7 @@ import (
 const workerLock int64 = 107010001
 
 func nodeEnvironment() []string {
-	keys := []string{"PATH", "DOCKER_HOST", "DOCKER_CONFIG", "PAN_ENTRY", "PAN_IMAGE", "WEB107_TASK_ROOT", "WEB107_SCENARIO", "ANALYSIS_CPUS", "ANALYSIS_MEMORY_GIB"}
+	keys := []string{"PATH", "DOCKER_HOST", "DOCKER_CONFIG", "PAN_ENTRY", "PAN_IMAGE", "WEB107_TASK_ROOT", "WEB107_SCENARIO", "ANALYSIS_CPUS", "ANALYSIS_MEMORY_GIB", "WEB_ISSUE", "WEB_FAUX_BARRIER"}
 	out := []string{}
 	for _, k := range keys {
 		if v := os.Getenv(k); v != "" {
@@ -43,7 +43,7 @@ func cleanupTask(ctx context.Context, tid string) error {
 	if !hashPattern.MatchString(tid) {
 		return errors.New("invalid task identity")
 	}
-	name := "web107-" + tid
+	name := runtimeIssue() + "-" + tid
 	b, e := docker(ctx, "ps", "-aq", "--filter", "name=^/"+name+"$")
 	if e != nil {
 		return errors.New("docker inspection unavailable")
@@ -58,7 +58,7 @@ func cleanupTask(ctx context.Context, tid string) error {
 	var rows []struct {
 		Config struct{ Labels map[string]string }
 	}
-	if json.Unmarshal(raw, &rows) != nil || len(rows) != 1 || rows[0].Config.Labels["pan.issue"] != "web107" || rows[0].Config.Labels["pan.task"] != tid {
+	if json.Unmarshal(raw, &rows) != nil || len(rows) != 1 || rows[0].Config.Labels["pan.issue"] != runtimeIssue() || rows[0].Config.Labels["pan.task"] != tid {
 		return errors.New("container owner mismatch")
 	}
 	if _, e = docker(ctx, "rm", "-f", name); e != nil {
@@ -169,7 +169,7 @@ func work(db *pgxpool.Pool) error {
 	log.Print("web107 single worker started (offline-faux)")
 	for ctx.Err() == nil {
 		var tid, bid, question string
-		e = db.QueryRow(ctx, "UPDATE ew_tasks SET state='running',worker_id=$1 WHERE id=(SELECT id FROM ew_tasks WHERE state='queued' ORDER BY created_at LIMIT 1) RETURNING id,bundle_id,question", wid).Scan(&tid, &bid, &question)
+		tid, bid, question, e = claimTask(ctx, db, wid)
 		if errors.Is(e, pgx.ErrNoRows) {
 			if beat() != nil {
 				return errors.New("worker lease lost")
@@ -278,7 +278,15 @@ func executeTask(ctx context.Context, db *pgxpool.Pool, tid, bid, question, entr
 	if e = db.QueryRow(ctx, "SELECT summary_name FROM ew_bundles WHERE id=$1", bid).Scan(&summary); e != nil {
 		return e
 	}
-	metadata, _ := json.Marshal(map[string]string{"summary": summary})
+	var contextText, contextHash string
+	if e = db.QueryRow(ctx, "SELECT context_text,context_sha256 FROM ew_tasks WHERE id=$1", tid).Scan(&contextText, &contextHash); e != nil {
+		return e
+	}
+	var snapshot publicContext
+	if json.Unmarshal([]byte(contextText), &snapshot) != nil || hash([]byte(contextText)) != contextHash {
+		return errors.New("context identity invalid")
+	}
+	metadata, _ := json.Marshal(map[string]any{"summary": summary, "followup": len(snapshot.Turns) > 0, "priorTurns": snapshot.Turns})
 	if e = os.WriteFile(filepath.Join(dir, "input/task.json"), metadata, 0444); e != nil {
 		return e
 	}
@@ -313,7 +321,7 @@ func executeTask(ctx context.Context, db *pgxpool.Pool, tid, bid, question, entr
 	if _, e = db.Exec(ctx, "UPDATE ew_tasks SET node_pid=$2 WHERE id=$1", tid, cmd.Process.Pid); e != nil {
 		return e
 	}
-	job, _ := json.Marshal(map[string]string{"taskId": tid, "root": dir, "question": question})
+	job, _ := json.Marshal(map[string]string{"taskId": tid, "root": dir, "question": question, "contextText": contextText, "contextSHA256": contextHash})
 	if _, e = io.WriteString(stdin, string(job)+"\n"); e != nil {
 		return e
 	}
@@ -403,4 +411,11 @@ func executeTask(ctx context.Context, db *pgxpool.Pool, tid, bid, question, entr
 		return errors.New("task ownership lost; result not published")
 	}
 	return tx.Commit(ctx)
+}
+
+func runtimeIssue() string {
+	if os.Getenv("WEB_ISSUE") == "web108" {
+		return "web108"
+	}
+	return "web107"
 }

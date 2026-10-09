@@ -294,6 +294,10 @@ func (a *app) handler() http.Handler {
 			send(w, 200, map[string]string{"id": owner})
 		}
 	})
+	mux.HandleFunc("POST /api/conversations", a.createConversation)
+	mux.HandleFunc("GET /api/conversations", a.conversations)
+	mux.HandleFunc("GET /api/conversations/{id}", a.conversation)
+	mux.HandleFunc("POST /api/conversations/{id}/messages", a.appendQuestion)
 	mux.HandleFunc("POST /api/bundles/{id}/tasks", a.submitTask)
 	mux.HandleFunc("GET /api/bundles/{id}/tasks", a.taskList)
 	mux.HandleFunc("GET /api/tasks/{id}", a.task)

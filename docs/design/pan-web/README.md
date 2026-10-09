@@ -23,3 +23,11 @@ Docker is unprivileged, network-none, read-only root, user65534, cap-drop ALL, n
 Completed artifacts/results/events survive app/database restarts. Heartbeat loss marks running work interrupted; restarting reconciles only owned Node/container identities before admission, never replays interrupted work. Unknown cleanup blocks admission. This conservative policy avoids claiming exactly-once or using a sealed archive as a checkpoint. No distributed lease takeover, user cancellation or conversations are implemented here.
 
 [#107 evidence](../../evidence/web107/README.md) · [executor](../../../apps/evidence-web/executor/README.md).
+
+## #108 conversation ordering and context
+
+Conversation owns one immutable bundle and server-side monotonic next_sequence. A row lock covers duplicate detection, sequence assignment and task insertion. Unique(account,conversation,requestID) plus unique(conversation,sequence) are database invariants, independent of timestamps/client clocks. Conflict does not rewrite the original question.
+
+The single Worker blocks descendants of unavailable prerequisites, then claims an eligible task only after all earlier sequence tasks completed with confirmed cleanup. It freezes public context inside the claim transaction, never at enqueue time. Each task still uses a new GeneralAgentSession with public initialMessages: ordered completed user questions/assistant answers and bound source/task identities. SHA256 of exact snapshot text binds the consumed history; the first real adapter exchange is observable. No Provider continuation or archive replay.
+
+A262144byte explicit context bound fails visibly rather than silently dropping older turns. Existing legacy completed tasks remain outside conversations with null context; no synthetic provenance is attributed to history. New API routes recheck ownership; conversation bundle cannot be rebound. Old task/file routes remain guarded. No distributed concurrency or exactly-once claim. [Evidence](../../evidence/web108/README.md).

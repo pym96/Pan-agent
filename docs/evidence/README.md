@@ -122,3 +122,5 @@ Raw artifacts remain at their stable source, Git, Trace, Test, evaluator, or ext
 - [#106 Criteria1.0 private evidence Web candidate](web106/README.md): invited-account imports,89-row classification and segment7 provenance, real Go/PostgreSQL/browser persistence checks. Builder delivery pending independent Regulator; no new benchmark execution or resume fact.
 
 - [web107](web107/README.md): Criteria1.0 Builder evidence for offline Pan/Docker single-question analysis; no live model or new benchmark result.
+
+- [web108](web108/README.md): Criteria1.0 ordered conversation Builder evidence, offline/Faux through Native Pan/Docker.

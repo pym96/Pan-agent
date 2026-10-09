@@ -14,3 +14,7 @@ See [app README](../README.md) for exact runnable commands. Evidence/screenshots
 - browser107.mjs / run-browser107.py: actual page submission, source/download and a different B-owned synthetic report. Inputs/credentials are local environment only.
 
 All tests preserve records. They are offline/Faux and create only owned local tasks/containers. Keep old failed output directories when repeating; choose a new EVIDENCE_DIR. No benchmark/Provider calls.
+
+#108: local-dev.py --issue108 uses distinct runtime/ports; worker-control.py recognizes the issue marker. check108.py exercises concurrent idempotency, signal-controlled append, actual Pan context, modified B input, failure/interruption blocking, cross-account access and restart. browser108.mjs/run-browser108.py test page append/history/source/CSV; check-migration108.py verifies real idempotent migration of old rows. Fresh EVIDENCE_DIR per attempt; never overwrite old failures.
+
+check108-edges.py reuses check108 helper definitions and injects explicitly synthetic missing/oversize completed answers into its owned test database. Success means blocked before execution, not model success. Never use against user data.

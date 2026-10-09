@@ -13,3 +13,7 @@ This is candidate documentation, not independent acceptance or a verified-projec
 - Baseline: `6a0c0ec161af8f03489337aed70983e3b04d87f4`; branch `workorder/107-candidate`.
 - [Execution design](README.md), [application](../../../apps/evidence-web/README.md), [evidence](../../evidence/web107/README.md).
 - Independent different-model-family review of C-WEB107-02 remains pending; Builder checks are not acceptance.
+
+## Current #108 candidate
+
+[Criteria1.0/activation](https://github.com/pym96/Pan-agent/issues/108#issuecomment-6076378783), baseline `f1df4b8e2de3de7850fa99db951943384c4ebbea`, branch workorder/108-candidate. [App](../../../apps/evidence-web/README.md), [evidence](../../evidence/web108/README.md). Independent high-risk review of the added conversation boundary pending; #107 accepted status is not a verdict for these changes.
