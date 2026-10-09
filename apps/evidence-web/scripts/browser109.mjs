@@ -1,0 +1,22 @@
+import {chromium} from '../web/node_modules/playwright/index.mjs';
+import {readFile,writeFile} from 'node:fs/promises';
+import {join} from 'node:path';
+import assert from 'node:assert/strict';
+const origin=process.env.APP_ORIGIN,out=process.env.EVIDENCE_DIR,prior=JSON.parse(await readFile(process.env.PREVIOUS_RESULT));
+const browser=await chromium.launch({executablePath:process.env.CHROME_PATH||'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',headless:true});
+const ctx=await browser.newContext({viewport:{width:1440,height:1100}}),page=await ctx.newPage();let dialogs=0;page.on('dialog',async d=>{dialogs++;await d.dismiss()});
+async function submit(){const response=page.waitForResponse(r=>r.request().method()==='POST'&&r.url().endsWith('/messages'));await page.getByRole('button',{name:'提交离线分析',exact:true}).click();return (await (await response).json()).id}
+async function held(id){
+ const deadline=Date.now()+30000;
+ while(Date.now()<deadline){const t=await (await page.request.get(origin+'/api/tasks/'+id)).json();if(t.state==='running'&&t.events.some(e=>e.type==='fixture.waiting'))return;await page.waitForTimeout(50)}
+ throw Error('controlled task barrier was not observed');
+}
+try{
+ await page.goto(origin);await page.getByLabel('邮箱').fill('a@web106.test');await page.getByLabel('密码',{exact:true}).fill(process.env.ACCOUNT_A_PASSWORD);await page.getByRole('button',{name:'登录',exact:true}).click();await page.locator(`[data-bundle-id="${prior.bundleId}"]`).click();
+ const first=await submit();await held(first);await page.getByLabel('分析问题',{exact:true}).fill('old queued suffix');const suffix=await submit();await page.locator(`[data-task-id="${first}"]`).click();await page.waitForFunction(()=>document.querySelector('[data-testid=task-state]')?.textContent==='running');
+ assert.match(await page.locator('.analysis').innerText(),/撤销其已有未执行追问/);await page.getByLabel('分析问题',{exact:true}).fill('替换统计 <script>window.__pwned=true</script>');const resp=page.waitForResponse(r=>r.url().endsWith('/replace'));await page.getByRole('button',{name:'替换所选任务并撤销旧追问',exact:true}).click();const value=await (await resp).json();assert.equal(value.decision,'cancelling');const replacement=value.replacementId;
+ await held(replacement);const old=await page.evaluate(async id=>(await fetch('/api/tasks/'+id)).json(),first);assert.equal(old.state,'cancelled');assert(old.cleanupConfirmed);assert.equal((await page.evaluate(async id=>(await fetch('/api/tasks/'+id)).json(),suffix)).state,'superseded');await page.screenshot({path:out+'/cancelled-replacement-waiting.png',fullPage:true});await writeFile(join(process.env.WEB107_TASK_ROOT,replacement,'release'),'browser explicit release\n');await page.locator(`[data-task-id="${replacement}"]`).click();await page.waitForFunction(()=>document.querySelector('[data-testid=task-state]')?.textContent==='completed',null,{timeout:300000});assert.match(await page.getByTestId('analysis-answer').innerText(),/89.*23/);assert.equal(await page.evaluate(()=>window.__pwned),undefined);assert.equal(dialogs,0);
+ const download=page.waitForEvent('download');await page.getByRole('link',{name:'下载 details.csv',exact:true}).click();await (await download).saveAs(out+'/replacement.csv');assert.equal((await readFile(out+'/replacement.csv','utf8')).trim().split('\n').length,90);await page.getByRole('button',{name:'来源 /classifications',exact:true}).click();await page.getByTestId('source-value').waitFor();await page.getByRole('button',{name:'关闭来源'}).click();await page.screenshot({path:out+'/replacement-complete.png',fullPage:true});
+ await page.getByRole('button',{name:'新建会话',exact:true}).click();const cancelled=await submit();await held(cancelled);await page.waitForFunction(()=>document.querySelector('[data-testid=task-state]')?.textContent==='running');await page.getByRole('button',{name:'取消所选任务',exact:true}).click();await page.waitForFunction(()=>document.querySelector('[data-testid=task-state]')?.textContent==='cancelled',null,{timeout:30000});await page.screenshot({path:out+'/cancelled.png',fullPage:true});
+ await writeFile(out+'/browser109.json',JSON.stringify({passed:true,first,suffix,replacement,cancelled,checks:['visible replacement impact','durable cancelling response','old suffix superseded','confirmed stop before replacement','actual replacement answer89/23 CSV','source click','inert text','separate cancel action'],providerSends:0},null,2));
+}finally{await browser.close()}

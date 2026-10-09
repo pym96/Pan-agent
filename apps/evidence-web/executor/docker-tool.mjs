@@ -2,7 +2,7 @@ import {resourceGate} from './resources.mjs';
 import {spawn} from 'node:child_process';
 import {lstat,readFile,realpath} from 'node:fs/promises';
 import {join,resolve} from 'node:path';
-export const runtimeIssue=()=>process.env.WEB_ISSUE==='web108'?'web108':'web107';
+export const runtimeIssue=()=>['web108','web109'].includes(process.env.WEB_ISSUE)?process.env.WEB_ISSUE:'web107';
 export const MAX_OUTPUT=2*1024*1024;
 export function command(binary,args,{input='',signal,timeout=180000,limit=MAX_OUTPUT}={}){
  return new Promise((done,reject)=>{const child=spawn(binary,args,{env:process.env,stdio:['pipe','pipe','pipe']});let out='',err='',size=0,overflow=false;const timer=setTimeout(()=>child.kill('SIGKILL'),timeout);const cancel=()=>child.kill('SIGKILL');signal?.addEventListener('abort',cancel,{once:true});

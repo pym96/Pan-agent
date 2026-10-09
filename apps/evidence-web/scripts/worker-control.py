@@ -3,7 +3,7 @@
 import argparse,json,os,pathlib,subprocess,signal,time
 p=argparse.ArgumentParser();p.add_argument('command',choices=['configure','start','stop']);p.add_argument('--runtime',required=True);p.add_argument('--pan-entry');p.add_argument('--image');a=p.parse_args()
 r=pathlib.Path(a.runtime).resolve();root=pathlib.Path(__file__).resolve().parents[1]
-issue=108 if (r/'web108-owner.json').exists() else 107
+issue=109 if (r/'web109-owner.json').exists() else 108 if (r/'web108-owner.json').exists() else 107
 if json.loads((r/f'web{issue}-owner.json').read_text())!={'issue':issue,'runtime':str(r)}:raise SystemExit('not an owned runtime')
 config=r/'worker.json';pidfile=r/'worker.pid'
 if a.command=='configure':

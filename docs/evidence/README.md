@@ -124,3 +124,5 @@ Raw artifacts remain at their stable source, Git, Trace, Test, evaluator, or ext
 - [web107](web107/README.md): Criteria1.0 Builder evidence for offline Pan/Docker single-question analysis; no live model or new benchmark result.
 
 - [web108](web108/README.md): Criteria1.0 ordered conversation Builder evidence, offline/Faux through Native Pan/Docker.
+
+- [web109](web109/README.md): Criteria1.0 Builder evidence for offline cancellation/replacement through real Pan/Docker.

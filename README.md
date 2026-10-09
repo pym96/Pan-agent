@@ -238,3 +238,5 @@ Current candidate #44: [public text streaming, English compact UI and installed 
 - [#107 single-question Web analysis candidate](docs/evidence/web107/README.md): real offline Pan/Docker computation, persisted tasks and artifacts; independent review pending.
 
 - [#108 ordered evidence conversations](docs/evidence/web108/README.md): persistent follow-ups, idempotent submission and public execution context; Builder candidate, independent review pending.
+
+- [#109 cancellation/replacement candidate](docs/evidence/web109/README.md): durable intent, confirmed-stop admission and retained history; independent review pending.

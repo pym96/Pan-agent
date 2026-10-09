@@ -25,7 +25,7 @@ import (
 const workerLock int64 = 107010001
 
 func nodeEnvironment() []string {
-	keys := []string{"PATH", "DOCKER_HOST", "DOCKER_CONFIG", "PAN_ENTRY", "PAN_IMAGE", "WEB107_TASK_ROOT", "WEB107_SCENARIO", "ANALYSIS_CPUS", "ANALYSIS_MEMORY_GIB", "WEB_ISSUE", "WEB_FAUX_BARRIER"}
+	keys := []string{"PATH", "DOCKER_HOST", "DOCKER_CONFIG", "PAN_ENTRY", "PAN_IMAGE", "WEB107_TASK_ROOT", "WEB107_SCENARIO", "ANALYSIS_CPUS", "ANALYSIS_MEMORY_GIB", "WEB_ISSUE", "WEB_FAUX_BARRIER", "WEB_RESULT_BARRIER", "WEB_TOOL_BARRIER"}
 	out := []string{}
 	for _, k := range keys {
 		if v := os.Getenv(k); v != "" {
@@ -40,6 +40,11 @@ func docker(ctx context.Context, args ...string) ([]byte, error) {
 	return c.Output()
 }
 func cleanupTask(ctx context.Context, tid string) error {
+	if runtimeIssue() == "web109" {
+		if _, e := os.Stat(filepath.Join(os.Getenv("WEB107_TASK_ROOT"), tid, "stop-unconfirmed")); e == nil {
+			return errors.New("controlled stop confirmation unavailable; admission blocked")
+		}
+	}
 	if !hashPattern.MatchString(tid) {
 		return errors.New("invalid task identity")
 	}
@@ -95,7 +100,7 @@ func stopNode(pid int, entry, root string) error {
 func recoverTasks(db *pgxpool.Pool, entry, root string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
-	rows, e := db.Query(ctx, "SELECT id,COALESCE(node_pid,0) FROM ew_tasks WHERE state='running' OR (state IN ('interrupted','failed') AND NOT cleanup_confirmed)")
+	rows, e := db.Query(ctx, "SELECT id,COALESCE(node_pid,0) FROM ew_tasks WHERE state IN ('running','cancelling') OR (state IN ('interrupted','failed','cancelled') AND NOT cleanup_confirmed)")
 	if e != nil {
 		return e
 	}
@@ -114,18 +119,22 @@ func recoverTasks(db *pgxpool.Pool, entry, root string) error {
 	}
 	rows.Close()
 	for _, p := range all {
-		_, _ = db.Exec(ctx, "UPDATE ew_tasks SET state=CASE WHEN state='running' THEN 'interrupted' ELSE state END,reason=COALESCE(reason,'worker lost; no automatic retry'),finished_at=COALESCE(finished_at,now()) WHERE id=$1", p.id)
+		_, _ = db.Exec(ctx, "UPDATE ew_tasks SET state=CASE WHEN state='running' THEN 'interrupted' ELSE state END,reason=COALESCE(reason,'worker lost; no automatic retry'),finished_at=CASE WHEN state='cancelling' THEN finished_at ELSE COALESCE(finished_at,now()) END WHERE id=$1", p.id)
 		if e = stopNode(p.pid, entry, filepath.Join(root, p.id)); e == nil {
 			e = cleanupTask(ctx, p.id)
 		}
 		if e != nil {
 			return e
 		}
-		if _, e = db.Exec(ctx, "UPDATE ew_tasks SET cleanup_confirmed=true WHERE id=$1", p.id); e != nil {
+		recordStop(ctx, db, p.id)
+		if _, e = db.Exec(ctx, "UPDATE ew_tasks SET cleanup_confirmed=true,stop_confirmed_at=now(),state=CASE WHEN state='cancelling' THEN 'cancelled' ELSE state END,finished_at=COALESCE(finished_at,now()) WHERE id=$1", p.id); e != nil {
 			return e
 		}
 	}
 	return nil
+}
+func recordStop(ctx context.Context, db *pgxpool.Pool, tid string) {
+	_, _ = db.Exec(ctx, `INSERT INTO ew_task_events(task_id,event) SELECT $1,jsonb_build_object('type','control.stop_confirmed','nodeExited',true,'containerAbsent',true,'containerName',$2::text) WHERE EXISTS(SELECT 1 FROM ew_tasks WHERE id=$1 AND cancel_requested_at IS NOT NULL) AND NOT EXISTS(SELECT 1 FROM ew_task_events WHERE task_id=$1 AND event->>'type'='control.stop_confirmed')`, tid, runtimeIssue()+"-"+tid)
 }
 func work(db *pgxpool.Pool) error {
 	root := os.Getenv("WEB107_TASK_ROOT")
@@ -238,6 +247,25 @@ func executeTask(ctx context.Context, db *pgxpool.Pool, tid, bid, question, entr
 		if failure != nil {
 			_, _ = db.Exec(safe, "UPDATE ew_tasks SET state=$2,reason=$3,finished_at=now(),cleanup_confirmed=$4 WHERE id=$1 AND state='running'", tid, st, reason, err == nil)
 		}
+		var current string
+		_ = db.QueryRow(safe, "SELECT state FROM ew_tasks WHERE id=$1", tid).Scan(&current)
+		if current == "cancelling" {
+			if err == nil {
+				recordStop(safe, db, tid)
+				_, e := db.Exec(safe, "UPDATE ew_tasks SET state='cancelled',finished_at=now(),cleanup_confirmed=true,stop_confirmed_at=now(),reason='cancelled; Node exited and owned container absent' WHERE id=$1 AND state='cancelling'", tid)
+				if e == nil {
+					failure = nil
+				} else {
+					failure = e
+				}
+			}
+			if err != nil {
+				_, _ = db.Exec(safe, "UPDATE ew_tasks SET reason=$2 WHERE id=$1", tid, err.Error())
+			}
+		}
+		if current == "cancelled" && err == nil {
+			recordStop(safe, db, tid)
+		}
 		if err != nil {
 			failure = err
 		} else {
@@ -325,7 +353,42 @@ func executeTask(ctx context.Context, db *pgxpool.Pool, tid, bid, question, entr
 	if _, e = io.WriteString(stdin, string(job)+"\n"); e != nil {
 		return e
 	}
-	scanner := bufio.NewScanner(stdout)
+	monitorCtx, monitorCancel := context.WithCancel(context.Background())
+	monitorDone := make(chan struct{})
+	defer func() { monitorCancel(); <-monitorDone }()
+	go func() {
+		defer close(monitorDone)
+		ticker := time.NewTicker(100 * time.Millisecond)
+		defer ticker.Stop()
+		sent := false
+		var deadline time.Time
+		for {
+			select {
+			case <-monitorCtx.Done():
+				return
+			case <-ticker.C:
+				var state string
+				queryCtx, cancel := context.WithTimeout(monitorCtx, time.Second)
+				err := db.QueryRow(queryCtx, "SELECT state FROM ew_tasks WHERE id=$1", tid).Scan(&state)
+				cancel()
+				if err == nil && state == "cancelling" && !sent {
+					_, _ = io.WriteString(stdin, "{\"action\":\"cancel\"}\n")
+					sent = true
+					deadline = time.Now().Add(5 * time.Second)
+				}
+				if sent && time.Now().After(deadline) {
+					_ = syscall.Kill(-cmd.Process.Pid, syscall.SIGKILL)
+					return
+				}
+			}
+		}
+	}()
+	rawLog, e := os.Create(filepath.Join(dir, "executor-stdout.jsonl"))
+	if e != nil {
+		return e
+	}
+	defer rawLog.Close()
+	scanner := bufio.NewScanner(io.TeeReader(stdout, rawLog))
 	scanner.Buffer(make([]byte, 65536), 8<<20)
 	var final json.RawMessage
 	var reply executionReply
@@ -357,11 +420,16 @@ func executeTask(ctx context.Context, db *pgxpool.Pool, tid, bid, question, entr
 	if e = scanner.Err(); e != nil {
 		return e
 	}
+	monitorCancel()
+	<-monitorDone
 	if e = cmd.Wait(); e != nil {
 		return errors.New("executor exit nonzero")
 	}
 	if final == nil || !reply.Cleanup {
 		return errors.New("executor result unavailable")
+	}
+	if _, e = db.Exec(ctx, "UPDATE ew_tasks SET attempt_result=$2 WHERE id=$1 AND state='cancelling'", tid, []byte(final)); e != nil {
+		return e
 	}
 	cleanCtx, cleanCancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cleanCancel()
@@ -380,6 +448,13 @@ func executeTask(ctx context.Context, db *pgxpool.Pool, tid, bid, question, entr
 		return e
 	}
 	defer tx.Rollback(ctx)
+	var current string
+	if e = tx.QueryRow(ctx, "SELECT state FROM ew_tasks WHERE id=$1 FOR UPDATE", tid).Scan(&current); e != nil {
+		return e
+	}
+	if current != "running" && current != "cancelling" {
+		return errors.New("task ownership lost")
+	}
 	if state == "completed" {
 		if len(reply.Artifacts) != 2 {
 			return errors.New("artifact set invalid")
@@ -406,6 +481,13 @@ func executeTask(ctx context.Context, db *pgxpool.Pool, tid, bid, question, entr
 	}
 	meta["artifacts"] = art
 	clean, _ := json.Marshal(meta)
+	if current == "cancelling" {
+		_, e = tx.Exec(ctx, "UPDATE ew_tasks SET attempt_result=$2,state='cancelled',finished_at=now(),cleanup_confirmed=true,stop_confirmed_at=now(),reason='cancel intent won; late result retained as attempt only' WHERE id=$1", tid, clean)
+		if e != nil {
+			return e
+		}
+		return tx.Commit(ctx)
+	}
 	tag, e := tx.Exec(ctx, "UPDATE ew_tasks SET state=$2,result=$3,finished_at=now(),cleanup_confirmed=true WHERE id=$1 AND state='running'", tid, state, clean)
 	if e != nil || tag.RowsAffected() != 1 {
 		return errors.New("task ownership lost; result not published")
@@ -414,6 +496,9 @@ func executeTask(ctx context.Context, db *pgxpool.Pool, tid, bid, question, entr
 }
 
 func runtimeIssue() string {
+	if os.Getenv("WEB_ISSUE") == "web109" {
+		return "web109"
+	}
 	if os.Getenv("WEB_ISSUE") == "web108" {
 		return "web108"
 	}

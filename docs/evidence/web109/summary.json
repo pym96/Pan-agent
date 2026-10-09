@@ -1,0 +1,68 @@
+{
+  "criteria": "1.0",
+  "baseline": "db822cc0f353f998da7221ef5d6ed6a68aa5019a",
+  "independentVerdict": "pending",
+  "providerSends": 0,
+  "benchmarkCalls": 0,
+  "scoringCalls": 0,
+  "codingAgentTokens": null,
+  "checks": {
+    "controls": {
+      "passed": true,
+      "checklistEntries": 38,
+      "evidence": "final/result.json"
+    },
+    "browser": {
+      "passed": true,
+      "checklistEntries": 8,
+      "evidence": "browser-final/browser109.json"
+    },
+    "retention": {
+      "passed": true,
+      "checklistEntries": 6,
+      "evidence": "retention/result.json"
+    },
+    "regression108": {
+      "passed": true,
+      "checklistEntries": 37,
+      "evidence": "regression108/result.json"
+    },
+    "regression107": {
+      "passed": true,
+      "checklistEntries": 31,
+      "evidence": "regression107/result.json"
+    },
+    "regression106": {
+      "passed": true,
+      "checklistEntries": 36,
+      "evidence": "regression106/integration.json"
+    }
+  },
+  "migration": "passed legacy/cancellation preservation and restart ledger",
+  "goRace": "passed",
+  "goVet": "passed",
+  "dockerCanary": "passed",
+  "finalReadback": {
+    "conversations": 29,
+    "replacementStopBeforeStart": 10,
+    "unfinishedConversationTasks": 0
+  },
+  "image": {
+    "id": "sha256:8129910271f9764b5c05038d351ad7b9f9d94b85351355b69c5526eadd111775",
+    "repoDigests": [
+      "python@sha256:0dd364ba7e10242f07755449e3a3d0e35f9efd987952737b90def6709ab0c5ce"
+    ]
+  },
+  "resources": {
+    "utc": "2026-10-09T10:20:10.856Z",
+    "free": 32777117696,
+    "owned": 8289787904,
+    "docker": 88965804032,
+    "baselineDocker": 48503971840,
+    "cumulativeBytes": 48751620096,
+    "limitBytes": 57982058496,
+    "minimumFreeBytes": 21474836480
+  },
+  "rawEvidenceRoot": "/Users/panyiming/.local/state/pan-agent/web109/evidence",
+  "services": "owned app/Worker/PostgreSQL stopped; analysis/sentinel containers absent; data retained"
+}

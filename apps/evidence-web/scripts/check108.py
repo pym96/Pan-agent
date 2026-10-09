@@ -2,8 +2,8 @@
 """Actual API/PostgreSQL/Native Pan/Docker contract probes; only an owned web108 runtime."""
 import pathlib,os,json,subprocess,urllib.request,urllib.error,http.cookiejar,time,uuid,hashlib,csv,io,concurrent.futures
 ROOT=pathlib.Path(__file__).resolve().parents[1];R=pathlib.Path(os.environ['WEB108_RUNTIME']);OUT=pathlib.Path(os.environ['EVIDENCE_DIR']);OUT.mkdir(parents=True,exist_ok=True)
-assert json.loads((R/'web108-owner.json').read_text())=={'issue':108,'runtime':str(R)}
-env=os.environ.copy();env.update(json.loads((R/'config.json').read_text()));env.update({'WEB_DIR':str(ROOT/'web/dist'),'WEB107_TASK_ROOT':str(R/'tasks'),'WEB107_EXECUTOR':str(ROOT/'executor/main.mjs'),'PAN_ENTRY':str(R.parent/'pan-source/dist/index.js'),'DOCKER_HOST':'unix://'+str(pathlib.Path.home()/'.docker/run/docker.sock'),'DOCKER_CONFIG':str(R/'empty-docker'),'PAN_IMAGE':os.environ['PAN_IMAGE'],'WEB_ISSUE':'web108'});pathlib.Path(env['DOCKER_CONFIG']).mkdir(exist_ok=True)
+issue=int(os.environ.get('WEB_TEST_ISSUE','108'));assert json.loads((R/f'web{issue}-owner.json').read_text())=={'issue':issue,'runtime':str(R)}
+env=os.environ.copy();env.update(json.loads((R/'config.json').read_text()));env.update({'WEB_DIR':str(ROOT/'web/dist'),'WEB107_TASK_ROOT':str(R/'tasks'),'WEB107_EXECUTOR':str(ROOT/'executor/main.mjs'),'PAN_ENTRY':str(R.parent/'pan-source/dist/index.js'),'DOCKER_HOST':'unix://'+str(pathlib.Path.home()/'.docker/run/docker.sock'),'DOCKER_CONFIG':str(R/'empty-docker'),'PAN_IMAGE':os.environ['PAN_IMAGE'],'WEB_ISSUE':f'web{issue}'});pathlib.Path(env['DOCKER_CONFIG']).mkdir(exist_ok=True)
 origin=env['APP_ORIGIN'];app=None;worker=None;logs=[];checks=[]
 def start(kind,scenario='success',barrier=False):
  f=(OUT/(kind+'-'+uuid.uuid4().hex[:8]+'.log')).open('w');logs.append(f);e=env.copy();e['WEB107_SCENARIO']=scenario;e['WEB_FAUX_BARRIER']='1' if barrier else '0';return subprocess.Popen([str(R/'evidence-web')]+(['worker'] if kind=='worker' else []),cwd=ROOT,env=e,stdout=f,stderr=f)
@@ -20,7 +20,7 @@ def task(tid,c=None):s,t=jreq(c or a,'/api/tasks/'+tid);assert s==200;return t
 def wait(tid,c=None,predicate=None):
  for _ in range(600):
   t=task(tid,c)
-  if predicate(t) if predicate else t['state'] not in ['queued','running']:return t
+  if predicate(t) if predicate else t['state'] not in ['queued','running','cancelling']:return t
   if worker and worker.poll() is not None:raise AssertionError('worker exited: inspect logs')
   time.sleep(.2)
  raise AssertionError('task did not settle')

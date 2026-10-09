@@ -7,3 +7,5 @@ This choice keeps login/upload/statistics/source inspection in one small compone
 #107 adds Analysis.jsx for question submission, persisted status/history, computed answer, source links, CSV and canonical trace/usage. Polling reads the same account-gated APIs as direct clients. Offline/Faux labels remain visible; browser107.mjs checks both accounts and a modified synthetic report.
 
 #108 Analysis.jsx adds conversation selection/creation, append while running, retained request IDs across uncertain submission, ordered task history and exact public context/hash. Prior independent tasks remain selectable. No HTML execution or client-side authorization assumptions.
+
+#109 presents distinct cancel and replace controls. The replacement impact on queued follow-ups is stated before action. Polling includes cancelling; received intent is separate from confirmed stop. Old attempt usage/diagnostics remain labelled as historical, with unknowns not zero-filled. Control IDs survive uncertain request failure and change after acknowledged completion.

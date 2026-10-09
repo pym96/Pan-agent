@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Apply real SQL migrations around legacy rows in a rollback-only owned schema."""
 import pathlib,os,json,subprocess,uuid,urllib.parse
-root=pathlib.Path(__file__).resolve().parents[1];r=pathlib.Path(os.environ['WEB108_RUNTIME']);assert (r/'web108-owner.json').exists();cfg=json.loads((r/'config.json').read_text());env=os.environ.copy();u=urllib.parse.urlsplit(cfg['DATABASE_URL']);env.update({'PGHOST':u.hostname,'PGPORT':str(u.port),'PGUSER':u.username,'PGPASSWORD':u.password,'PGDATABASE':u.path.lstrip('/')})
+root=pathlib.Path(__file__).resolve().parents[1];r=pathlib.Path(os.environ['WEB108_RUNTIME']);assert (r/f"web{os.environ.get('WEB_TEST_ISSUE','108')}-owner.json").exists();cfg=json.loads((r/'config.json').read_text());env=os.environ.copy();u=urllib.parse.urlsplit(cfg['DATABASE_URL']);env.update({'PGHOST':u.hostname,'PGPORT':str(u.port),'PGUSER':u.username,'PGPASSWORD':u.password,'PGDATABASE':u.path.lstrip('/')})
 schema='probe108_'+uuid.uuid4().hex
 sql='BEGIN; CREATE SCHEMA '+schema+'; SET LOCAL search_path TO '+schema+';\n'
 sql+='\n'.join((root/'migrations'/n).read_text() for n in ['001.sql','002.sql'])

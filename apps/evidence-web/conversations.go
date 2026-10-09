@@ -195,15 +195,24 @@ func claimTask(ctx context.Context, db *pgxpool.Pool, wid string) (tid, bid, q s
 		return
 	}
 	defer tx.Rollback(ctx)
+	var unsafe bool
+	if e = tx.QueryRow(ctx, "SELECT EXISTS(SELECT 1 FROM ew_tasks WHERE state='cancelling' OR (started_at IS NOT NULL AND NOT cleanup_confirmed AND state IN ('interrupted','failed','cancelled')))").Scan(&unsafe); e != nil {
+		err = e
+		return
+	}
+	if unsafe {
+		err = pgx.ErrNoRows
+		return
+	}
 	// A missing/failed predecessor never becomes an invented answer. Blocked queues do not monopolize the Worker.
-	_, e = tx.Exec(ctx, `UPDATE ew_tasks t SET state='blocked',reason='prerequisite unavailable: '||(SELECT p.id FROM ew_tasks p WHERE p.conversation_id=t.conversation_id AND p.message_sequence<t.message_sequence AND (p.state IN ('failed','interrupted','blocked') OR (p.state='completed' AND COALESCE(p.result->'result'->>'finalText','')='')) ORDER BY p.message_sequence LIMIT 1),finished_at=now(),cleanup_confirmed=true WHERE t.state='queued' AND EXISTS(SELECT 1 FROM ew_tasks p WHERE p.conversation_id=t.conversation_id AND p.message_sequence<t.message_sequence AND (p.state IN ('failed','interrupted','blocked') OR (p.state='completed' AND COALESCE(p.result->'result'->>'finalText','')='')))`)
+	_, e = tx.Exec(ctx, `UPDATE ew_tasks t SET state='blocked',reason='prerequisite unavailable: '||(SELECT p.id FROM ew_tasks p WHERE p.active_branch AND p.conversation_id=t.conversation_id AND p.message_sequence<t.message_sequence AND (p.state IN ('failed','interrupted','blocked','cancelled') OR (p.state='completed' AND COALESCE(p.result->'result'->>'finalText','')='')) ORDER BY p.message_sequence LIMIT 1),finished_at=now(),cleanup_confirmed=true WHERE t.active_branch AND t.state='queued' AND EXISTS(SELECT 1 FROM ew_tasks p WHERE p.active_branch AND p.conversation_id=t.conversation_id AND p.message_sequence<t.message_sequence AND (p.state IN ('failed','interrupted','blocked','cancelled') OR (p.state='completed' AND COALESCE(p.result->'result'->>'finalText','')='')))`)
 	if e != nil {
 		err = e
 		return
 	}
 	var cid *string
 	var seq *int64
-	e = tx.QueryRow(ctx, `SELECT t.id,t.bundle_id,t.question,t.conversation_id,t.message_sequence FROM ew_tasks t WHERE t.state='queued' AND NOT EXISTS(SELECT 1 FROM ew_tasks p WHERE p.conversation_id=t.conversation_id AND p.message_sequence<t.message_sequence AND (p.state<>'completed' OR NOT p.cleanup_confirmed OR p.result IS NULL)) ORDER BY t.created_at,t.id LIMIT 1 FOR UPDATE OF t`).Scan(&tid, &bid, &q, &cid, &seq)
+	e = tx.QueryRow(ctx, `SELECT t.id,t.bundle_id,t.question,t.conversation_id,t.message_sequence FROM ew_tasks t WHERE t.active_branch AND t.state='queued' AND NOT EXISTS(SELECT 1 FROM ew_tasks p WHERE p.active_branch AND p.conversation_id=t.conversation_id AND p.message_sequence<t.message_sequence AND (p.state<>'completed' OR NOT p.cleanup_confirmed OR p.result IS NULL)) ORDER BY t.created_at,t.id LIMIT 1 FOR UPDATE OF t`).Scan(&tid, &bid, &q, &cid, &seq)
 	if errors.Is(e, pgx.ErrNoRows) {
 		if e = tx.Commit(ctx); e != nil {
 			err = e
@@ -222,7 +231,7 @@ func claimTask(ctx context.Context, db *pgxpool.Pool, wid string) (tid, bid, q s
 		return
 	}
 	if cid != nil {
-		rows, e := tx.Query(ctx, "SELECT id,message_sequence,question,result FROM ew_tasks WHERE conversation_id=$1 AND message_sequence<$2 ORDER BY message_sequence", *cid, *seq)
+		rows, e := tx.Query(ctx, "SELECT id,message_sequence,question,result FROM ew_tasks WHERE active_branch AND conversation_id=$1 AND message_sequence<$2 ORDER BY message_sequence", *cid, *seq)
 		if e != nil {
 			err = e
 			return
