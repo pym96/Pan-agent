@@ -230,3 +230,7 @@ Current candidate #44: [public text streaming, English compact UI and installed 
 [TUI A daily workspace candidate](docs/design/native-daily-workspace.md) covers #47; #46 remains paused.
 
 #47 Criteria-Version 1.2 adds timer-free compatibility framing (Ctrl-G Back, ESC prefix only) and immutable raw-prefix screen evidence. Old 1.1 grids remain historical failed evidence.
+
+## Independent Evidence Web candidate
+
+[#106 local private report import and inspection](apps/evidence-web/README.md): Go API, PostgreSQL and React; separate from Pan execution. [Design](docs/design/pan-web/README.md) and [candidate evidence](docs/evidence/web106/README.md). No model calls or new benchmark results.

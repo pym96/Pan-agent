@@ -1,0 +1,69 @@
+{
+  "issue": 106,
+  "criteria": "1.0",
+  "status": "builder_complete_pending_independent_regulator",
+  "baseSHA": "e8acfdb616f95b7b70c151d2da00b243f353e6e8",
+  "inputSHA256": "f67d6e22a5f229637bb90cccc5a2538f6aaa87225efb1b8a9cf182cac37828ab",
+  "implementation": {
+    "backend": "Go net/http + pgx",
+    "frontend": "React19 + esbuild",
+    "persistence": "PostgreSQL14 tables and bytea in one transaction",
+    "execution": "none"
+  },
+  "observed": {
+    "totalRows": 89,
+    "counts": {
+      "success": 18,
+      "valid_failure": 5,
+      "unscored": 20,
+      "unknown_interrupted": 20,
+      "not_started": 26
+    },
+    "validScored": 23,
+    "segment7Usage": {
+      "known": 1,
+      "unknown": 1,
+      "input": 470,
+      "output": 161
+    },
+    "allRowPointersVerified": 89,
+    "unknownPreserved": true
+  },
+  "verification": {
+    "integrationChecks": 36,
+    "integrationPassed": true,
+    "browserChecks": 8,
+    "browserRestartChecks": 4,
+    "goUnitTests": 2,
+    "goRace": "passed",
+    "goVet": "passed",
+    "frontendBuild": "passed",
+    "realDatabaseRestart": true,
+    "checksAreChecklistNotIndependentExperiments": true
+  },
+  "resources": {
+    "utc": "2026-10-09T05:18:19.365Z",
+    "free": 35935031296,
+    "owned": 7366496256,
+    "docker": 88799350784,
+    "baselineDocker": 48503971840,
+    "increment": 47661875200
+  },
+  "usage": {
+    "realModelCalls": 0,
+    "benchmarkRuns": 0,
+    "containerStarts": 0,
+    "codingTokens": null,
+    "codingTokensReason": "not exposed by session tools",
+    "developmentCap": "none per Human; host protection retained"
+  },
+  "failureRetained": "initial owned Postgres restarted on default port because command-line settings were not persisted; fixed local cluster config, clean setup and restart passed",
+  "limitations": [
+    "local invited-account service, no public deployment",
+    "fixed89-row report adapter; upload16MiB/32files,preview1MiB",
+    "no model/Pan execution/Redis/recovery/scheduler",
+    "no public signup/reset/rate-limiter/HA claim",
+    "native PostgreSQL verified, no Docker deployment claim"
+  ],
+  "stateAtHandoff": "own app and databases stopped; evidence and persistent data retained"
+}

@@ -1,0 +1,1 @@
+{"name":"pan-evidence-web","private":true,"version":"0.1.0","type":"module","scripts":{"build":"node build.mjs","test:browser":"node ../scripts/browser-test.mjs"},"dependencies":{"react":"19.1.0","react-dom":"19.1.0"},"devDependencies":{"esbuild":"0.25.5","playwright":"1.55.1"}}

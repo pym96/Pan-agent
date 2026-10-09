@@ -118,3 +118,5 @@ Raw artifacts remain at their stable source, Git, Trace, Test, evaluator, or ext
 - [#58 Criteria2.0 Stage A video preparation](demo-video-58.md) / [summary](demo-video-58-summary.json): installed offline replay and PTY/MP4 sample; independent single-task binding blocked by interface isolation/accounting and Docker availability. No new live execution or publication.
 
 - [#58 Criteria2.1 offline runner adaptation](demo-video-58.md) / [configuration](../demo/wo58/runner-config.md): independent signed demo paths and inherited cumulative accounting;121 offline tests passed. Stage A originals retained; candidate awaits independent Regulator, no production preparation or live execution.
+
+- [#106 Criteria1.0 private evidence Web candidate](web106/README.md): invited-account imports,89-row classification and segment7 provenance, real Go/PostgreSQL/browser persistence checks. Builder delivery pending independent Regulator; no new benchmark execution or resume fact.

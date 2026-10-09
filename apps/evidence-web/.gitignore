@@ -1,0 +1,7 @@
+web/node_modules/
+web/dist/
+evidence-web
+.env
+*.log
+
+__pycache__/
