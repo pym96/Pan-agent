@@ -109,7 +109,7 @@ func (a *app) task(w http.ResponseWriter, r *http.Request) {
 		events = append(events, b)
 	}
 	rows.Close()
-	send(w, 200, map[string]any{"id": r.PathValue("id"), "question": q, "state": state, "bundleId": bid, "result": result, "reason": reason, "cleanupConfirmed": cleanup, "events": events, "mode": "offline-faux", "cancelRequestedAt": cancelAt, "stopConfirmedAt": stopAt, "activeBranch": active, "replaces": replaces, "attemptResult": attempt, "startedAt": startedAt, "finishedAt": finishedAt, "contextText": contextText, "contextSHA256": contextHash, "conversationId": conversationID, "sequence": sequence, "notice": "确定性 Faux 经真实 Native Pan/Docker；不验证自然语言理解或真实模型质量"})
+	send(w, 200, map[string]any{"id": r.PathValue("id"), "question": q, "state": state, "bundleId": bid, "result": result, "reason": reason, "cleanupConfirmed": cleanup, "events": events, "recovery": a.checkpointMetadata(r.Context(), r.PathValue("id")), "mode": "offline-faux", "cancelRequestedAt": cancelAt, "stopConfirmedAt": stopAt, "activeBranch": active, "replaces": replaces, "attemptResult": attempt, "startedAt": startedAt, "finishedAt": finishedAt, "contextText": contextText, "contextSHA256": contextHash, "conversationId": conversationID, "sequence": sequence, "notice": "确定性 Faux 经真实 Native Pan/Docker；不验证自然语言理解或真实模型质量"})
 }
 func (a *app) taskFile(w http.ResponseWriter, r *http.Request) {
 	owner := a.owner(w, r)

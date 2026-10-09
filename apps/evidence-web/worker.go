@@ -25,7 +25,7 @@ import (
 const workerLock int64 = 107010001
 
 func nodeEnvironment() []string {
-	keys := []string{"PATH", "DOCKER_HOST", "DOCKER_CONFIG", "PAN_ENTRY", "PAN_IMAGE", "WEB107_TASK_ROOT", "WEB107_SCENARIO", "ANALYSIS_CPUS", "ANALYSIS_MEMORY_GIB", "WEB_ISSUE", "WEB_FAUX_BARRIER", "WEB_RESULT_BARRIER", "WEB_TOOL_BARRIER"}
+	keys := []string{"PATH", "DOCKER_HOST", "DOCKER_CONFIG", "PAN_ENTRY", "PAN_IMAGE", "WEB107_TASK_ROOT", "WEB107_SCENARIO", "ANALYSIS_CPUS", "ANALYSIS_MEMORY_GIB", "WEB_ISSUE", "WEB_FAUX_BARRIER", "WEB_RESULT_BARRIER", "WEB_TOOL_BARRIER", "WEB_CHECKPOINT_MODE", "WEB_CHECKPOINT_FAULT"}
 	out := []string{}
 	for _, k := range keys {
 		if v := os.Getenv(k); v != "" {
@@ -40,7 +40,7 @@ func docker(ctx context.Context, args ...string) ([]byte, error) {
 	return c.Output()
 }
 func cleanupTask(ctx context.Context, tid string) error {
-	if runtimeIssue() == "web109" {
+	if runtimeIssue() == "web109" || runtimeIssue() == "web110" {
 		if _, e := os.Stat(filepath.Join(os.Getenv("WEB107_TASK_ROOT"), tid, "stop-unconfirmed")); e == nil {
 			return errors.New("controlled stop confirmation unavailable; admission blocked")
 		}
@@ -97,21 +97,33 @@ func stopNode(pid int, entry, root string) error {
 	}
 	return errors.New("node stop unconfirmed")
 }
+func sealInterrupted(ctx context.Context, entry, dir string) error {
+	if runtimeIssue() != "web110" {
+		return nil
+	}
+	cmd := exec.CommandContext(ctx, "node", filepath.Join(filepath.Dir(entry), "archive-recover.mjs"), dir)
+	cmd.Env = nodeEnvironment()
+	if e := cmd.Run(); e != nil {
+		return errors.New("archive recovery unconfirmed")
+	}
+	return nil
+}
 func recoverTasks(db *pgxpool.Pool, entry, root string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
-	rows, e := db.Query(ctx, "SELECT id,COALESCE(node_pid,0) FROM ew_tasks WHERE state IN ('running','cancelling') OR (state IN ('interrupted','failed','cancelled') AND NOT cleanup_confirmed)")
+	rows, e := db.Query(ctx, "SELECT id,COALESCE(node_pid,0),COALESCE(execution_id,id) FROM ew_tasks WHERE state IN ('running','cancelling') OR (state IN ('interrupted','failed','cancelled') AND NOT cleanup_confirmed)")
 	if e != nil {
 		return e
 	}
 	type pending struct {
-		id  string
-		pid int
+		id        string
+		pid       int
+		execution string
 	}
 	all := []pending{}
 	for rows.Next() {
 		var p pending
-		if rows.Scan(&p.id, &p.pid) != nil {
+		if rows.Scan(&p.id, &p.pid, &p.execution) != nil {
 			rows.Close()
 			return errors.New("pending scan")
 		}
@@ -120,12 +132,16 @@ func recoverTasks(db *pgxpool.Pool, entry, root string) error {
 	rows.Close()
 	for _, p := range all {
 		_, _ = db.Exec(ctx, "UPDATE ew_tasks SET state=CASE WHEN state='running' THEN 'interrupted' ELSE state END,reason=COALESCE(reason,'worker lost; no automatic retry'),finished_at=CASE WHEN state='cancelling' THEN finished_at ELSE COALESCE(finished_at,now()) END WHERE id=$1", p.id)
-		if e = stopNode(p.pid, entry, filepath.Join(root, p.id)); e == nil {
+		if e = stopNode(p.pid, entry, filepath.Join(root, p.execution)); e == nil {
 			e = cleanupTask(ctx, p.id)
+		}
+		if e == nil {
+			e = sealInterrupted(ctx, entry, filepath.Join(root, p.execution))
 		}
 		if e != nil {
 			return e
 		}
+		_, _ = db.Exec(ctx, "UPDATE ew_attempts SET state='interrupted',stopped_at=COALESCE(stopped_at,now()) WHERE id=$1 AND stopped_at IS NULL", p.execution)
 		recordStop(ctx, db, p.id)
 		if _, e = db.Exec(ctx, "UPDATE ew_tasks SET cleanup_confirmed=true,stop_confirmed_at=now(),state=CASE WHEN state='cancelling' THEN 'cancelled' ELSE state END,finished_at=COALESCE(finished_at,now()) WHERE id=$1", p.id); e != nil {
 			return e
@@ -233,19 +249,37 @@ type executionReply struct {
 }
 
 func executeTask(ctx context.Context, db *pgxpool.Pool, tid, bid, question, entry, root string) (failure error) {
-	dir := filepath.Join(root, tid)
+	var attempt string
+	var checkpoint []byte
+	if e := db.QueryRow(ctx, "SELECT COALESCE(execution_id,id) FROM ew_tasks WHERE id=$1", tid).Scan(&attempt); e != nil {
+		return e
+	}
+	if !hashPattern.MatchString(attempt) {
+		return errors.New("attempt identity invalid")
+	}
+	if _, e := db.Exec(ctx, "UPDATE ew_tasks SET execution_id=$2 WHERE id=$1", tid, attempt); e != nil {
+		return e
+	}
+	if _, e := db.Exec(ctx, "INSERT INTO ew_attempts(id,task_id) VALUES($1,$2) ON CONFLICT(id) DO NOTHING", attempt, tid); e != nil {
+		return e
+	}
+
+	dir := filepath.Join(root, attempt)
 	defer func() {
 		safe, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 		defer cancel()
 		err := cleanupTask(safe, tid)
-		st := "failed"
+		if err == nil {
+			err = sealInterrupted(safe, entry, dir)
+		}
+		st := "interrupted"
 		reason := "executor failure"
 		if ctx.Err() != nil {
 			st = "interrupted"
 			reason = "worker stopped; no automatic retry"
 		}
 		if failure != nil {
-			_, _ = db.Exec(safe, "UPDATE ew_tasks SET state=$2,reason=$3,finished_at=now(),cleanup_confirmed=$4 WHERE id=$1 AND state='running'", tid, st, reason, err == nil)
+			_, _ = db.Exec(safe, "UPDATE ew_tasks SET state=$2,reason=$3,finished_at=now(),cleanup_confirmed=false WHERE id=$1 AND state='running'", tid, st, reason)
 		}
 		var current string
 		_ = db.QueryRow(safe, "SELECT state FROM ew_tasks WHERE id=$1", tid).Scan(&current)
@@ -266,12 +300,26 @@ func executeTask(ctx context.Context, db *pgxpool.Pool, tid, bid, question, entr
 		if current == "cancelled" && err == nil {
 			recordStop(safe, db, tid)
 		}
+		_, _ = db.Exec(safe, `UPDATE ew_attempts a SET state=t.state,result=COALESCE(t.result,t.attempt_result),stopped_at=CASE WHEN $2 THEN COALESCE(a.stopped_at,now()) ELSE NULL END FROM ew_tasks t WHERE a.id=$1 AND t.id=a.task_id`, attempt, err == nil)
+		if err == nil {
+			_, _ = db.Exec(safe, "UPDATE ew_tasks SET stop_confirmed_at=now() WHERE id=$1 AND state IN ('interrupted','failed')", tid)
+		}
 		if err != nil {
 			failure = err
 		} else {
 			_, _ = db.Exec(safe, "UPDATE ew_tasks SET cleanup_confirmed=true WHERE id=$1 AND state='interrupted'", tid)
 		}
 	}()
+	var cp *string
+	if e := db.QueryRow(ctx, "SELECT resume_checkpoint FROM ew_tasks WHERE id=$1", tid).Scan(&cp); e != nil {
+		return e
+	}
+	if cp != nil {
+		var sha string
+		if e := db.QueryRow(ctx, `SELECT c.payload,c.sha256 FROM ew_checkpoints c JOIN ew_tasks t ON t.id=c.task_id WHERE c.id=$1 AND c.task_id=$2 AND c.account_id=t.account_id AND c.bundle_id=t.bundle_id AND c.conversation_id=t.conversation_id AND c.consumed_by=$3 AND NOT c.eligible`, *cp, tid, attempt).Scan(&checkpoint, &sha); e != nil || hash(checkpoint) != sha {
+			return errors.New("resume checkpoint invalid")
+		}
+	}
 	if e := os.Mkdir(dir, 0700); e != nil {
 		return errors.New("task directory already exists or inaccessible")
 	}
@@ -349,7 +397,14 @@ func executeTask(ctx context.Context, db *pgxpool.Pool, tid, bid, question, entr
 	if _, e = db.Exec(ctx, "UPDATE ew_tasks SET node_pid=$2 WHERE id=$1", tid, cmd.Process.Pid); e != nil {
 		return e
 	}
-	job, _ := json.Marshal(map[string]string{"taskId": tid, "root": dir, "question": question, "contextText": contextText, "contextSHA256": contextHash})
+	if _, e = db.Exec(ctx, "UPDATE ew_attempts SET node_pid=$2,state='running' WHERE id=$1", attempt, cmd.Process.Pid); e != nil {
+		return e
+	}
+	jobData := map[string]any{"taskId": tid, "attemptId": attempt, "root": dir, "question": question, "contextText": contextText, "contextSHA256": contextHash}
+	if checkpoint != nil {
+		jobData["checkpoint"] = json.RawMessage(checkpoint)
+	}
+	job, _ := json.Marshal(jobData)
 	if _, e = io.WriteString(stdin, string(job)+"\n"); e != nil {
 		return e
 	}
@@ -395,13 +450,22 @@ func executeTask(ctx context.Context, db *pgxpool.Pool, tid, bid, question, entr
 	for scanner.Scan() {
 		b := append([]byte(nil), scanner.Bytes()...)
 		var envelope struct {
-			Kind  string          `json:"kind"`
-			Event json.RawMessage `json:"event"`
+			Kind         string          `json:"kind"`
+			Event        json.RawMessage `json:"event"`
+			CheckpointID string          `json:"checkpointId"`
+			SHA          string          `json:"sha256"`
 		}
 		if json.Unmarshal(b, &envelope) != nil {
 			return errors.New("executor protocol invalid")
 		}
-		if envelope.Kind == "event" {
+		if envelope.Kind == "checkpoint" || envelope.Kind == "invalidate" {
+			if e = checkpointBarrier(ctx, db, tid, attempt, dir, envelope.Kind, envelope.CheckpointID, envelope.SHA); e != nil {
+				return e
+			}
+			if _, e = io.WriteString(stdin, "{\"action\":\"checkpoint_ack\"}\n"); e != nil {
+				return e
+			}
+		} else if envelope.Kind == "event" {
 			if _, e = db.Exec(ctx, "INSERT INTO ew_task_events(task_id,event) VALUES($1,$2)", tid, envelope.Event); e != nil {
 				return e
 			}
@@ -455,6 +519,9 @@ func executeTask(ctx context.Context, db *pgxpool.Pool, tid, bid, question, entr
 	if current != "running" && current != "cancelling" {
 		return errors.New("task ownership lost")
 	}
+	if _, e = tx.Exec(ctx, "UPDATE ew_checkpoints SET eligible=false WHERE task_id=$1", tid); e != nil {
+		return e
+	}
 	if state == "completed" {
 		if len(reply.Artifacts) != 2 {
 			return errors.New("artifact set invalid")
@@ -488,14 +555,20 @@ func executeTask(ctx context.Context, db *pgxpool.Pool, tid, bid, question, entr
 		}
 		return tx.Commit(ctx)
 	}
-	tag, e := tx.Exec(ctx, "UPDATE ew_tasks SET state=$2,result=$3,finished_at=now(),cleanup_confirmed=true WHERE id=$1 AND state='running'", tid, state, clean)
+	tag, e := tx.Exec(ctx, "UPDATE ew_tasks SET state=$2,result=$3,reason=NULL,finished_at=now(),stop_confirmed_at=now(),cleanup_confirmed=true WHERE id=$1 AND state='running'", tid, state, clean)
 	if e != nil || tag.RowsAffected() != 1 {
 		return errors.New("task ownership lost; result not published")
+	}
+	if _, e = tx.Exec(ctx, "UPDATE ew_attempts SET state=$2,result=$3,stopped_at=now() WHERE id=$1", attempt, state, clean); e != nil {
+		return e
 	}
 	return tx.Commit(ctx)
 }
 
 func runtimeIssue() string {
+	if os.Getenv("WEB_ISSUE") == "web110" {
+		return "web110"
+	}
 	if os.Getenv("WEB_ISSUE") == "web109" {
 		return "web109"
 	}

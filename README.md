@@ -240,3 +240,5 @@ Current candidate #44: [public text streaming, English compact UI and installed 
 - [#108 ordered evidence conversations](docs/evidence/web108/README.md): persistent follow-ups, idempotent submission and public execution context; Builder candidate, independent review pending.
 
 - [#109 cancellation/replacement candidate](docs/evidence/web109/README.md): durable intent, confirmed-stop admission and retained history; independent review pending.
+
+- [#110 confirmed-boundary checkpoint recovery (offline Faux)](docs/evidence/web110/README.md).

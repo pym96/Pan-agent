@@ -2,14 +2,14 @@
 """Owned real cancellation/replacement probes. Faux, no Provider/benchmark sends."""
 import pathlib,os,json,subprocess,time,uuid,concurrent.futures
 source=pathlib.Path(__file__).with_name('check108.py').read_text();exec(compile(source.split('\ntry:\n app=start')[0],str(pathlib.Path(__file__).with_name('check108.py')),'exec'))
-assert issue==109
+assert issue in [109,110]
 baseStart=start
 def start(kind,scenario='success',barrier=False,tool=None,result=False):
  env['WEB_TOOL_BARRIER']=tool or '';env['WEB_RESULT_BARRIER']='1' if result else '0';return baseStart(kind,scenario,barrier)
 def control(c,cid,tid,action='cancel',rid=None,question=''):
  return jreq(c,f'/api/conversations/{cid}/tasks/{tid}/{action}',{'requestId':rid or uuid.uuid4().hex,'question':question})
 def toolReady(tid):
- wait(tid,predicate=lambda t:(R/'tasks'/tid/'output/tool-ready').exists());check(subprocess.check_output(['docker','ps','-q','--filter','name=^/web109-'+tid+'$'],env=env).strip()!=b'','actual controlled Docker tool running')
+ wait(tid,predicate=lambda t:(R/'tasks'/tid/'output/tool-ready').exists());check(subprocess.check_output(['docker','ps','-q','--filter','name=^/web'+str(issue)+'-'+tid+'$'],env=env).strip()!=b'','actual controlled Docker tool running')
 def marker(tid,name,value='test'):(R/'tasks'/tid/name).write_text(value)
 try:
  app=start('app');ready();a,b,n=client(),client(),client();login(a,'a');login(b,'b');source=(ROOT.parents[1]/'docs/evidence/terminal-bench-full-live-97-summary.json').read_bytes();bid=upload(a,source);cid=conversation(a,bid)

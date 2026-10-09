@@ -39,3 +39,7 @@ A control ledger owns immutable account/conversation/request identity. Conversat
 Replacement creates a new task/sequence with replaces, marks the old target inactive and withdraws its unexecuted suffix as superseded. Public context uses only active valid completed prefix. This avoids both using cancelled answers and permanently blocking the new revision on its own retired branch. All rows, raw envelopes, archives, artifacts and known/unknown usage are retained. Late completed results belong to attemptResult only when cancellation won. No archive replay or distributed continuation is claimed.
 
 Worker uses its owned child channel/process handle and task-labelled Docker identity, never a client PID/container argument. A5second graceful allowance can lead to force-stop, but only actual process wait and Docker inspection prove release;30second cleanup failure stays unknown. Stop-only recovery may admit the new task after confirmation. [Evidence](../../evidence/web109/README.md).
+
+## #110 confirmed checkpoint recovery
+
+[Design and pending Kimi storage policy](checkpoint110.md); [Builder evidence](../../evidence/web110/README.md).

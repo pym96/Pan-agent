@@ -1,0 +1,161 @@
+{
+  "issue": 110,
+  "criteriaVersion": "1.0",
+  "stage": "A",
+  "status": "Builder candidate; independent review pending",
+  "baseline": "11cf0e621004c8702408dfafd305dfd9e3ff8172",
+  "contract": "https://github.com/pym96/Pan-agent/issues/110#issuecomment-6079940606",
+  "sourceSummarySHA256": "f67d6e22a5f229637bb90cccc5a2538f6aaa87225efb1b8a9cf182cac37828ab",
+  "package": {
+    "path": "/Users/panyiming/.local/state/pan-agent/web110/pan-agent-web110-890173ae8d63.tgz",
+    "sha256": "890173ae8d630ac5c89f23bcf33134d961ce0874078d7ec827c066146615f2e2",
+    "installedDistMatchesRuntime": true,
+    "distFiles": 82
+  },
+  "checkpointSchemas": {
+    "native": 1,
+    "application": 1,
+    "provider": "pan-faux-private-v1"
+  },
+  "deployment": {
+    "image": "sha256:8129910271f9764b5c05038d351ad7b9f9d94b85351355b69c5526eadd111775",
+    "repoDigests": [
+      "python@sha256:0dd364ba7e10242f07755449e3a3d0e35f9efd987952737b90def6709ab0c5ce"
+    ],
+    "node": "v26.7.0",
+    "go": "go version go1.27.1 darwin/arm64",
+    "postgres": "postgres (PostgreSQL) 14.18 (Homebrew)",
+    "goBinarySHA256": "60ba6b2fe26bd942dc5de2e42d77bfdab122e53661def9b6a1655f6065405e81",
+    "ownedServicesStopped": true,
+    "ownedContainersRemaining": 0,
+    "providerCalls": 0,
+    "officialEvaluationCalls": 0,
+    "codingTokens": "unknown",
+    "finalReadback": {
+      "completed": 33,
+      "failed": 3,
+      "interrupted": 15,
+      "cancelled": 20,
+      "blocked": 4,
+      "superseded": 5
+    }
+  },
+  "checks": {
+    "checkpointControl": {
+      "passed": true,
+      "checks": 19,
+      "path": "/Users/panyiming/.local/state/pan-agent/web110/evidence/persistence-final/result.json",
+      "sha256": "adc62ad2924995ed815796d0667abc1ac9a39a37270b7f028451f6d679b5e713"
+    },
+    "negativeCases": {
+      "passed": true,
+      "checks": 40,
+      "path": "/Users/panyiming/.local/state/pan-agent/web110/evidence/negative-first/result.json",
+      "sha256": "ebde124f592db18e0845255aa49942d35694d5e5e24f9b47a811dda63d68de87"
+    },
+    "controlRaces": {
+      "passed": true,
+      "checks": 9,
+      "path": "/Users/panyiming/.local/state/pan-agent/web110/evidence/races/result.json",
+      "sha256": "e9db00fb9d71bd6fe7c039b093fd4db24b50b2fee6f29c8658f668f2f5c532b6"
+    },
+    "liveStopRace": {
+      "passed": true,
+      "checks": 4,
+      "path": "/Users/panyiming/.local/state/pan-agent/web110/evidence/stop-race/result.json",
+      "sha256": "2069073c89d96680bbe16947bef23dd94d3bea9747fa304e741eaca4e1079ae9"
+    },
+    "fileIntegrityConcurrentResume": {
+      "passed": true,
+      "checks": 3,
+      "path": "/Users/panyiming/.local/state/pan-agent/web110/evidence/file-integrity-final/result.json",
+      "sha256": "fc8cca4586ae7976c868e2497e31896fda8ecd51217cb1ea200d943649370662"
+    },
+    "terminalReadback": {
+      "passed": true,
+      "checks": 3,
+      "path": "/Users/panyiming/.local/state/pan-agent/web110/evidence/readback-final/result.json",
+      "sha256": "9fea52cadf60128dcc57a7699887d04a2124a260092b96c014317ce9e98ce242"
+    },
+    "legacy109": {
+      "passed": true,
+      "checks": 38,
+      "path": "/Users/panyiming/.local/state/pan-agent/web110/evidence/control-final/result.json",
+      "sha256": "337c3db648dfd6d9f0688fe6e45b1432e65fcc306c0b80f82b99b506741f8228"
+    },
+    "retention109": {
+      "passed": true,
+      "checks": 6,
+      "path": "/Users/panyiming/.local/state/pan-agent/web110/evidence/retention109/result.json",
+      "sha256": "916eb7ed703825a857b02a796a0b46a139946414855439b1966e8db4c56b4a0a"
+    },
+    "legacy108": {
+      "passed": true,
+      "checks": 37,
+      "path": "/Users/panyiming/.local/state/pan-agent/web110/evidence/regression108/result.json",
+      "sha256": "03fe89f49dd6527764cc580c5dba90c0cdbabf0f5b7b519ea142dd9f6f2e9418"
+    },
+    "legacy107": {
+      "passed": true,
+      "checks": 31,
+      "path": "/Users/panyiming/.local/state/pan-agent/web110/evidence/regression107/result.json",
+      "sha256": "3eea018176ad4f94e29f3b62cf1a0bef1aed228a92093aeb9e252064157c95d7"
+    },
+    "legacy106": {
+      "passed": true,
+      "checks": 36,
+      "path": "/Users/panyiming/.local/state/pan-agent/web110/evidence/regression106/integration.json",
+      "sha256": "ec2e5e6bdb63a3a06c8400ee8d1dbe51e3c874bd047856e61f88ed3e05fd0858"
+    },
+    "browser109": {
+      "passed": true,
+      "checks": 8,
+      "path": "/Users/panyiming/.local/state/pan-agent/web110/evidence/browser109/browser109.json",
+      "sha256": "6462fcb67a1588cfc280c7e1c27517a60e3171293cc093ddc023c3d52f615c50"
+    },
+    "browser110": {
+      "passed": true,
+      "checks": 9,
+      "path": "/Users/panyiming/.local/state/pan-agent/web110/evidence/browser110-delivery/browser110.json",
+      "sha256": "4bcc99470f053b7335fbe9e51ac45772a8bb9eb2e075cedb505aaafe338f6983"
+    }
+  },
+  "productTests": 206,
+  "productTypecheck": "passed",
+  "goRace": "passed",
+  "goVet": "passed",
+  "migration005": "passed; original legacy bytes retained",
+  "dockerIsolation": "six checks plus symlink/traversal rejection passed",
+  "resources": {
+    "utc": "2026-10-09T12:10:51.675Z",
+    "free": 31700443136,
+    "owned": 8722382848,
+    "docker": 88965869568,
+    "baselineDocker": 48503971840,
+    "cumulativeBytes": 49184280576,
+    "maximumCumulativeBytesExclusive": 57982058496,
+    "minimumFreeBytes": 21474836480
+  },
+  "inventory": {
+    "path": "/Users/panyiming/.local/state/pan-agent/web110/evidence/inventory-final.json",
+    "sha256": "ef6673a9829b79d046f2039d268316dc2b153cbe01b5952d1108178ea065a6f1",
+    "entries": 2903
+  },
+  "limits": [
+    "Faux synthetic only; real Kimi unsupported",
+    "Single Worker; explicit confirmed-boundary recovery only",
+    "Trusted local operator/DB administrator; hashes are not adversarial administrator signatures",
+    "Historical #41 graph checker rejects pre-existing attachments.ts on both baseline and candidate; retained supplemental failure, not a weakened assertion",
+    "Browser/legacy probes precede final directory fsync and corrupt-point metadata checks; unchanged UI/legacy paths retained. Final positive/control, file corruption and full terminal readback cover those final edits."
+  ],
+  "realProviderCalls": 0,
+  "officialEvaluationCalls": 0,
+  "codingTokens": "unknown",
+  "scopeValidation": {
+    "passed": true,
+    "changedPaths": 52,
+    "manifest": "changed-files.json",
+    "addedLocalLinks": "verified existing",
+    "mainUnchanged": true
+  }
+}

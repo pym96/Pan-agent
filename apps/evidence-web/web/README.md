@@ -9,3 +9,5 @@ This choice keeps login/upload/statistics/source inspection in one small compone
 #108 Analysis.jsx adds conversation selection/creation, append while running, retained request IDs across uncertain submission, ordered task history and exact public context/hash. Prior independent tasks remain selectable. No HTML execution or client-side authorization assumptions.
 
 #109 presents distinct cancel and replace controls. The replacement impact on queued follow-ups is stated before action. Polling includes cancelling; received intent is separate from confirmed stop. Old attempt usage/diagnostics remain labelled as historical, with unknowns not zero-filled. Control IDs survive uncertain request failure and change after acknowledged completion.
+
+#110 adds an explicit owner-bound checkpoint resume action, truthful recoverable/resuming/completed states, distinct attempts and deduplicated known/unknown accounting. Private checkpoint/Provider state never enters the browser. Faux-only limits and unsupported real Kimi recovery are displayed beside the action.

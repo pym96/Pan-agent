@@ -7,3 +7,5 @@ A session-scoped advisory lock on a dedicated PostgreSQL connection excludes a s
 003.sql adds immutable bundle-bound conversations, per-conversation request/order uniqueness and nullable task snapshot/start fields; legacy results are preserved without manufactured context. Adds visible blocked terminal state. Probe: scripts/check-migration108.py (rollback-only owned schema).
 
 004.sql adds control intents, active-branch/replaces and cancellation/stop/attempt fields without deleting prior rows. Startup applies pending SQL under a transaction/advisory lock and hash ledger;003 skips narrowing the state vocabulary on a post004 schema. check-migration109.py verifies legacy content and cancellation preservation with real SQL in a rolled-back owned schema.
+
+- `005-checkpoints.sql`: nullable current execution/resume references, separate attempts, private checkpoint payloads/eligibility and an idempotent resume ledger. Historical tasks receive no fabricated attempt records. Existing migration hash receipts remain unchanged.

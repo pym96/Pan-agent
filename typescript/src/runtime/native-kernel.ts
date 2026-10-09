@@ -1,3 +1,4 @@
+import type { NativeCheckpoint, CheckpointSink } from "./checkpoint.ts";
 import { randomUUID } from "node:crypto";
 import {
 	describeAgentTool,
@@ -13,6 +14,7 @@ import {
 	validateCanonicalContext,
 	validateModelOutcome,
 	validateToolResult,
+	validateUsage,
 	type AssistantMessage,
 	type Availability,
 	type Message,
@@ -52,12 +54,14 @@ export interface NativeKernelOptions {
 	readonly tools: readonly AgentTool[];
 	readonly limits: KernelLimits;
 	readonly initialMessages?: readonly Message[];
+	readonly checkpoint?: CheckpointSink;
 }
 
 /** Repository-owned loop. Its only model/tool dependencies are Pan-owned semantic contracts. */
 export class NativeKernel implements AgentKernel {
 	readonly kind = "native" as const;
 	private readonly adapter: ModelAdapter;
+	private readonly checkpoint?: CheckpointSink;
 	private readonly tools: AgentTool[];
 	private readonly limits: KernelLimits;
 	private readonly messages: Message[];
@@ -67,6 +71,7 @@ export class NativeKernel implements AgentKernel {
 	private idle?: Promise<void>;
 	private settleIdle?: () => void;
 	private running = false;
+	private importing = false;
 	private closed = false;
 
 	constructor(options: NativeKernelOptions) {
@@ -77,6 +82,8 @@ export class NativeKernel implements AgentKernel {
 			this.seededContextError = errorText(error);
 		}
 		this.adapter = options.adapter;
+		this.checkpoint = options.checkpoint;
+		if (this.checkpoint && !this.adapter.checkpoint) throw new Error("checkpoint_provider_unsupported");
 		this.tools = [...options.tools];
 		this.limits = options.limits;
 		this.messages = [...(options.initialMessages ?? [])];
@@ -86,15 +93,39 @@ export class NativeKernel implements AgentKernel {
 	get contextMessageCount(): number { return this.messages.length; }
 
 	async runTask(request: KernelRunRequest): Promise<KernelRunResult> {
+		if (this.importing) throw new Error("checkpoint_import_in_progress");
+		return this.execute(request);
+	}
+
+	async resumeTask(request: KernelRunRequest, checkpoint: NativeCheckpoint): Promise<KernelRunResult> {
+		if (!this.adapter.checkpoint || !this.checkpoint) throw new Error("checkpoint_provider_unsupported");
+		if (this.running || this.closed || this.importing) throw new Error("checkpoint_session_unavailable");
+		if (checkpoint.version !== 1 || checkpoint.next !== "model_exchange"
+			|| checkpoint.task !== request.task || checkpoint.systemPrompt !== request.systemPrompt
+			|| checkpoint.toolsJSON !== JSON.stringify(this.tools.map(describeAgentTool))
+			|| checkpoint.provider !== this.adapter.providerId || checkpoint.model !== this.adapter.modelId
+			|| checkpoint.reasoning !== this.adapter.reasoningLevel || checkpoint.providerFormat !== this.adapter.checkpoint.format
+			|| !Number.isSafeInteger(checkpoint.modelCalls) || checkpoint.modelCalls < 1
+			|| !Number.isSafeInteger(checkpoint.toolCalls) || checkpoint.toolCalls < 1) throw new Error("checkpoint_identity_invalid");
+		validateCanonicalContext(checkpoint.messages);
+		validateUsage(checkpoint.usage);
+		if (checkpoint.messages.at(-1)?.role !== "tool_result") throw new Error("checkpoint_not_settled");
+		this.importing = true;
+		try { await this.adapter.checkpoint.importState(structuredClone(checkpoint.providerState)); } finally { this.importing = false; }
+		this.messages.splice(0, this.messages.length, ...structuredClone(checkpoint.messages));
+		return this.execute(request, checkpoint);
+	}
+
+	private async execute(request: KernelRunRequest, restored?: NativeCheckpoint): Promise<KernelRunResult> {
 		if (this.closed) throw new Error("NativeKernel is closed");
 		if (this.running) throw new Error("A task is already running");
 		this.running = true;
 		this.idle = new Promise<void>((resolve) => { this.settleIdle = resolve; });
 		const controller = new AbortController();
 		this.activeController = controller;
-		let modelCalls = 0;
-		let admittedToolCalls = 0;
-		let usage = EMPTY_USAGE;
+		let modelCalls = restored?.modelCalls ?? 0;
+		let admittedToolCalls = restored?.toolCalls ?? 0;
+		let usage = restored?.usage ?? EMPTY_USAGE;
 		let finalText = "";
 		const terminal = (status: KernelRunResult["status"], reason: string): KernelRunResult => ({
 			status, reason, finalText, modelCalls, toolCalls: admittedToolCalls, usage,
@@ -102,12 +133,13 @@ export class NativeKernel implements AgentKernel {
 
 		try {
 			if (this.seededContextError) return terminal("model_error", this.seededContextError);
-			this.messages.push({ role: "user", content: [{ type: "text", text: request.task }], timestamp: Date.now() });
+			if (!restored) this.messages.push({ role: "user", content: [{ type: "text", text: request.task }], timestamp: Date.now() });
 			while (true) {
 				if (controller.signal.aborted) return terminal("cancelled", "operator_cancelled");
 				if (this.limits.maxModelTurns !== null && modelCalls >= this.limits.maxModelTurns) return terminal("incomplete", "turn_limit");
 				validateCanonicalContext(this.messages);
 
+				await this.checkpoint?.invalidate();
 				const turn = modelCalls + 1;
 				await request.onObservation({ type: "model.turn_started", runId: request.runId, turn });
 				if (controller.signal.aborted) return terminal("cancelled", "operator_cancelled");
@@ -209,6 +241,14 @@ export class NativeKernel implements AgentKernel {
 					});
 					if (controller.signal.aborted) return terminal("cancelled", "operator_cancelled");
 				}
+                if (this.checkpoint && this.adapter.checkpoint) {
+                    await this.checkpoint.commit({version:1, sourceRunId:request.runId, task:request.task,
+                        systemPrompt:request.systemPrompt, toolsJSON:JSON.stringify(this.tools.map(describeAgentTool)),
+                        provider:this.adapter.providerId, model:this.adapter.modelId, reasoning:this.adapter.reasoningLevel,
+                        providerFormat:this.adapter.checkpoint.format, providerState:await this.adapter.checkpoint.exportState(),
+                        messages:structuredClone(this.messages), modelCalls, toolCalls:admittedToolCalls,
+                        usage:structuredClone(usage), next:"model_exchange"});
+                }
 			}
 		} catch (error) {
 			if (controller.signal.aborted) return terminal("cancelled", "operator_cancelled");

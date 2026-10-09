@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Own persistent local PostgreSQL and application processes; never manage shared services."""
 import argparse,json,os,pathlib,secrets,signal,subprocess,time,urllib.parse
-p=argparse.ArgumentParser();p.add_argument('--issue',type=int,choices=[106,107,108,109],default=106);p.add_argument('command',choices=['init','start','stop','test']);p.add_argument('--runtime',required=True);p.add_argument('--pg-bin',required=True);p.add_argument('--db-port',type=int,default=54106);p.add_argument('--port',type=int,default=8106);a=p.parse_args()
+p=argparse.ArgumentParser();p.add_argument('--issue',type=int,choices=[106,107,108,109,110],default=106);p.add_argument('command',choices=['init','start','stop','test']);p.add_argument('--runtime',required=True);p.add_argument('--pg-bin',required=True);p.add_argument('--db-port',type=int,default=54106);p.add_argument('--port',type=int,default=8106);a=p.parse_args()
 r=pathlib.Path(a.runtime).resolve();root=pathlib.Path(__file__).resolve().parents[1];pg=pathlib.Path(a.pg_bin).resolve();cfg=r/'config.json';mark=r/f'web{a.issue}-owner.json'
 def run(args,**kw):return subprocess.run([str(x) for x in args],check=True,**kw)
 if a.command=='init':

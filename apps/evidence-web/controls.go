@@ -55,9 +55,9 @@ func (a *app) control(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var state string
-	var active bool
+	var active, stopped bool
 	var targetSeq int64
-	if tx.QueryRow(ctx, "SELECT state,active_branch,message_sequence FROM ew_tasks WHERE id=$1 AND conversation_id=$2 AND account_id=$3 FOR UPDATE", tid, cid, owner).Scan(&state, &active, &targetSeq) != nil {
+	if tx.QueryRow(ctx, "SELECT state,active_branch,message_sequence,cleanup_confirmed FROM ew_tasks WHERE id=$1 AND conversation_id=$2 AND account_id=$3 FOR UPDATE", tid, cid, owner).Scan(&state, &active, &targetSeq, &stopped) != nil {
 		fail(w, 404, "task not found in conversation")
 		return
 	}
@@ -84,12 +84,24 @@ func (a *app) control(w http.ResponseWriter, r *http.Request) {
 	}
 	decision = state
 	e = nil
-	if state == "queued" {
+	var hasPoint bool
+	if e = tx.QueryRow(ctx, "SELECT EXISTS(SELECT 1 FROM ew_checkpoints WHERE task_id=$1 AND eligible)", tid).Scan(&hasPoint); e != nil {
+		fail(w, 503, "control unavailable")
+		return
+	}
+	if _, e = tx.Exec(ctx, "UPDATE ew_checkpoints SET eligible=false WHERE task_id=$1", tid); e != nil {
+		fail(w, 503, "control unavailable")
+		return
+	}
+	if state == "queued" || (hasPoint && stopped && (state == "interrupted" || state == "failed")) {
 		decision = "cancelled"
 		_, e = tx.Exec(ctx, "UPDATE ew_tasks SET state='cancelled',cancel_requested_at=now(),finished_at=now(),cleanup_confirmed=true,stop_confirmed_at=now(),reason='cancelled before execution' WHERE id=$1", tid)
-	} else if state == "running" {
+	} else if state == "running" || (hasPoint && !stopped && (state == "interrupted" || state == "failed")) {
 		decision = "cancelling"
 		_, e = tx.Exec(ctx, "UPDATE ew_tasks SET state='cancelling',cancel_requested_at=now(),cleanup_confirmed=false,reason='cancel intent persisted; stop not confirmed' WHERE id=$1", tid)
+	}
+	if e == nil && decision == "cancelled" {
+		_, e = tx.Exec(ctx, "UPDATE ew_attempts SET state='cancelled',stopped_at=now() WHERE task_id=$1 AND node_pid IS NULL AND state='resuming'", tid)
 	}
 	if e == nil {
 		_, e = tx.Exec(ctx, "INSERT INTO ew_controls(account_id,conversation_id,request_id,target_id,action,question,replacement_id,decision) VALUES($1,$2,$3,$4,$5,$6,$7,$8)", owner, cid, in.RequestID, tid, action, in.Question, replacement, decision)

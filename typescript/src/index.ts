@@ -36,3 +36,6 @@ export { KimiFetchTransport, KimiTransportConfigurationError, abortableKimiBody 
 export type { KimiTransport, KimiTransportRequest, KimiTransportResponse, KimiCredentialSource, KimiFetchTransportOptions } from "./providers/kimi/kimi-transport.ts";
 export { DEFAULT_KIMI_PROFILE, KIMI_MODEL_ID, KIMI_K3_MODEL_ID, KIMI_OFFICIAL_CONTRACT, isKimiModelId, validateKimiProfile } from "./providers/kimi/kimi-profile.ts";
 export type { KimiProfile, KimiModelId, KimiReasoningEffort } from "./providers/kimi/kimi-profile.ts";
+
+export type { NativeCheckpoint, CheckpointSink } from "./runtime/checkpoint.ts";
+export { CheckpointFauxAdapter } from './providers/faux/checkpoint-faux.ts';

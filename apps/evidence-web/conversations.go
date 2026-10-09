@@ -225,6 +225,20 @@ func claimTask(ctx context.Context, db *pgxpool.Pool, wid string) (tid, bid, q s
 		err = e
 		return
 	}
+	// A resumed task retains its original frozen public context; it is not a new question.
+	var resume *string
+	if e = tx.QueryRow(ctx, "SELECT resume_checkpoint FROM ew_tasks WHERE id=$1", tid).Scan(&resume); e != nil {
+		err = e
+		return
+	}
+	if resume != nil {
+		_, e = tx.Exec(ctx, "UPDATE ew_tasks SET state='running',worker_id=$2,started_at=now(),cleanup_confirmed=false WHERE id=$1", tid, wid)
+		if e == nil {
+			e = tx.Commit(ctx)
+		}
+		err = e
+		return
+	}
 	snapshot := publicContext{TaskID: tid, Question: q, Sequence: seq, Version: 1, ConversationID: cid, BundleID: bid, Turns: []publicTurn{}}
 	if e = tx.QueryRow(ctx, "SELECT f.sha256 FROM ew_files f JOIN ew_bundles b ON b.id=f.bundle_id WHERE b.id=$1 AND f.name=b.summary_name", bid).Scan(&snapshot.SummarySHA); e != nil {
 		err = e

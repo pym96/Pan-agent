@@ -1,3 +1,4 @@
+import type { NativeCheckpoint, CheckpointSink } from "./checkpoint.ts";
 import type { AgentTool as PanAgentTool } from "../protocol/agent-tool.ts";
 import type { Message as PanMessage, Usage } from "../protocol/canonical-protocol.ts";
 import type { ModelAdapter } from "../protocol/model-adapter-contract.ts";
@@ -74,6 +75,7 @@ export interface NativeGeneralAgentSessionOptions extends GeneralAgentSessionOpt
 	readonly adapter: ModelAdapter;
 	readonly tools: readonly PanAgentTool[];
 	readonly initialMessages?: readonly PanMessage[];
+	readonly checkpoint?: CheckpointSink;
 }
 
 export type GeneralAgentSessionOptions = InjectedGeneralAgentSessionOptions | NativeGeneralAgentSessionOptions;
@@ -117,6 +119,7 @@ export class GeneralAgentSession {
 				tools: nativeOptions.tools.map(tool => this.authorization.wrap(tool, () => this.activeWriter?.runId)),
 				limits,
 				initialMessages: nativeOptions.initialMessages,
+				checkpoint: nativeOptions.checkpoint,
 			});
 		} else {
 			this.kernel = selector as AgentKernel;
@@ -142,7 +145,14 @@ export class GeneralAgentSession {
 	get kernelKind(): KernelSelector { return this.kernel.kind; }
 	get contextMessageCount(): number { return this.kernel.contextMessageCount; }
 
-	async runTask(task: string): Promise<TaskRunResult> {
+	async runTask(task: string): Promise<TaskRunResult> { return this.executeTask(task); }
+
+	async resumeTask(checkpoint: NativeCheckpoint): Promise<TaskRunResult> {
+		if (!(this.kernel instanceof NativeKernel)) throw new Error("checkpoint_kernel_unsupported");
+		return this.executeTask(checkpoint.task, checkpoint);
+	}
+
+	private async executeTask(task: string, checkpoint?: NativeCheckpoint): Promise<TaskRunResult> {
 		if (this.closed) throw new Error("GeneralAgentSession is closed");
 		if (task.trim().length === 0) throw new Error("Task must not be blank");
 		if (this.isRunning || this.admitting) throw new Error("A task is already running");
@@ -167,7 +177,9 @@ export class GeneralAgentSession {
 
 		let outcome;
 		try {
-			outcome = this.admissionCancelled ? {status:'cancelled' as const,reason:'operator_cancelled',finalText:'',modelCalls:0,toolCalls:0,usage:EMPTY_USAGE} : await this.kernel.runTask({
+			outcome = this.admissionCancelled ? {status:'cancelled' as const,reason:'operator_cancelled',finalText:'',modelCalls:0,toolCalls:0,usage:EMPTY_USAGE} : await (checkpoint
+                ? (request: import("./agent-kernel.ts").KernelRunRequest) => (this.kernel as NativeKernel).resumeTask(request, checkpoint)
+                : (request: import("./agent-kernel.ts").KernelRunRequest) => this.kernel.runTask(request))({
 				runId: writer.runId,
 				task,
 				systemPrompt: `${this.baseSystemPrompt}\n\nRUNBOOK (revision ${runbook.revision}):\n${runbook.content}`,

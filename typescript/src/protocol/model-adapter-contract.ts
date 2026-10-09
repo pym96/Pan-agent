@@ -29,5 +29,11 @@ export interface ModelAdapter {
 	readonly providerId: string;
 	readonly modelId: string;
 	readonly reasoningLevel: string;
+	/** Absent means unsupported. Private state never belongs in public observations. */
+	readonly checkpoint?: {
+		readonly format: string;
+		exportState(): Promise<unknown>;
+		importState(state: unknown): Promise<void>;
+	};
 	exchange(request: ModelExchangeRequest): Promise<ModelOutcome>;
 }

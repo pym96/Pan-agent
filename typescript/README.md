@@ -140,3 +140,5 @@ Native CLI explicitly selects the compact TUI: `你 › `, honest tool-result co
 ## Explicit Kimi K3 configuration (#68 candidate)
 
 Run `configure` and select `kimi-code:k3-256k`, then low/high/max thinking (default high). Restart with `--kernel native`; Kimi model/thinking CLI overrides remain unsupported. Existing `kimi-code` selections retain the legacy identity. See [K3 design, disposal ownership and offline limits](../docs/design/kimi-k3-offline.md).
+
+- [#110 optional Native checkpoint API and private Adapter capability](../docs/design/pan-web/checkpoint110.md).
