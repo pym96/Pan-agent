@@ -105,3 +105,12 @@ Raw artifacts remain at their stable source, Git, Trace, Test, evaluator, or ext
 - [#104 campaign successor](campaign-successor-104.md) / [summary](campaign-successor-104-summary.json): fixed-source history conservation, #103 package and fresh binding; offline candidate, no #97 production migration.
 
 #104 同 Criteria1.0 追加当前归档设备边界修复，保留原 rejected 及红绿证据；详见已有 campaign-successor-104 文档。
+
+- [#97 Criteria1.7 archive recovery and preparation](terminal-bench-persistent-prep-97.md) / [complete binding](terminal-bench-persistent-prep-97-summary.json): new accepted runner and successor;58 consumed preserved,29 ready proposed,2 missing images,20 historical unknown. Awaiting Master new activation; no new evaluation.
+- [#97 Criteria1.8 segment4 results](terminal-bench-full-live-97.md) / [full89-row summary](terminal-bench-full-live-97-summary.json): one timeout/unscored task; separate handoff global stops, later confirmed cleanup/archive;59 consumed/30 unstarted, pending final review and new activation.
+- [#97 segment5 Handoff / Criteria1.9](terminal-bench-full-live-97.md): polyglot-rust-c timeout/unscored with handoff anomalies retained; terminal60 consumed/29 unstarted. Segment6 separately activated underCriteria1.10; no outcome inferred.
+#97 Criteria1.11: [production preparation report](terminal-bench-full-live-97.md) and [complete binding/history summary](terminal-bench-full-live-97-summary.json); actual runner fixed4eda908, campaign frozen pending Master signature.
+#97 Criteria1.12: segment6 final supplement and separate segment7 launch recorded in the existing [report](terminal-bench-full-live-97.md) and [summary](terminal-bench-full-live-97-summary.json). Segment7 terminal evidence remains pending.
+#97 Criteria1.12 terminal: segment7 paused after one unscored task; complete63/26 population and segment6 supplement retained in the existing report/summary. No automatic restart.
+
+#97 report integration: the four full-live/persistent-prep report and summary files are preserved byte-for-byte from `e66b34a23f0ad122aeaf5aad38a98665272b9be0`, on base `4eda9080d5d3bb6fd4750a6bd6fa07ab68475c00`. Original execution SHAs, evidence paths, hashes, results and historical status statements remain unchanged. The original Verdict applies only to its original SHA; this integration candidate requires independent review. No execution or new activation is authorized by this report.

@@ -1,3 +1,93 @@
+# #97 Criteria1.7 — recovered archive and successor preparation
+
+Builder preparation only; pending Master new activation and final independent
+Regulator review. No new evaluation outcome or acceptance is claimed.
+[Complete binding and historical summaries](terminal-bench-persistent-prep-97-summary.json).
+Earlier Criteria1.5 and Criteria1.4 reports are preserved below as historical snapshots.
+
+## Identity and actual operations
+
+Clean detached accepted runner `032fb0fba5e9d3893f90a4ff4baae89b43af37aa` is at
+`/Users/panyiming/.local/state/pan-agent/benchmark97-next/deploy-criteria17/runner`. The report branch fast-forwarded from accepted Criteria1.5 to
+this accepted #102 baseline; only the three authorized report files change.
+The report commit SHA is supplied by Handoff separately from the actual runner SHA.
+
+New deployment `/Users/panyiming/.local/state/pan-agent/benchmark97-next/deploy-criteria17` reuses Criteria1.5's installed #94 product, Python venv,
+Harbor and tasks without reinstalling or changing them. `layout.json` records each
+actual path; ownedRoots includes both deployments and the real Python framework
+`/opt/homebrew/Cellar/python@3.12/3.12.9`. Accepted verifyProduct checked the frozen
+82 product files, Python executable hash,363 Harbor files and33 package versions;
+validateFiles checked all89 task inventories. Raw identities are in
+`dependency-verification.json`. Docker reports8 CPUs and10420109312 bytes RAM.
+
+Exactly one `upgrade97`, one `recover`, one `prepare` and one selected `status`
+completed using the accepted CLI. Exact argument arrays and stdout/stderr are in
+`upgrade-command.json`, `recover-command.json`, `prepare-command.json`,
+`status-command.json` and corresponding logs under the Evidence root below.
+The source inventory remains
+`b58f31c35940e89823ebde01876ee9d601eec0becfccfa088726854032cc46c7`.
+The843 source file hashes,12 global ledgers, old layout and old failed external
+archive inventory are identical before/after. Original runner and pending journal
+remain in place; no source event was fabricated or old activation reused.
+
+## Recovery and binding
+
+New campaign `10d69769-d733-480a-bb37-5e08457cb512` imported58 consumed tasks and31 unstarted.
+Recover observed the predecessor stopped and committed mcmc-sampling-stan's archive
+in the new external namespace, then recorded `predecessor_reconciled`. No pending
+archive obligations remain. Its original rawReward1/validScore1 is preserved;
+17 successes and22 valid scores are historical observations pending final review.
+All20 second-segment missing scores remain unknown/null, not zero or reconstructed.
+
+Read-only eligibility inspected all31 unstarted tasks. Only29 currently ready tasks
+were passed to prepare and bound. `mteb-retrieve` and `pytorch-model-recovery` remain
+`image_not_cached`; no pull was attempted. The full29 IDs, image digests, preparation
+hashes, model/metering identity, execution policy and original resource policy are
+in the linked summary and raw `proposedBinding.json`.
+
+Checkpoint: `6f51a720866c0a2bb5735f033a1ed85e2254fe592d236dd6c17930eaa15a8df2`. Next segment index4.
+Campaign writes stopped after prepare; status and the final integrity audit are
+read-only. No key access, signature, model call, task/scoring container, cleanup,
+Docker restart or formal run occurred. Master must sign a new activation before run.
+
+## Raw evidence and resource boundary
+
+Evidence root: `/Volumes/WD_BLACK/pan-agent/wo97-full-live-20260925/persistent-criteria17`.
+`audit.json`, `campaign-snapshot/`, `campaign-inventory.json`,
+`protected-before.json`, `protected-after.json`, dependency/layout/eligibility files,
+command logs and `task-archives/` retain the actual production preparation evidence.
+The full file inventory hash is supplied in Handoff. Receipt is under
+`task-archives/10d69769-d733-480a-bb37-5e08457cb512/df271106-59db-4b02-8439-3799e3399e4b/mcmc-sampling-stan/commit/receipt.json`.
+
+Samples before upgrade/recover/prepare/status and after preparation used accepted
+sampler with every actual root plus Python framework. Final free43371581440,
+owned3055697920, Docker88621330432 bytes. Original Docker baseline48503971840
+retained; increment43173056512 <57982058496, free>=21474836480. No budget reset.
+Archive/copy originals and failures are retained; this phase encountered no CLI failure.
+
+## Learning record and remaining boundary
+
+The previous segment failed after its local successful result because external
+receipt hard-link publication was unsupported. This phase applies the accepted
+#102 directory-rename publication and fixed-source successor, preserving both the
+failed predecessor and the successful new archive. Actual recovery corroborates
+filesystem compatibility for this execution; it does not prove physical power-loss
+durability or raise benchmark scores. Human set direction/budget; Builder performed
+preparation; Master signs the next binding; independent Regulator owns final review.
+Two images remain missing and20 historical scores remain unrecoverable here.
+
+## Validation
+
+Production dependency/source verification, exact original preservation, recovered
+archive obligations,58/31/20 invariants and complete proposed binding verified.
+Host acceptance passed:82 host tests and259 Python tests (6 existing skips),
+plus structural/path checks. Host structural validators resolve the existing host;
+the Python suite runs the candidate checkout. Candidate whitespace/scope checks
+passed. Detailed logs are recorded in Handoff and
+`acceptance.stdout`/`acceptance.stderr`; these do not replace independent review.
+
+---
+
 # #97 Criteria1.5 — persistent preparation and proposed binding
 
 Current Builder handoff is preparation only, pending Master signature and
