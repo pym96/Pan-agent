@@ -114,3 +114,5 @@ Raw artifacts remain at their stable source, Git, Trace, Test, evaluator, or ext
 #97 Criteria1.12 terminal: segment7 paused after one unscored task; complete63/26 population and segment6 supplement retained in the existing report/summary. No automatic restart.
 
 #97 report integration: the four full-live/persistent-prep report and summary files are preserved byte-for-byte from `e66b34a23f0ad122aeaf5aad38a98665272b9be0`, on base `4eda9080d5d3bb6fd4750a6bd6fa07ab68475c00`. Original execution SHAs, evidence paths, hashes, results and historical status statements remain unchanged. The original Verdict applies only to its original SHA; this integration candidate requires independent review. No execution or new activation is authorized by this report.
+
+- [#58 Criteria2.0 Stage A video preparation](demo-video-58.md) / [summary](demo-video-58-summary.json): installed offline replay and PTY/MP4 sample; independent single-task binding blocked by interface isolation/accounting and Docker availability. No new live execution or publication.

@@ -1,0 +1,96 @@
+{
+  "criteria": "2.0",
+  "stage": "A",
+  "status": "offline_delivery_with_live_preparation_blocked",
+  "baseSha": "06865bf4523131b59cfec2625c063a09acd9cf86",
+  "panHash": "5ecd3b9b4da688f90dfee3cc651b4a2f755595587b6d7d7287383cab23c8e580",
+  "taskId": "log-summary-date-ranges",
+  "officialTimeoutSeconds": {
+    "agent": 900,
+    "verifier": 900
+  },
+  "officialResources": {
+    "cpus": 1,
+    "memory": "2G",
+    "storage": "10G"
+  },
+  "model": {
+    "provider": "kimi-code",
+    "model": "k3-256k",
+    "thinking": "high",
+    "endpoint": "https://api.kimi.com/coding/v1/chat/completions"
+  },
+  "budget": {
+    "dispatchesPerTask": null,
+    "dispatchesCampaign": null,
+    "toolsPerTask": null,
+    "maxTokens": 4096,
+    "requestBytes": 131072,
+    "responseBytes": null,
+    "dispatchSeconds": 120,
+    "mode": "metered"
+  },
+  "installedFilesVerified": 82,
+  "harborFilesVerified": 363,
+  "replay": {
+    "installedCliReplay": true,
+    "mode": "real compact TUI with non-TTY scripted input and offline injection traps; not interactive visual TUI proof",
+    "modelCalls": 0,
+    "toolCalls": 0,
+    "archiveUnchanged": true,
+    "eventCount": 11,
+    "canaryExcluded": true,
+    "tamperedArchiveRejected": true,
+    "hashes": [
+      "41a8a1b08eca64f607e2321e0bd2cb841ba370464ebc588e661c834a74cc09f8",
+      "30211dc82a6dde73e5a78bb45e4a42f20c47734810e64c6768b75a91029dd3ef"
+    ]
+  },
+  "sample": {
+    "durationSeconds": 8,
+    "width": 1280,
+    "height": 900,
+    "presentation": "private PTY metadata capture rendered as static frame; historical offline sample, not live/native TUI",
+    "sha256": "735866d96a59a806aa17fe8a6bcbc3e54920d43d96cb8c633070f12060c2502d",
+    "ffprobeAndFullDecode": "passed",
+    "audio": false
+  },
+  "resources": {
+    "utc": "2026-10-09T02:18:17.905Z",
+    "free": 39152328704,
+    "owned": 5717172224,
+    "docker": 88799350784,
+    "originalDockerBaseline": 48503971840,
+    "increment": 46012551168,
+    "resourceError": null
+  },
+  "image": {
+    "reference": "alexgshaw/log-summary-date-ranges:20251031",
+    "currentDigest": null,
+    "preparation": {
+      "ready": false,
+      "reason": "docker_unavailable",
+      "global": true
+    }
+  },
+  "proposedBinding": null,
+  "stageBCommand": null,
+  "blockingPreparationGaps": [
+    "Docker daemon unavailable; image digest/capacity cannot be rechecked",
+    "SC-VID58-01: accepted interfaces lack independent ledger/authority and fresh cumulative durable initialization"
+  ],
+  "calls": {
+    "provider": 0,
+    "model": 0,
+    "taskContainers": 0,
+    "scoring": 0,
+    "productionSignatures": 0
+  },
+  "review": "Builder checks only; not final accepted; Stage B not activated",
+  "verification": {
+    "hostAcceptance": "passed",
+    "scope": "12 allowed report/helper files only",
+    "linksJsonSyntax": "passed",
+    "guardNegativeControls": "passed"
+  }
+}

@@ -1,0 +1,44 @@
+import assert from 'node:assert/strict';
+import {readFileSync,writeFileSync,mkdirSync} from 'node:fs';
+import {join,resolve} from 'node:path';
+import {pathToFileURL} from 'node:url';
+import {createHash} from 'node:crypto';
+import {PassThrough,Writable} from 'node:stream';
+import {replay,project} from './replay.mjs';
+const [entry,root,id,out]=process.argv.slice(2);
+mkdirSync(out,{recursive:true});
+const sha=b=>createHash('sha256').update(b).digest('hex');
+const paths=['events.jsonl','manifest.json'].map(f=>join(root,'runs',id,f));
+const before=paths.map(p=>sha(readFileSync(p)));
+const api=await import(pathToFileURL(resolve(entry)).href);
+const result=await replay(entry,root,id);
+const store=await api.RunArchiveStore.open(root),records=await store.readArchive(id);
+assert.equal(result.events.length,records.length);
+assert.deepEqual(result.events.map(e=>e.sequence),records.map((_,i)=>i));
+const canary='WO58_FAKE_SECRET_CANARY_813731';
+const tainted=records.map(r=>({...r,text:canary,reason:canary,arguments:{command:canary},details:{privateReasoning:canary},toolCallId:canary,runId:canary,provider:canary}));
+writeFileSync(join(out,'synthetic-canary-projection-input.json'),JSON.stringify(tainted));
+const canaryProjection=project(JSON.parse(readFileSync(join(out,'synthetic-canary-projection-input.json'))));
+writeFileSync(join(out,'canary-safe-output.json'),JSON.stringify(canaryProjection));
+assert(!JSON.stringify(canaryProjection).includes(canary));
+assert.deepEqual(project(tainted),project(records));
+const raw=readFileSync(paths[0],'utf8'),manifest=JSON.parse(readFileSync(paths[1]));
+assert.throws(()=>api.verifyArchiveBytes(raw.replace('run.started','run.changed'),manifest));
+// Real installed CLI and its real compact TUI, with injected traps and isolated home.
+// Native output is PRIVATE and is not the release projection.
+let modelCalls=0,toolCalls=0,cliText='';
+const input=new PassThrough();
+const output=new Writable({write(chunk,encoding,done){cliText+=chunk.toString();done();}});
+const adapter={providerId:'deepseek',modelId:'deepseek-chat',reasoningLevel:'none',async exchange(){modelCalls++;throw Error('model execution forbidden');},async complete(){modelCalls++;throw Error('model execution forbidden');}};
+const workspace=join(out,'empty-workspace'),home=join(out,'empty-home');mkdirSync(workspace,{recursive:true});mkdirSync(home,{recursive:true});
+const code=await api.runCli(['--workspace',workspace,'--memory-root',root,'--kernel','native'],{home,output,createNativeAdapter:()=>adapter,createTools:()=>({tools:[{name:'task_command',description:'offline trap',parameters:{type:'object',properties:{}},validate(){throw Error('tool validation forbidden');},execute(){toolCalls++;throw Error('tool execution forbidden');}}]}),startTui:async options=>{
+ const pending=api.runTui({...options,input,output});
+ input.write(':replay '+id+'\n');
+ const start=Date.now();while(!cliText.includes('Archived replay '+id)&&Date.now()-start<5000)await new Promise(r=>setTimeout(r,20));
+ input.end();return await pending;
+}});
+writeFileSync(join(out,'native-cli-private.txt'),cliText,{mode:0o600});
+assert.equal(code,0);assert(cliText.includes('Archived replay '+id));assert(!cliText.includes('LOCAL_ERROR'));
+assert.equal(modelCalls,0);assert.equal(toolCalls,0);assert.deepEqual(paths.map(p=>sha(readFileSync(p))),before);
+writeFileSync(join(out,'replay-check.json'),JSON.stringify({installedCliReplay:true,mode:'real compact TUI with non-TTY scripted input and offline injection traps; not interactive visual TUI proof',modelCalls,toolCalls,archiveUnchanged:true,eventCount:records.length,canaryExcluded:true,tamperedArchiveRejected:true,hashes:before},null,2));
+console.log(JSON.stringify({pass:true,eventCount:records.length,modelCalls,toolCalls,canaryExcluded:true,archiveUnchanged:true}));
