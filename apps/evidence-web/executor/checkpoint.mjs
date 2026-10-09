@@ -1,13 +1,14 @@
+import {operationIO,restoreOperation} from './operation.mjs';
 import {readFile,open,rename,lstat,readdir,realpath,chmod} from 'node:fs/promises';
 import {join,resolve,dirname} from 'node:path';
 import {createHash,randomBytes} from 'node:crypto';
 const hash=b=>createHash('sha256').update(b).digest('hex');
 const files=['stage1.json','analysis.json','details.csv'];
 const canary='WEB110_SYNTHETIC_PRIVATE_CONTINUATION_7b94a';
-async function tree(path){const out=[];for(const n of (await readdir(path)).sort()){const p=join(path,n),s=await lstat(p);if(s.isDirectory())out.push([n,await tree(p)]);else if(s.isFile())out.push([n,hash(await readFile(p))]);else throw Error('identity_alias')};return hash(JSON.stringify(out))}
+async function tree(path){if(await realpath(path)!==resolve(path))throw Error('identity_alias');const out=[];for(const n of (await readdir(path)).sort()){const p=join(path,n),s=await lstat(p);if(s.isDirectory())out.push([n,await tree(p)]);else if(s.isFile()&&s.nlink===1)out.push([n,hash(await readFile(p))]);else throw Error('identity_alias')};return hash(JSON.stringify(out))}
 async function bytes(root,name){if(!files.includes(name))throw Error('checkpoint_file_name');const d=join(root,'output');if(await realpath(d)!==d)throw Error('checkpoint_file_alias');const p=join(d,name),s=await lstat(p);if(!s.isFile()||s.nlink!==1||s.size>2*1024*1024)throw Error('checkpoint_file_invalid');return readFile(p)}
 async function durable(path,data){const f=await open(path+'.tmp','wx',0o600);try{await f.writeFile(data);await f.sync()}finally{await f.close()};await rename(path+'.tmp',path);const dir=await open(dirname(path),'r');try{await dir.sync()}finally{await dir.close()}}
-export async function checkpointIdentity(job){return {taskId:job.taskId,contextSHA256:job.contextSHA256,inputs:await tree(join(job.root,'input')),pan:await tree(dirname(process.env.PAN_ENTRY)),executor:hash((await Promise.all(['main.mjs','checkpoint.mjs','docker-tool.mjs','analysis.py','stage2.py','resources.mjs','archive-recover.mjs'].map(n=>readFile(new URL(n,import.meta.url))))).map(b=>hash(b)).join(':')),image:process.env.PAN_IMAGE,cpus:process.env.ANALYSIS_CPUS||'2',memory:process.env.ANALYSIS_MEMORY_GIB||'4'}}
+export async function checkpointIdentity(job){return {taskId:job.taskId,contextSHA256:job.contextSHA256,inputs:await tree(join(job.root,'input')),pan:await tree(dirname(process.env.PAN_ENTRY)),executor:hash((await Promise.all(['main.mjs','checkpoint.mjs','docker-tool.mjs','analysis.py','stage2.py','resources.mjs','archive-recover.mjs','operation.mjs','reconcile.mjs'].map(n=>readFile(new URL(n,import.meta.url))))).map(b=>hash(b)).join(':')),image:process.env.PAN_IMAGE,cpus:process.env.ANALYSIS_CPUS||'2',memory:process.env.ANALYSIS_MEMORY_GIB||'4'}}
 export function checkpointAdapter(Pan,code,second){
  const script=hash(code+'\n'+second);
  return new Pan.CheckpointFauxAdapter(script,async(request,i)=>{
@@ -22,7 +23,8 @@ export function checkpointAdapter(Pan,code,second){
 export async function checkpointIO(job,record,handshake,signal){
  const identity=await checkpointIdentity(job);
  let restored;
- if(job.checkpoint){
+ if(job.checkpoint?.version===2){restored=await restoreOperation(job.checkpoint,job)}
+ else if(job.checkpoint){
   const c=job.checkpoint;
   if(c.version!==1||c.native?.task!==job.question||c.taskId!==job.taskId||!(/^[a-f0-9]{64}$/).test(c.attemptId)||c.attemptId===job.attemptId||JSON.stringify(c.identity)!==JSON.stringify(identity)||!Array.isArray(c.files)||!c.files.length)throw Error('checkpoint_identity_mismatch');
   const original=resolve(process.env.WEB107_TASK_ROOT,c.attemptId);
@@ -31,14 +33,17 @@ export async function checkpointIO(job,record,handshake,signal){
   if(!seen.has('stage1.json'))throw Error('checkpoint_receipt_missing');
   restored=c.native;
  }
- return {restored,sink:{
-  async invalidate(){await handshake({kind:'invalidate'});if(process.env.WEB_CHECKPOINT_FAULT==='after-invalidate'&&restored)await hold(job,record,signal,'uncertain')},
+ const operation=process.env.WEB_OPERATION_MODE==='1'?operationIO(job,identity,handshake,record,signal,restored):null;
+ return {restored,operation,sink:{
+  ...(operation?{pending:native=>operation.pending(native),settled:result=>operation.settled(result)}:{}),
+  async invalidate(){operation?.clear();await handshake({kind:'invalidate'});if(process.env.WEB_CHECKPOINT_FAULT==='after-invalidate'&&restored)await hold(job,record,signal,'uncertain')},
   async commit(native){
+   operation?.clear();
    if(process.env.WEB_CHECKPOINT_FAULT==='before-commit')throw Error('controlled_checkpoint_persist_failure');
    const manifest=[];
    for(const name of files){try{const b=await bytes(job.root,name);const f=await open(join(job.root,'output',name),'r');try{await f.sync()}finally{await f.close()};manifest.push({name,sha256:hash(b)})}catch(e){if(e.code!=='ENOENT')throw e}}
    const outputDirectory=await open(join(job.root,'output'),'r');try{await outputDirectory.sync()}finally{await outputDirectory.close()};
-   if(!manifest.some(f=>f.name==='stage1.json'))throw Error('checkpoint_receipt_missing');
+   if(process.env.WEB_OPERATION_MODE!=='1'&&!manifest.some(f=>f.name==='stage1.json'))throw Error('checkpoint_receipt_missing');
    const c={version:1,taskId:job.taskId,attemptId:job.attemptId,identity,native,files:manifest};const raw=Buffer.from(JSON.stringify(c));
    await durable(join(job.root,'checkpoint.json'),raw);
    const parentDirectory=await open(dirname(job.root),'r');try{await parentDirectory.sync()}finally{await parentDirectory.close()};

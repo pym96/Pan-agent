@@ -128,3 +128,5 @@ Raw artifacts remain at their stable source, Git, Trace, Test, evaluator, or ext
 - [web109](web109/README.md): Criteria1.0 Builder evidence for offline cancellation/replacement through real Pan/Docker.
 
 - [web110: checkpoint recovery Stage A](web110/README.md).
+
+- [web111](web111/README.md): Criteria1.0 trusted operation reconciliation; Builder evidence pending independent review.

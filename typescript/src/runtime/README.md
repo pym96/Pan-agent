@@ -10,3 +10,5 @@ Runtime consumes protocol contracts and memory; it does not import concrete Prov
 #44 adds SessionProgress (runId + turn + public delta) and a separately contained onProgressError diagnostic. This route is transient and closes on abort/settlement; SessionObservation and all existing execution/Context/memory semantics are unchanged.
 
 - [`checkpoint.ts`](checkpoint.ts): private versioned Native state and awaited commit/invalidate barriers. `GeneralAgentSession.resumeTask` uses a new archive and the existing loop, without re-appending the user. Default runTask remains unchanged.
+
+#111: optional pending/settled barriers preserve the single-tool response gap. Version2 recovery accepts only a trusted completed result or not-started resolution; default paths and version1 settled points retain their behavior. [Bounded consumer design](../../../docs/design/pan-web/operations111.md).

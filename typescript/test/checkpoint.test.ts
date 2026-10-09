@@ -30,3 +30,24 @@ test('unsupported adapter and corrupt checkpoint fail before model/tool sends',a
  const n=new NativeKernel({adapter:f.adapter(),tools:[f.tool],limits,checkpoint:{invalidate:async()=>{},commit:async()=>{}}});await assert.rejects(n.resumeTask(request,corrupt as NativeCheckpoint));assert.equal(f.effects(),1);
  }
 });
+test('pending barrier resumes exactly one authorized tool without repeating the model response',async()=>{
+ const f=fixture();let saved!:NativeCheckpoint;
+ const k=new NativeKernel({adapter:f.adapter(),tools:[f.tool],limits,checkpoint:{invalidate:async()=>{},commit:async()=>{},pending:async c=>{saved=structuredClone(c);throw Error('crash before dispatch')}}});
+ const first=await k.runTask(request);assert.equal(first.status,'model_error');assert.equal(f.effects(),0);assert.equal(saved.next,'pending_tool');assert.equal(saved.version,2);
+ const next=new NativeKernel({adapter:f.adapter(),tools:[f.tool],limits,checkpoint:{invalidate:async()=>{},commit:async()=>{},pending:async()=>{}}});
+ const result=await next.resumeTask({...request,runId:'new'}, {...saved,resolution:{kind:'not_started'}});assert.equal(result.status,'completed');assert.equal(result.modelCalls,2);assert.equal(result.toolCalls,1);assert.equal(f.effects(),1);
+});
+test('completed pending result, including errors, is imported unchanged with zero repeated effects',async()=>{
+ const f=fixture();let saved!:NativeCheckpoint;
+ const k=new NativeKernel({adapter:f.adapter(),tools:[f.tool],limits,checkpoint:{invalidate:async()=>{},commit:async()=>{},pending:async c=>{saved=structuredClone(c);throw Error('crash')}}});await k.runTask(request);
+ for(const isError of [false,true]){
+  const observations: string[]=[];const result={role:'tool_result' as const,toolCallId:'one',toolName:'record',content:[{type:'text' as const,text:'original exit=7'}],isError,timestamp:1};let received:unknown;
+  const adapter=new CheckpointFauxAdapter('fixture-v1',async r=>{received=r.context.messages.at(-1);return response('done')},'private-canary');
+  const n=new NativeKernel({adapter,tools:[f.tool],limits,checkpoint:{invalidate:async()=>{},commit:async()=>{},pending:async()=>{}}});assert.equal((await n.resumeTask({...request,onObservation:e=>{observations.push(e.type)}},{...saved,resolution:{kind:'completed',result}})).status,'completed');assert.deepEqual(received,result);assert.equal(f.effects(),0);assert(!observations.some(t=>t.startsWith('tool.')));
+ }
+ const n=new NativeKernel({adapter:f.adapter(),tools:[f.tool],limits,checkpoint:{invalidate:async()=>{},commit:async()=>{},pending:async()=>{}}});await assert.rejects(n.resumeTask(request,saved),/pending_invalid/);assert.equal(f.effects(),0);
+});
+test('receipt persistence failure prevents subsequent exchange; multi-tool partial remains unsupported',async()=>{
+ const f=fixture();const k=new NativeKernel({adapter:f.adapter(),tools:[f.tool],limits,checkpoint:{invalidate:async()=>{},commit:async()=>{throw Error('unexpected')},pending:async()=>{},settled:async()=>{throw Error('receipt unknown')}}});const r=await k.runTask(request);assert.equal(r.modelCalls,1);assert.equal(r.status,'model_error');assert.equal(f.effects(),1);
+ const multi=fixture(true);let pending=0;let m!:NativeKernel;m=new NativeKernel({adapter:multi.adapter(),tools:[multi.tool],limits,checkpoint:{invalidate:async()=>{},commit:async()=>{},pending:async()=>{pending++}}});await m.runTask({...request,onObservation:e=>{if(e.type==='tool.settled')m.cancel()}});assert.equal(pending,0);assert.equal(multi.effects(),1);
+});

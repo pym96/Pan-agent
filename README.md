@@ -242,3 +242,5 @@ Current candidate #44: [public text streaming, English compact UI and installed 
 - [#109 cancellation/replacement candidate](docs/evidence/web109/README.md): durable intent, confirmed-stop admission and retained history; independent review pending.
 
 - [#110 confirmed-boundary checkpoint recovery (offline Faux)](docs/evidence/web110/README.md).
+
+#111 candidate: [bounded tool reconciliation and environment reconstruction](docs/evidence/web111/README.md).

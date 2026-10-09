@@ -43,3 +43,5 @@ Worker uses its owned child channel/process handle and task-labelled Docker iden
 ## #110 confirmed checkpoint recovery
 
 [Design and pending Kimi storage policy](checkpoint110.md); [Builder evidence](../../evidence/web110/README.md).
+
+#111: [operation reconciliation design](operations111.md), [evidence](../../evidence/web111/README.md).

@@ -1,13 +1,17 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"net/http"
 	"os"
+	"os/exec"
 	"path/filepath"
+	"reflect"
+	"time"
 )
 
 // Authorization is the DB ownership chain, never a supplied file/hash. Local DB administrators
@@ -67,6 +71,55 @@ func (a *app) resume(w http.ResponseWriter, r *http.Request) {
 		fail(w, 409, "no valid owned checkpoint")
 		return
 	}
+	var version struct {
+		Version int `json:"version"`
+	}
+	if json.Unmarshal(raw, &version) != nil {
+		fail(w, 409, "checkpoint invalid")
+		return
+	}
+	if version.Version == 2 {
+		var entry string
+		var environmentRaw []byte
+		if tx.QueryRow(ctx, "SELECT entry,environment FROM ew_reconcile_runtime WHERE singleton=111").Scan(&entry, &environmentRaw) != nil {
+			fail(w, 409, "reconciler unavailable")
+			return
+		}
+		var environment []string
+		if json.Unmarshal(environmentRaw, &environment) != nil {
+			fail(w, 409, "reconciler unavailable")
+			return
+		}
+		var question, contextSHA string
+		if tx.QueryRow(ctx, "SELECT question,context_sha256 FROM ew_tasks WHERE id=$1", tid).Scan(&question, &contextSHA) != nil {
+			fail(w, 409, "task identity unavailable")
+			return
+		}
+		input, _ := json.Marshal(map[string]any{"checkpoint": json.RawMessage(raw), "job": map[string]string{"taskId": tid, "question": question, "contextSHA256": contextSHA}})
+		bounded, cancel := context.WithTimeout(ctx, 15*time.Second)
+		defer cancel()
+		cmd := exec.CommandContext(bounded, "node", filepath.Join(filepath.Dir(entry), "reconcile.mjs"))
+		cmd.Env = environment
+		cmd.Stdin = bytes.NewReader(input)
+		output, err := cmd.Output()
+		var decision map[string]string
+		if json.Unmarshal(output, &decision) != nil {
+			decision = map[string]string{"decision": "unresolved", "reason": "operation_validation_unavailable"}
+		}
+		_, e = tx.Exec(ctx, "UPDATE ew_checkpoints SET reconciliation=$2 WHERE id=$1", in.CheckpointID, decision)
+		if e != nil {
+			fail(w, 503, "reconciliation unavailable")
+			return
+		}
+		if err != nil || (decision["decision"] != "confirmed_complete" && decision["decision"] != "confirmed_not_started") {
+			if tx.Commit(ctx) != nil {
+				fail(w, 503, "reconciliation unavailable")
+				return
+			}
+			send(w, 409, map[string]string{"error": "仍未知: " + decision["reason"], "decision": "unresolved"})
+			return
+		}
+	}
 	attempt = id()
 	_, e = tx.Exec(ctx, "UPDATE ew_checkpoints SET eligible=false,consumed_by=$2 WHERE id=$1", in.CheckpointID, attempt)
 	if e == nil {
@@ -104,7 +157,7 @@ func checkpointBarrier(ctx context.Context, db *pgxpool.Pool, tid, attempt, dir,
 	if _, e = tx.Exec(ctx, "UPDATE ew_checkpoints SET eligible=false WHERE task_id=$1", tid); e != nil {
 		return e
 	}
-	if kind == "checkpoint" {
+	if kind == "checkpoint" || kind == "dispatch" || kind == "receipt" {
 		if !hashPattern.MatchString(point) || !hashPattern.MatchString(sha) {
 			return errors.New("invalid checkpoint identity")
 		}
@@ -123,8 +176,34 @@ func checkpointBarrier(ctx context.Context, db *pgxpool.Pool, tid, attempt, dir,
 			AttemptID string          `json:"attemptId"`
 			Native    json.RawMessage `json:"native"`
 		}
-		if json.Unmarshal(raw, &envelope) != nil || envelope.Version != 1 || envelope.TaskID != tid || envelope.AttemptID != attempt || len(envelope.Native) == 0 {
+		if json.Unmarshal(raw, &envelope) != nil || (envelope.Version != 1 && envelope.Version != 2) || envelope.TaskID != tid || envelope.AttemptID != attempt || len(envelope.Native) == 0 {
 			return errors.New("checkpoint ownership invalid")
+		}
+		if kind == "dispatch" || kind == "receipt" {
+			var previous []byte
+			var previousSHA string
+			if tx.QueryRow(ctx, "SELECT payload,sha256 FROM ew_checkpoints WHERE id=$1 AND task_id=$2 AND attempt_id=$3 AND consumed_by IS NULL FOR UPDATE", point, tid, attempt).Scan(&previous, &previousSHA) != nil || hash(previous) != previousSHA {
+				return errors.New("operation previous invalid")
+			}
+			var before, after map[string]any
+			if json.Unmarshal(previous, &before) != nil || json.Unmarshal(raw, &after) != nil {
+				return errors.New("operation encoding invalid")
+			}
+			prior, ok := before["operation"].(map[string]any)
+			if !ok {
+				return errors.New("operation previous missing")
+			}
+			next, ok := after["operation"].(map[string]any)
+			if !ok {
+				return errors.New("operation next missing")
+			}
+			if !reflect.DeepEqual(before["native"], after["native"]) || !reflect.DeepEqual(before["identity"], after["identity"]) || !reflect.DeepEqual(prior["binding"], next["binding"]) || (kind == "dispatch" && (prior["state"] != "pre_dispatch" || next["state"] != "dispatched")) || (kind == "receipt" && (prior["state"] != "dispatched" || next["state"] != "completed")) {
+				return errors.New("operation transition rejected")
+			}
+			if _, e = tx.Exec(ctx, "UPDATE ew_checkpoints SET payload=$2,sha256=$3,eligible=true WHERE id=$1", point, raw, sha); e != nil {
+				return e
+			}
+			return tx.Commit(ctx)
 		}
 		_, e = tx.Exec(ctx, `INSERT INTO ew_checkpoints(id,task_id,attempt_id,account_id,conversation_id,bundle_id,sha256,payload) SELECT $1,id,$3,account_id,conversation_id,bundle_id,$4,$5 FROM ew_tasks WHERE id=$2`, point, tid, attempt, sha, raw)
 		if e != nil {
@@ -143,6 +222,21 @@ func (a *app) checkpointMetadata(ctx context.Context, tid string) map[string]any
 	if e == nil {
 		out["checkpointId"] = cp
 		out["recoverable"] = eligible && hash(payload) == sha
+		var c struct {
+			Version   int `json:"version"`
+			Operation struct {
+				State string `json:"state"`
+			} `json:"operation"`
+		}
+		if json.Unmarshal(payload, &c) == nil && c.Version == 2 {
+			out["operationState"] = c.Operation.State
+			out["reconcileAvailable"] = eligible && hash(payload) == sha
+			out["recoverable"] = false
+			var verdict json.RawMessage
+			if a.db.QueryRow(ctx, "SELECT reconciliation FROM ew_checkpoints WHERE id=$1", cp).Scan(&verdict) == nil {
+				out["reconciliation"] = verdict
+			}
+		}
 		if hash(payload) != sha {
 			out["reason"] = "checkpoint_integrity_invalid"
 		}
@@ -209,6 +303,15 @@ func (a *app) checkpointAccounting(ctx context.Context, tid string) map[string]a
 	if e = a.db.QueryRow(ctx, `SELECT count(*) FROM (SELECT DISTINCT event->>'runId' r,event->>'turn' n FROM ew_task_events WHERE task_id=$1 AND event->>'type'='model.turn_started' EXCEPT SELECT DISTINCT event->>'runId',event->>'turn' FROM ew_task_events WHERE task_id=$1 AND event->>'type'='model.turn_settled') x`, tid).Scan(&missing); e != nil {
 		return unavailable
 	}
+	var finishedTools, uncertainTools int
+	if a.db.QueryRow(ctx, `SELECT count(*) FROM ew_task_events WHERE task_id=$1 AND event->>'type'='sandbox.result'`, tid).Scan(&finishedTools) != nil {
+		return unavailable
+	}
+	if a.db.QueryRow(ctx, `SELECT count(*) FROM (SELECT DISTINCT event->>'toolCallId' FROM ew_task_events WHERE task_id=$1 AND event->>'type'='operation.persisted' AND event->>'phase'='dispatched' EXCEPT SELECT DISTINCT event->>'toolCallId' FROM ew_task_events WHERE task_id=$1 AND event->>'type'='sandbox.result') x`, tid).Scan(&uncertainTools) != nil {
+		return unavailable
+	}
+	result["observedToolExecutions"] = finishedTools
+	result["dispatchedWithoutObservedResult"] = uncertainTools
 	result["unknown"] = result["unknown"].(int) + missing
 	return result
 }

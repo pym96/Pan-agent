@@ -23,3 +23,5 @@ This is candidate documentation, not independent acceptance or a verified-projec
 [Criteria1.0/activation](https://github.com/pym96/Pan-agent/issues/109#issuecomment-6078562012), baseline `db822cc0f353f998da7221ef5d6ed6a68aa5019a`, branch workorder/109-candidate. [App](../../../apps/evidence-web/README.md), [evidence](../../evidence/web109/README.md). Independent review of the added control boundary remains pending; earlier accepted work does not accept these changes.
 
 #110 Stage A: [checkpoint design](checkpoint110.md), [evidence navigation](../../evidence/web110/SOURCE_OF_TRUTH.md).
+
+#111 Criteria1.0 candidate: [design](operations111.md), [evidence navigation](../../evidence/web111/SOURCE_OF_TRUTH.md). Contract https://github.com/pym96/Pan-agent/issues/111#issuecomment-6081968162 ; baseline `69fbd8a23f72a161ea2d4d7921b121bfc33a2ea7`, workorder/111-candidate. Independent review pending.

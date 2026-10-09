@@ -25,7 +25,7 @@ import (
 const workerLock int64 = 107010001
 
 func nodeEnvironment() []string {
-	keys := []string{"PATH", "DOCKER_HOST", "DOCKER_CONFIG", "PAN_ENTRY", "PAN_IMAGE", "WEB107_TASK_ROOT", "WEB107_SCENARIO", "ANALYSIS_CPUS", "ANALYSIS_MEMORY_GIB", "WEB_ISSUE", "WEB_FAUX_BARRIER", "WEB_RESULT_BARRIER", "WEB_TOOL_BARRIER", "WEB_CHECKPOINT_MODE", "WEB_CHECKPOINT_FAULT"}
+	keys := []string{"PATH", "DOCKER_HOST", "DOCKER_CONFIG", "PAN_ENTRY", "PAN_IMAGE", "WEB107_TASK_ROOT", "WEB107_SCENARIO", "ANALYSIS_CPUS", "ANALYSIS_MEMORY_GIB", "WEB_ISSUE", "WEB_FAUX_BARRIER", "WEB_RESULT_BARRIER", "WEB_TOOL_BARRIER", "WEB_CHECKPOINT_MODE", "WEB_CHECKPOINT_FAULT", "WEB_OPERATION_MODE", "WEB_OPERATION_FAULT"}
 	out := []string{}
 	for _, k := range keys {
 		if v := os.Getenv(k); v != "" {
@@ -40,7 +40,7 @@ func docker(ctx context.Context, args ...string) ([]byte, error) {
 	return c.Output()
 }
 func cleanupTask(ctx context.Context, tid string) error {
-	if runtimeIssue() == "web109" || runtimeIssue() == "web110" {
+	if runtimeIssue() == "web109" || (runtimeIssue() == "web110" || runtimeIssue() == "web111") {
 		if _, e := os.Stat(filepath.Join(os.Getenv("WEB107_TASK_ROOT"), tid, "stop-unconfirmed")); e == nil {
 			return errors.New("controlled stop confirmation unavailable; admission blocked")
 		}
@@ -98,7 +98,7 @@ func stopNode(pid int, entry, root string) error {
 	return errors.New("node stop unconfirmed")
 }
 func sealInterrupted(ctx context.Context, entry, dir string) error {
-	if runtimeIssue() != "web110" {
+	if runtimeIssue() != "web110" && runtimeIssue() != "web111" {
 		return nil
 	}
 	cmd := exec.CommandContext(ctx, "node", filepath.Join(filepath.Dir(entry), "archive-recover.mjs"), dir)
@@ -177,6 +177,12 @@ func work(db *pgxpool.Pool) error {
 		return errors.New("web107 worker already owned")
 	}
 	defer conn.Exec(context.Background(), "SELECT pg_advisory_unlock($1)", workerLock)
+	if runtimeIssue() == "web111" {
+		environment, _ := json.Marshal(nodeEnvironment())
+		if _, e = db.Exec(ctx, "INSERT INTO ew_reconcile_runtime VALUES(111,$1,$2) ON CONFLICT(singleton) DO UPDATE SET entry=excluded.entry,environment=excluded.environment", entry, environment); e != nil {
+			return e
+		}
+	}
 	if e = recoverTasks(db, entry, root); e != nil {
 		return fmt.Errorf("admission blocked: %s", e)
 	}
@@ -458,7 +464,7 @@ func executeTask(ctx context.Context, db *pgxpool.Pool, tid, bid, question, entr
 		if json.Unmarshal(b, &envelope) != nil {
 			return errors.New("executor protocol invalid")
 		}
-		if envelope.Kind == "checkpoint" || envelope.Kind == "invalidate" {
+		if envelope.Kind == "checkpoint" || envelope.Kind == "invalidate" || envelope.Kind == "dispatch" || envelope.Kind == "receipt" {
 			if e = checkpointBarrier(ctx, db, tid, attempt, dir, envelope.Kind, envelope.CheckpointID, envelope.SHA); e != nil {
 				return e
 			}
@@ -519,8 +525,22 @@ func executeTask(ctx context.Context, db *pgxpool.Pool, tid, bid, question, entr
 	if current != "running" && current != "cancelling" {
 		return errors.New("task ownership lost")
 	}
-	if _, e = tx.Exec(ctx, "UPDATE ew_checkpoints SET eligible=false WHERE task_id=$1", tid); e != nil {
-		return e
+	// A failed host receipt barrier remains available for readonly reconciliation.
+	// Its dispatch state never grants replay; cancellation/completion still revoke it.
+	keepPending := false
+	if state == "failed" && current == "running" {
+		var pending []byte
+		if tx.QueryRow(ctx, "SELECT payload FROM ew_checkpoints WHERE task_id=$1 AND attempt_id=$2 AND eligible AND consumed_by IS NULL ORDER BY created_at DESC LIMIT 1", tid, attempt).Scan(&pending) == nil {
+			var point struct {
+				Version int `json:"version"`
+			}
+			keepPending = json.Unmarshal(pending, &point) == nil && point.Version == 2
+		}
+	}
+	if !keepPending {
+		if _, e = tx.Exec(ctx, "UPDATE ew_checkpoints SET eligible=false WHERE task_id=$1", tid); e != nil {
+			return e
+		}
 	}
 	if state == "completed" {
 		if len(reply.Artifacts) != 2 {
@@ -566,6 +586,9 @@ func executeTask(ctx context.Context, db *pgxpool.Pool, tid, bid, question, entr
 }
 
 func runtimeIssue() string {
+	if os.Getenv("WEB_ISSUE") == "web111" {
+		return "web111"
+	}
 	if os.Getenv("WEB_ISSUE") == "web110" {
 		return "web110"
 	}

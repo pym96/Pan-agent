@@ -1,0 +1,11 @@
+import {chromium} from '../web/node_modules/playwright/index.mjs';
+import {readFile,writeFile} from 'node:fs/promises';
+import assert from 'node:assert/strict';
+const prior=JSON.parse(await readFile(process.env.PREVIOUS_RESULT)),out=process.env.EVIDENCE_DIR;
+const browser=await chromium.launch({executablePath:'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',headless:true});const page=await browser.newPage({viewport:{width:1440,height:1100}});
+async function select(){await page.locator(`[data-bundle-id="${prior.bundleId}"]`).click();await page.getByLabel('会话',{exact:true}).selectOption(prior.conversationId);await page.locator(`[data-task-id="${prior.id}"]`).click();await page.getByRole('button',{name:'核对并恢复 · 重建环境',exact:true}).waitFor()}
+try{
+ await page.goto(process.env.APP_ORIGIN);await page.getByLabel('邮箱').fill('a@web106.test');await page.getByLabel('密码',{exact:true}).fill(process.env.ACCOUNT_A_PASSWORD);await page.getByRole('button',{name:'登录',exact:true}).click();await select();assert.match(await page.getByTestId('recoverability').innerText(),/仍未知.*operation_result_unknown/);
+ const before=await (await page.request.get(process.env.APP_ORIGIN+'/api/tasks/'+prior.id)).json();const response=page.waitForResponse(r=>r.url().endsWith('/resume'));await page.getByRole('button',{name:'核对并恢复 · 重建环境',exact:true}).click();assert.equal((await response).status(),409);await page.reload();await select();assert.match(await page.getByTestId('recoverability').innerText(),/仍未知.*operation_result_unknown/);
+ const after=await (await page.request.get(process.env.APP_ORIGIN+'/api/tasks/'+prior.id)).json();assert.equal(after.recovery.attempts.length,before.recovery.attempts.length);assert.deepEqual(after.events,before.events);assert(after.cleanupConfirmed);assert.equal(after.recovery.accounting.dispatchedWithoutObservedResult,1);await page.screenshot({path:out+'/unresolved-reloaded.png',fullPage:true});await writeFile(out+'/browser111-readback.json',JSON.stringify({passed:true,checks:['unknown reason survives reload','explicit readonly recheck remains409','no new attempt or model/tool events','unknown dispatch visible'],taskId:prior.id},null,2));
+}finally{await browser.close()}

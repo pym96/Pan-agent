@@ -100,16 +100,26 @@ export class NativeKernel implements AgentKernel {
 	async resumeTask(request: KernelRunRequest, checkpoint: NativeCheckpoint): Promise<KernelRunResult> {
 		if (!this.adapter.checkpoint || !this.checkpoint) throw new Error("checkpoint_provider_unsupported");
 		if (this.running || this.closed || this.importing) throw new Error("checkpoint_session_unavailable");
-		if (checkpoint.version !== 1 || checkpoint.next !== "model_exchange"
+		if (!((checkpoint.version === 1 && checkpoint.next === "model_exchange") || (checkpoint.version === 2 && checkpoint.next === "pending_tool" && this.checkpoint.pending))
 			|| checkpoint.task !== request.task || checkpoint.systemPrompt !== request.systemPrompt
 			|| checkpoint.toolsJSON !== JSON.stringify(this.tools.map(describeAgentTool))
 			|| checkpoint.provider !== this.adapter.providerId || checkpoint.model !== this.adapter.modelId
 			|| checkpoint.reasoning !== this.adapter.reasoningLevel || checkpoint.providerFormat !== this.adapter.checkpoint.format
 			|| !Number.isSafeInteger(checkpoint.modelCalls) || checkpoint.modelCalls < 1
 			|| !Number.isSafeInteger(checkpoint.toolCalls) || checkpoint.toolCalls < 1) throw new Error("checkpoint_identity_invalid");
-		validateCanonicalContext(checkpoint.messages);
-		validateUsage(checkpoint.usage);
-		if (checkpoint.messages.at(-1)?.role !== "tool_result") throw new Error("checkpoint_not_settled");
+		if (checkpoint.next === "pending_tool") {
+            const last = checkpoint.messages.at(-1);
+            const calls = last?.role === "assistant" ? toolCalls(last) : [];
+            if (calls.length !== 1 || !checkpoint.resolution || !["completed", "not_started"].includes(checkpoint.resolution.kind)) throw new Error("checkpoint_pending_invalid");
+            const result = checkpoint.resolution.kind === "completed" ? checkpoint.resolution.result : this.errorResult(calls[0]!, "validation only");
+            validateToolResult(result);
+            validateCanonicalContext([...checkpoint.messages, result]);
+        } else {
+            if (checkpoint.resolution) throw new Error("checkpoint_unexpected_resolution");
+            validateCanonicalContext(checkpoint.messages);
+            if (checkpoint.messages.at(-1)?.role !== "tool_result") throw new Error("checkpoint_not_settled");
+        }
+        validateUsage(checkpoint.usage);
 		this.importing = true;
 		try { await this.adapter.checkpoint.importState(structuredClone(checkpoint.providerState)); } finally { this.importing = false; }
 		this.messages.splice(0, this.messages.length, ...structuredClone(checkpoint.messages));
@@ -131,9 +141,35 @@ export class NativeKernel implements AgentKernel {
 			status, reason, finalText, modelCalls, toolCalls: admittedToolCalls, usage,
 		});
 
+        const snapshot = async (next: "model_exchange" | "pending_tool"): Promise<NativeCheckpoint> => ({
+            version: next === "pending_tool" ? 2 : 1, sourceRunId: request.runId, task: request.task,
+            systemPrompt: request.systemPrompt, toolsJSON: JSON.stringify(this.tools.map(describeAgentTool)),
+            provider: this.adapter.providerId, model: this.adapter.modelId, reasoning: this.adapter.reasoningLevel,
+            providerFormat: this.adapter.checkpoint!.format, providerState: await this.adapter.checkpoint!.exportState(),
+            messages: structuredClone(this.messages), modelCalls, toolCalls: admittedToolCalls, usage: structuredClone(usage), next,
+        });
+        const settle = async (call: ToolCall, reused?: ToolResultMessage) => {
+            if (!reused) {
+                await request.onObservation({type:"tool.started",runId:request.runId,toolCallId:call.id,toolName:call.name,arguments:call.arguments});
+                if (controller.signal.aborted) throw new Error("operator_cancelled");
+            }
+            const result = reused ?? await this.executeTool(call, controller.signal);
+            await this.checkpoint?.settled?.(result);
+            this.messages.push(result);
+            if (!reused) await request.onObservation({type:"tool.settled",runId:request.runId,toolCallId:call.id,toolName:call.name,isError:result.isError,text:resultText(result.content),...(result.details === undefined ? {} : {details:result.details})});
+        };
 		try {
 			if (this.seededContextError) return terminal("model_error", this.seededContextError);
 			if (!restored) this.messages.push({ role: "user", content: [{ type: "text", text: request.task }], timestamp: Date.now() });
+            if (restored?.next === "pending_tool") {
+                const call = toolCalls(this.messages.at(-1) as AssistantMessage)[0]!;
+                if (controller.signal.aborted) return terminal("cancelled", "operator_cancelled");
+                // Transfer the durable pending barrier to this attempt before any possible effect.
+                await this.checkpoint!.pending!(await snapshot("pending_tool"));
+                await settle(call, restored.resolution?.kind === "completed" ? restored.resolution.result : undefined);
+                if (controller.signal.aborted) return terminal("cancelled", "operator_cancelled");
+                await this.checkpoint!.commit(await snapshot("model_exchange"));
+            }
 			while (true) {
 				if (controller.signal.aborted) return terminal("cancelled", "operator_cancelled");
 				if (this.limits.maxModelTurns !== null && modelCalls >= this.limits.maxModelTurns) return terminal("incomplete", "turn_limit");
@@ -218,37 +254,13 @@ export class NativeKernel implements AgentKernel {
 				}
 				admittedToolCalls += calls.length;
 
-				for (const call of calls) {
-					if (controller.signal.aborted) return terminal("cancelled", "operator_cancelled");
-					await request.onObservation({
-						type: "tool.started",
-						runId: request.runId,
-						toolCallId: call.id,
-						toolName: call.name,
-						arguments: call.arguments,
-					});
-					if (controller.signal.aborted) return terminal("cancelled", "operator_cancelled");
-					const result = await this.executeTool(call, controller.signal);
-					this.messages.push(result);
-					await request.onObservation({
-						type: "tool.settled",
-						runId: request.runId,
-						toolCallId: call.id,
-						toolName: call.name,
-						isError: result.isError,
-						text: resultText(result.content),
-						...(result.details === undefined ? {} : { details: result.details }),
-					});
-					if (controller.signal.aborted) return terminal("cancelled", "operator_cancelled");
-				}
-                if (this.checkpoint && this.adapter.checkpoint) {
-                    await this.checkpoint.commit({version:1, sourceRunId:request.runId, task:request.task,
-                        systemPrompt:request.systemPrompt, toolsJSON:JSON.stringify(this.tools.map(describeAgentTool)),
-                        provider:this.adapter.providerId, model:this.adapter.modelId, reasoning:this.adapter.reasoningLevel,
-                        providerFormat:this.adapter.checkpoint.format, providerState:await this.adapter.checkpoint.exportState(),
-                        messages:structuredClone(this.messages), modelCalls, toolCalls:admittedToolCalls,
-                        usage:structuredClone(usage), next:"model_exchange"});
+                if (calls.length === 1 && this.checkpoint?.pending) await this.checkpoint.pending(await snapshot("pending_tool"));
+                for (const call of calls) {
+                    if (controller.signal.aborted) return terminal("cancelled", "operator_cancelled");
+                    await settle(call);
+                    if (controller.signal.aborted) return terminal("cancelled", "operator_cancelled");
                 }
+                if (this.checkpoint && this.adapter.checkpoint) await this.checkpoint.commit(await snapshot("model_exchange"));
 			}
 		} catch (error) {
 			if (controller.signal.aborted) return terminal("cancelled", "operator_cancelled");

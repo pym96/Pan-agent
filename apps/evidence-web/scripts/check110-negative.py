@@ -42,6 +42,8 @@ try:
    elif fault=='bundle':v['identity']['contextSHA256']='0'*64
    elif fault=='private-state':v['native']['providerState']={}
    data=json.dumps(v,separators=(',',':')).encode();encoded=base64.b64encode(data).decode();sql("UPDATE ew_checkpoints SET payload=decode('"+encoded+"','base64'),sha256='"+hashlib.sha256(data).hexdigest()+"' WHERE id='"+cp+"'")
+  if fault=='schema' and issue==111:
+   check(resume(a,cid,tid,cp)[0]==409 and len(task(tid)['recovery']['attempts'])==1,'invalid schema rejected at new reconciliation admission with zero sends');continue
   finishResume(cid,tid,cp);check(True,fault+' fixture rejected before send')
  save('result.json',{'passed':True,'checks':checks,'providerSends':0})
 finally:

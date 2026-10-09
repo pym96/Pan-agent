@@ -19,3 +19,5 @@ check-isolation.mjs runs a harmless actual Docker probe for denied input writes,
 ## #110 checkpoint mode
 
 `checkpoint.mjs` supplies identity/file validation, private fsync barriers and two-stage Faux; `stage2.py` consumes `stage1.json` to produce five failure CSV rows while retaining whole-report counts. `archive-recover.mjs` performs stop-only existing Product sealing and preserves original unsealed event bytes. Private checkpoint files never enter HTTP downloads or stdout.
+
+#111: `operation.mjs` owns the private pre-dispatch/dispatch/receipt barriers and bounded reconciliation; `reconcile.mjs` is a readonly server-launched verifier, never a model tool. `WEB_OPERATION_MODE=1` adds single-tool pending points. Trusted fault fixtures `WEB_OPERATION_FAULT=pre-dispatch|after-dispatch|after-receipt|receipt-failure` hold/fail only owned executions. Faux question `fixture:nonzero` produces the explicit exit7 feedback fixture. Receipt completion occurs after the container exits, before its cleanup and before returning to Native. Cleanup remains required before API admission. [Design](../../../docs/design/pan-web/operations111.md).

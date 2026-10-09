@@ -2,7 +2,7 @@
 """Real process boundary; private checkpoint never passes through an HTTP input."""
 import pathlib,os,json,subprocess,time,uuid,signal,hashlib
 source=pathlib.Path(__file__).with_name('check108.py').read_text();exec(compile(source.split('\ntry:\n app=start')[0],str(pathlib.Path(__file__).with_name('check108.py')),'exec'))
-assert issue==110
+assert issue in [110,111]
 env['WEB_CHECKPOINT_MODE']='1'
 def resume(c,cid,tid,cp,rid='resume'):
  return jreq(c,f'/api/conversations/{cid}/tasks/{tid}/resume',{'requestId':rid,'checkpointId':cp})

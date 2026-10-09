@@ -1,0 +1,20 @@
+#!/usr/bin/env python3
+import pathlib,os,json,subprocess,time,uuid,signal,hashlib,base64,copy
+source=pathlib.Path(__file__).with_name('check111-negative.py').read_text();exec(compile(source.split('\ntry:\n app=start')[0],str(pathlib.Path(__file__).with_name('check111-negative.py')),'exec'))
+try:
+ app=start('app');ready();a,b,n=client(),client(),client();login(a,'a');login(b,'b');source=(ROOT.parents[1]/'docs/evidence/terminal-bench-full-live-97-summary.json').read_bytes();bid=upload(a,source)
+ for fault in ['after-exchange','partial-tools','receipt-failure']:
+  cid=conversation(a,bid);_,q=append(a,cid,fault);tid=q['id'];env['WEB_CHECKPOINT_FAULT']=fault if fault!='receipt-failure' else '';env['WEB_OPERATION_FAULT']=fault if fault=='receipt-failure' else '';worker=start('worker')
+  if fault=='receipt-failure':t=wait(tid);stop(worker);worker=None
+  else:
+   t=wait(tid,predicate=lambda t:sum(e.get('type')=='model.turn_started' for e in t['events'])==2 if fault=='after-exchange' else any(e.get('type')=='tool.started' and e.get('toolCallId')=='partial-second' for e in t['events']));os.kill(t['recovery']['attempts'][-1]['nodePid'],signal.SIGKILL);worker.wait(timeout=40);worker=None;t=task(tid)
+  if fault=='receipt-failure':check(t['recovery']['reconcileAvailable'],'failed receipt barrier retains readonly reconciliation record')
+  check(resume(cid,tid,t['recovery'].get('checkpointId','f'*64))[0]==409,fault+' cannot cause replay');check(len(t['recovery']['attempts'])==1,fault+' no new attempt');save(fault+'.json',t)
+ env['WEB_CHECKPOINT_FAULT']='';env['WEB_OPERATION_FAULT']='after-receipt';cid=conversation(a,bid);_,q=append(a,cid,'fixture:nonzero');tid=q['id'];worker=start('worker');t=kill(tid);cp=t['recovery']['checkpointId'];check(resume(cid,tid,cp)[0]==200,'nonzero is confirmed result, not success');env['WEB_OPERATION_FAULT']='';worker=start('worker');t=wait(tid);save('nonzero-resumed.json',t);received=[e for e in t['events'] if e.get('type')=='context.received'][-1]['messages'][-1];check(received['role']=='tool_result' and received['isError'] and json.loads(received['content'][0]['text'])['exitCode']==7,'new model exchange receives original nonzero result');check(sum(e.get('type')=='tool.started' and e.get('toolCallId')=='stage-1' for e in t['events'])==1 and t['state']=='failed','failed tool not repeated or reported successful');stop(worker);worker=None
+ # Missing pinned image: inject an unavailable identity into the owned host configuration and matching fixture envelope. Never delete shared images or fetch substitutes.
+ cid=conversation(a,bid);_,q=append(a,cid,'image admission');tid=q['id'];env['WEB_OPERATION_FAULT']='pre-dispatch';worker=start('worker');t=kill(tid);cp=t['recovery']['checkpointId'];v=json.loads(base64.b64decode(sql("SELECT encode(payload,'base64') FROM ew_checkpoints WHERE id='"+cp+"'")));environment=json.loads(sql('SELECT environment FROM ew_reconcile_runtime WHERE singleton=111'));originalEnvironment=list(environment);original=copy.deepcopy(v);missing='sha256:'+'0'*64;environment=[('PAN_IMAGE='+missing if e.startswith('PAN_IMAGE=') else e) for e in environment];v['identity']['image']=missing;v['operation']['binding']['identitySHA256']=hashlib.sha256(json.dumps(v['identity'],separators=(',',':'),ensure_ascii=False).encode()).hexdigest();put(cp,v);sql("UPDATE ew_reconcile_runtime SET environment='"+json.dumps(environment).replace("'","''")+"'::jsonb WHERE singleton=111")
+ status,x=resume(cid,tid,cp);save('image-missing.json',x);check(status==409 and 'operation_image_missing' in x['error'],'missing pinned image blocks before calls without replacement pull');put(cp,original);sql("UPDATE ew_reconcile_runtime SET environment='"+json.dumps(originalEnvironment).replace("'","''")+"'::jsonb WHERE singleton=111");jreq(a,f'/api/conversations/{cid}/tasks/{tid}/cancel',{'requestId':'retire-fixture'})
+ save('result.json',{'passed':True,'checks':checks,'providerSends':0})
+finally:
+ stop(worker);stop(app)
+ for f in logs:f.close()

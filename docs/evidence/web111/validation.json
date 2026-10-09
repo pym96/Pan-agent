@@ -1,0 +1,208 @@
+{
+  "criteria": "1.0",
+  "base": "69fbd8a23f72a161ea2d4d7921b121bfc33a2ea7",
+  "branch": "workorder/111-candidate",
+  "builderObservationOnly": true,
+  "contract": "https://github.com/pym96/Pan-agent/issues/111#issuecomment-6081968162",
+  "checks": {
+    "pending-continuation": {
+      "passed": true,
+      "checks": 33,
+      "evidence": "/Users/panyiming/.local/state/pan-agent/web111/evidence/delivery-check111/result.json",
+      "sha256": "7fb744c615843f7819bf30fca6f31d6e296ba2cda135303ba0d9489e034187ff"
+    },
+    "receipt-isolation": {
+      "passed": true,
+      "checks": 20,
+      "evidence": "/Users/panyiming/.local/state/pan-agent/web111/evidence/delivery-check111-negative/result.json",
+      "sha256": "804272214378c3232e2f57ad70072191a844f98e70cad0802d42349d2afdb4e9"
+    },
+    "uncertainty-boundaries": {
+      "passed": true,
+      "checks": 11,
+      "evidence": "/Users/panyiming/.local/state/pan-agent/web111/evidence/delivery-check111-boundaries/result.json",
+      "sha256": "8587efd2d5edd3d8bccb08f1fee3ee20a2c42e1af0099969146df3507d33e8f6"
+    },
+    "live-stop-gate": {
+      "passed": true,
+      "checks": 4,
+      "evidence": "/Users/panyiming/.local/state/pan-agent/web111/evidence/delivery-check111-stop-race/result.json",
+      "sha256": "2069073c89d96680bbe16947bef23dd94d3bea9747fa304e741eaca4e1079ae9"
+    },
+    "recovery-browser": {
+      "passed": true,
+      "checks": 9,
+      "evidence": "/Users/panyiming/.local/state/pan-agent/web111/evidence/delivery-run-browser111/browser111.json",
+      "sha256": "bb2343c2b384acfe6068115ba165d0560ce1140e410d196412a468bb63b5a0ca"
+    },
+    "unknown-browser": {
+      "passed": true,
+      "checks": 4,
+      "evidence": "/Users/panyiming/.local/state/pan-agent/web111/evidence/delivery-unknown-browser/browser111-readback.json",
+      "sha256": "01de07a66490262f7fe9e9c5cfcc93e825ac5d8e52f9cb908c70650909039f6a"
+    },
+    "110-positive": {
+      "passed": true,
+      "checks": 19,
+      "evidence": "/Users/panyiming/.local/state/pan-agent/web111/evidence/delivery-check110/result.json",
+      "sha256": "ebb0819b81e02c7cc19ebd72b6538165e95e0735b3b4356cb6ad68744350d8bf"
+    },
+    "110-negative": {
+      "passed": true,
+      "checks": 37,
+      "evidence": "/Users/panyiming/.local/state/pan-agent/web111/evidence/final-check110-negative/result.json",
+      "sha256": "cbf54136cb88b90810004c417788dca62048364ef391ee97f1257f080d32ca05"
+    },
+    "110-races": {
+      "passed": true,
+      "checks": 9,
+      "evidence": "/Users/panyiming/.local/state/pan-agent/web111/evidence/final-check110-races/result.json",
+      "sha256": "e9db00fb9d71bd6fe7c039b093fd4db24b50b2fee6f29c8658f668f2f5c532b6"
+    },
+    "110-file-integrity": {
+      "passed": true,
+      "checks": 3,
+      "evidence": "/Users/panyiming/.local/state/pan-agent/web111/evidence/final-check110-file-integrity/result.json",
+      "sha256": "fc8cca4586ae7976c868e2497e31896fda8ecd51217cb1ea200d943649370662"
+    },
+    "110-live-stop": {
+      "passed": true,
+      "checks": 4,
+      "evidence": "/Users/panyiming/.local/state/pan-agent/web111/evidence/final-check110-stop-race/result.json",
+      "sha256": "2069073c89d96680bbe16947bef23dd94d3bea9747fa304e741eaca4e1079ae9"
+    },
+    "109-controls": {
+      "passed": true,
+      "checks": 38,
+      "evidence": "/Users/panyiming/.local/state/pan-agent/web111/evidence/final-check109/result.json",
+      "sha256": "e9b055b7ab95c5b21cc3ae3253a1575ab1c96417a766868c75692f2eae4e3025"
+    },
+    "109-retention": {
+      "passed": true,
+      "checks": 6,
+      "evidence": "/Users/panyiming/.local/state/pan-agent/web111/evidence/delivery-check109-retention/result.json",
+      "sha256": "916eb7ed703825a857b02a796a0b46a139946414855439b1966e8db4c56b4a0a"
+    },
+    "109-browser": {
+      "passed": true,
+      "checks": 8,
+      "evidence": "/Users/panyiming/.local/state/pan-agent/web111/evidence/delivery-run-browser109/browser109.json",
+      "sha256": "3d273f07e4aab1162a814378fce20c2572ce9d2342cc60f247ca9b4166ba7a03"
+    },
+    "108-conversations": {
+      "passed": true,
+      "checks": 37,
+      "evidence": "/Users/panyiming/.local/state/pan-agent/web111/evidence/final-check108/result.json",
+      "sha256": "3d95b90d9142a205c6f6a250a51c3a58485174694bdbf0c2f3e88d2970c7b538"
+    },
+    "107-execution": {
+      "passed": true,
+      "checks": 31,
+      "evidence": "/Users/panyiming/.local/state/pan-agent/web111/evidence/delivery-check107/result.json",
+      "sha256": "627f824bb66259d5a043125dfc8e328161ecebc39890654fb4075280d08b79eb"
+    },
+    "106-import-persistence-browser": {
+      "passed": true,
+      "checks": 36,
+      "evidence": "/Users/panyiming/.local/state/pan-agent/web111/evidence/delivery-integration/integration.json",
+      "sha256": "30983aa4c2f9eb48c7ca84fbbe026a87ff382f3700c456f48c25d670662055aa"
+    },
+    "public-readback": {
+      "passed": true,
+      "checks": 3,
+      "evidence": "/Users/panyiming/.local/state/pan-agent/web111/evidence/delivery-check110-readback/result.json",
+      "sha256": "bc6bb25c1cd4395c1b0199310ba0147dc190dd2508fce0681e78774f6da9b84f"
+    }
+  },
+  "productTests": 209,
+  "goRaceAndVet": true,
+  "package": {
+    "package": "/Users/panyiming/.local/state/pan-agent/web111/pan-agent-web111-70b6c7680f07.tgz",
+    "sha256": "70b6c7680f07f936343737f064e94cb9838aefb6264448c3639a935accce9d0e",
+    "distributionFiles": 82,
+    "exactSourceBuildInstalledRuntimeMatch": true
+  },
+  "deployment": {
+    "goBinarySHA256": "4893e142d6b000a71f5167fb0348558d91b899ff0b3fcb80e9002bd10490a0c5",
+    "pythonImage": "sha256:8129910271f9764b5c05038d351ad7b9f9d94b85351355b69c5526eadd111775",
+    "repoDigests": [
+      "python@sha256:0dd364ba7e10242f07755449e3a3d0e35f9efd987952737b90def6709ab0c5ce"
+    ],
+    "runtime": "/Users/panyiming/.local/state/pan-agent/web111/runtime",
+    "ownedAnalysisContainers": 0,
+    "ownedAppWorkers": 0,
+    "postgresStopped": true,
+    "database": {
+      "states": {
+        "superseded": 3,
+        "failed": 7,
+        "completed": 29,
+        "cancelled": 20,
+        "interrupted": 21,
+        "blocked": 3
+      },
+      "active": 0,
+      "attempts": 95,
+      "checkpoints": 88
+    },
+    "node": "v26.7.0",
+    "go": "go version go1.27.1 darwin/arm64",
+    "ownedExecutorNodes": 0
+  },
+  "resource": {
+    "utc": "2026-10-09T14:08:24.074Z",
+    "free": 29946343424,
+    "owned": 9260187648,
+    "docker": 88965865472,
+    "baselineDocker": 48503971840,
+    "cumulativeBytes": 49722081280,
+    "maximumExclusive": 57982058496,
+    "minimumHostFree": 21474836480
+  },
+  "inputSHA256": "f67d6e22a5f229637bb90cccc5a2538f6aaa87225efb1b8a9cf182cac37828ab",
+  "schema": {
+    "001.sql": "5a40f6b8fbae0c5fe167a7f3058d0b99d410eb79ff4b7756342d65488924adfa",
+    "002.sql": "b748568d1d7210bc0832334ce3a9a7b95945fb552fc9d5fe106d84c4b2a6111f",
+    "003.sql": "0365ff379050313d8e21ca08bf25d9d33efebd594c1e4ca759b6c0ee742d1549",
+    "004.sql": "5f868c54bc93da89983d2ad95bc80a83a98ecc0eef7e227bb440b231b2306c5b",
+    "005-checkpoints.sql": "6ffaa6b10d1f7767ddf5ab041ef43da68f0f5f6acfe5a6a78fe5ebbd0d39c12d",
+    "006_operations.sql": "d916ff29df30d94161c67d0cd76360aecbaab47ca392281b126d56965791269d"
+  },
+  "frontend": {
+    "index.html": "aa8c66861ce3e9c19421f7e4ede5d1ecd8fe1ce3c05964c13bd422d69b9f8d8f",
+    "style.css": "022335888be4b938ea00a5ff8735c2ccd4c7b99b171ccf1815cd45c759d99952",
+    "app.js": "86a0d21cfeffbdf0348a0c4da970ef96e70ddd73965f73ed9dec146416a062ae"
+  },
+  "realProviderCalls": 0,
+  "benchmarkCalls": 0,
+  "codingTokenUsage": "unknown; no reliable session meter",
+  "accounting": {
+    "knownSyntheticModelExchanges": 115,
+    "unknownModelExchanges": 11,
+    "observedToolExecutions": 77,
+    "dispatchedWithoutObservedResult": 2
+  },
+  "limits": [
+    "single-tool pending gap only",
+    "Faux only; real Kimi unsupported",
+    "local host/DB administrators trusted",
+    "no RAM/background service/external effect recovery",
+    "no general exactly-once claim"
+  ],
+  "carriedForwardImpact": "final-check108/109 and 110 negative/race/file/stop checks ran before two final narrow changes: retain failed version2 pending eligibility for readonly reconciliation; omit fresh tool execution observations for a reused pending result. Those probes use version1 or checkpoint-disabled paths and never enter either changed branch. Final distribution runs all new version2 boundaries, actual browser, 110 positive, 107/106, 109 retention/browser; full source Product209 and Go race/vet rerun.",
+  "inventory": {
+    "path": "/Users/panyiming/.local/state/pan-agent/web111/evidence/inventory-final.json",
+    "sha256": "c71c4b6e67513d9c511051260bb25a0f8f6d7aa170322ed6c7c04681e59aec2a",
+    "entries": 3319,
+    "excluded": [
+      "candidate/**",
+      "evidence/inventory-final.json",
+      "Handoff.md"
+    ]
+  },
+  "dependencyLocks": {
+    "typescript/package-lock.json": "4a0281812e8390efb6f702d2b15962cc9d31a5ecfe49430e192c3bc59d51785c",
+    "apps/evidence-web/web/package-lock.json": "98c38b98297abaac9f57f95fb4f926e1e51dca479bebcad2cb1056a466ca9ca4",
+    "apps/evidence-web/go.sum": "a0855a6768f26a1a2911735c9f5ab68e1c09de80f8435927dbfeb8de4517db7f"
+  }
+}

@@ -2,7 +2,7 @@
 """Owned real cancellation/replacement probes. Faux, no Provider/benchmark sends."""
 import pathlib,os,json,subprocess,time,uuid,concurrent.futures
 source=pathlib.Path(__file__).with_name('check108.py').read_text();exec(compile(source.split('\ntry:\n app=start')[0],str(pathlib.Path(__file__).with_name('check108.py')),'exec'))
-assert issue in [109,110]
+assert issue in [109,110,111]
 baseStart=start
 def start(kind,scenario='success',barrier=False,tool=None,result=False):
  env['WEB_TOOL_BARRIER']=tool or '';env['WEB_RESULT_BARRIER']='1' if result else '0';return baseStart(kind,scenario,barrier)

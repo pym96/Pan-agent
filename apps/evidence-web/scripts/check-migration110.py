@@ -18,6 +18,7 @@ sql+=(root/'migrations/004.sql').read_text()
 sql+="INSERT INTO ew_tasks(id,bundle_id,account_id,question,state,cleanup_confirmed) VALUES ('cancelled','b','a','synthetic cancelled','cancelled',true);"
 sql+=(root/'migrations/003.sql').read_text()+(root/'migrations/004.sql').read_text()
 sql+=(root/'migrations/005-checkpoints.sql').read_text()*2
+sql+=(root/'migrations/006_operations.sql').read_text()*2
 sql+='''
 DO $$ BEGIN
  IF EXISTS (SELECT 1 FROM before108 b JOIN ew_tasks t USING(id) JOIN ew_files f ON f.bundle_id=t.bundle_id JOIN ew_task_artifacts a ON a.task_id=t.id WHERE b.question<>t.question OR b.result<>t.result OR b.state<>t.state OR b.source<>f.content OR b.artifact<>a.content OR t.conversation_id IS NOT NULL OR t.context_text IS NOT NULL) THEN RAISE EXCEPTION 'legacy migration changed history'; END IF;
