@@ -43,10 +43,13 @@ export function normalizeDemo(raw,root,host){
  check(!within(c.mediaRoot,owner)&&!within(owner,c.mediaRoot),'demo_media_overlap');
  check(c.layout.archiveRoot===join(c.mediaRoot,'task-archives',digest(c.campaignRoot)),'demo_archive_namespace');
  const oldState=join(host.home,'.local/state/pan-agent');
+ // A fixed-depth namespace makes owners siblings regardless of creation order.
+ // A descendant prefix alone permits B inside A's campaign/segments or ledger.
+ // Apply the same rule to offline fixtures and live reopening, before any writes.
+ check(dirname(owner)===join(oldState,'wo58-video-20261009','campaigns'),'demo_owner_depth');
  const forbidden=[join(oldState,'wo75'),join(oldState,'benchmark97-next'),join(oldState,'wo97'),join(oldState,'wo97-image-prep'),'/Volumes/WD_BLACK/pan-agent/wo97-full-live-20260925'];
  for(const p of [owner,c.mediaRoot])check(!forbidden.some(f=>within(p,f)||within(f,p)),'demo_old_state_overlap');
  if(host.mode==='live'){
-  check(within(owner,join(oldState,'wo58-video-20261009','campaigns'))&&owner!==join(oldState,'wo58-video-20261009','campaigns'),'demo_work_root');
   check(c.mediaRoot==='/Volumes/WD_BLACK/pan-agent/wo58-video-20261009','demo_media_root');
  }
  // Persistent historical roots must be explicit, even when absent on this machine.

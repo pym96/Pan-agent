@@ -13,7 +13,7 @@ const pkg=JSON.parse(readFileSync(new URL('./package-identity.json',import.meta.
 const task='log-summary-date-ranges',image='sha256:'+'a'.repeat(64);
 // No HOME/environment mutation; host seams are explicit offline dependencies only.
 function fixture(){
- const dir=mkdtempSync(join(BASE,'case-')),home=join(dir,'fake-home'),owner=join(dir,'demo'),root=join(owner,'campaign'),media=join(dir,'media'),runner=join(dir,'runner');
+ const dir=mkdtempSync(join(BASE,'case-')),home=join(dir,'fake-home'),owner=join(home,'.local/state/pan-agent/wo58-video-20261009/campaigns/demo'),root=join(owner,'campaign'),media=join(dir,'media'),runner=join(dir,'runner');
  for(const p of [home,owner,media,runner])mkdirSync(p,{recursive:true});
  const keys=generateKeyPairSync('ed25519'),sha='f'.repeat(40),authorityPath=join(owner,'authority.json');
  writeFileSync(authorityPath,JSON.stringify({acceptedRunnerSha:sha,publicKey:keys.publicKey.export({type:'spki',format:'pem'})}));
@@ -111,4 +111,46 @@ test('C-DEMO58-03 identical snapshot behind a symlink still fails archive isolat
  const c=fixture();await c.init();await c.prepare();const p=await c.permit();await c.run(p);
  const s=new Store(c.root),target=join(c.config.layout.archiveRoot,s.meta.campaignId,p.a.runId,task),r=JSON.parse(readFileSync(join(target,'commit/receipt.json'))),snapshot=join(target,'snapshots',r.snapshot);
  const {renameSync}=await import('node:fs');renameSync(snapshot,snapshot+'-retained');symlinkSync(snapshot+'-retained',snapshot);await assert.rejects(c.cmd('status'),/demo_archive_symlink/);
+});
+
+// Repair regression: disjoint owners must hold for containment, not only equality.
+for(const suffix of ['campaign/segments/nested-demo','ledger/nested-demo','nested-demo'])test('C-DEMO58-01 repair rejects nested owner '+suffix+' before init writes',async()=>{
+ const a=fixture();await a.init();
+ const owner=join(a.owner,suffix),root=join(owner,'campaign');
+ const config={...a.config,campaignRoot:root,authorityPath:join(owner,'authority.json'),ledgerRoot:join(owner,'ledger'),outputRoot:join(root,'segments'),layout:{...a.config.layout,archiveRoot:join(a.media,'task-archives',digest(root))}};
+ // No B authority or directory needs creation: structural rejection is first.
+ const input=join(a.dir,'nested-input.json');writeFileSync(input,JSON.stringify(config));
+ const before=tree(a.owner),mediaBefore=tree(a.media);
+ await assert.rejects(main(['init','--campaign',root,'--entry',config.layout.entry,'--demo-config',input],a.deps),/demo_owner_depth/);
+ assert.deepEqual(tree(a.owner),before);assert.deepEqual(tree(a.media),mediaBefore);assert.deepEqual(a.effects,[]);
+});
+test('C-DEMO58-01 repair rejects descendant first and namespace ancestor without directory discovery',async()=>{
+ const a=fixture();const {normalizeDemo}=await import('./full-demo-config-58.mjs');
+ for(const owner of [join(a.owner,'campaign/segments/child'),dirname(a.owner)]){
+  const root=join(owner,'campaign'),c={...a.config,campaignRoot:root,authorityPath:join(owner,'authority.json'),ledgerRoot:join(owner,'ledger'),outputRoot:join(root,'segments'),layout:{...a.config.layout,archiveRoot:join(a.media,'task-archives',digest(root))}};
+  for(const mode of ['offline-control','live'])assert.throws(()=>normalizeDemo(c,root,{...a.deps,mode}),/demo_owner_depth/);
+ }
+ assert(!existsSync(a.root));assert.deepEqual(a.effects,[]);
+});
+test('C-DEMO58-01 repair rechecks owner boundary on status and run before effects',async()=>{
+ const a=fixture();await a.init();await a.prepare();const p=await a.permit();
+ const before=tree(a.owner);
+ // Change only the injected fake host namespace; persisted CLI-created state is intact.
+ a.deps.home=join(a.home,'different-host-namespace');
+ await assert.rejects(a.cmd('status'),/demo_owner_depth/);
+ await assert.rejects(a.run(p),/demo_owner_depth/);
+ assert.deepEqual(tree(a.owner),before);assert.deepEqual(a.effects,[]);
+});
+test('C-DEMO58-01 repair sibling owners with prefix names remain isolated through execution',async()=>{
+ const a=fixture(),b=fixture();
+ const owner=join(dirname(a.owner),'demo-other'),root=join(owner,'campaign');mkdirSync(owner,{recursive:true});
+ b.deps.home=a.home;b.config.campaignRoot=root;b.config.authorityPath=join(owner,'authority.json');b.config.ledgerRoot=join(owner,'ledger');b.config.outputRoot=join(root,'segments');b.config.mediaRoot=a.media;
+ writeFileSync(b.config.authorityPath,JSON.stringify({acceptedRunnerSha:'f'.repeat(40),publicKey:b.keys.publicKey.export({type:'spki',format:'pem'})}));b.config.authorityHash=digest(readFileSync(b.config.authorityPath));
+ b.config.layout.archiveRoot=join(a.media,'task-archives',digest(root));b.config.layout.ownedRoots=[...demoRequiredRoots(a.home),a.dir,b.dir,a.media];b.save();
+ const call=async(command,args=[])=>{const old=console.log;let out;console.log=x=>{out=JSON.parse(x)};try{await main([command,'--campaign',root,...args],b.deps);return out;}finally{console.log=old;}};
+ await a.init();await call('init',['--entry',b.config.layout.entry,'--demo-config',b.configPath]);await a.prepare();await call('prepare',['--task',task,'--task-root',b.config.layout.taskRoot]);
+ const beforeB=tree(owner);await a.run(await a.permit());assert.deepEqual(tree(owner),beforeB);
+ const binding=(await call('status',['--task',task])).proposedBinding;
+ const permit={authorized:true,version:2,validity:'run-bound',runId:randomUUID(),humanAuthorizationId:'SYNTHETIC-ONLY',notBefore:'2020-01-01',expiresAt:null,binding};permit.signature=sign(null,Buffer.from(canonical(permit)),b.keys.privateKey).toString('base64');const path=join(b.dir,'sibling-permit.json');writeFileSync(path,JSON.stringify(permit));
+ const beforeA=tree(a.owner);await call('run',['--activation',path,'--entry',b.config.layout.entry,'--task-root',b.config.layout.taskRoot]);assert.deepEqual(tree(a.owner),beforeA);assert.deepEqual(b.effects,['credential','broker','attempt']);
 });

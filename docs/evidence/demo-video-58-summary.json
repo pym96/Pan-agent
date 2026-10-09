@@ -1,39 +1,15 @@
 {
   "criteria": "2.1",
-  "stage": "offline_runner_adaptation",
-  "status": "builder_checks_passed_pending_independent_regulator",
-  "baseSha": "06865bf4523131b59cfec2625c063a09acd9cf86",
-  "stageAParent": "341369b9a7ab91837c01f34d7f3dacf491694886",
-  "panHash": "5ecd3b9b4da688f90dfee3cc651b4a2f755595587b6d7d7287383cab23c8e580",
-  "contract": "https://github.com/pym96/Pan-agent/issues/58#issuecomment-6073064089",
-  "implementation": {
-    "explicitOption": "--demo-config",
-    "schema": 3,
-    "signedConfiguration": "identity.demo58",
-    "independentPaths": [
-      "authorityPath",
-      "ledgerRoot",
-      "outputRoot",
-      "layout.archiveRoot"
-    ],
-    "baselineDocker": 48503971840,
-    "resourceFormula": "owned+max(0,Docker-baseline)",
-    "incrementExclusiveBytes": 57982058496,
-    "minFreeBytes": 21474836480,
-    "legacyDefaultsPreserved": true,
-    "sharedExecutionLoop": true
-  },
-  "verification": {
-    "tests": 121,
-    "passed": 121,
+  "status": "nested_campaign_repair_pending_independent_review",
+  "parentSHA": "ce34561a246fb2ad709a5fbfcc5b41808a08fd56",
+  "priorVerdict": "rejected / C-DEMO58-01 FAIL; original hash already checked by Human",
+  "repair": "fixed-depth direct-child campaign owner, checked in all modes on init and reopen",
+  "targetedTests": {
+    "passed": 6,
     "failed": 0,
-    "skipped": 0,
-    "newDemoTests": 34,
-    "log": "criteria21/combined-regression-final.log",
-    "command": "criteria21/regression-command.json",
-    "originalStageAFilesVerified": 34,
-    "originalInventorySHA256": "d43227f854e357bd21b0e239455ae45361bb6547ddb047512723fd6b78aa35f5"
+    "log": "criteria21-repair/targeted-final.log"
   },
+  "oldTestsRepeated": false,
   "calls": {
     "provider": 0,
     "model": 0,
@@ -43,89 +19,42 @@
   },
   "productionCampaignCreated": false,
   "proposedBinding": null,
-  "productionActivation": null,
-  "next": "Independent Regulator; after acceptance and integration, separate production prepare/status dispatch and Master signature.",
-  "previousCriteria20": {
-    "criteria": "2.0",
-    "stage": "A",
-    "status": "offline_delivery_with_live_preparation_blocked",
+  "previousDelivery": {
+    "criteria": "2.1",
+    "stage": "offline_runner_adaptation",
+    "status": "builder_checks_passed_pending_independent_regulator",
     "baseSha": "06865bf4523131b59cfec2625c063a09acd9cf86",
+    "stageAParent": "341369b9a7ab91837c01f34d7f3dacf491694886",
     "panHash": "5ecd3b9b4da688f90dfee3cc651b4a2f755595587b6d7d7287383cab23c8e580",
-    "taskId": "log-summary-date-ranges",
-    "officialTimeoutSeconds": {
-      "agent": 900,
-      "verifier": 900
+    "contract": "https://github.com/pym96/Pan-agent/issues/58#issuecomment-6073064089",
+    "implementation": {
+      "explicitOption": "--demo-config",
+      "schema": 3,
+      "signedConfiguration": "identity.demo58",
+      "independentPaths": [
+        "authorityPath",
+        "ledgerRoot",
+        "outputRoot",
+        "layout.archiveRoot"
+      ],
+      "baselineDocker": 48503971840,
+      "resourceFormula": "owned+max(0,Docker-baseline)",
+      "incrementExclusiveBytes": 57982058496,
+      "minFreeBytes": 21474836480,
+      "legacyDefaultsPreserved": true,
+      "sharedExecutionLoop": true
     },
-    "officialResources": {
-      "cpus": 1,
-      "memory": "2G",
-      "storage": "10G"
+    "verification": {
+      "tests": 121,
+      "passed": 121,
+      "failed": 0,
+      "skipped": 0,
+      "newDemoTests": 34,
+      "log": "criteria21/combined-regression-final.log",
+      "command": "criteria21/regression-command.json",
+      "originalStageAFilesVerified": 34,
+      "originalInventorySHA256": "d43227f854e357bd21b0e239455ae45361bb6547ddb047512723fd6b78aa35f5"
     },
-    "model": {
-      "provider": "kimi-code",
-      "model": "k3-256k",
-      "thinking": "high",
-      "endpoint": "https://api.kimi.com/coding/v1/chat/completions"
-    },
-    "budget": {
-      "dispatchesPerTask": null,
-      "dispatchesCampaign": null,
-      "toolsPerTask": null,
-      "maxTokens": 4096,
-      "requestBytes": 131072,
-      "responseBytes": null,
-      "dispatchSeconds": 120,
-      "mode": "metered"
-    },
-    "installedFilesVerified": 82,
-    "harborFilesVerified": 363,
-    "replay": {
-      "installedCliReplay": true,
-      "mode": "real compact TUI with non-TTY scripted input and offline injection traps; not interactive visual TUI proof",
-      "modelCalls": 0,
-      "toolCalls": 0,
-      "archiveUnchanged": true,
-      "eventCount": 11,
-      "canaryExcluded": true,
-      "tamperedArchiveRejected": true,
-      "hashes": [
-        "41a8a1b08eca64f607e2321e0bd2cb841ba370464ebc588e661c834a74cc09f8",
-        "30211dc82a6dde73e5a78bb45e4a42f20c47734810e64c6768b75a91029dd3ef"
-      ]
-    },
-    "sample": {
-      "durationSeconds": 8,
-      "width": 1280,
-      "height": 900,
-      "presentation": "private PTY metadata capture rendered as static frame; historical offline sample, not live/native TUI",
-      "sha256": "735866d96a59a806aa17fe8a6bcbc3e54920d43d96cb8c633070f12060c2502d",
-      "ffprobeAndFullDecode": "passed",
-      "audio": false
-    },
-    "resources": {
-      "utc": "2026-10-09T02:18:17.905Z",
-      "free": 39152328704,
-      "owned": 5717172224,
-      "docker": 88799350784,
-      "originalDockerBaseline": 48503971840,
-      "increment": 46012551168,
-      "resourceError": null
-    },
-    "image": {
-      "reference": "alexgshaw/log-summary-date-ranges:20251031",
-      "currentDigest": null,
-      "preparation": {
-        "ready": false,
-        "reason": "docker_unavailable",
-        "global": true
-      }
-    },
-    "proposedBinding": null,
-    "stageBCommand": null,
-    "blockingPreparationGaps": [
-      "Docker daemon unavailable; image digest/capacity cannot be rechecked",
-      "SC-VID58-01: accepted interfaces lack independent ledger/authority and fresh cumulative durable initialization"
-    ],
     "calls": {
       "provider": 0,
       "model": 0,
@@ -133,26 +62,119 @@
       "scoring": 0,
       "productionSignatures": 0
     },
-    "review": "Builder checks only; not final accepted; Stage B not activated",
-    "verification": {
-      "hostAcceptance": "passed",
-      "scope": "12 allowed report/helper files only",
-      "linksJsonSyntax": "passed",
-      "guardNegativeControls": "passed"
+    "productionCampaignCreated": false,
+    "proposedBinding": null,
+    "productionActivation": null,
+    "next": "Independent Regulator; after acceptance and integration, separate production prepare/status dispatch and Master signature.",
+    "previousCriteria20": {
+      "criteria": "2.0",
+      "stage": "A",
+      "status": "offline_delivery_with_live_preparation_blocked",
+      "baseSha": "06865bf4523131b59cfec2625c063a09acd9cf86",
+      "panHash": "5ecd3b9b4da688f90dfee3cc651b4a2f755595587b6d7d7287383cab23c8e580",
+      "taskId": "log-summary-date-ranges",
+      "officialTimeoutSeconds": {
+        "agent": 900,
+        "verifier": 900
+      },
+      "officialResources": {
+        "cpus": 1,
+        "memory": "2G",
+        "storage": "10G"
+      },
+      "model": {
+        "provider": "kimi-code",
+        "model": "k3-256k",
+        "thinking": "high",
+        "endpoint": "https://api.kimi.com/coding/v1/chat/completions"
+      },
+      "budget": {
+        "dispatchesPerTask": null,
+        "dispatchesCampaign": null,
+        "toolsPerTask": null,
+        "maxTokens": 4096,
+        "requestBytes": 131072,
+        "responseBytes": null,
+        "dispatchSeconds": 120,
+        "mode": "metered"
+      },
+      "installedFilesVerified": 82,
+      "harborFilesVerified": 363,
+      "replay": {
+        "installedCliReplay": true,
+        "mode": "real compact TUI with non-TTY scripted input and offline injection traps; not interactive visual TUI proof",
+        "modelCalls": 0,
+        "toolCalls": 0,
+        "archiveUnchanged": true,
+        "eventCount": 11,
+        "canaryExcluded": true,
+        "tamperedArchiveRejected": true,
+        "hashes": [
+          "41a8a1b08eca64f607e2321e0bd2cb841ba370464ebc588e661c834a74cc09f8",
+          "30211dc82a6dde73e5a78bb45e4a42f20c47734810e64c6768b75a91029dd3ef"
+        ]
+      },
+      "sample": {
+        "durationSeconds": 8,
+        "width": 1280,
+        "height": 900,
+        "presentation": "private PTY metadata capture rendered as static frame; historical offline sample, not live/native TUI",
+        "sha256": "735866d96a59a806aa17fe8a6bcbc3e54920d43d96cb8c633070f12060c2502d",
+        "ffprobeAndFullDecode": "passed",
+        "audio": false
+      },
+      "resources": {
+        "utc": "2026-10-09T02:18:17.905Z",
+        "free": 39152328704,
+        "owned": 5717172224,
+        "docker": 88799350784,
+        "originalDockerBaseline": 48503971840,
+        "increment": 46012551168,
+        "resourceError": null
+      },
+      "image": {
+        "reference": "alexgshaw/log-summary-date-ranges:20251031",
+        "currentDigest": null,
+        "preparation": {
+          "ready": false,
+          "reason": "docker_unavailable",
+          "global": true
+        }
+      },
+      "proposedBinding": null,
+      "stageBCommand": null,
+      "blockingPreparationGaps": [
+        "Docker daemon unavailable; image digest/capacity cannot be rechecked",
+        "SC-VID58-01: accepted interfaces lack independent ledger/authority and fresh cumulative durable initialization"
+      ],
+      "calls": {
+        "provider": 0,
+        "model": 0,
+        "taskContainers": 0,
+        "scoring": 0,
+        "productionSignatures": 0
+      },
+      "review": "Builder checks only; not final accepted; Stage B not activated",
+      "verification": {
+        "hostAcceptance": "passed",
+        "scope": "12 allowed report/helper files only",
+        "linksJsonSyntax": "passed",
+        "guardNegativeControls": "passed"
+      }
+    },
+    "resources": {
+      "utc": "2026-10-09T02:47:37.636Z",
+      "free": 38072279040,
+      "owned": 6328393728,
+      "docker": 88799367168,
+      "ownedRoots": [
+        "/Users/panyiming/.local/state/pan-agent",
+        "/opt/homebrew/Cellar/python@3.12/3.12.9",
+        "/Users/panyiming/Desktop/todo/面试/career-planning/60-项目/pan-agent/typescript/node_modules",
+        "/Volumes/WD_BLACK/pan-agent/wo58-video-20261009"
+      ],
+      "baselineDocker": 48503971840,
+      "increment": 46623789056
     }
-  },
-  "resources": {
-    "utc": "2026-10-09T02:47:37.636Z",
-    "free": 38072279040,
-    "owned": 6328393728,
-    "docker": 88799367168,
-    "ownedRoots": [
-      "/Users/panyiming/.local/state/pan-agent",
-      "/opt/homebrew/Cellar/python@3.12/3.12.9",
-      "/Users/panyiming/Desktop/todo/面试/career-planning/60-项目/pan-agent/typescript/node_modules",
-      "/Volumes/WD_BLACK/pan-agent/wo58-video-20261009"
-    ],
-    "baselineDocker": 48503971840,
-    "increment": 46623789056
   }
 }

@@ -6,7 +6,7 @@ This is the offline candidate interface, not authorization to use it in producti
 
 `full-cli.mjs init --campaign CAMPAIGN --entry ENTRY --demo-config CONFIG.json` selects the new mode. Omitting --demo-config retains the old behavior. Schema3 persists the normalized configuration both in campaign metadata and signed identity.demo58. Later commands read that persisted configuration; optionally supplying --demo-config again must exactly match it. Explicit null/incomplete configuration is rejected. Schema3 cannot silently fall back to wo75.
 
-Production owner directory is a distinct child under `$STATE/wo58-video-20261009/campaigns/NAME`, where STATE is the existing user `.local/state/pan-agent`. Names are chosen once, not reused. Paths:
+Owner directory in both live and offline modes is a **direct child** under `$STATE/wo58-video-20261009/campaigns/NAME`, where STATE is the existing user `.local/state/pan-agent`. Names are chosen once, not reused. Every owner has the same depth: nested owners are rejected on init and every reopen, even if the other campaign has not been created yet. This prevents ancestor/descendant overlap without a mutable global namespace registry. Paths:
 
 - campaignRoot = OWNER/campaign; outputRoot = CAMPAIGN/segments (the existing full-run output layout).
 - authorityPath = OWNER/authority.json; ledgerRoot = OWNER/ledger. No implicit shared fallback. A public authority file must be supplied by Master before init; authorityHash is SHA256 of its exact bytes, including formatting. It is checked on every reopen and before signature authorization. No private signing key is read by the runner.

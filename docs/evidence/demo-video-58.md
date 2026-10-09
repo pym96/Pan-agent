@@ -1,3 +1,17 @@
+# Criteria2.1 repair — nested campaign isolation
+
+Independent Regulator rejected `ce34561a246fb2ad709a5fbfcc5b41808a08fd56`: C-DEMO58-01 failed because B could be nested under A/campaign/segments and write17 files into A without its reservation. The previous121 passing tests did not establish containment isolation. The original Verdict/hash verification and failed probes are retained and were not rerun.
+
+The configuration now requires each owner to be a direct child of the fixed issue campaigns directory, in both injected offline and live modes. The same normalizeDemo guard runs before initialization writes and on reopening before status/run side effects. Equal-depth sibling owners cannot contain one another; existing symlink rejection and deterministic per-campaign archive directories remain in force. No namespace discovery, shared registry or new scheduler was added.
+
+Six new targeted repair checks passed: nested output/ledger/owner rejection without writes; descendant-first and ancestor rejection in offline/live normalization; reopening boundary revalidation before effects; prefix-named siblings executing in both directions with the other owner tree unchanged. Only these new checks ran, using fake dependencies/signatures. The old121-test regression and original Regulator exploit were not repeated per Human instruction; their results belong to the prior SHA, not this new candidate.
+
+Evidence: local `WD_BLACK/pan-agent/wo58-video-20261009/criteria21-repair/targeted-final.log`; first targeted.log retained. The first reopening test relocated a synthetic fixture and attempted metadata adjustments, but Store rejected its location before the intended guard. That test design was replaced with an injected fake-host namespace change against untouched CLI-created state; final test does not hand-edit journal, binding or campaign metadata. Original production state and Regulator fixtures were never edited. The separate nonblocking missing-archive observation is retained in the original Verdict and is not changed by this narrow fix.
+
+Human identified the unresolved finding and instructed reuse of the original Verdict. Builder fixed the path invariant and added targeted evidence; independent Regulator must judge the new SHA. Zero real calls, no production campaign/init/prepare/signature/run, no main changes. Stage A originals and earlier handoffs remain intact. Below is the previous delivery report, retained as history.
+
+---
+
 # #58 Criteria2.1 — offline independent demo runner adaptation
 
 Current contract: [Master Criteria2.1](https://github.com/pym96/Pan-agent/issues/58#issuecomment-6073064089). Additive candidate based on Stage A `341369b9a7ab91837c01f34d7f3dacf491694886`; main/base remains `06865bf4523131b59cfec2625c063a09acd9cf86`. Builder checks passed; independent review is pending. The Criteria2.0 report below is preserved as historical observations, including its then-current Docker failure.

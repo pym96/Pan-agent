@@ -1,3 +1,5 @@
+Criteria2.1 repair: prior candidate rejected for nested campaign writes. Direct-child owner invariant and6 new targeted checks submitted for independent review; see [configuration](runner-config.md) and [repair report](../../evidence/demo-video-58.md). Original Verdict/tests retained without repeat.
+
 # Criteria2.1 source navigation
 
 [Master scope revision](https://github.com/pym96/Pan-agent/issues/58#issuecomment-6073064089) authorizes offline runner adaptation from341369b9a7ab91837c01f34d7f3dacf491694886. [Interface](runner-config.md), [report](../../evidence/demo-video-58.md) and [summary](../../evidence/demo-video-58-summary.json). Acceptance/integration must precede real preparation; Master signature must precede run. Stage A media/evidence remain unchanged.
