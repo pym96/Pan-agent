@@ -1,3 +1,5 @@
+2026-10-09: Master accepted this challenge under [Criteria2.1](https://github.com/pym96/Pan-agent/issues/58#issuecomment-6073064089). [Offline candidate adaptation](runner-config.md) awaits independent review. The following describes the original baseline gap and is retained without rewriting history.
+
 # SC-VID58-01 — independent single-task execution scope
 
 Given Criteria2.0 requires a new signed single-task demo, isolated output/ledger, unchanged #97 authority/ledger/history, and cumulative resource accounting with Docker baseline 48503971840, the accepted interfaces have these concrete gaps at baseline 06865bf4523131b59cfec2625c063a09acd9cf86:

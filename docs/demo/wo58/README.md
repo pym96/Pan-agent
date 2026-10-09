@@ -1,3 +1,7 @@
+# Current: Criteria2.1 offline runner adaptation
+
+[Configuration interface](runner-config.md) implements the Master-authorized SC-VID58-01 scope. Independent review pending; no production preparation or live demo. Earlier Stage A observations below remain historical.
+
 # #58 Criteria2.0 — Stage A preparation
 
 Status: offline replay/capture delivered; live preparation blocked. No new model/task/scoring execution. This is not the finished portfolio video or publication approval.

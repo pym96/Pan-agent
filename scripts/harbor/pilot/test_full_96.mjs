@@ -76,7 +76,7 @@ test('C02 broker ticket: live owner blocks cleanup fence; death releases; late s
  const {lock}=await import('./full-store.mjs');await assert.rejects(lock(c.root,ticket),/campaign_locked/);const exited=new Promise(r=>child.once('exit',r));child.kill('SIGKILL');await exited;
  const release=await lock(c.root,ticket);assert.equal(JSON.parse(readFileSync(ticket)).state,'fenced');await release();
  const late=spawnSync('python3',['-c',code,ticket],{env:c.env,encoding:'utf8'});assert.notEqual(late.status,0);assert.match(late.stderr,/AssertionError/);
- const pkg=JSON.parse(readFileSync(new URL('./package-identity.json',import.meta.url)));const actual=spawnSync(pkg.python,[fileURLToPath(new URL('./broker.py',import.meta.url))],{env:c.env,input:JSON.stringify({lifecycle_path:ticket,task:{}})+'\n',encoding:'utf8'});assert.notEqual(actual.status,0);assert.match(actual.stderr,/broker_start_fenced/);
+ const pkg=JSON.parse(readFileSync(new URL('./package-identity.json',import.meta.url)));const python=process.env.WO58_TEST_PYTHON??pkg.python;assert.equal(digest(readFileSync(python)),pkg.python_sha256,'same frozen Python bytes at optional offline fixture path');const actual=spawnSync(python,[fileURLToPath(new URL('./broker.py',import.meta.url))],{env:c.env,input:JSON.stringify({lifecycle_path:ticket,task:{}})+'\n',encoding:'utf8'});assert.notEqual(actual.status,0);assert.match(actual.stderr,/broker_start_fenced/);
 });
 test('C01 full manifest tamper rejected by actual CLI before any fake effect',()=>{
  const c=setup(),copy=join(c.root,'copied-pilot');cpSync(fileURLToPath(new URL('.',import.meta.url)),copy,{recursive:true});const p=join(copy,'full-manifest.json'),value=JSON.parse(readFileSync(p));value.tasks.pop();writeFileSync(p,JSON.stringify(value));

@@ -1,3 +1,4 @@
+import {normalizeDemo,validateDemo,demoAuthority,demoSample,demoSelection,DEMO_BASELINE} from './full-demo-config-58.mjs';
 import {successor97,attachSuccessor,reconcileSuccessor,verifySuccessorArchive} from './full-successor-104.mjs';
 import {recoveryAllowed} from './handoff-state.mjs';
 import {upgrade97,attachUpgrade,reconcilePredecessor} from './full-upgrade-102.mjs';
@@ -9,18 +10,20 @@ import {migrateExecuted97,attachHistory} from './full-history.mjs';
 import {migrate97,validateSuccessor} from './full-migrate.mjs';
 import {selectTasks} from './selection.mjs';
 import {Store,initialize,lock,durable,aggregate} from './full-store.mjs';
-import {production,resourceCheck,projectFor,DISK_POLICY} from './full-host.mjs';
+import {production,resourceCheck,projectFor,DISK_POLICY,EXECUTION_POLICY} from './full-host.mjs';
 import {restoreEvidence,attachRecovery,checkImportedStops,RECOVERY_PACKAGE} from './full-recovery.mjs';
-import {validateLayout,sampleDurable,archiveTask,pendingArchives,flushTree} from './full-durable.mjs';
+import {validateLayout,sampleDurable,archiveTask,pendingArchives,flushTree,verifyDemoArchiveStorage} from './full-durable.mjs';
 const HERE=dirname(fileURLToPath(import.meta.url));
 const MANIFEST_HASH='bfb1b8f64ca539c9c9cc88de4450c0845c38dcc8d924a7d85c126b8794e3a403';
 function manifest(){const raw=readFileSync(join(HERE,'full-manifest.json'));check(digest(raw)===MANIFEST_HASH,'full_manifest_identity');return JSON.parse(raw);}
 const load=p=>JSON.parse(readFileSync(p));
-function args(argv){const [command,...rest]=argv,options={};check(['init','prepare','status','run','cancel','recover','migrate97','migrate97-executed','restore97','archive','upgrade97','successor97'].includes(command),'full_command');for(let i=0;i<rest.length;i+=2){check(['--campaign','--task','--task-root','--activation','--entry','--source','--layout'].includes(rest[i])&&rest[i+1]&&!options[rest[i]],'full_option');options[rest[i]]=rest[i+1];}check(options['--campaign'],'campaign_required');return {command,o:options,root:resolve(options['--campaign'])};}
+function args(argv){const [command,...rest]=argv,options={};check(['init','prepare','status','run','cancel','recover','migrate97','migrate97-executed','restore97','archive','upgrade97','successor97'].includes(command),'full_command');for(let i=0;i<rest.length;i+=2){check(['--campaign','--task','--task-root','--activation','--entry','--source','--layout','--demo-config'].includes(rest[i])&&rest[i+1]&&!options[rest[i]],'full_option');options[rest[i]]=rest[i+1];}check(options['--campaign'],'campaign_required');return {command,o:options,root:resolve(options['--campaign'])};}
 const identity=(host,runnerSha,lock)=>({manifestHash:MANIFEST_HASH,panHash:lock.package_sha256,runnerSha,model:MODEL,budget:METERED_LIMITS,mode:host.mode});
-function snapshot(store,host){const s=store.meta.durability?(host.sampleRecovery??sampleDurable)(store.root,store.meta.durability.ownedRoots):host.sample(store.root);appendFileSync(join(store.root,'resources.jsonl'),JSON.stringify(s)+'\n');resourceCheck(store.root,store.meta.resourceBaseline,s);return s;}
+function snapshot(store,host){if(store.meta.demo58)validateDemo(store,host);const s=store.meta.durability?(host.sampleRecovery??sampleDurable)(store.root,store.meta.durability.ownedRoots):host.sample(store.root);appendFileSync(join(store.root,'resources.jsonl'),JSON.stringify(s)+'\n');resourceCheck(store.root,store.meta.resourceBaseline,s);return s;}
+function archiveCurrent(store,host,reservation){if(store.meta.demo58)validateDemo(store,host);verifyDemoArchiveStorage(store,reservation);return archiveTask(store,reservation);}
 function lastPreparation(store,id){return (store.meta.successor104?store.rows:store.allRows).filter(r=>r.event==='preparation'&&r.task===id).at(-1);}
 export function proposedBinding(store,m,ids){
+ demoSelection(store,ids);
  verifySuccessorArchive(store);
  check(!store.meta.successor104||store.rows.some(r=>r.event==='successor_reconciled'),'successor_reconciliation_required');
  check(!store.meta.upgrade102||store.rows.some(r=>r.event==='predecessor_reconciled'),'predecessor_reconciliation_required');
@@ -33,33 +36,50 @@ export function proposedBinding(store,m,ids){
 }
 export async function main(argv=process.argv.slice(2),dependencies={}){
  const host={...production,...dependencies},m=manifest(),{command,o,root}=args(argv);
+ const supplied=o['--demo-config']?load(o['--demo-config']):undefined;
+ if(o['--demo-config'])check(supplied&&typeof supplied==='object'&&!Array.isArray(supplied),'demo_config_required');
+ if(supplied)check(['init','prepare','status','run','cancel','recover','archive'].includes(command),'demo_command');
  if(command==='successor97'){check(o['--source']&&o['--layout'],'successor_inputs');const s=await successor97(resolve(o['--source']),root,load(o['--layout']),host,m);console.log(JSON.stringify(aggregate(s,m)));return;}
  if(command==='upgrade97'){check(o['--source']&&o['--layout'],'upgrade_inputs');const s=upgrade97(resolve(o['--source']),root,load(o['--layout']),host,m);console.log(JSON.stringify(aggregate(s,m)));return;}
  if(command==='restore97'){check(o['--source']&&o['--layout'],'recovery_inputs');const s=restoreEvidence(resolve(o['--source']),root,load(o['--layout']),host,m);console.log(JSON.stringify(aggregate(s,m)));return;}
  if(command==='migrate97-executed'){const s=await migrateExecuted97(root,host,m);console.log(JSON.stringify(aggregate(s,m)));return;}
  if(command==='migrate97'){await migrate97(root,host,m);console.log(JSON.stringify(aggregate(new Store(root),m)));return;}
  if(command==='init'){
-  check(o['--entry'],'entry_required');const pkg=host.verifyProduct(resolve(o['--entry'])),runnerSha=host.runnerSha();
+  check(o['--entry'],'entry_required');
+  if(supplied){
+   const c=normalizeDemo(supplied,root,host);check(resolve(o['--entry'])===c.layout.entry,'durable_runtime_identity');
+   host.internal(dirname(root));
+   if(host.mode==='live')check(realpathSync(c.layout.runner)===realpathSync(resolve(HERE,'../../..')),'durable_runner_identity');
+   const pkg=host.verifyProduct(c.layout.entry,c.layout),runnerSha=host.runnerSha();demoAuthority(c);
+   resourceCheck(dirname(root),{docker:DEMO_BASELINE},demoSample(dirname(root),c,host));
+   check(!existsSync(root)&&!existsSync(c.layout.archiveRoot)&&!existsSync(c.ledgerRoot),'demo_not_fresh');
+   mkdirSync(c.layout.archiveRoot,{recursive:true});
+   const store=initialize(root,{schema:3,campaignId:crypto.randomUUID(),identity:{...identity(host,runnerSha,pkg),executionPolicy:EXECUTION_POLICY,demo58:c},resourceBaseline:{docker:DEMO_BASELINE},durability:c.layout,demo58:c,createdUTC:new Date().toISOString()});
+   console.log(JSON.stringify(aggregate(store,m)));return;
+  }
+  const pkg=host.verifyProduct(resolve(o['--entry'])),runnerSha=host.runnerSha();
   // The parent exists; no Docker or credential lookup is needed for initialization.
   host.internal(dirname(root));const baseline=host.sample(dirname(root));resourceCheck(dirname(root),baseline,{...baseline,owned:0});
   const store=initialize(root,{schema:1,campaignId:crypto.randomUUID(),identity:identity(host,runnerSha,pkg),resourceBaseline:{...baseline,owned:0},createdUTC:new Date().toISOString()});console.log(JSON.stringify(aggregate(store,m)));return;
  }
- const store=new Store(root);attachHistory(store);attachRecovery(store,m);attachUpgrade(store,m);attachSuccessor(store,m);validateSuccessor(store);const expectedIdentity=identity(host,host.runnerSha(),{package_sha256:load(join(HERE,'package-identity.json')).package_sha256});if(store.meta.upgrade102)expectedIdentity.panHash=RECOVERY_PACKAGE;if(store.meta.recovery||store.meta.upgrade102||store.meta.successor104)expectedIdentity.executionPolicy=store.meta.identity.executionPolicy;check(canonical(store.meta.identity)===canonical(expectedIdentity),'campaign_identity');host.internal(root);
+ const store=new Store(root);validateDemo(store,host,supplied);attachHistory(store);attachRecovery(store,m);attachUpgrade(store,m);attachSuccessor(store,m);validateSuccessor(store);const expectedIdentity=identity(host,host.runnerSha(),{package_sha256:load(join(HERE,'package-identity.json')).package_sha256});if(store.meta.upgrade102)expectedIdentity.panHash=RECOVERY_PACKAGE;if(store.meta.recovery||store.meta.upgrade102||store.meta.successor104||store.meta.demo58)expectedIdentity.executionPolicy=store.meta.identity.executionPolicy;if(store.meta.demo58)expectedIdentity.demo58=store.meta.demo58;check(canonical(store.meta.identity)===canonical(expectedIdentity),'campaign_identity');host.internal(root);
  if(store.meta.durability){validateLayout(store.meta.durability,root,host.mode);if(host.mode==='live')check(realpathSync(store.meta.durability.runner)===realpathSync(resolve(HERE,'../../..')),'durable_runner_identity');}
- if(store.meta.successor104)check(host.verifyProduct(store.meta.durability.entry,store.meta.durability).package_sha256===store.meta.identity.panHash,'successor_product');
+ if(store.meta.successor104||store.meta.demo58)check(host.verifyProduct(store.meta.durability.entry,store.meta.durability).package_sha256===store.meta.identity.panHash,'successor_product');
+ if(store.meta.demo58&&command==='status')snapshot(store,host);
+ if(store.meta.demo58&&o['--task'])demoSelection(store,o['--task'].split(','));
  if(command==='status'&&o['--task']){check(!store.meta.successor104||store.rows.some(r=>r.event==='successor_reconciled'),'successor_reconciliation_required');check(!store.meta.upgrade102||store.rows.some(r=>r.event==='predecessor_reconciled'),'predecessor_reconciliation_required');host.configure?.(root);await checkImportedStops(store,host);if(store.meta.durability)for(const id of o['--task'].split(',')){const task=m.tasks.find(t=>t.id===id);check(task&&!store.reserved(id),'task_not_unstarted');const p=await host.prepare(task,store.meta.durability.taskRoot,store.meta.identity.executionPolicy);check(p.ready&&p.image===lastPreparation(store,id)?.detail.image,'task_not_prepared');}}
  if(command==='status'){const out=aggregate(store,m);if(o['--task'])out.proposedBinding=proposedBinding(store,m,o['--task'].split(','));console.log(JSON.stringify(out));return out;}
  if(command==='cancel'){const pending=store.pending();check(pending.length===1,'no_active_segment');const path=join(root,'cancel-'+pending[0].runId+'.json');if(!existsSync(path))durable(path,{runId:pending[0].runId,requestedUTC:new Date().toISOString()});return;}
  const release=await lock(root);let controller,timer,ledger;
  try{
-  store.reload();verifySuccessorArchive(store);host.configure?.(root);
-  if(command==='archive'){check(!store.pending().length,'reconciliation_required');for(const r of pendingArchives(store))archiveTask(store,r);console.log(JSON.stringify(aggregate(store,m)));return;}
+  store.reload();validateDemo(store,host,supplied);verifySuccessorArchive(store);host.configure?.(root);
+  if(command==='archive'){check(!store.pending().length,'reconciliation_required');for(const r of pendingArchives(store))archiveCurrent(store,host,r);console.log(JSON.stringify(aggregate(store,m)));return;}
   if(command==='recover'){
    await reconcilePredecessor(store,host);await reconcileSuccessor(store,host);
    for(const segment of store.pending()){
     const owned=store.rows.filter(r=>r.event==='reserved'&&r.runId===segment.runId);let confirmed=true;
     for(const r of owned){const result=await host.reconcile(r.project,r.image,{stop:true,ticket:join(root,'segments',r.runId,r.task,'broker-ticket.json')});store.add('reconciliation',{runId:segment.runId,task:r.task,result});if(!result.confirmed)confirmed=false;}
-    check(confirmed,'residual_stop_unknown');for(const r of owned)archiveTask(store,r);store.add('segment_reconciled',{runId:segment.runId,unknownResultsPreserved:true});
+    check(confirmed,'residual_stop_unknown');for(const r of owned)archiveCurrent(store,host,r);store.add('segment_reconciled',{runId:segment.runId,unknownResultsPreserved:true});
    }console.log(JSON.stringify(aggregate(store,m)));return;
   }
   check(!store.meta.successor104||store.rows.some(r=>r.event==='successor_reconciled'),'successor_reconciliation_required');
@@ -73,13 +93,13 @@ export async function main(argv=process.argv.slice(2),dependencies={}){
    }console.log(JSON.stringify(aggregate(store,m)));return;
   }
   check(o['--activation']&&o['--entry']&&o['--task-root'],'run_inputs');
-  const a=load(o['--activation']),authority=load(join(host.home,'.local/state/pan-agent/wo75/authority.json'));
+  const a=load(o['--activation']),authority=store.meta.demo58?demoAuthority(store.meta.demo58):load(join(host.home,'.local/state/pan-agent/wo75/authority.json'));
   const selected=selectTasks(m,a.binding?.taskIds,a.binding?.images);const expected=proposedBinding(store,m,selected.tasks.map(t=>t.id));
   controller=new AbortController();const cancel=()=>controller.abort();const gate=authorize(a,authority,expected,{signal:controller.signal});
   const runtime=store.meta.durability;if(runtime)check(resolve(o['--entry'])===runtime.entry&&resolve(o['--task-root'])===runtime.taskRoot,'durable_runtime_identity');
   check(host.verifyProduct(resolve(o['--entry']),runtime).package_sha256===store.meta.identity.panHash,'run_product_identity');check(typeof host.credentialSource==='function','credential_source');
   // Read only after signature, immutable identities, selection and checkpoint pass.
-  const globalLedger=join(host.home,'.local/state/pan-agent/wo75/ledger',gate.runId+'.jsonl');check(!existsSync(globalLedger)&&!store.oldRunIds?.includes(gate.runId)&&!store.allRows.some(r=>r.event==='segment_open'&&r.runId===gate.runId),'run_already_consumed');
+  const globalLedger=join(store.meta.demo58?.ledgerRoot??join(host.home,'.local/state/pan-agent/wo75/ledger'),gate.runId+'.jsonl');check(!existsSync(globalLedger)&&!store.oldRunIds?.includes(gate.runId)&&!store.allRows.some(r=>r.event==='segment_open'&&r.runId===gate.runId),'run_already_consumed');
   const credential=host.credentialSource();check(typeof credential==='string'&&credential.trim(),'credential_missing');
   const dir=join(root,'segments',gate.runId);mkdirSync(dir,{recursive:false});
   durable(join(dir,'activation.json'),a);store.add('segment_open',{runId:gate.runId,taskIds:expected.taskIds,binding:expected});
@@ -122,7 +142,7 @@ export async function main(argv=process.argv.slice(2),dependencies={}){
     await host.checkpoint?.('before_result',task.id);
     store.add('result',{task:task.id,runId:gate.runId,...classified,stopConfirmed:stopped,elapsedSeconds:(performance.now()-start)/1000});
     await host.checkpoint?.('after_result',task.id);
-    await host.checkpoint?.('before_archive',task.id);archiveTask(store,store.reserved(task.id));await host.checkpoint?.('after_archive',task.id);
+    await host.checkpoint?.('before_archive',task.id);archiveCurrent(store,host,store.reserved(task.id));await host.checkpoint?.('after_archive',task.id);
     store.add('continuation',{runId:gate.runId,task:task.id,allowed:!controller.signal.aborted&&stopped,session:report?.continuation??null,faults:report?.faults??[],globalStops:report?.globalStops??[],cleanupConfirmed:stopped,archiveComplete:true});
     if(controller.signal.aborted)break;
    }

@@ -277,3 +277,7 @@ executes actual core + controller paths with synthetic transport/environment, no
 models or Docker. See [design](../../../docs/design/handoff-recovery-103.md).
 
 - #104 `successor97 --source SOURCE --layout NEW --campaign TARGET` imports only the fixed stopped segment6 source into a new #103-package successor. `recover` confirms stops and archives predecessor bytes before fresh prepare/status. No run is authorized by migration. See [design/runbook](../../../docs/design/campaign-successor-104.md); `test_successor_104.mjs` uses WO104_ROOT, WO104_SOURCE, WO104_EXTERNAL and PAN_TEST_ENTRY (actual new package).
+
+## #58 explicit independent demo configuration (Criteria2.1 candidate)
+
+`full-cli.mjs init --demo-config CONFIG ...` adds an opt-in fresh, durable one-task namespace with bound authority/output/ledger/archive and inherited cumulative accounting. It reuses the full execution/stop/archive loop; no old defaults or signatures change. See [configuration and post-acceptance workflow](../../../docs/demo/wo58/runner-config.md). `full-demo-config-58.mjs` validates persisted/signed identities; `test_demo_config_58.mjs` supplies offline positive/negative controls. No production campaign or activation is created by installing this candidate.

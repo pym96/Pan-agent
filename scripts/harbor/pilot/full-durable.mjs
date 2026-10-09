@@ -97,3 +97,25 @@ export function archiveTask(store,reservation,checkpoint=()=>{}){
  if(!store.rows.some(r=>r.event==='archived'&&r.task===task&&r.runId===runId))store.add('archived',{task,runId,receipt:digest(readFileSync(path)),path:target});
 }
 export function pendingArchives(store){return store.meta.durability?[...store.rows.filter(r=>r.event==='reserved'),...(store.imported??[]).filter(r=>r.requiresArchive)].filter(r=>!store.rows.some(x=>x.event==='archived'&&x.task===r.task&&x.runId===r.runId)):[];}
+// Read-only verification for explicit demo reopening; old campaign behavior is unchanged.
+export function verifyArchivedTasks(store){
+ for(const row of store.rows.filter(r=>r.event==='archived')){
+  const reservation=store.rows.find(r=>r.event==='reserved'&&r.runId===row.runId&&r.task===row.task);
+  check(reservation,'archive_reservation');
+  const target=join(store.meta.durability.archiveRoot,store.meta.campaignId,row.runId,row.task);
+  verifyDemoArchiveStorage(store,reservation);
+  const path=receiptAt(target);
+  check(row.path===target&&path&&digest(readFileSync(path))===row.receipt,'archive_receipt_changed');
+  verifyReceipt(store,reservation,target,path);
+ }
+}
+
+export function verifyDemoArchiveStorage(store,reservation){
+ if(!store.meta.demo58)return;
+ const archive=store.meta.durability.archiveRoot,device=statSync(archive).dev;
+ const target=join(archive,store.meta.campaignId,reservation.runId,reservation.task);
+ const inspect=p=>{const s=lstatSync(p);check(!s.isSymbolicLink(),'demo_archive_symlink');if(store.meta.identity.mode==='live')check(s.dev===device&&device!==statSync(store.root).dev,'demo_archive_device');return s;};
+ for(let p=target;;p=dirname(p)){try{inspect(p);}catch(e){if(e.code!=='ENOENT')throw e;}if(p===archive)break;check(p!==dirname(p),'archive_parent');}
+ const walk=p=>{const s=inspect(p);if(s.isDirectory())for(const n of readdirSync(p))walk(join(p,n));};
+ if(existsSync(target))walk(target);
+}

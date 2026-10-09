@@ -1,3 +1,29 @@
+# #58 Criteria2.1 — offline independent demo runner adaptation
+
+Current contract: [Master Criteria2.1](https://github.com/pym96/Pan-agent/issues/58#issuecomment-6073064089). Additive candidate based on Stage A `341369b9a7ab91837c01f34d7f3dacf491694886`; main/base remains `06865bf4523131b59cfec2625c063a09acd9cf86`. Builder checks passed; independent review is pending. The Criteria2.0 report below is preserved as historical observations, including its then-current Docker failure.
+
+## Implementation and evidence
+
+The explicit [demo configuration](../demo/wo58/runner-config.md) persists independent authority, ledger, output and archive paths in schema3 and signed identity.demo58. Reopening checks normalized identities, authority bytes, storage aliases and archived receipt/snapshot integrity. Missing, conflicting or modified config cannot fall back to wo75. The existing full task loop, authorization, broker, cancellation, stop confirmation and archival implementation are reused. Old invocation/signature behavior is retained. Single-task demo summaries are separate from the89-task #97 population.
+
+The original Docker baseline48503971840 and owned+max(0,Docker-baseline) accounting remain in force: increment<57982058496 and free>=21474836480 bytes. Mandatory old roots and new media/work roots are counted; fresh demo imports no #97 consumption. Reused permits are rejected before credentials/task calls. No TypeScript product or official task/scorer changed; the accepted #103 package is reused without a rebuild.
+
+Local evidence under `WD_BLACK/pan-agent/wo58-video-20261009/criteria21/`: exact regression-command.json, combined-regression-final.log, earlier failed logs, archive-fixtures/, preservation.json, resource-final.json and a new SHA-bound Handoff. Original Stage A inventory and all34 listed files were hash-verified unchanged. The original Handoff and replay/video sample remain available at their original paths.
+
+Final related offline regression:121 tests passed,0 failed,0 skipped. This comprises34 new demo cases plus existing full runner, policy, selection, #102 archive, #103 handoff/stop and session regressions. Cases cover independent campaigns, independent-process reopening, signed field tampering, missing config, authority changes, dot/symlink aliases, mandatory roots and exact resource boundaries, repeated permits, unknown stops and archive byte/storage tampering. All signatures are ephemeral fixtures and all task/model dependencies are fake. Exact commands and roots are in regression-command.json; no production HOME redirection was used.
+
+A legacy broker-fence test referenced the absent `/private/tmp/wo74-work/venv/bin/python`. Its optional test-only WO58_TEST_PYTHON now permits the current frozen interpreter only after verifying the exact locked SHA256. The production package identity and runtime checks are unchanged. The final run used that override and the existing frozen Harbor import path. Unrelated full-product/official benchmark runs were not repeated, as permitted by Criteria2.1; original Stage A host acceptance remains preserved.
+
+C-DEMO58-01/02/03 have Builder offline evidence for independent review. C-VID58-01/02 reuse the unchanged Stage A offline replay/capture evidence. Production init/prepare/status, real proposedBinding, activation, model/task/scorer calls, recording and C-VID58-03/04 remain unexecuted. No production campaign or new score exists. After independent acceptance and same-SHA integration, Master can dispatch production preparation, then sign the actual binding. The configuration example and test bindings are not production proposals.
+
+## Correction record
+
+Initial new tests exposed a missing fresh archive directory and missing archive-byte verification on reopen; Builder corrected both and retained failures. A consumed-task assertion expected a later error than the existing earlier task_not_unstarted guard; the assertion now checks that actual denial. Path review distinguished writable aliases from the existing read-only venv interpreter symlink so frozen interpreter argv semantics are preserved. An additional negative case then confirmed identical archive snapshots behind a symlink are rejected. These are offline fixture/implementation corrections, not live benchmark incidents.
+
+Human defined the goal and budget, Master authorized the narrow configuration scope, Builder implemented and tested it; independent Regulator has not yet judged this SHA. No outcome or causal performance improvement is claimed.
+
+---
+
 # #58 Criteria2.0 Stage A — installed replay and offline capture
 
 Human assigned Builder to #58. Baseline `06865bf4523131b59cfec2625c063a09acd9cf86`; fixed installed #103 package SHA256 `5ecd3b9b4da688f90dfee3cc651b4a2f755595587b6d7d7287383cab23c8e580`. Package tarball and 82 installed files, frozen Python dependency versions and 363 Harbor files checked against accepted identities. No product/runner implementation changed.
