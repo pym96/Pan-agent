@@ -193,3 +193,12 @@ All #111 test scripts use `WEB_TEST_ISSUE=111`, `WEB108_RUNTIME`, a fresh `EVIDE
 ## #112 concurrent local Workers
 
 Use `WEB_ISSUE=web112` for two independent Workers with durable ownership generations. [Design](../../docs/design/pan-web/ownership112.md) and [evidence](../../docs/evidence/web112/README.md) define the admission/stop boundary. Use a fresh dedicated runtime; stop legacy Workers before additive migrations. `worker-control.py --slot 1|2` keeps separate PID receipts. Default analysis quota is 1 CPU / 1 GiB per container; no real Provider calls.
+
+## #113 query cache
+
+Optional `WEB_CACHE=1`, `WEB_REDIS_ADDR=127.0.0.1:63113`,
+`WEB_CACHE_NAMESPACE=web113` enables the two public task views. Default is off.
+Configuration, ownership, clock and deadline limits are in
+[cache design](../../docs/design/pan-web/cache113.md). Use the dedicated
+[local service instructions](scripts/README.md); Redis is disposable, PG remains
+authoritative. File metadata remains in views; file bodies use download routes.

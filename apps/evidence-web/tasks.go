@@ -41,7 +41,7 @@ func (a *app) submitTask(w http.ResponseWriter, r *http.Request) {
 	send(w, 201, map[string]string{"id": tid, "state": "queued", "mode": "offline-faux"})
 }
 func (a *app) markLost(ctx context.Context) {
-	if runtimeIssue() == "web112" {
+	if runtimeIssue() == "web112" || runtimeIssue() == "web113" {
 		_ = revokeLost(ctx, a.db)
 		return
 	}
@@ -52,11 +52,13 @@ func (a *app) taskList(w http.ResponseWriter, r *http.Request) {
 	if owner == "" {
 		return
 	}
-	a.markLost(r.Context())
+	a.refreshOwnership(r.Context())
 	var ok bool
-	if a.db.QueryRow(r.Context(), "SELECT EXISTS(SELECT 1 FROM ew_bundles WHERE id=$1 AND account_id=$2)", r.PathValue("id"), owner).Scan(&ok) != nil || !ok {
-		fail(w, 404, "证据包不存在")
-		return
+	if _, validated := r.Context().Value(validatedViewOwner{}).(string); !validated {
+		if a.db.QueryRow(r.Context(), "SELECT EXISTS(SELECT 1 FROM ew_bundles WHERE id=$1 AND account_id=$2)", r.PathValue("id"), owner).Scan(&ok) != nil || !ok {
+			fail(w, 404, "证据包不存在")
+			return
+		}
 	}
 	rows, e := a.db.Query(r.Context(), "SELECT id,question,state,created_at FROM ew_tasks WHERE bundle_id=$1 AND account_id=$2 ORDER BY created_at DESC", r.PathValue("id"), owner)
 	if e != nil {
@@ -74,6 +76,10 @@ func (a *app) taskList(w http.ResponseWriter, r *http.Request) {
 		}
 		out = append(out, map[string]any{"id": tid, "question": q, "state": s, "createdAt": t})
 	}
+	if rows.Err() != nil {
+		fail(w, 503, "无法读取任务")
+		return
+	}
 	send(w, 200, out)
 }
 func (a *app) task(w http.ResponseWriter, r *http.Request) {
@@ -81,7 +87,7 @@ func (a *app) task(w http.ResponseWriter, r *http.Request) {
 	if owner == "" {
 		return
 	}
-	a.markLost(r.Context())
+	a.refreshOwnership(r.Context())
 	var q, state, bid string
 	var result json.RawMessage
 	var reason *string
@@ -113,6 +119,10 @@ func (a *app) task(w http.ResponseWriter, r *http.Request) {
 		events = append(events, b)
 	}
 	rows.Close()
+	if rows.Err() != nil {
+		fail(w, 503, "无法读取事件")
+		return
+	}
 	var ownership json.RawMessage
 	_ = a.db.QueryRow(r.Context(), `SELECT jsonb_build_object('workerId',worker_id,'generation',generation,'revokedAt',revoked_at,'attemptId',execution_id) FROM ew_tasks WHERE id=$1 AND account_id=$2`, r.PathValue("id"), owner).Scan(&ownership)
 	send(w, 200, map[string]any{"ownership": ownership, "id": r.PathValue("id"), "question": q, "state": state, "bundleId": bid, "result": result, "reason": reason, "cleanupConfirmed": cleanup, "events": events, "recovery": a.checkpointMetadata(r.Context(), r.PathValue("id")), "mode": "offline-faux", "cancelRequestedAt": cancelAt, "stopConfirmedAt": stopAt, "activeBranch": active, "replaces": replaces, "attemptResult": attempt, "startedAt": startedAt, "finishedAt": finishedAt, "contextText": contextText, "contextSHA256": contextHash, "conversationId": conversationID, "sequence": sequence, "notice": "确定性 Faux 经真实 Native Pan/Docker；不验证自然语言理解或真实模型质量"})

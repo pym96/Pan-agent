@@ -12,6 +12,7 @@ import (
 	"log"
 	"mime"
 	"net/http"
+	"net/http/httptest"
 	"net/url"
 	"os"
 	"os/signal"
@@ -29,6 +30,7 @@ var migrations embed.FS
 
 type app struct {
 	db     *pgxpool.Pool
+	views  *viewCache
 	origin string
 	secure bool
 	web    string
@@ -50,13 +52,18 @@ func fail(w http.ResponseWriter, status int, msg string) {
 	send(w, status, map[string]string{"error": msg})
 }
 func (a *app) owner(w http.ResponseWriter, r *http.Request) string {
+	if owner, ok := r.Context().Value(validatedViewOwner{}).(string); ok {
+		return owner
+	}
 	c, e := r.Cookie("ew_session")
 	if e != nil {
 		fail(w, 401, "请先登录")
 		return ""
 	}
 	var owner string
-	e = a.db.QueryRow(r.Context(), "SELECT account_id FROM ew_sessions WHERE token_hash=$1 AND expires_at>now()", hash([]byte(c.Value))).Scan(&owner)
+	ctx, cancel := context.WithTimeout(r.Context(), 2*time.Second)
+	defer cancel()
+	e = a.db.QueryRow(ctx, "SELECT account_id FROM ew_sessions WHERE token_hash=$1 AND expires_at>now()", hash([]byte(c.Value))).Scan(&owner)
 	if e != nil {
 		if !errors.Is(e, pgx.ErrNoRows) {
 			fail(w, 503, "服务暂不可用")
@@ -301,8 +308,8 @@ func (a *app) handler() http.Handler {
 	mux.HandleFunc("GET /api/conversations/{id}", a.conversation)
 	mux.HandleFunc("POST /api/conversations/{id}/messages", a.appendQuestion)
 	mux.HandleFunc("POST /api/bundles/{id}/tasks", a.submitTask)
-	mux.HandleFunc("GET /api/bundles/{id}/tasks", a.taskList)
-	mux.HandleFunc("GET /api/tasks/{id}", a.task)
+	mux.HandleFunc("GET /api/bundles/{id}/tasks", a.cachedView("list", a.taskList))
+	mux.HandleFunc("GET /api/tasks/{id}", a.cachedView("task", a.task))
 	mux.HandleFunc("GET /api/tasks/{id}/files/{name}", a.taskFile)
 	mux.HandleFunc("GET /api/bundles", a.list)
 	mux.HandleFunc("POST /api/bundles", a.upload)
@@ -320,7 +327,25 @@ func (a *app) handler() http.Handler {
 				return
 			}
 		}
-		mux.ServeHTTP(w, r)
+		ctx, cancel := context.WithTimeout(r.Context(), 30*time.Second)
+		defer cancel()
+		if a.views != nil && r.Method == "POST" {
+			recorder := httptest.NewRecorder()
+			mux.ServeHTTP(recorder, r.WithContext(ctx))
+			if recorder.Code >= 200 && recorder.Code < 300 {
+				if a.views.afterCommit != nil {
+					a.views.afterCommit(ctx)
+				}
+				a.views.invalidate(ctx)
+			}
+			for k, v := range recorder.Header() {
+				w.Header()[k] = v
+			}
+			w.WriteHeader(recorder.Code)
+			w.Write(recorder.Body.Bytes())
+			return
+		}
+		mux.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
 func run() error {
@@ -334,6 +359,10 @@ func run() error {
 		return fmt.Errorf("DATABASE_URL configuration invalid")
 	}
 	cfg.MaxConns = 4
+	if len(os.Args) == 1 {
+		cfg.MaxConns = 8
+	} // API: four projections plus auth/control headroom
+	cfg.ConnConfig.Tracer = queryTracer{}
 	db, e := pgxpool.NewWithConfig(ctx, cfg)
 	if e != nil {
 		return fmt.Errorf("database configuration invalid")
@@ -423,7 +452,11 @@ func run() error {
 	if web == "" {
 		web = "web/dist"
 	}
-	a := &app{db: db, origin: origin, secure: u.Scheme == "https", web: web}
+	vc, e := cacheConfig()
+	if e != nil {
+		return e
+	}
+	a := &app{views: newViewCache(vc), db: db, origin: origin, secure: u.Scheme == "https", web: web}
 	s := &http.Server{Addr: addr, Handler: a.handler(), ReadHeaderTimeout: 5 * time.Second, ReadTimeout: 30 * time.Second, WriteTimeout: 30 * time.Second, IdleTimeout: 60 * time.Second, MaxHeaderBytes: 1 << 16}
 	done := make(chan os.Signal, 1)
 	signal.Notify(done, os.Interrupt, syscall.SIGTERM)

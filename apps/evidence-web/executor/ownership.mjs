@@ -3,7 +3,7 @@ import {join} from 'node:path';
 // An ACK is an admission already committed under the task-row lock, not a
 // lease that the child may use for later actions. Each next action needs a new ACK.
 export function executionAdmission(job,handshake,signal){
- if(process.env.WEB_ISSUE!=='web112')return undefined;
+ if(!['web112','web113'].includes(process.env.WEB_ISSUE))return undefined;
  const a=job.authority;
  if(!a||a.Task!==job.taskId||a.Attempt!==job.attemptId||!Number.isSafeInteger(a.Generation)||a.Generation<1||!/^[a-f0-9]{64}$/.test(a.Owner))throw Error('ownership_identity');
  let ordinal=0,held=false;

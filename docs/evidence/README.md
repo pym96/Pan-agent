@@ -132,3 +132,5 @@ Raw artifacts remain at their stable source, Git, Trace, Test, evaluator, or ext
 - [web111](web111/README.md): Criteria1.0 trusted operation reconciliation; Builder evidence pending independent review.
 
 - [#112 concurrent ownership and capacity evidence](web112/README.md) — Builder candidate; independent review pending.
+
+- [#113 Redis query cache: bounded freshness, fallback and paired measurements](web113/README.md)

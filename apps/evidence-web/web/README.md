@@ -15,3 +15,7 @@ This choice keeps login/upload/statistics/source inspection in one small compone
 #111 adds explicit “核对并恢复 · 重建环境”, unresolved feedback, successful reconciliation and actual tool accounting through the existing task/history view. No private receipt or provider continuation is projected.
 
 #112 displays the selected task execution generation, Worker identity and revoked status; separate conversation selections retain independent result/source/CSV histories. `browser112.mjs` checks two real Workers and browser readback.
+
+#113 keeps the existing task UI and adds a five-second stale-display notice.
+Control responses remain PG-backed. `scripts/browser113.mjs` checks cached
+answers, file downloads, source navigation and visible cancellation feedback.

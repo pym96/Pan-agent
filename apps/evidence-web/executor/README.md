@@ -23,3 +23,7 @@ check-isolation.mjs runs a harmless actual Docker probe for denied input writes,
 #111: `operation.mjs` owns the private pre-dispatch/dispatch/receipt barriers and bounded reconciliation; `reconcile.mjs` is a readonly server-launched verifier, never a model tool. `WEB_OPERATION_MODE=1` adds single-tool pending points. Trusted fault fixtures `WEB_OPERATION_FAULT=pre-dispatch|after-dispatch|after-receipt|receipt-failure` hold/fail only owned executions. Faux question `fixture:nonzero` produces the explicit exit7 feedback fixture. Receipt completion occurs after the container exits, before its cleanup and before returning to Native. Cleanup remains required before API admission. [Design](../../../docs/design/pan-web/operations111.md).
 
 #112 adds `ownership.mjs`: per-action job-bound admission ACKs for the model wrapper and Docker tool; generation enforcement remains PG-authoritative. Before/after fixtures are private fault barriers. `sandbox.execution` preserves actual Docker start/finish timestamps.
+
+#113 reuses #112 ownership admission under the separate `web113` resource
+namespace, with the same default 1CPU/1GiB analysis containers. Redis is never
+passed to or consumed by the executor or Native Pan.

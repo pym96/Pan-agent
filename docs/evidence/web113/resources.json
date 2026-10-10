@@ -1,0 +1,17 @@
+{
+  "samples": 39,
+  "minHostFree": 27321434112,
+  "maxCumulative": 50863120384,
+  "baselineDocker": 48503971840,
+  "maxAllowedExclusive": 57982058496,
+  "minFreeAllowed": 21474836480,
+  "lastTopLevel": {
+    "utc": "2026-10-10T07:58:12.361Z",
+    "free": 27321434112,
+    "owned": 10401218560,
+    "docker": 88965873664,
+    "baselineDocker": 48503971840,
+    "increment": 50863120384
+  },
+  "codingTokens": "unknown"
+}

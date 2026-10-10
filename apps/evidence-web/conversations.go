@@ -195,7 +195,7 @@ func claimTask(ctx context.Context, db *pgxpool.Pool, wid string) (tid, bid, q s
 		return
 	}
 	defer tx.Rollback(ctx)
-	if runtimeIssue() == "web112" {
+	if runtimeIssue() == "web112" || runtimeIssue() == "web113" {
 		if _, e = tx.Exec(ctx, "SELECT pg_advisory_xact_lock($1)", claimLock); e != nil {
 			err = e
 			return
@@ -247,7 +247,7 @@ func claimTask(ctx context.Context, db *pgxpool.Pool, wid string) (tid, bid, q s
 		err = e
 		return
 	}
-	if runtimeIssue() == "web112" {
+	if runtimeIssue() == "web112" || runtimeIssue() == "web113" {
 		if e = assignOwner(ctx, tx, tid, wid); e != nil {
 			err = e
 			return

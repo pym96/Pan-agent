@@ -1,0 +1,255 @@
+{
+  "states": [
+    {
+      "state": "cancelled",
+      "count": 3
+    },
+    {
+      "state": "completed",
+      "count": 17
+    },
+    {
+      "state": "interrupted",
+      "count": 5
+    },
+    {
+      "state": "superseded",
+      "count": 1
+    }
+  ],
+  "tasks": [
+    {
+      "id": "bf376fb11cce57af17911552142196b12cb4086085119e034b00e4276c4a010e",
+      "state": "completed",
+      "cleanup_confirmed": true,
+      "execution_id": "bf376fb11cce57af17911552142196b12cb4086085119e034b00e4276c4a010e",
+      "conversation_id": "6d7137c8717ce5289f53601a8e4642aaadaafd9054c0923867a10e4824c33653",
+      "generation": 1
+    },
+    {
+      "id": "31a481efacafd9d6eb7158663c42f1992532031bd5c3ceabdccd6b44dbd6a0f3",
+      "state": "completed",
+      "cleanup_confirmed": true,
+      "execution_id": "31a481efacafd9d6eb7158663c42f1992532031bd5c3ceabdccd6b44dbd6a0f3",
+      "conversation_id": "6d7137c8717ce5289f53601a8e4642aaadaafd9054c0923867a10e4824c33653",
+      "generation": 1
+    },
+    {
+      "id": "6120032d39861b08cfb6d7041c094686b8f76fa0b244f6073ebf877d4a72f343",
+      "state": "completed",
+      "cleanup_confirmed": true,
+      "execution_id": "6120032d39861b08cfb6d7041c094686b8f76fa0b244f6073ebf877d4a72f343",
+      "conversation_id": "6d7137c8717ce5289f53601a8e4642aaadaafd9054c0923867a10e4824c33653",
+      "generation": 1
+    },
+    {
+      "id": "3154c7ba9f4348ef55430cc61f62ad9d11ffdf8442dacbabc95628c842ae14ac",
+      "state": "completed",
+      "cleanup_confirmed": true,
+      "execution_id": "3154c7ba9f4348ef55430cc61f62ad9d11ffdf8442dacbabc95628c842ae14ac",
+      "conversation_id": "c9964341dec27682066906931c2aa67b717130878c775714491420971edce4fa",
+      "generation": 1
+    },
+    {
+      "id": "0940ed50308ffbe8d057875da3d158d0d4f9c4407ca39fb54e366e3a6c0a28a7",
+      "state": "completed",
+      "cleanup_confirmed": true,
+      "execution_id": "0940ed50308ffbe8d057875da3d158d0d4f9c4407ca39fb54e366e3a6c0a28a7",
+      "conversation_id": "c9964341dec27682066906931c2aa67b717130878c775714491420971edce4fa",
+      "generation": 1
+    },
+    {
+      "id": "ac8762c7466c4972fb0c9963914728bcf19e45f518965733e35ce338cabfb95d",
+      "state": "completed",
+      "cleanup_confirmed": true,
+      "execution_id": "ac8762c7466c4972fb0c9963914728bcf19e45f518965733e35ce338cabfb95d",
+      "conversation_id": "c9964341dec27682066906931c2aa67b717130878c775714491420971edce4fa",
+      "generation": 1
+    },
+    {
+      "id": "7869ecd917aee866b4d622971f865e8593cc8a24c05427a9b40906204bb2dbec",
+      "state": "completed",
+      "cleanup_confirmed": true,
+      "execution_id": "7869ecd917aee866b4d622971f865e8593cc8a24c05427a9b40906204bb2dbec",
+      "conversation_id": "b0a4ea5c1f383193b62c7db2e9415d9446045ff2a21916d5c35edcf60fc9377a",
+      "generation": 1
+    },
+    {
+      "id": "70fe080757d0c6bbd2626ecdbe900173e4b72313ea8733031ef7722b3a63a3a9",
+      "state": "completed",
+      "cleanup_confirmed": true,
+      "execution_id": "70fe080757d0c6bbd2626ecdbe900173e4b72313ea8733031ef7722b3a63a3a9",
+      "conversation_id": "b0a4ea5c1f383193b62c7db2e9415d9446045ff2a21916d5c35edcf60fc9377a",
+      "generation": 1
+    },
+    {
+      "id": "7f237e70a3feb7a859bdf41da70b16b850ae98e43e19eba826014086e4232170",
+      "state": "completed",
+      "cleanup_confirmed": true,
+      "execution_id": "7f237e70a3feb7a859bdf41da70b16b850ae98e43e19eba826014086e4232170",
+      "conversation_id": "b0a4ea5c1f383193b62c7db2e9415d9446045ff2a21916d5c35edcf60fc9377a",
+      "generation": 1
+    },
+    {
+      "id": "9dae8b59bf4658c9dc8f89ddac50aa018fbe1686a22e887e56caa374032c881e",
+      "state": "completed",
+      "cleanup_confirmed": true,
+      "execution_id": "9dae8b59bf4658c9dc8f89ddac50aa018fbe1686a22e887e56caa374032c881e",
+      "conversation_id": "e26d3ed26c8761e1ad24717d78ed8ca3a0bf741af8136044b517964112a41521",
+      "generation": 1
+    },
+    {
+      "id": "75939e77f2c8568d1d2ffb1c08c2f37a044f950581915d206b3feac0658bf3d2",
+      "state": "completed",
+      "cleanup_confirmed": true,
+      "execution_id": "75939e77f2c8568d1d2ffb1c08c2f37a044f950581915d206b3feac0658bf3d2",
+      "conversation_id": "e26d3ed26c8761e1ad24717d78ed8ca3a0bf741af8136044b517964112a41521",
+      "generation": 1
+    },
+    {
+      "id": "eca38f8a1077e6524d16227fb9b3906d7535a88d3ec41e3bd2b1147f21076f97",
+      "state": "completed",
+      "cleanup_confirmed": true,
+      "execution_id": "eca38f8a1077e6524d16227fb9b3906d7535a88d3ec41e3bd2b1147f21076f97",
+      "conversation_id": "e26d3ed26c8761e1ad24717d78ed8ca3a0bf741af8136044b517964112a41521",
+      "generation": 1
+    },
+    {
+      "id": "972fe2442af3b1c524782a0d1ad1f0c59c426bc7afe42eb5ad977bd518cbd7a8",
+      "state": "interrupted",
+      "cleanup_confirmed": true,
+      "execution_id": "972fe2442af3b1c524782a0d1ad1f0c59c426bc7afe42eb5ad977bd518cbd7a8",
+      "conversation_id": "b65dfc87e5f653ae80a6138d31d3982b1f66c34295a0060cf70db8c27c8b5580",
+      "generation": 1
+    },
+    {
+      "id": "1c8d1552715f14b71c557309ff3ad6488dd52ec7988b7c223898420dfdea361a",
+      "state": "interrupted",
+      "cleanup_confirmed": true,
+      "execution_id": "1c8d1552715f14b71c557309ff3ad6488dd52ec7988b7c223898420dfdea361a",
+      "conversation_id": "83a8e1bb48c7902129b6594f3f97660557100a0087d24e4c13a244bb3461c0df",
+      "generation": 1
+    },
+    {
+      "id": "c60faad6bda0c5bcb08ee820c3b4ac91bcdcf6a3f18b28fec0add759aa82df5f",
+      "state": "completed",
+      "cleanup_confirmed": true,
+      "execution_id": "35633370362a1f05a72198f72a771144ada8c85d68529f017d339defae69ae29",
+      "conversation_id": "09588c10555f99132178b4706a5dbb7335b70b405bce4835881524194ff2754c",
+      "generation": 2
+    },
+    {
+      "id": "c0b753152abe6f9368eb86506571bf56da0d51c4ff06d8b68fd388569e2fd86a",
+      "state": "interrupted",
+      "cleanup_confirmed": true,
+      "execution_id": "c0b753152abe6f9368eb86506571bf56da0d51c4ff06d8b68fd388569e2fd86a",
+      "conversation_id": "5f2ec75613f7ca3eda977343b2e7a96111d378d93329aa7d0d829d96c6ce9add",
+      "generation": 1
+    },
+    {
+      "id": "17f7a3738d5b33aeda3b5d273252190342c989b6e564c89bbc149f9e42a2f2cc",
+      "state": "completed",
+      "cleanup_confirmed": true,
+      "execution_id": "17f7a3738d5b33aeda3b5d273252190342c989b6e564c89bbc149f9e42a2f2cc",
+      "conversation_id": "24b7875ff2afa454defc1a238bfb79c2fffdf28c54680f8b3134450e34138056",
+      "generation": 1
+    },
+    {
+      "id": "0ca3577d42527d23a083255ba742a509769bbad30efb590af24befcd9ec11878",
+      "state": "completed",
+      "cleanup_confirmed": true,
+      "execution_id": "e94e4233db07b13f02dbc0c16b3dab9de09d9b9087d14e1ba23dafc2865a5046",
+      "conversation_id": "ae2bf91a19f453c37be0eb9b5b8a0cd85c6b7456ef636a7cb293f07dbfdc0a76",
+      "generation": 2
+    },
+    {
+      "id": "38b50ea6e6da0e5aee1a525cb83ba066af5c353b10978db4e063b81f9a1c9cc8",
+      "state": "interrupted",
+      "cleanup_confirmed": true,
+      "execution_id": "38b50ea6e6da0e5aee1a525cb83ba066af5c353b10978db4e063b81f9a1c9cc8",
+      "conversation_id": "389976243dac80e46cfa5bc6de747517c3b20ac100aaace48f4147b150c76c34",
+      "generation": 1
+    },
+    {
+      "id": "4c6e83c0af21e98c485d200e3045fa638583c61e60b3e9254b00afcc92119c88",
+      "state": "completed",
+      "cleanup_confirmed": true,
+      "execution_id": "4c6e83c0af21e98c485d200e3045fa638583c61e60b3e9254b00afcc92119c88",
+      "conversation_id": "b0c3bb8640e187442e1d2f77cfec101903f9f173994b60ea06e6c2429b9564cf",
+      "generation": 1
+    },
+    {
+      "id": "adc933092abda21887f5f905db406eb5313ab795e41b6d900350b9a3a077c3b3",
+      "state": "cancelled",
+      "cleanup_confirmed": true,
+      "execution_id": null,
+      "conversation_id": "4e92ccb64f5d302001e0485c1350d8100f2d978f7e53a75f29531c8bcde72b8e",
+      "generation": 0
+    },
+    {
+      "id": "0df2e3cf51b964c1ad7c90d4f1fb3cbf9c4a03015d36af45be3e70202fc170b9",
+      "state": "interrupted",
+      "cleanup_confirmed": true,
+      "execution_id": "0df2e3cf51b964c1ad7c90d4f1fb3cbf9c4a03015d36af45be3e70202fc170b9",
+      "conversation_id": "4d98279419a4b3ceb5ef05aa9757547f2fbaafe051aa0e24605d30da8f704c87",
+      "generation": 1
+    },
+    {
+      "id": "1be825caef1ac6474a8f9f2a0093178b891ade9136db19424a47c007bfdd09a7",
+      "state": "cancelled",
+      "cleanup_confirmed": true,
+      "execution_id": "1be825caef1ac6474a8f9f2a0093178b891ade9136db19424a47c007bfdd09a7",
+      "conversation_id": "315dca515d9e31fefc98b08603e985ba1db150b3155fe35bbdc7434ad64a54fb",
+      "generation": 1
+    },
+    {
+      "id": "a2cdfb6015ecd486c8a9d4ff43e0685bb8e6f590dfa48c07e0c36e31c53539eb",
+      "state": "cancelled",
+      "cleanup_confirmed": true,
+      "execution_id": "a2cdfb6015ecd486c8a9d4ff43e0685bb8e6f590dfa48c07e0c36e31c53539eb",
+      "conversation_id": "94ea20d8721463e7f8c5f3e76afc04faf32e7afbf6a66b85d90a143682399015",
+      "generation": 1
+    },
+    {
+      "id": "84bd8a9d03b29e1f9183b53a087751ef9d837b5a59ed539116e0f8cee14cd234",
+      "state": "superseded",
+      "cleanup_confirmed": true,
+      "execution_id": null,
+      "conversation_id": "94ea20d8721463e7f8c5f3e76afc04faf32e7afbf6a66b85d90a143682399015",
+      "generation": 0
+    },
+    {
+      "id": "a22ad48e5e7f0013a1cebd4ac1d4c340fd1dd83fbed6e0263e3bb6e92661ed47",
+      "state": "completed",
+      "cleanup_confirmed": true,
+      "execution_id": "a22ad48e5e7f0013a1cebd4ac1d4c340fd1dd83fbed6e0263e3bb6e92661ed47",
+      "conversation_id": "94ea20d8721463e7f8c5f3e76afc04faf32e7afbf6a66b85d90a143682399015",
+      "generation": 1
+    }
+  ],
+  "attempts": 26,
+  "checkpoints": 78,
+  "admissions": [
+    {
+      "action": "tool",
+      "count": 37
+    },
+    {
+      "action": "model",
+      "count": 59
+    }
+  ],
+  "modelSettlements": [
+    {
+      "status": "reported",
+      "count": 58,
+      "synthetic_tokens": 116
+    }
+  ],
+  "unsettledStarts": 2,
+  "observedTools": 36,
+  "realProviderCalls": 0,
+  "benchmarkCalls": 0,
+  "scoringCalls": 0,
+  "codingTokens": "unknown"
+}

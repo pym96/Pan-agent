@@ -2,7 +2,7 @@
 """Real children, PG authority and Docker. Every attempt remains in this fresh evidence root."""
 import pathlib,os,json,time,signal,subprocess,urllib.parse
 src=pathlib.Path(__file__).with_name('check108.py').read_text();exec(compile(src.split('\ntry:\n app=start')[0],str(pathlib.Path(__file__).with_name('check108.py')),'exec'))
-assert issue==112
+assert issue in [112,113]
 env.update(WEB_CHECKPOINT_MODE='1',WEB_OPERATION_MODE='1',ANALYSIS_CPUS='1',ANALYSIS_MEMORY_GIB='1')
 u=urllib.parse.urlsplit(env['DATABASE_URL']);pg_env={**env,'PGHOST':u.hostname,'PGPORT':str(u.port),'PGUSER':u.username,'PGPASSWORD':u.password,'PGDATABASE':u.path.lstrip('/')}
 def sql(query):return subprocess.check_output(['/opt/homebrew/opt/postgresql@14/bin/psql','-XAt','-v','ON_ERROR_STOP=1','-c',query],env=pg_env,text=True).strip()

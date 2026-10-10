@@ -1,0 +1,166 @@
+[
+  {
+    "mode": "off",
+    "requests": 200,
+    "success": 142,
+    "status503": 58,
+    "errors": 58,
+    "timeouts": 0,
+    "cancellations": 0,
+    "unfinished": 0,
+    "statuses": {
+      "200": 142,
+      "503": 58
+    },
+    "successLatency": {
+      "n": 142,
+      "p50Ms": 13.969917,
+      "p95Ms": 29.772917
+    },
+    "errorLatency": {
+      "n": 58,
+      "p50Ms": 4.70025,
+      "p95Ms": 11.801917
+    },
+    "cache": {
+      "bypass": 200
+    },
+    "hitRate": null,
+    "maxHitAgeMs": null,
+    "authenticationSQL": 200,
+    "ownershipSQL": 200,
+    "projectionSQL": 1134,
+    "controlSQL": 568,
+    "projectionPeak": 4,
+    "separatelyExcludedWarmup": {
+      "authenticationSQL": 0,
+      "ownershipSQL": 0,
+      "projectionSQL": 0,
+      "controlSQL": 0,
+      "projectionPeak": 0
+    }
+  },
+  {
+    "mode": "cold",
+    "requests": 200,
+    "success": 192,
+    "status503": 8,
+    "errors": 8,
+    "timeouts": 0,
+    "cancellations": 0,
+    "unfinished": 0,
+    "statuses": {
+      "503": 8,
+      "200": 192
+    },
+    "successLatency": {
+      "n": 192,
+      "p50Ms": 12.127125,
+      "p95Ms": 29.124083
+    },
+    "errorLatency": {
+      "n": 8,
+      "p50Ms": 9.354,
+      "p95Ms": 14.230958
+    },
+    "cache": {
+      "miss": 22,
+      "hit": 178
+    },
+    "hitRate": 0.89,
+    "maxHitAgeMs": 538,
+    "authenticationSQL": 200,
+    "ownershipSQL": 200,
+    "projectionSQL": 110,
+    "controlSQL": 56,
+    "projectionPeak": 4,
+    "separatelyExcludedWarmup": {
+      "authenticationSQL": 0,
+      "ownershipSQL": 0,
+      "projectionSQL": 0,
+      "controlSQL": 0,
+      "projectionPeak": 0
+    }
+  },
+  {
+    "mode": "warm",
+    "requests": 200,
+    "success": 200,
+    "status503": 0,
+    "errors": 0,
+    "timeouts": 0,
+    "cancellations": 0,
+    "unfinished": 0,
+    "statuses": {
+      "200": 200
+    },
+    "successLatency": {
+      "n": 200,
+      "p50Ms": 14.5905,
+      "p95Ms": 25.441625
+    },
+    "errorLatency": {
+      "n": 0,
+      "p50Ms": null,
+      "p95Ms": null
+    },
+    "cache": {
+      "hit": 200
+    },
+    "hitRate": 1.0,
+    "maxHitAgeMs": 795,
+    "authenticationSQL": 200,
+    "ownershipSQL": 200,
+    "projectionSQL": 0,
+    "controlSQL": 0,
+    "projectionPeak": 0,
+    "separatelyExcludedWarmup": {
+      "authenticationSQL": 14,
+      "ownershipSQL": 14,
+      "projectionSQL": 110,
+      "controlSQL": 56,
+      "projectionPeak": 1
+    }
+  },
+  {
+    "mode": "outage",
+    "requests": 200,
+    "success": 113,
+    "status503": 87,
+    "errors": 87,
+    "timeouts": 0,
+    "cancellations": 0,
+    "unfinished": 0,
+    "statuses": {
+      "200": 113,
+      "503": 87
+    },
+    "successLatency": {
+      "n": 113,
+      "p50Ms": 26.402625,
+      "p95Ms": 45.016292
+    },
+    "errorLatency": {
+      "n": 87,
+      "p50Ms": 13.18325,
+      "p95Ms": 19.5405
+    },
+    "cache": {
+      "redis_error": 200
+    },
+    "hitRate": null,
+    "maxHitAgeMs": null,
+    "authenticationSQL": 200,
+    "ownershipSQL": 200,
+    "projectionSQL": 897,
+    "controlSQL": 452,
+    "projectionPeak": 4,
+    "separatelyExcludedWarmup": {
+      "authenticationSQL": 0,
+      "ownershipSQL": 0,
+      "projectionSQL": 0,
+      "controlSQL": 0,
+      "projectionPeak": 0
+    }
+  }
+]

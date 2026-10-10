@@ -47,3 +47,8 @@ Worker uses its owned child channel/process handle and task-labelled Docker iden
 #111: [operation reconciliation design](operations111.md), [evidence](../../evidence/web111/README.md).
 
 - [#112 concurrent ownership](ownership112.md): task generations, atomic admission/revocation, managed stop and paired Faux capacity experiment.
+
+## #113 bounded public query cache
+
+[Design and operating boundaries](cache113.md): PG authority, process-bound
+signed cache snapshots, bounded age/fallback, separate query accounting.

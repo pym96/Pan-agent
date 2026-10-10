@@ -1,0 +1,20 @@
+{
+  "off": {
+    "keyspace_hits": 0,
+    "keyspace_misses": 0,
+    "total_commands_processed": 1,
+    "total_connections_received": 1
+  },
+  "cold": {
+    "keyspace_hits": 178,
+    "keyspace_misses": 22,
+    "total_commands_processed": 215,
+    "total_connections_received": 215
+  },
+  "warm": {
+    "keyspace_hits": 200,
+    "keyspace_misses": 0,
+    "total_commands_processed": 201,
+    "total_connections_received": 201
+  }
+}

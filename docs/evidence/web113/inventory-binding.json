@@ -1,0 +1,14 @@
+{
+  "path": "/Users/panyiming/.local/state/pan-agent/web113/evidence/inventory-final.json",
+  "sha256": "1202eb87aaa0b77ba9a465d9c161fb4077a36e361bc18f6371a01e5068f25ad4",
+  "entries": 3770,
+  "coverage": [
+    "evidence",
+    "runtime",
+    "redis",
+    "redis-7.2.5",
+    "redis-7.2.5.tar.gz",
+    "pan-source",
+    "pan-agent-0.1.0.tgz"
+  ]
+}

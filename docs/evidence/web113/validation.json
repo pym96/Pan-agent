@@ -1,0 +1,62 @@
+{
+  "criteria": "1.0",
+  "baseSHA": "b2e0f6ecff00f97eb05c5c115b7115636ac07ddb",
+  "builderOnly": true,
+  "checks": {
+    "seed-01/result.json": {
+      "sha256": "4d65f404d6e480ca9b9d7f5bc887b1014052bb21019e1bd01da6b4a276962690",
+      "passed": true,
+      "checkCount": 12
+    },
+    "faults-01/result.json": {
+      "sha256": "8b3ba4eb4eeb0d235361571a848d4088608f249893de9594b82f184aed7714d9",
+      "passed": true,
+      "checkCount": 21
+    },
+    "controls-01/result.json": {
+      "sha256": "a473d7ed3d3a0c50ee11765a50de276a3fc3236457b80358654536f8492543b7",
+      "passed": true,
+      "checkCount": 17
+    },
+    "services-01/result.json": {
+      "sha256": "9f67e6f4127eebcd7fd899d4f0a42e2138ecff4f36569e7d93a95acdf9d7844c",
+      "passed": true,
+      "checkCount": 7
+    },
+    "services-01/browser-result.json": {
+      "sha256": "2427b449af95295cdd1a782399ab40ac23668d3e8089138cb6a441a2ff55f99f",
+      "passed": true,
+      "checkCount": 6
+    },
+    "experiment-01/identity-check.json": {
+      "sha256": "58f7be0c808b259d68ef9ba63a70b9ef5f0ac9a989c14a2abc0202809bf205e2",
+      "passed": true,
+      "checkCount": 0
+    },
+    "cache-tests-final-02.log": {
+      "passed": true,
+      "topLevelPasses": 13,
+      "sha256": "6a0296e78722fbc437d290efbc5a4c58e440a59bc044775f9ed8e0f02598367f",
+      "skip": "TestCacheCrashChild only runs as an actual subprocess of TestCacheCommittedProcessCrash"
+    },
+    "go-vet.log": {
+      "passed": true,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "integration106-01/integration.json": {
+      "passed": true,
+      "checkCount": 36,
+      "sha256": "7768bed363fc5a60727f32f49a922b1f935496472d0e1741b9b0b6b345cf96db"
+    }
+  },
+  "preservedFailures": [
+    "cache-tests-02.log: invalid cancellation fixture question",
+    "cache-tests-03.log: same fixture before correction",
+    "cache-tests-final.log: fixture WaitGroup Add/Wait race"
+  ],
+  "partialChecks": [
+    "cache-tests-01.log: initial subset",
+    "cache-tests-04.log: earlier full pass before final test refinement"
+  ],
+  "zeroRealProviderCalls": true
+}

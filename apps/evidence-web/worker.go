@@ -40,7 +40,7 @@ func docker(ctx context.Context, args ...string) ([]byte, error) {
 	return c.Output()
 }
 func cleanupTask(ctx context.Context, tid string) error {
-	if runtimeIssue() == "web109" || (runtimeIssue() == "web110" || runtimeIssue() == "web111" || runtimeIssue() == "web112") {
+	if runtimeIssue() == "web109" || (runtimeIssue() == "web110" || runtimeIssue() == "web111" || (runtimeIssue() == "web112" || runtimeIssue() == "web113")) {
 		if _, e := os.Stat(filepath.Join(os.Getenv("WEB107_TASK_ROOT"), tid, "stop-unconfirmed")); e == nil {
 			return errors.New("controlled stop confirmation unavailable; admission blocked")
 		}
@@ -98,7 +98,7 @@ func stopNode(pid int, entry, root string) error {
 	return errors.New("node stop unconfirmed")
 }
 func sealInterrupted(ctx context.Context, entry, dir string) error {
-	if runtimeIssue() != "web110" && runtimeIssue() != "web111" && runtimeIssue() != "web112" {
+	if runtimeIssue() != "web110" && runtimeIssue() != "web111" && runtimeIssue() != "web112" && runtimeIssue() != "web113" {
 		return nil
 	}
 	cmd := exec.CommandContext(ctx, "node", filepath.Join(filepath.Dir(entry), "archive-recover.mjs"), dir)
@@ -165,7 +165,7 @@ func work(db *pgxpool.Pool) error {
 	if e != nil || actual != filepath.Clean(root) {
 		return errors.New("task root alias rejected")
 	}
-	if runtimeIssue() == "web112" {
+	if runtimeIssue() == "web112" || runtimeIssue() == "web113" {
 		return workOwners(db, entry, root)
 	}
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
@@ -641,6 +641,9 @@ func executeTask(ctx context.Context, db *pgxpool.Pool, tid, bid, question, entr
 }
 
 func runtimeIssue() string {
+	if os.Getenv("WEB_ISSUE") == "web113" {
+		return "web113"
+	}
 	if os.Getenv("WEB_ISSUE") == "web112" {
 		return "web112"
 	}

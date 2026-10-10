@@ -45,3 +45,30 @@ and the contract-pinned `PAN_IMAGE`. Candidate package is unpacked at the runtim
 parent's `pan-source/`. No keys or external model endpoints are needed.
 
 `check112-live-stop.py` keeps an actual old Docker process alive after owner expiration, verifies occupied-slot/global stop gating, then observes exact container absence before an independent conversation proceeds. Run separately from the capacity experiment.
+
+## #113 isolated query cache experiments
+
+Use a fresh `~/.local/state/pan-agent/web113/runtime`:
+
+```sh
+python3 scripts/local-dev.py --issue 113 init --runtime "$WEB108_RUNTIME" --pg-bin /opt/homebrew/opt/postgresql@14/bin --db-port 54114 --port 8114
+```
+
+Build Redis 7.2.5 from the retained upstream tarball in the task state root.
+The retained redis/redis.conf binds 127.0.0.1:63113, maxmemory 128mb/allkeys-lru,
+no persistence. Never point these scripts at shared Redis/PG: the service probe
+clears and stops this dedicated Redis. Exact tar/binary hashes are in Evidence.
+
+Set `WEB_TEST_ISSUE=113`, `WEB108_RUNTIME`, `EVIDENCE_DIR` (fresh per run),
+`PAN_IMAGE` to the fixed contract image. `seed113.py` runs 12 actual Faux tasks
+(two accounts, four conversations, three tasks each). Set `WEB113_SEED` to its
+seed.json for `cache113-experiment.py` (one 200-query round per mode) and
+`check113-services.py` (browser, Redis/PG failure and actual Worker).
+`recompute113.py <experiment directory>` reads originals only and recomputes
+nearest-rank latency, outcomes, cache hits and all PG query categories.
+
+`WEB112_TEST_DATABASE_URL` (dedicated dummy PG; keep private) and
+`WEB113_TEST_REDIS=127.0.0.1:63113 go test -race -v ./...` run real cache and
+ownership probes. No real Provider credentials are read. Existing #112 fault,
+control and browser runners accept the new web113 namespace; worker-control.py
+also supports its two owned Worker slots.

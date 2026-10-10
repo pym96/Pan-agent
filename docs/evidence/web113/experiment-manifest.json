@@ -1,0 +1,1070 @@
+{
+  "version": 1,
+  "baseSHA": "b2e0f6ecff00f97eb05c5c115b7115636ac07ddb",
+  "utc": "2026-10-10T07:53:56Z",
+  "sourceFiles": {
+    ".gitignore": "f75fc876a8a77d25427c2164cefe40acba2ff7073e8a1bb1651fbfaee426a48c",
+    "README.md": "820b64adca72bd666fce5c3f8ccaf0d851f09e51319ea270ae356368b6ee1fb4",
+    "cache.go": "4c1218da34484046f80c2704dfec1171b700b932d3c238020502140df94158e7",
+    "cache_test.go": "300c13a7e6886ef0d0c54c1112fdb40794cb67664541ee4fd1f0a1b41ecbed9b",
+    "checkpoints.go": "f003d1aee491cb407999205138653d4bd88e256cbbf9a7e79b78c5b68999b9f5",
+    "controls.go": "9be5873edd7cde3683981d4f56334d56fa2e3e7b2d81d8dd628d0eda0bffdcff",
+    "conversations.go": "b152b74e97739fcee39371d20fc76d9985c9100ff3de48e2ee6505a6303088d9",
+    "executor/README.md": "287fee16970c2ed8d5db49360c4ade00c783ac6ddadef0d41095970ccb99ea3e",
+    "executor/analysis.py": "338b4efafe6b799bfa31c3216535dfb299748b7bfd86c2e56dacc3177f91f701",
+    "executor/archive-recover.mjs": "874b2b44e50170f2904fd0cb823bad68cc5e14125d22cece94d468150419eeed",
+    "executor/check-isolation.mjs": "7a3ac66c9c5222669cb317620efaae86abebca5d80892ae4443bef420cd3878a",
+    "executor/checkpoint.mjs": "2520cca230cf5f648c4b271d63825deaee0b7e07560fd6bba208fc45bbb11038",
+    "executor/docker-tool.mjs": "3216ac58e5750bb5a62e9dea2d68b66201c387abe397bb46c29251fd2ee34792",
+    "executor/main.mjs": "cb556bed82b75c30718a7c5e72a31f84984c7664533345bd9459131bb72aa7ab",
+    "executor/operation.mjs": "93eed8a1711c51ef66d3965bfc7be18266dcba0b032427b3d47c66ebb4e504c5",
+    "executor/ownership.mjs": "7fdb0eb0f90a1728f8bc1e6c9e0bf2eb7dfb594ac02a674fd86817c8a915e338",
+    "executor/reconcile.mjs": "c6c991f7be86841c31fd6abac003f374abdad41b9a3cfe8006bca0bc9f7b9403",
+    "executor/resources.mjs": "38247662ed9ab26260843cfcd1b62f7a2c222fca16c95e72324c07488a10bced",
+    "executor/stage2.py": "188655d15e24ea7094a9e096bd06fba32574ef08ca4ac0cea9ca0642d2017068",
+    "go.mod": "a4ff8a89f5036f124c460adb74e401fcef04b4b7bbbdfc6bf2a7128dd6e954de",
+    "go.sum": "2303440802ba2e392ca8ef4809c59a55db53bc6f7f44478f8befa22c3dbf49fe",
+    "import.go": "cf094f61cc1256ac995673073f2875072be27018c8e7b685286ad52068df447d",
+    "import_test.go": "fc3ae12d518f5170c7d2fedd0302b3d2cfc26d20310a92a84a350883030d95fc",
+    "main.go": "3d675fe6d14e5b1261cd40d1b014ac5dcf73ec1b815a5f7a70ead18946d8f610",
+    "migrations/001.sql": "5a40f6b8fbae0c5fe167a7f3058d0b99d410eb79ff4b7756342d65488924adfa",
+    "migrations/002.sql": "b748568d1d7210bc0832334ce3a9a7b95945fb552fc9d5fe106d84c4b2a6111f",
+    "migrations/003.sql": "0365ff379050313d8e21ca08bf25d9d33efebd594c1e4ca759b6c0ee742d1549",
+    "migrations/004.sql": "5f868c54bc93da89983d2ad95bc80a83a98ecc0eef7e227bb440b231b2306c5b",
+    "migrations/005-checkpoints.sql": "6ffaa6b10d1f7767ddf5ab041ef43da68f0f5f6acfe5a6a78fe5ebbd0d39c12d",
+    "migrations/006_operations.sql": "d916ff29df30d94161c67d0cd76360aecbaab47ca392281b126d56965791269d",
+    "migrations/007_ownership.sql": "9b7c87f939b2a4ddd11a5e3d05d2c26324dee0db085816e5b457cba73544e11a",
+    "migrations/008_owner_connection.sql": "e922bdef11724f8993cfb00fa2d3e1406aa974bc657eabf87803b230a2dc8214",
+    "migrations/README.md": "7f7f21845ca7925231a545118dd45a66f1b6ee2ed1b1a0be7ff2f565d580d775",
+    "ownership.go": "0034b8a0c3063831e492ee619ce88dabc1367cac58dc16aeba0e39505f711065",
+    "ownership_test.go": "243921bc3a5b6d885ad5b185d14dfa6816013e25176fa065a938bf32275e8493",
+    "scripts/README.md": "50352aa0248c263d8d8324e6b39de5171ebe6ef33c6da9334173ac4099829cd6",
+    "scripts/__pycache__/cache113-experiment.cpython-314.pyc": "0781e057085751bacd19e3ad417263e70b410ac204e2e3ba2a27cbb5c7fd6a4e",
+    "scripts/__pycache__/check113-services.cpython-314.pyc": "724fe21a08f92ef5d16f59e04451f4714593b5433afa74dac323069251f1d42f",
+    "scripts/__pycache__/recompute113.cpython-314.pyc": "494b7282eeeade7a3c79ea0fc01d01a73fa8ab40c40e1e833c7b566542f5a52d",
+    "scripts/__pycache__/seed113.cpython-314.pyc": "12547d92d8b1b705bee92cf6638b04d4df95adc1971ceb1cd6bad0e2b32a4c07",
+    "scripts/browser-test.mjs": "d574fff139cb434938a0094792db838a5269ba6099378343d6a1cfd08562f2fc",
+    "scripts/browser107.mjs": "02aba752b38fed23a0272de78c4320b5cefb3b7878513ac79119057148a3a982",
+    "scripts/browser108.mjs": "a8874c15f82563dfb3255e4723b5db589aa88b27f39a9b6e47aa7c5b027df061",
+    "scripts/browser109.mjs": "b791e64f905c41259e938005e691875eb2101bd0a0e403d97c7ffb584772671e",
+    "scripts/browser110.mjs": "2a79a349c0e65695c334932aceeeb64aae0353157d831630321f0bf7f61e76b9",
+    "scripts/browser111-readback.mjs": "709fd8897dd722d0f0b2393d51ec15fdafa19bc1d2eef0a32bf5921ff8add092",
+    "scripts/browser111.mjs": "3ddb9ab8d74a5e159e9fc055a6227f005eb50eb84abd1c20e1232cceea582c0c",
+    "scripts/browser112.mjs": "6935b7b99e12e93facb9b97761453e11442e72a260a116f6e229f2a1fca2cb43",
+    "scripts/browser113.mjs": "fecfe5295a8281f6b5e859bf5c1efdb242608b3eb25ed69a5c8675b41558137b",
+    "scripts/cache113-experiment.py": "0df0c65f848bb4161787f06daa949b5bc38bb876802b6f610a0b89dc5a90d7e9",
+    "scripts/check-migration108.py": "772541c1b5970348d28a570bf124bab00508643cea754374c9d8448ef6b70378",
+    "scripts/check-migration109.py": "f9822c8257a6480b01f183ba5d8c7417dc286950e66365ac21dac68162fa3831",
+    "scripts/check-migration110.py": "778ece17ec2288a8ced52b6abb20b1dc1b39f86ddd798bb9446eb4952b14c084",
+    "scripts/check-migration112.py": "da4d2110a2a2d90a14f1437b0f4bf0f5b8b4f2f6c2d6f230928cbfe94b35d374",
+    "scripts/check107.py": "38ba88cbfd3cfd84a02cbd3981a2574e17bc69df72bcff8326185cd83f2e27ef",
+    "scripts/check108-edges.py": "7a22574458fc00fd393c7a5e85efffe78a4d647df58f1f94ee09205f14ecd76b",
+    "scripts/check108.py": "9aba152e72b79b953e3a9beda7b65cd40051bdc7b9a48db2c796a9238c38a7a5",
+    "scripts/check109-retention.py": "15ee5152f18df0b56aacd02c06c1ceb6c0a15c5ea4ef874da070adf3308634bf",
+    "scripts/check109.py": "37dc93f8a2cc3cf9262e23296bbf2c6d039f7d1ca39b7bbe86b810c15f0344a8",
+    "scripts/check110-file-integrity.py": "9398c22320c08784baead032f9e58c09948de7735e63b2d4bc23701b638457e2",
+    "scripts/check110-negative.py": "ca55025d4b45b7890c6247342177c6270cdfcd3d64dae0b08d42875309479640",
+    "scripts/check110-races.py": "c9faf446e6b23f661bc06a5a21fc9aab0e6857abb60d00950cba8ddc099b3994",
+    "scripts/check110-readback.py": "e3798333b87ea0d59fe9ad0dd91dac81337601ef8c22bb08fa4c0b371b827daa",
+    "scripts/check110-stop-race.py": "40a6a8772dccf8ac9e5536cfa243e95d44e23b55db18411a059ce4841db54e15",
+    "scripts/check110.py": "9c282bb3be8482aabc2a86aadc7ddc84dc1bf6d241b8ca6738a569d15c5dd8d9",
+    "scripts/check111-boundaries.py": "97bfa40af586e20b048f02a1132c2a5e622ea9d78a58fb6a513f2a2e7f8771e1",
+    "scripts/check111-negative.py": "abfa0bad5c46445755eb925f90fb2b4b40cede3fe5c10a60e2bcd3209f94c0f4",
+    "scripts/check111-stop-race.py": "67dc8f56683e01e0bd19b90504304b48b705c6e3e078032c62e52628263c5049",
+    "scripts/check111.py": "e3320ebef72ecd1630e935177f3cbba3f74bf73c76081217b2764fdd6e939c13",
+    "scripts/check112-capacity.py": "87bc0af6c8d4f86d244cc5cd8909cdcdac45aa0907c03ed988fe87c9a45d50d7",
+    "scripts/check112-controls.py": "ccb48932c5597da8605a1577350ad9e6abdd06521ce4e93dbd6d62f4f079965e",
+    "scripts/check112-faults.py": "437efd2fd9fa3a9c1e8d183b5d148d2cf673dafbf0aa25572ff4dc4084dc913b",
+    "scripts/check112-live-stop.py": "ef3187c51bb7456051dbed685900d39150084173da3f14f8244658b22acc99c5",
+    "scripts/check112-smoke.py": "af54d8cff890013f578e72b7b16f59548bc0cc604b7c15ae847264589c1c560e",
+    "scripts/check113-services.py": "d51fc5144c9f15941d963016fff3ce6dade724853bddf63034f39f67ff77f3bf",
+    "scripts/integration.py": "a97dea25d0c76fd6f8c04e948f9c2f81cf32edae5bed65abd425b622c411846c",
+    "scripts/local-dev.py": "8019714752af3fb82f7a9317093db1f051b56c7c9b7e044a21e143c222f5b271",
+    "scripts/make-bundle.py": "803318e9e47a5b3aa4874fa945d139a8e131d760b97fbe8813e434043021fac3",
+    "scripts/recompute112.py": "5a10d3be4a031f286e0f5a1a4427106a2d94f82786c703cc0ce4215ab7b605ee",
+    "scripts/recompute113.py": "0a89ef2940c4406563eaeca0d510ea1cfb1a90ba038415e254e831bcf2c2f411",
+    "scripts/run-browser107.py": "8b734aa0927e90188915c1f9e0c802349a63e2f82b1b8be95432b2a4b0638b6a",
+    "scripts/run-browser108.py": "ea054c07a940a2a42195638324ff84e74b6dfa27caeec4f82517a880cc98f13d",
+    "scripts/run-browser109.py": "6037aa1b7fabdfdaef00fe18506a99ae3fd381285acd97a18965d4e8dc544145",
+    "scripts/run-browser110.py": "f44aebdbb236aaca945b6bd2b5f3585e1f766c3459f8f34abbc936daead776f1",
+    "scripts/run-browser111-readback.py": "2364a2c72a4b20912fdb882a3c9f1407f49be42f1adde1e48d78905bc27a7853",
+    "scripts/run-browser111.py": "7907af8d477874c87eb58781ef1372c1deb64d41acf620c58cd2f4ace46643f4",
+    "scripts/run-browser112.py": "c8fe41f1a6e825dfd91444d7cc56c344f838ee46af2d42f7cf45002aa852785a",
+    "scripts/seed113.py": "752ecdeb6a0b88f4506ea610f6c7e02bedd0c2323e848f564e1e4dc1756473ef",
+    "scripts/worker-control.py": "29403f1e0ff8376117110d2c15619b9970964ce0b396bd92c4d7a704db7f0de4",
+    "tasks.go": "d946918c025d209a905cd8afee4c5bfca47c4cd7d94bc49e2a4cd0a9be2fb28a",
+    "web/Analysis.jsx": "28306bef830bf0de5aca8d890eed81c9377a6f78268a69a7ae31029f3b9a382d",
+    "web/README.md": "577b6432a78d378e0055b1ff348345663f70beaa5353fe3a4867ba5e78b48fbe",
+    "web/build.mjs": "149a4b40d6aecd2f5ae75323100ce227eebe4382b2ca622504affd01aa5cbbb3",
+    "web/index.html": "aa8c66861ce3e9c19421f7e4ede5d1ecd8fe1ce3c05964c13bd422d69b9f8d8f",
+    "web/package-lock.json": "98c38b98297abaac9f57f95fb4f926e1e51dca479bebcad2cb1056a466ca9ca4",
+    "web/package.json": "9a08bee5ccffe68623a7e8d2830e29b0e04e6d828e0d4e10ef53c326bbd5f719",
+    "web/src.jsx": "2e19ce70c0775b6935a098732788d97e844e13a5639e23b0b0655dbd867dbe58",
+    "web/style.css": "022335888be4b938ea00a5ff8735c2ccd4c7b99b171ccf1815cd45c759d99952",
+    "worker.go": "12313863d28600783a4f133632565185fced98b3ab413d9a8d64ee749fd67224"
+  },
+  "binarySHA256": "0806a3f4349355c3e403d7a10e7a8b4bb67288fa711f5c49b25418fcc5a26838",
+  "packageSHA256": "70b6c7680f07f936343737f064e94cb9838aefb6264448c3639a935accce9d0e",
+  "redisTarSHA256": "5981179706f8391f03be91d951acafaeda91af7fac56beffb2701963103e423d",
+  "redisBinarySHA256": "99d12efe55a74b56b93c3910011833b51f9691580a6d8158946026249e22650c",
+  "redisVersion": "Redis server v=7.2.5 sha=00000000:0 malloc=libc bits=64 build=f500b1df1be5d73f",
+  "redisConfig": "bind 127.0.0.1\nport 63113\nprotected-mode yes\nmaxmemory 128mb\nmaxmemory-policy allkeys-lru\nsave \"\"\nappendonly no\ndaemonize yes\npidfile /Users/panyiming/.local/state/pan-agent/web113/redis/redis.pid\nlogfile /Users/panyiming/.local/state/pan-agent/web113/redis/redis.log\ndir /Users/panyiming/.local/state/pan-agent/web113/redis\n",
+  "inputSHA256": "f67d6e22a5f229637bb90cccc5a2538f6aaa87225efb1b8a9cf182cac37828ab",
+  "dataset": [
+    {
+      "who": "a",
+      "bundleId": "422c66e5aeafebd8341606cb4556b88f216e7ec5121a5377e65bdfe5b38ace7f",
+      "conversationId": "6d7137c8717ce5289f53601a8e4642aaadaafd9054c0923867a10e4824c33653",
+      "id": "bf376fb11cce57af17911552142196b12cb4086085119e034b00e4276c4a010e"
+    },
+    {
+      "who": "a",
+      "bundleId": "422c66e5aeafebd8341606cb4556b88f216e7ec5121a5377e65bdfe5b38ace7f",
+      "conversationId": "6d7137c8717ce5289f53601a8e4642aaadaafd9054c0923867a10e4824c33653",
+      "id": "31a481efacafd9d6eb7158663c42f1992532031bd5c3ceabdccd6b44dbd6a0f3"
+    },
+    {
+      "who": "a",
+      "bundleId": "422c66e5aeafebd8341606cb4556b88f216e7ec5121a5377e65bdfe5b38ace7f",
+      "conversationId": "6d7137c8717ce5289f53601a8e4642aaadaafd9054c0923867a10e4824c33653",
+      "id": "6120032d39861b08cfb6d7041c094686b8f76fa0b244f6073ebf877d4a72f343"
+    },
+    {
+      "who": "a",
+      "bundleId": "422c66e5aeafebd8341606cb4556b88f216e7ec5121a5377e65bdfe5b38ace7f",
+      "conversationId": "c9964341dec27682066906931c2aa67b717130878c775714491420971edce4fa",
+      "id": "3154c7ba9f4348ef55430cc61f62ad9d11ffdf8442dacbabc95628c842ae14ac"
+    },
+    {
+      "who": "a",
+      "bundleId": "422c66e5aeafebd8341606cb4556b88f216e7ec5121a5377e65bdfe5b38ace7f",
+      "conversationId": "c9964341dec27682066906931c2aa67b717130878c775714491420971edce4fa",
+      "id": "0940ed50308ffbe8d057875da3d158d0d4f9c4407ca39fb54e366e3a6c0a28a7"
+    },
+    {
+      "who": "a",
+      "bundleId": "422c66e5aeafebd8341606cb4556b88f216e7ec5121a5377e65bdfe5b38ace7f",
+      "conversationId": "c9964341dec27682066906931c2aa67b717130878c775714491420971edce4fa",
+      "id": "ac8762c7466c4972fb0c9963914728bcf19e45f518965733e35ce338cabfb95d"
+    },
+    {
+      "who": "b",
+      "bundleId": "45e5287b0b717f90b8651c9d9224793d9c724b091e85e3311b6798dd3707817b",
+      "conversationId": "b0a4ea5c1f383193b62c7db2e9415d9446045ff2a21916d5c35edcf60fc9377a",
+      "id": "7869ecd917aee866b4d622971f865e8593cc8a24c05427a9b40906204bb2dbec"
+    },
+    {
+      "who": "b",
+      "bundleId": "45e5287b0b717f90b8651c9d9224793d9c724b091e85e3311b6798dd3707817b",
+      "conversationId": "b0a4ea5c1f383193b62c7db2e9415d9446045ff2a21916d5c35edcf60fc9377a",
+      "id": "70fe080757d0c6bbd2626ecdbe900173e4b72313ea8733031ef7722b3a63a3a9"
+    },
+    {
+      "who": "b",
+      "bundleId": "45e5287b0b717f90b8651c9d9224793d9c724b091e85e3311b6798dd3707817b",
+      "conversationId": "b0a4ea5c1f383193b62c7db2e9415d9446045ff2a21916d5c35edcf60fc9377a",
+      "id": "7f237e70a3feb7a859bdf41da70b16b850ae98e43e19eba826014086e4232170"
+    },
+    {
+      "who": "b",
+      "bundleId": "45e5287b0b717f90b8651c9d9224793d9c724b091e85e3311b6798dd3707817b",
+      "conversationId": "e26d3ed26c8761e1ad24717d78ed8ca3a0bf741af8136044b517964112a41521",
+      "id": "9dae8b59bf4658c9dc8f89ddac50aa018fbe1686a22e887e56caa374032c881e"
+    },
+    {
+      "who": "b",
+      "bundleId": "45e5287b0b717f90b8651c9d9224793d9c724b091e85e3311b6798dd3707817b",
+      "conversationId": "e26d3ed26c8761e1ad24717d78ed8ca3a0bf741af8136044b517964112a41521",
+      "id": "75939e77f2c8568d1d2ffb1c08c2f37a044f950581915d206b3feac0658bf3d2"
+    },
+    {
+      "who": "b",
+      "bundleId": "45e5287b0b717f90b8651c9d9224793d9c724b091e85e3311b6798dd3707817b",
+      "conversationId": "e26d3ed26c8761e1ad24717d78ed8ca3a0bf741af8136044b517964112a41521",
+      "id": "eca38f8a1077e6524d16227fb9b3906d7535a88d3ec41e3bd2b1147f21076f97"
+    }
+  ],
+  "sequence": [
+    [
+      "a",
+      "/api/bundles/422c66e5aeafebd8341606cb4556b88f216e7ec5121a5377e65bdfe5b38ace7f/tasks"
+    ],
+    [
+      "a",
+      "/api/tasks/bf376fb11cce57af17911552142196b12cb4086085119e034b00e4276c4a010e"
+    ],
+    [
+      "a",
+      "/api/tasks/31a481efacafd9d6eb7158663c42f1992532031bd5c3ceabdccd6b44dbd6a0f3"
+    ],
+    [
+      "a",
+      "/api/tasks/6120032d39861b08cfb6d7041c094686b8f76fa0b244f6073ebf877d4a72f343"
+    ],
+    [
+      "a",
+      "/api/tasks/3154c7ba9f4348ef55430cc61f62ad9d11ffdf8442dacbabc95628c842ae14ac"
+    ],
+    [
+      "a",
+      "/api/tasks/0940ed50308ffbe8d057875da3d158d0d4f9c4407ca39fb54e366e3a6c0a28a7"
+    ],
+    [
+      "a",
+      "/api/tasks/ac8762c7466c4972fb0c9963914728bcf19e45f518965733e35ce338cabfb95d"
+    ],
+    [
+      "b",
+      "/api/bundles/45e5287b0b717f90b8651c9d9224793d9c724b091e85e3311b6798dd3707817b/tasks"
+    ],
+    [
+      "b",
+      "/api/tasks/7869ecd917aee866b4d622971f865e8593cc8a24c05427a9b40906204bb2dbec"
+    ],
+    [
+      "b",
+      "/api/tasks/70fe080757d0c6bbd2626ecdbe900173e4b72313ea8733031ef7722b3a63a3a9"
+    ],
+    [
+      "b",
+      "/api/tasks/7f237e70a3feb7a859bdf41da70b16b850ae98e43e19eba826014086e4232170"
+    ],
+    [
+      "b",
+      "/api/tasks/9dae8b59bf4658c9dc8f89ddac50aa018fbe1686a22e887e56caa374032c881e"
+    ],
+    [
+      "b",
+      "/api/tasks/75939e77f2c8568d1d2ffb1c08c2f37a044f950581915d206b3feac0658bf3d2"
+    ],
+    [
+      "b",
+      "/api/tasks/eca38f8a1077e6524d16227fb9b3906d7535a88d3ec41e3bd2b1147f21076f97"
+    ],
+    [
+      "a",
+      "/api/bundles/422c66e5aeafebd8341606cb4556b88f216e7ec5121a5377e65bdfe5b38ace7f/tasks"
+    ],
+    [
+      "a",
+      "/api/tasks/bf376fb11cce57af17911552142196b12cb4086085119e034b00e4276c4a010e"
+    ],
+    [
+      "a",
+      "/api/tasks/31a481efacafd9d6eb7158663c42f1992532031bd5c3ceabdccd6b44dbd6a0f3"
+    ],
+    [
+      "a",
+      "/api/tasks/6120032d39861b08cfb6d7041c094686b8f76fa0b244f6073ebf877d4a72f343"
+    ],
+    [
+      "a",
+      "/api/tasks/3154c7ba9f4348ef55430cc61f62ad9d11ffdf8442dacbabc95628c842ae14ac"
+    ],
+    [
+      "a",
+      "/api/tasks/0940ed50308ffbe8d057875da3d158d0d4f9c4407ca39fb54e366e3a6c0a28a7"
+    ],
+    [
+      "a",
+      "/api/tasks/ac8762c7466c4972fb0c9963914728bcf19e45f518965733e35ce338cabfb95d"
+    ],
+    [
+      "b",
+      "/api/bundles/45e5287b0b717f90b8651c9d9224793d9c724b091e85e3311b6798dd3707817b/tasks"
+    ],
+    [
+      "b",
+      "/api/tasks/7869ecd917aee866b4d622971f865e8593cc8a24c05427a9b40906204bb2dbec"
+    ],
+    [
+      "b",
+      "/api/tasks/70fe080757d0c6bbd2626ecdbe900173e4b72313ea8733031ef7722b3a63a3a9"
+    ],
+    [
+      "b",
+      "/api/tasks/7f237e70a3feb7a859bdf41da70b16b850ae98e43e19eba826014086e4232170"
+    ],
+    [
+      "b",
+      "/api/tasks/9dae8b59bf4658c9dc8f89ddac50aa018fbe1686a22e887e56caa374032c881e"
+    ],
+    [
+      "b",
+      "/api/tasks/75939e77f2c8568d1d2ffb1c08c2f37a044f950581915d206b3feac0658bf3d2"
+    ],
+    [
+      "b",
+      "/api/tasks/eca38f8a1077e6524d16227fb9b3906d7535a88d3ec41e3bd2b1147f21076f97"
+    ],
+    [
+      "a",
+      "/api/bundles/422c66e5aeafebd8341606cb4556b88f216e7ec5121a5377e65bdfe5b38ace7f/tasks"
+    ],
+    [
+      "a",
+      "/api/tasks/bf376fb11cce57af17911552142196b12cb4086085119e034b00e4276c4a010e"
+    ],
+    [
+      "a",
+      "/api/tasks/31a481efacafd9d6eb7158663c42f1992532031bd5c3ceabdccd6b44dbd6a0f3"
+    ],
+    [
+      "a",
+      "/api/tasks/6120032d39861b08cfb6d7041c094686b8f76fa0b244f6073ebf877d4a72f343"
+    ],
+    [
+      "a",
+      "/api/tasks/3154c7ba9f4348ef55430cc61f62ad9d11ffdf8442dacbabc95628c842ae14ac"
+    ],
+    [
+      "a",
+      "/api/tasks/0940ed50308ffbe8d057875da3d158d0d4f9c4407ca39fb54e366e3a6c0a28a7"
+    ],
+    [
+      "a",
+      "/api/tasks/ac8762c7466c4972fb0c9963914728bcf19e45f518965733e35ce338cabfb95d"
+    ],
+    [
+      "b",
+      "/api/bundles/45e5287b0b717f90b8651c9d9224793d9c724b091e85e3311b6798dd3707817b/tasks"
+    ],
+    [
+      "b",
+      "/api/tasks/7869ecd917aee866b4d622971f865e8593cc8a24c05427a9b40906204bb2dbec"
+    ],
+    [
+      "b",
+      "/api/tasks/70fe080757d0c6bbd2626ecdbe900173e4b72313ea8733031ef7722b3a63a3a9"
+    ],
+    [
+      "b",
+      "/api/tasks/7f237e70a3feb7a859bdf41da70b16b850ae98e43e19eba826014086e4232170"
+    ],
+    [
+      "b",
+      "/api/tasks/9dae8b59bf4658c9dc8f89ddac50aa018fbe1686a22e887e56caa374032c881e"
+    ],
+    [
+      "b",
+      "/api/tasks/75939e77f2c8568d1d2ffb1c08c2f37a044f950581915d206b3feac0658bf3d2"
+    ],
+    [
+      "b",
+      "/api/tasks/eca38f8a1077e6524d16227fb9b3906d7535a88d3ec41e3bd2b1147f21076f97"
+    ],
+    [
+      "a",
+      "/api/bundles/422c66e5aeafebd8341606cb4556b88f216e7ec5121a5377e65bdfe5b38ace7f/tasks"
+    ],
+    [
+      "a",
+      "/api/tasks/bf376fb11cce57af17911552142196b12cb4086085119e034b00e4276c4a010e"
+    ],
+    [
+      "a",
+      "/api/tasks/31a481efacafd9d6eb7158663c42f1992532031bd5c3ceabdccd6b44dbd6a0f3"
+    ],
+    [
+      "a",
+      "/api/tasks/6120032d39861b08cfb6d7041c094686b8f76fa0b244f6073ebf877d4a72f343"
+    ],
+    [
+      "a",
+      "/api/tasks/3154c7ba9f4348ef55430cc61f62ad9d11ffdf8442dacbabc95628c842ae14ac"
+    ],
+    [
+      "a",
+      "/api/tasks/0940ed50308ffbe8d057875da3d158d0d4f9c4407ca39fb54e366e3a6c0a28a7"
+    ],
+    [
+      "a",
+      "/api/tasks/ac8762c7466c4972fb0c9963914728bcf19e45f518965733e35ce338cabfb95d"
+    ],
+    [
+      "b",
+      "/api/bundles/45e5287b0b717f90b8651c9d9224793d9c724b091e85e3311b6798dd3707817b/tasks"
+    ],
+    [
+      "b",
+      "/api/tasks/7869ecd917aee866b4d622971f865e8593cc8a24c05427a9b40906204bb2dbec"
+    ],
+    [
+      "b",
+      "/api/tasks/70fe080757d0c6bbd2626ecdbe900173e4b72313ea8733031ef7722b3a63a3a9"
+    ],
+    [
+      "b",
+      "/api/tasks/7f237e70a3feb7a859bdf41da70b16b850ae98e43e19eba826014086e4232170"
+    ],
+    [
+      "b",
+      "/api/tasks/9dae8b59bf4658c9dc8f89ddac50aa018fbe1686a22e887e56caa374032c881e"
+    ],
+    [
+      "b",
+      "/api/tasks/75939e77f2c8568d1d2ffb1c08c2f37a044f950581915d206b3feac0658bf3d2"
+    ],
+    [
+      "b",
+      "/api/tasks/eca38f8a1077e6524d16227fb9b3906d7535a88d3ec41e3bd2b1147f21076f97"
+    ],
+    [
+      "a",
+      "/api/bundles/422c66e5aeafebd8341606cb4556b88f216e7ec5121a5377e65bdfe5b38ace7f/tasks"
+    ],
+    [
+      "a",
+      "/api/tasks/bf376fb11cce57af17911552142196b12cb4086085119e034b00e4276c4a010e"
+    ],
+    [
+      "a",
+      "/api/tasks/31a481efacafd9d6eb7158663c42f1992532031bd5c3ceabdccd6b44dbd6a0f3"
+    ],
+    [
+      "a",
+      "/api/tasks/6120032d39861b08cfb6d7041c094686b8f76fa0b244f6073ebf877d4a72f343"
+    ],
+    [
+      "a",
+      "/api/tasks/3154c7ba9f4348ef55430cc61f62ad9d11ffdf8442dacbabc95628c842ae14ac"
+    ],
+    [
+      "a",
+      "/api/tasks/0940ed50308ffbe8d057875da3d158d0d4f9c4407ca39fb54e366e3a6c0a28a7"
+    ],
+    [
+      "a",
+      "/api/tasks/ac8762c7466c4972fb0c9963914728bcf19e45f518965733e35ce338cabfb95d"
+    ],
+    [
+      "b",
+      "/api/bundles/45e5287b0b717f90b8651c9d9224793d9c724b091e85e3311b6798dd3707817b/tasks"
+    ],
+    [
+      "b",
+      "/api/tasks/7869ecd917aee866b4d622971f865e8593cc8a24c05427a9b40906204bb2dbec"
+    ],
+    [
+      "b",
+      "/api/tasks/70fe080757d0c6bbd2626ecdbe900173e4b72313ea8733031ef7722b3a63a3a9"
+    ],
+    [
+      "b",
+      "/api/tasks/7f237e70a3feb7a859bdf41da70b16b850ae98e43e19eba826014086e4232170"
+    ],
+    [
+      "b",
+      "/api/tasks/9dae8b59bf4658c9dc8f89ddac50aa018fbe1686a22e887e56caa374032c881e"
+    ],
+    [
+      "b",
+      "/api/tasks/75939e77f2c8568d1d2ffb1c08c2f37a044f950581915d206b3feac0658bf3d2"
+    ],
+    [
+      "b",
+      "/api/tasks/eca38f8a1077e6524d16227fb9b3906d7535a88d3ec41e3bd2b1147f21076f97"
+    ],
+    [
+      "a",
+      "/api/bundles/422c66e5aeafebd8341606cb4556b88f216e7ec5121a5377e65bdfe5b38ace7f/tasks"
+    ],
+    [
+      "a",
+      "/api/tasks/bf376fb11cce57af17911552142196b12cb4086085119e034b00e4276c4a010e"
+    ],
+    [
+      "a",
+      "/api/tasks/31a481efacafd9d6eb7158663c42f1992532031bd5c3ceabdccd6b44dbd6a0f3"
+    ],
+    [
+      "a",
+      "/api/tasks/6120032d39861b08cfb6d7041c094686b8f76fa0b244f6073ebf877d4a72f343"
+    ],
+    [
+      "a",
+      "/api/tasks/3154c7ba9f4348ef55430cc61f62ad9d11ffdf8442dacbabc95628c842ae14ac"
+    ],
+    [
+      "a",
+      "/api/tasks/0940ed50308ffbe8d057875da3d158d0d4f9c4407ca39fb54e366e3a6c0a28a7"
+    ],
+    [
+      "a",
+      "/api/tasks/ac8762c7466c4972fb0c9963914728bcf19e45f518965733e35ce338cabfb95d"
+    ],
+    [
+      "b",
+      "/api/bundles/45e5287b0b717f90b8651c9d9224793d9c724b091e85e3311b6798dd3707817b/tasks"
+    ],
+    [
+      "b",
+      "/api/tasks/7869ecd917aee866b4d622971f865e8593cc8a24c05427a9b40906204bb2dbec"
+    ],
+    [
+      "b",
+      "/api/tasks/70fe080757d0c6bbd2626ecdbe900173e4b72313ea8733031ef7722b3a63a3a9"
+    ],
+    [
+      "b",
+      "/api/tasks/7f237e70a3feb7a859bdf41da70b16b850ae98e43e19eba826014086e4232170"
+    ],
+    [
+      "b",
+      "/api/tasks/9dae8b59bf4658c9dc8f89ddac50aa018fbe1686a22e887e56caa374032c881e"
+    ],
+    [
+      "b",
+      "/api/tasks/75939e77f2c8568d1d2ffb1c08c2f37a044f950581915d206b3feac0658bf3d2"
+    ],
+    [
+      "b",
+      "/api/tasks/eca38f8a1077e6524d16227fb9b3906d7535a88d3ec41e3bd2b1147f21076f97"
+    ],
+    [
+      "a",
+      "/api/bundles/422c66e5aeafebd8341606cb4556b88f216e7ec5121a5377e65bdfe5b38ace7f/tasks"
+    ],
+    [
+      "a",
+      "/api/tasks/bf376fb11cce57af17911552142196b12cb4086085119e034b00e4276c4a010e"
+    ],
+    [
+      "a",
+      "/api/tasks/31a481efacafd9d6eb7158663c42f1992532031bd5c3ceabdccd6b44dbd6a0f3"
+    ],
+    [
+      "a",
+      "/api/tasks/6120032d39861b08cfb6d7041c094686b8f76fa0b244f6073ebf877d4a72f343"
+    ],
+    [
+      "a",
+      "/api/tasks/3154c7ba9f4348ef55430cc61f62ad9d11ffdf8442dacbabc95628c842ae14ac"
+    ],
+    [
+      "a",
+      "/api/tasks/0940ed50308ffbe8d057875da3d158d0d4f9c4407ca39fb54e366e3a6c0a28a7"
+    ],
+    [
+      "a",
+      "/api/tasks/ac8762c7466c4972fb0c9963914728bcf19e45f518965733e35ce338cabfb95d"
+    ],
+    [
+      "b",
+      "/api/bundles/45e5287b0b717f90b8651c9d9224793d9c724b091e85e3311b6798dd3707817b/tasks"
+    ],
+    [
+      "b",
+      "/api/tasks/7869ecd917aee866b4d622971f865e8593cc8a24c05427a9b40906204bb2dbec"
+    ],
+    [
+      "b",
+      "/api/tasks/70fe080757d0c6bbd2626ecdbe900173e4b72313ea8733031ef7722b3a63a3a9"
+    ],
+    [
+      "b",
+      "/api/tasks/7f237e70a3feb7a859bdf41da70b16b850ae98e43e19eba826014086e4232170"
+    ],
+    [
+      "b",
+      "/api/tasks/9dae8b59bf4658c9dc8f89ddac50aa018fbe1686a22e887e56caa374032c881e"
+    ],
+    [
+      "b",
+      "/api/tasks/75939e77f2c8568d1d2ffb1c08c2f37a044f950581915d206b3feac0658bf3d2"
+    ],
+    [
+      "b",
+      "/api/tasks/eca38f8a1077e6524d16227fb9b3906d7535a88d3ec41e3bd2b1147f21076f97"
+    ],
+    [
+      "a",
+      "/api/bundles/422c66e5aeafebd8341606cb4556b88f216e7ec5121a5377e65bdfe5b38ace7f/tasks"
+    ],
+    [
+      "a",
+      "/api/tasks/bf376fb11cce57af17911552142196b12cb4086085119e034b00e4276c4a010e"
+    ],
+    [
+      "a",
+      "/api/tasks/31a481efacafd9d6eb7158663c42f1992532031bd5c3ceabdccd6b44dbd6a0f3"
+    ],
+    [
+      "a",
+      "/api/tasks/6120032d39861b08cfb6d7041c094686b8f76fa0b244f6073ebf877d4a72f343"
+    ],
+    [
+      "a",
+      "/api/tasks/3154c7ba9f4348ef55430cc61f62ad9d11ffdf8442dacbabc95628c842ae14ac"
+    ],
+    [
+      "a",
+      "/api/tasks/0940ed50308ffbe8d057875da3d158d0d4f9c4407ca39fb54e366e3a6c0a28a7"
+    ],
+    [
+      "a",
+      "/api/tasks/ac8762c7466c4972fb0c9963914728bcf19e45f518965733e35ce338cabfb95d"
+    ],
+    [
+      "b",
+      "/api/bundles/45e5287b0b717f90b8651c9d9224793d9c724b091e85e3311b6798dd3707817b/tasks"
+    ],
+    [
+      "b",
+      "/api/tasks/7869ecd917aee866b4d622971f865e8593cc8a24c05427a9b40906204bb2dbec"
+    ],
+    [
+      "b",
+      "/api/tasks/70fe080757d0c6bbd2626ecdbe900173e4b72313ea8733031ef7722b3a63a3a9"
+    ],
+    [
+      "b",
+      "/api/tasks/7f237e70a3feb7a859bdf41da70b16b850ae98e43e19eba826014086e4232170"
+    ],
+    [
+      "b",
+      "/api/tasks/9dae8b59bf4658c9dc8f89ddac50aa018fbe1686a22e887e56caa374032c881e"
+    ],
+    [
+      "b",
+      "/api/tasks/75939e77f2c8568d1d2ffb1c08c2f37a044f950581915d206b3feac0658bf3d2"
+    ],
+    [
+      "b",
+      "/api/tasks/eca38f8a1077e6524d16227fb9b3906d7535a88d3ec41e3bd2b1147f21076f97"
+    ],
+    [
+      "a",
+      "/api/bundles/422c66e5aeafebd8341606cb4556b88f216e7ec5121a5377e65bdfe5b38ace7f/tasks"
+    ],
+    [
+      "a",
+      "/api/tasks/bf376fb11cce57af17911552142196b12cb4086085119e034b00e4276c4a010e"
+    ],
+    [
+      "a",
+      "/api/tasks/31a481efacafd9d6eb7158663c42f1992532031bd5c3ceabdccd6b44dbd6a0f3"
+    ],
+    [
+      "a",
+      "/api/tasks/6120032d39861b08cfb6d7041c094686b8f76fa0b244f6073ebf877d4a72f343"
+    ],
+    [
+      "a",
+      "/api/tasks/3154c7ba9f4348ef55430cc61f62ad9d11ffdf8442dacbabc95628c842ae14ac"
+    ],
+    [
+      "a",
+      "/api/tasks/0940ed50308ffbe8d057875da3d158d0d4f9c4407ca39fb54e366e3a6c0a28a7"
+    ],
+    [
+      "a",
+      "/api/tasks/ac8762c7466c4972fb0c9963914728bcf19e45f518965733e35ce338cabfb95d"
+    ],
+    [
+      "b",
+      "/api/bundles/45e5287b0b717f90b8651c9d9224793d9c724b091e85e3311b6798dd3707817b/tasks"
+    ],
+    [
+      "b",
+      "/api/tasks/7869ecd917aee866b4d622971f865e8593cc8a24c05427a9b40906204bb2dbec"
+    ],
+    [
+      "b",
+      "/api/tasks/70fe080757d0c6bbd2626ecdbe900173e4b72313ea8733031ef7722b3a63a3a9"
+    ],
+    [
+      "b",
+      "/api/tasks/7f237e70a3feb7a859bdf41da70b16b850ae98e43e19eba826014086e4232170"
+    ],
+    [
+      "b",
+      "/api/tasks/9dae8b59bf4658c9dc8f89ddac50aa018fbe1686a22e887e56caa374032c881e"
+    ],
+    [
+      "b",
+      "/api/tasks/75939e77f2c8568d1d2ffb1c08c2f37a044f950581915d206b3feac0658bf3d2"
+    ],
+    [
+      "b",
+      "/api/tasks/eca38f8a1077e6524d16227fb9b3906d7535a88d3ec41e3bd2b1147f21076f97"
+    ],
+    [
+      "a",
+      "/api/bundles/422c66e5aeafebd8341606cb4556b88f216e7ec5121a5377e65bdfe5b38ace7f/tasks"
+    ],
+    [
+      "a",
+      "/api/tasks/bf376fb11cce57af17911552142196b12cb4086085119e034b00e4276c4a010e"
+    ],
+    [
+      "a",
+      "/api/tasks/31a481efacafd9d6eb7158663c42f1992532031bd5c3ceabdccd6b44dbd6a0f3"
+    ],
+    [
+      "a",
+      "/api/tasks/6120032d39861b08cfb6d7041c094686b8f76fa0b244f6073ebf877d4a72f343"
+    ],
+    [
+      "a",
+      "/api/tasks/3154c7ba9f4348ef55430cc61f62ad9d11ffdf8442dacbabc95628c842ae14ac"
+    ],
+    [
+      "a",
+      "/api/tasks/0940ed50308ffbe8d057875da3d158d0d4f9c4407ca39fb54e366e3a6c0a28a7"
+    ],
+    [
+      "a",
+      "/api/tasks/ac8762c7466c4972fb0c9963914728bcf19e45f518965733e35ce338cabfb95d"
+    ],
+    [
+      "b",
+      "/api/bundles/45e5287b0b717f90b8651c9d9224793d9c724b091e85e3311b6798dd3707817b/tasks"
+    ],
+    [
+      "b",
+      "/api/tasks/7869ecd917aee866b4d622971f865e8593cc8a24c05427a9b40906204bb2dbec"
+    ],
+    [
+      "b",
+      "/api/tasks/70fe080757d0c6bbd2626ecdbe900173e4b72313ea8733031ef7722b3a63a3a9"
+    ],
+    [
+      "b",
+      "/api/tasks/7f237e70a3feb7a859bdf41da70b16b850ae98e43e19eba826014086e4232170"
+    ],
+    [
+      "b",
+      "/api/tasks/9dae8b59bf4658c9dc8f89ddac50aa018fbe1686a22e887e56caa374032c881e"
+    ],
+    [
+      "b",
+      "/api/tasks/75939e77f2c8568d1d2ffb1c08c2f37a044f950581915d206b3feac0658bf3d2"
+    ],
+    [
+      "b",
+      "/api/tasks/eca38f8a1077e6524d16227fb9b3906d7535a88d3ec41e3bd2b1147f21076f97"
+    ],
+    [
+      "a",
+      "/api/bundles/422c66e5aeafebd8341606cb4556b88f216e7ec5121a5377e65bdfe5b38ace7f/tasks"
+    ],
+    [
+      "a",
+      "/api/tasks/bf376fb11cce57af17911552142196b12cb4086085119e034b00e4276c4a010e"
+    ],
+    [
+      "a",
+      "/api/tasks/31a481efacafd9d6eb7158663c42f1992532031bd5c3ceabdccd6b44dbd6a0f3"
+    ],
+    [
+      "a",
+      "/api/tasks/6120032d39861b08cfb6d7041c094686b8f76fa0b244f6073ebf877d4a72f343"
+    ],
+    [
+      "a",
+      "/api/tasks/3154c7ba9f4348ef55430cc61f62ad9d11ffdf8442dacbabc95628c842ae14ac"
+    ],
+    [
+      "a",
+      "/api/tasks/0940ed50308ffbe8d057875da3d158d0d4f9c4407ca39fb54e366e3a6c0a28a7"
+    ],
+    [
+      "a",
+      "/api/tasks/ac8762c7466c4972fb0c9963914728bcf19e45f518965733e35ce338cabfb95d"
+    ],
+    [
+      "b",
+      "/api/bundles/45e5287b0b717f90b8651c9d9224793d9c724b091e85e3311b6798dd3707817b/tasks"
+    ],
+    [
+      "b",
+      "/api/tasks/7869ecd917aee866b4d622971f865e8593cc8a24c05427a9b40906204bb2dbec"
+    ],
+    [
+      "b",
+      "/api/tasks/70fe080757d0c6bbd2626ecdbe900173e4b72313ea8733031ef7722b3a63a3a9"
+    ],
+    [
+      "b",
+      "/api/tasks/7f237e70a3feb7a859bdf41da70b16b850ae98e43e19eba826014086e4232170"
+    ],
+    [
+      "b",
+      "/api/tasks/9dae8b59bf4658c9dc8f89ddac50aa018fbe1686a22e887e56caa374032c881e"
+    ],
+    [
+      "b",
+      "/api/tasks/75939e77f2c8568d1d2ffb1c08c2f37a044f950581915d206b3feac0658bf3d2"
+    ],
+    [
+      "b",
+      "/api/tasks/eca38f8a1077e6524d16227fb9b3906d7535a88d3ec41e3bd2b1147f21076f97"
+    ],
+    [
+      "a",
+      "/api/bundles/422c66e5aeafebd8341606cb4556b88f216e7ec5121a5377e65bdfe5b38ace7f/tasks"
+    ],
+    [
+      "a",
+      "/api/tasks/bf376fb11cce57af17911552142196b12cb4086085119e034b00e4276c4a010e"
+    ],
+    [
+      "a",
+      "/api/tasks/31a481efacafd9d6eb7158663c42f1992532031bd5c3ceabdccd6b44dbd6a0f3"
+    ],
+    [
+      "a",
+      "/api/tasks/6120032d39861b08cfb6d7041c094686b8f76fa0b244f6073ebf877d4a72f343"
+    ],
+    [
+      "a",
+      "/api/tasks/3154c7ba9f4348ef55430cc61f62ad9d11ffdf8442dacbabc95628c842ae14ac"
+    ],
+    [
+      "a",
+      "/api/tasks/0940ed50308ffbe8d057875da3d158d0d4f9c4407ca39fb54e366e3a6c0a28a7"
+    ],
+    [
+      "a",
+      "/api/tasks/ac8762c7466c4972fb0c9963914728bcf19e45f518965733e35ce338cabfb95d"
+    ],
+    [
+      "b",
+      "/api/bundles/45e5287b0b717f90b8651c9d9224793d9c724b091e85e3311b6798dd3707817b/tasks"
+    ],
+    [
+      "b",
+      "/api/tasks/7869ecd917aee866b4d622971f865e8593cc8a24c05427a9b40906204bb2dbec"
+    ],
+    [
+      "b",
+      "/api/tasks/70fe080757d0c6bbd2626ecdbe900173e4b72313ea8733031ef7722b3a63a3a9"
+    ],
+    [
+      "b",
+      "/api/tasks/7f237e70a3feb7a859bdf41da70b16b850ae98e43e19eba826014086e4232170"
+    ],
+    [
+      "b",
+      "/api/tasks/9dae8b59bf4658c9dc8f89ddac50aa018fbe1686a22e887e56caa374032c881e"
+    ],
+    [
+      "b",
+      "/api/tasks/75939e77f2c8568d1d2ffb1c08c2f37a044f950581915d206b3feac0658bf3d2"
+    ],
+    [
+      "b",
+      "/api/tasks/eca38f8a1077e6524d16227fb9b3906d7535a88d3ec41e3bd2b1147f21076f97"
+    ],
+    [
+      "a",
+      "/api/bundles/422c66e5aeafebd8341606cb4556b88f216e7ec5121a5377e65bdfe5b38ace7f/tasks"
+    ],
+    [
+      "a",
+      "/api/tasks/bf376fb11cce57af17911552142196b12cb4086085119e034b00e4276c4a010e"
+    ],
+    [
+      "a",
+      "/api/tasks/31a481efacafd9d6eb7158663c42f1992532031bd5c3ceabdccd6b44dbd6a0f3"
+    ],
+    [
+      "a",
+      "/api/tasks/6120032d39861b08cfb6d7041c094686b8f76fa0b244f6073ebf877d4a72f343"
+    ],
+    [
+      "a",
+      "/api/tasks/3154c7ba9f4348ef55430cc61f62ad9d11ffdf8442dacbabc95628c842ae14ac"
+    ],
+    [
+      "a",
+      "/api/tasks/0940ed50308ffbe8d057875da3d158d0d4f9c4407ca39fb54e366e3a6c0a28a7"
+    ],
+    [
+      "a",
+      "/api/tasks/ac8762c7466c4972fb0c9963914728bcf19e45f518965733e35ce338cabfb95d"
+    ],
+    [
+      "b",
+      "/api/bundles/45e5287b0b717f90b8651c9d9224793d9c724b091e85e3311b6798dd3707817b/tasks"
+    ],
+    [
+      "b",
+      "/api/tasks/7869ecd917aee866b4d622971f865e8593cc8a24c05427a9b40906204bb2dbec"
+    ],
+    [
+      "b",
+      "/api/tasks/70fe080757d0c6bbd2626ecdbe900173e4b72313ea8733031ef7722b3a63a3a9"
+    ],
+    [
+      "b",
+      "/api/tasks/7f237e70a3feb7a859bdf41da70b16b850ae98e43e19eba826014086e4232170"
+    ],
+    [
+      "b",
+      "/api/tasks/9dae8b59bf4658c9dc8f89ddac50aa018fbe1686a22e887e56caa374032c881e"
+    ],
+    [
+      "b",
+      "/api/tasks/75939e77f2c8568d1d2ffb1c08c2f37a044f950581915d206b3feac0658bf3d2"
+    ],
+    [
+      "b",
+      "/api/tasks/eca38f8a1077e6524d16227fb9b3906d7535a88d3ec41e3bd2b1147f21076f97"
+    ],
+    [
+      "a",
+      "/api/bundles/422c66e5aeafebd8341606cb4556b88f216e7ec5121a5377e65bdfe5b38ace7f/tasks"
+    ],
+    [
+      "a",
+      "/api/tasks/bf376fb11cce57af17911552142196b12cb4086085119e034b00e4276c4a010e"
+    ],
+    [
+      "a",
+      "/api/tasks/31a481efacafd9d6eb7158663c42f1992532031bd5c3ceabdccd6b44dbd6a0f3"
+    ],
+    [
+      "a",
+      "/api/tasks/6120032d39861b08cfb6d7041c094686b8f76fa0b244f6073ebf877d4a72f343"
+    ],
+    [
+      "a",
+      "/api/tasks/3154c7ba9f4348ef55430cc61f62ad9d11ffdf8442dacbabc95628c842ae14ac"
+    ],
+    [
+      "a",
+      "/api/tasks/0940ed50308ffbe8d057875da3d158d0d4f9c4407ca39fb54e366e3a6c0a28a7"
+    ],
+    [
+      "a",
+      "/api/tasks/ac8762c7466c4972fb0c9963914728bcf19e45f518965733e35ce338cabfb95d"
+    ],
+    [
+      "b",
+      "/api/bundles/45e5287b0b717f90b8651c9d9224793d9c724b091e85e3311b6798dd3707817b/tasks"
+    ],
+    [
+      "b",
+      "/api/tasks/7869ecd917aee866b4d622971f865e8593cc8a24c05427a9b40906204bb2dbec"
+    ],
+    [
+      "b",
+      "/api/tasks/70fe080757d0c6bbd2626ecdbe900173e4b72313ea8733031ef7722b3a63a3a9"
+    ],
+    [
+      "b",
+      "/api/tasks/7f237e70a3feb7a859bdf41da70b16b850ae98e43e19eba826014086e4232170"
+    ],
+    [
+      "b",
+      "/api/tasks/9dae8b59bf4658c9dc8f89ddac50aa018fbe1686a22e887e56caa374032c881e"
+    ],
+    [
+      "b",
+      "/api/tasks/75939e77f2c8568d1d2ffb1c08c2f37a044f950581915d206b3feac0658bf3d2"
+    ],
+    [
+      "b",
+      "/api/tasks/eca38f8a1077e6524d16227fb9b3906d7535a88d3ec41e3bd2b1147f21076f97"
+    ],
+    [
+      "a",
+      "/api/bundles/422c66e5aeafebd8341606cb4556b88f216e7ec5121a5377e65bdfe5b38ace7f/tasks"
+    ],
+    [
+      "a",
+      "/api/tasks/bf376fb11cce57af17911552142196b12cb4086085119e034b00e4276c4a010e"
+    ],
+    [
+      "a",
+      "/api/tasks/31a481efacafd9d6eb7158663c42f1992532031bd5c3ceabdccd6b44dbd6a0f3"
+    ],
+    [
+      "a",
+      "/api/tasks/6120032d39861b08cfb6d7041c094686b8f76fa0b244f6073ebf877d4a72f343"
+    ]
+  ],
+  "clients": 8,
+  "queriesPerRound": 200,
+  "rounds": [
+    "off",
+    "cold",
+    "warm",
+    "outage"
+  ],
+  "warmup": [
+    [
+      "a",
+      "/api/bundles/422c66e5aeafebd8341606cb4556b88f216e7ec5121a5377e65bdfe5b38ace7f/tasks"
+    ],
+    [
+      "a",
+      "/api/tasks/bf376fb11cce57af17911552142196b12cb4086085119e034b00e4276c4a010e"
+    ],
+    [
+      "a",
+      "/api/tasks/31a481efacafd9d6eb7158663c42f1992532031bd5c3ceabdccd6b44dbd6a0f3"
+    ],
+    [
+      "a",
+      "/api/tasks/6120032d39861b08cfb6d7041c094686b8f76fa0b244f6073ebf877d4a72f343"
+    ],
+    [
+      "a",
+      "/api/tasks/3154c7ba9f4348ef55430cc61f62ad9d11ffdf8442dacbabc95628c842ae14ac"
+    ],
+    [
+      "a",
+      "/api/tasks/0940ed50308ffbe8d057875da3d158d0d4f9c4407ca39fb54e366e3a6c0a28a7"
+    ],
+    [
+      "a",
+      "/api/tasks/ac8762c7466c4972fb0c9963914728bcf19e45f518965733e35ce338cabfb95d"
+    ],
+    [
+      "b",
+      "/api/bundles/45e5287b0b717f90b8651c9d9224793d9c724b091e85e3311b6798dd3707817b/tasks"
+    ],
+    [
+      "b",
+      "/api/tasks/7869ecd917aee866b4d622971f865e8593cc8a24c05427a9b40906204bb2dbec"
+    ],
+    [
+      "b",
+      "/api/tasks/70fe080757d0c6bbd2626ecdbe900173e4b72313ea8733031ef7722b3a63a3a9"
+    ],
+    [
+      "b",
+      "/api/tasks/7f237e70a3feb7a859bdf41da70b16b850ae98e43e19eba826014086e4232170"
+    ],
+    [
+      "b",
+      "/api/tasks/9dae8b59bf4658c9dc8f89ddac50aa018fbe1686a22e887e56caa374032c881e"
+    ],
+    [
+      "b",
+      "/api/tasks/75939e77f2c8568d1d2ffb1c08c2f37a044f950581915d206b3feac0658bf3d2"
+    ],
+    [
+      "b",
+      "/api/tasks/eca38f8a1077e6524d16227fb9b3906d7535a88d3ec41e3bd2b1147f21076f97"
+    ]
+  ],
+  "ttlMs": 5000,
+  "redisTimeoutMs": 100,
+  "projectionTimeoutMs": 2000,
+  "projectionSlots": 4,
+  "apiPoolMax": 8,
+  "workerPoolMax": 4,
+  "pgServerMaxConnections": 16,
+  "requestTimeoutSeconds": 30,
+  "authTimeoutSeconds": 2,
+  "ownershipTimeoutSeconds": 2,
+  "clock": "client time.monotonic_ns; API process-local Go monotonic + wall drift guard; no reuse across API epoch",
+  "hardware": "hw.ncpu: 8\nhw.memsize: 17179869184\n",
+  "host": "macOS-27.0.1-arm64-arm-64bit-Mach-O",
+  "providerCalls": 0,
+  "codingTokens": "unknown"
+}
