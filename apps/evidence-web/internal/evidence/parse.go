@@ -1,4 +1,4 @@
-package main
+package evidence
 
 import (
 	"bytes"
@@ -13,8 +13,8 @@ import (
 	"unicode/utf8"
 )
 
-const parserVersion = "pan97-summary-criteria112-v1"
-const maxUpload = 16 << 20
+const ParserVersion = "pan97-summary-criteria112-v1"
+const MaxUpload = 16 << 20
 
 var safeName = regexp.MustCompile(`^[A-Za-z0-9][A-Za-z0-9_.-]{0,119}$`)
 var hashPattern = regexp.MustCompile(`^[a-f0-9]{64}$`)
@@ -56,7 +56,7 @@ type Overview struct {
 	Warnings             []string       `json:"warnings"`
 }
 
-func hash(b []byte) string { s := sha256.Sum256(b); return hex.EncodeToString(s[:]) }
+func Hash(b []byte) string { s := sha256.Sum256(b); return hex.EncodeToString(s[:]) }
 
 // Reject duplicate keys: pointers must have a single unambiguous source record.
 func decodeJSON(b []byte, dest any) error {
@@ -112,28 +112,28 @@ func decodeJSON(b []byte, dest any) error {
 	}
 	return json.Unmarshal(b, dest)
 }
-func validName(s string) bool { return safeName.MatchString(s) && !strings.Contains(s, "..") }
-func parseBundle(manifestBytes []byte, files map[string][]byte) (Manifest, Overview, error) {
+func ValidName(s string) bool { return safeName.MatchString(s) && !strings.Contains(s, "..") }
+func ParseBundle(manifestBytes []byte, files map[string][]byte) (Manifest, Overview, error) {
 	var m Manifest
 	var o Overview
 	if err := decodeJSON(manifestBytes, &m); err != nil {
 		return m, o, fmt.Errorf("manifest.json: invalid JSON: %v", err)
 	}
-	if m.Version != 1 || !validName(m.Summary) || m.Summary == "manifest.json" || len(m.Title) < 1 || len(m.Title) > 160 || len(m.Files) < 1 || len(m.Files) > 32 {
+	if m.Version != 1 || !ValidName(m.Summary) || m.Summary == "manifest.json" || len(m.Title) < 1 || len(m.Title) > 160 || len(m.Files) < 1 || len(m.Files) > 32 {
 		return m, o, fmt.Errorf("manifest.json: version/title/summary/files invalid")
 	}
 	if len(files) != len(m.Files) {
 		return m, o, fmt.Errorf("manifest.json: supplied files do not match files map")
 	}
 	for name, expected := range m.Files {
-		if !validName(name) || name == "manifest.json" {
+		if !ValidName(name) || name == "manifest.json" {
 			return m, o, fmt.Errorf("manifest.json: unsafe file name")
 		}
 		b, ok := files[name]
 		if !ok {
 			return m, o, fmt.Errorf("%s: missing file", name)
 		}
-		if !hashPattern.MatchString(expected) || hash(b) != expected {
+		if !ValidHash(expected) || Hash(b) != expected {
 			return m, o, fmt.Errorf("%s: SHA256 mismatch", name)
 		}
 	}
@@ -227,7 +227,7 @@ func parseBundle(manifestBytes []byte, files map[string][]byte) (Manifest, Overv
 	}
 	return m, o, nil
 }
-func pointerValue(content []byte, pointer string) (any, error) {
+func PointerValue(content []byte, pointer string) (any, error) {
 	var v any
 	if err := decodeJSON(content, &v); err != nil {
 		return nil, fmt.Errorf("file is not JSON")
@@ -259,3 +259,6 @@ func pointerValue(content []byte, pointer string) (any, error) {
 	}
 	return v, nil
 }
+
+// ValidHash hides the fixed digest grammar; callers cannot replace a shared regexp.
+func ValidHash(s string) bool { return hashPattern.MatchString(s) }

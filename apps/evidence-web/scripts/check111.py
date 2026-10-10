@@ -2,7 +2,7 @@
 """Owned, real Node crashes at persisted operation barriers; original receipts remain private."""
 import pathlib,os,json,subprocess,time,uuid,signal,hashlib
 source=pathlib.Path(__file__).with_name('check108.py').read_text();exec(compile(source.split('\ntry:\n app=start')[0],str(pathlib.Path(__file__).with_name('check108.py')),'exec'))
-assert issue==111
+assert issue in [111,119]
 env.update(WEB_CHECKPOINT_MODE='1',WEB_OPERATION_MODE='1')
 def resume(cid,tid,cp,rid='resume',c=None):return jreq(c or a,f'/api/conversations/{cid}/tasks/{tid}/resume',{'requestId':rid,'checkpointId':cp})
 def archivefiles(tid):return {str(p.relative_to(R/'tasks'/tid)):hashlib.sha256(p.read_bytes()).hexdigest() for p in (R/'tasks'/tid/'archive').rglob('*') if p.is_file()}

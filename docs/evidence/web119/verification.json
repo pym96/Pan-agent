@@ -1,0 +1,565 @@
+{
+  "criteria": "1.0",
+  "role": "Working Agent (Builder)",
+  "baseline": "5bdfc4d5a87a6b9431cb94d34f2c0db4de180949",
+  "acceptance": "pending independent Regulator",
+  "identity": {
+    "baseline": "5bdfc4d5a87a6b9431cb94d34f2c0db4de180949",
+    "candidateBinarySHA256": "98d13fbe7a7fd73beac7a0308da634c18cf8b7f1ddd50d5118b0725de95f7963",
+    "inputSHA256": "f67d6e22a5f229637bb90cccc5a2538f6aaa87225efb1b8a9cf182cac37828ab",
+    "image": "sha256:8129910271f9764b5c05038d351ad7b9f9d94b85351355b69c5526eadd111775",
+    "redisBinarySHA256": "99d12efe55a74b56b93c3910011833b51f9691580a6d8158946026249e22650c",
+    "redisTarSHA256": "5981179706f8391f03be91d951acafaeda91af7fac56beffb2701963103e423d",
+    "panTarSHA256": "70b6c7680f07f936343737f064e94cb9838aefb6264448c3639a935accce9d0e",
+    "versions": {
+      "go": "go version go1.27.1 darwin/arm64",
+      "node": "v26.7.0",
+      "python": "3.14.0",
+      "postgres": "postgres (PostgreSQL) 14.18 (Homebrew)",
+      "redis": "Redis server v=7.2.5 sha=00000000:0 malloc=libc bits=64 build=f500b1df1be5d73f"
+    },
+    "ports": {
+      "api": 8119,
+      "pg": 54119,
+      "redis": 63119
+    },
+    "utc": "2026-10-10T10:37:12.966541+00:00",
+    "unchangedPanDistFiles": 82,
+    "typeScriptProductSourceDiff": ""
+  },
+  "requiredPassingRecords": [
+    "candidate-build",
+    "candidate-conversations",
+    "candidate-controls",
+    "candidate-browser",
+    "candidate-services02",
+    "candidate-import",
+    "candidate-race",
+    "candidate-vet",
+    "candidate-structure",
+    "faults-final",
+    "live-stop-final",
+    "dual-final",
+    "recovery-final",
+    "recovery-negative-final",
+    "recovery-boundaries-final",
+    "migration110-final",
+    "migration112-final"
+  ],
+  "runs": [
+    {
+      "label": "conversations-02",
+      "script": "check108.py",
+      "exit": 0,
+      "seconds": 87.72669005393982,
+      "cliBinarySHA256": "2f7101ef3fedffce3810ac4ef359729f5e326ea934fa9e5f3b4e34843dc9468f",
+      "goTestsCompileSeparately": false
+    },
+    {
+      "label": "faults-01",
+      "script": "check112-faults.py",
+      "exit": 1,
+      "seconds": 136.8285210132599,
+      "cliBinarySHA256": "2f7101ef3fedffce3810ac4ef359729f5e326ea934fa9e5f3b4e34843dc9468f",
+      "goTestsCompileSeparately": false
+    },
+    {
+      "label": "faults-02",
+      "script": "check112-faults.py",
+      "exit": 0,
+      "seconds": 139.37882494926453,
+      "cliBinarySHA256": "2f7101ef3fedffce3810ac4ef359729f5e326ea934fa9e5f3b4e34843dc9468f",
+      "goTestsCompileSeparately": false
+    },
+    {
+      "label": "controls-01",
+      "script": "check112-controls.py",
+      "exit": 0,
+      "seconds": 41.66883826255798,
+      "cliBinarySHA256": "2f7101ef3fedffce3810ac4ef359729f5e326ea934fa9e5f3b4e34843dc9468f",
+      "goTestsCompileSeparately": false
+    },
+    {
+      "label": "live-stop-01",
+      "script": "check112-live-stop.py",
+      "exit": 0,
+      "seconds": 45.7752947807312,
+      "cliBinarySHA256": "2f7101ef3fedffce3810ac4ef359729f5e326ea934fa9e5f3b4e34843dc9468f",
+      "goTestsCompileSeparately": false
+    },
+    {
+      "label": "browser-01",
+      "script": "run-browser112.py",
+      "exit": 0,
+      "seconds": 47.69671010971069,
+      "cliBinarySHA256": "2f7101ef3fedffce3810ac4ef359729f5e326ea934fa9e5f3b4e34843dc9468f",
+      "goTestsCompileSeparately": false
+    },
+    {
+      "label": "dual-01",
+      "script": "check119-dual.py",
+      "exit": 0,
+      "seconds": 24.173122882843018,
+      "cliBinarySHA256": "2f7101ef3fedffce3810ac4ef359729f5e326ea934fa9e5f3b4e34843dc9468f",
+      "goTestsCompileSeparately": false
+    },
+    {
+      "label": "build-final",
+      "command": [
+        "go",
+        "build",
+        "-o",
+        "/Users/panyiming/.local/state/pan-agent/web119/runtime/evidence-web",
+        "./cmd/pan-web"
+      ],
+      "exit": 0,
+      "seconds": 1.663245677947998,
+      "cliBinarySHA256": "5d92b1c961d22d74141ba5f0dba3d3064cbb85550e095ce67ec72f9d6bb06673",
+      "goTestsCompileSeparately": false
+    },
+    {
+      "label": "conversations-final",
+      "command": [
+        "python3",
+        "scripts/check108.py"
+      ],
+      "exit": 1,
+      "seconds": 66.71860194206238,
+      "cliBinarySHA256": "5d92b1c961d22d74141ba5f0dba3d3064cbb85550e095ce67ec72f9d6bb06673",
+      "goTestsCompileSeparately": false
+    },
+    {
+      "label": "conversations-final02",
+      "command": [
+        "python3",
+        "scripts/check108.py"
+      ],
+      "exit": 0,
+      "seconds": 86.81531000137329,
+      "cliBinarySHA256": "5d92b1c961d22d74141ba5f0dba3d3064cbb85550e095ce67ec72f9d6bb06673",
+      "goTestsCompileSeparately": false
+    },
+    {
+      "label": "faults-final",
+      "command": [
+        "python3",
+        "scripts/check112-faults.py"
+      ],
+      "exit": 0,
+      "seconds": 136.7982039451599,
+      "cliBinarySHA256": "5d92b1c961d22d74141ba5f0dba3d3064cbb85550e095ce67ec72f9d6bb06673",
+      "goTestsCompileSeparately": false
+    },
+    {
+      "label": "controls-final",
+      "command": [
+        "python3",
+        "scripts/check112-controls.py"
+      ],
+      "exit": 0,
+      "seconds": 41.96178913116455,
+      "cliBinarySHA256": "5d92b1c961d22d74141ba5f0dba3d3064cbb85550e095ce67ec72f9d6bb06673",
+      "goTestsCompileSeparately": false
+    },
+    {
+      "label": "live-stop-final",
+      "command": [
+        "python3",
+        "scripts/check112-live-stop.py"
+      ],
+      "exit": 0,
+      "seconds": 46.379050970077515,
+      "cliBinarySHA256": "5d92b1c961d22d74141ba5f0dba3d3064cbb85550e095ce67ec72f9d6bb06673",
+      "goTestsCompileSeparately": false
+    },
+    {
+      "label": "browser-final",
+      "command": [
+        "python3",
+        "scripts/run-browser112.py"
+      ],
+      "exit": 0,
+      "seconds": 49.39642286300659,
+      "cliBinarySHA256": "5d92b1c961d22d74141ba5f0dba3d3064cbb85550e095ce67ec72f9d6bb06673",
+      "goTestsCompileSeparately": false
+    },
+    {
+      "label": "dual-final",
+      "command": [
+        "python3",
+        "scripts/check119-dual.py"
+      ],
+      "exit": 0,
+      "seconds": 23.947284936904907,
+      "cliBinarySHA256": "5d92b1c961d22d74141ba5f0dba3d3064cbb85550e095ce67ec72f9d6bb06673",
+      "goTestsCompileSeparately": false
+    },
+    {
+      "label": "recovery-final",
+      "command": [
+        "python3",
+        "scripts/check111.py"
+      ],
+      "exit": 0,
+      "seconds": 60.69183111190796,
+      "cliBinarySHA256": "5d92b1c961d22d74141ba5f0dba3d3064cbb85550e095ce67ec72f9d6bb06673",
+      "goTestsCompileSeparately": false
+    },
+    {
+      "label": "recovery-negative-final",
+      "command": [
+        "python3",
+        "scripts/check111-negative.py"
+      ],
+      "exit": 0,
+      "seconds": 12.073145866394043,
+      "cliBinarySHA256": "5d92b1c961d22d74141ba5f0dba3d3064cbb85550e095ce67ec72f9d6bb06673",
+      "goTestsCompileSeparately": false
+    },
+    {
+      "label": "recovery-boundaries-final",
+      "command": [
+        "python3",
+        "scripts/check111-boundaries.py"
+      ],
+      "exit": 0,
+      "seconds": 51.12235713005066,
+      "cliBinarySHA256": "5d92b1c961d22d74141ba5f0dba3d3064cbb85550e095ce67ec72f9d6bb06673",
+      "goTestsCompileSeparately": false
+    },
+    {
+      "label": "import-final",
+      "command": [
+        "python3",
+        "scripts/integration.py"
+      ],
+      "exit": 0,
+      "seconds": 5.274727821350098,
+      "cliBinarySHA256": "5d92b1c961d22d74141ba5f0dba3d3064cbb85550e095ce67ec72f9d6bb06673",
+      "goTestsCompileSeparately": false
+    },
+    {
+      "label": "migration110-final",
+      "command": [
+        "python3",
+        "scripts/check-migration110.py"
+      ],
+      "exit": 0,
+      "seconds": 0.12701892852783203,
+      "cliBinarySHA256": "5d92b1c961d22d74141ba5f0dba3d3064cbb85550e095ce67ec72f9d6bb06673",
+      "goTestsCompileSeparately": false
+    },
+    {
+      "label": "migration112-final",
+      "command": [
+        "python3",
+        "scripts/check-migration112.py"
+      ],
+      "exit": 0,
+      "seconds": 0.07460784912109375,
+      "cliBinarySHA256": "5d92b1c961d22d74141ba5f0dba3d3064cbb85550e095ce67ec72f9d6bb06673",
+      "goTestsCompileSeparately": false
+    },
+    {
+      "label": "services-final",
+      "command": [
+        "python3",
+        "scripts/check113-services.py"
+      ],
+      "exit": 0,
+      "seconds": 23.41350483894348,
+      "cliBinarySHA256": "5d92b1c961d22d74141ba5f0dba3d3064cbb85550e095ce67ec72f9d6bb06673",
+      "goTestsCompileSeparately": false
+    },
+    {
+      "label": "go-race-final",
+      "command": [
+        "go",
+        "test",
+        "-p",
+        "1",
+        "-race",
+        "-count=1",
+        "-v",
+        "./..."
+      ],
+      "exit": 0,
+      "seconds": 29.58299493789673,
+      "cliBinarySHA256": "5d92b1c961d22d74141ba5f0dba3d3064cbb85550e095ce67ec72f9d6bb06673",
+      "goTestsCompileSeparately": true
+    },
+    {
+      "label": "vet-final",
+      "command": [
+        "go",
+        "vet",
+        "./..."
+      ],
+      "exit": 0,
+      "seconds": 0.47670984268188477,
+      "cliBinarySHA256": "5d92b1c961d22d74141ba5f0dba3d3064cbb85550e095ce67ec72f9d6bb06673",
+      "goTestsCompileSeparately": false
+    },
+    {
+      "label": "structure-final",
+      "command": [
+        "python3",
+        "scripts/check119-structure.py"
+      ],
+      "exit": 0,
+      "seconds": 0.47565698623657227,
+      "cliBinarySHA256": "5d92b1c961d22d74141ba5f0dba3d3064cbb85550e095ce67ec72f9d6bb06673",
+      "goTestsCompileSeparately": false
+    },
+    {
+      "label": "candidate-build",
+      "command": [
+        "go",
+        "build",
+        "-o",
+        "/Users/panyiming/.local/state/pan-agent/web119/runtime/evidence-web",
+        "./cmd/pan-web"
+      ],
+      "exit": 0,
+      "seconds": 1.247981071472168,
+      "cliBinarySHA256": "98d13fbe7a7fd73beac7a0308da634c18cf8b7f1ddd50d5118b0725de95f7963",
+      "goTestsCompileSeparately": false
+    },
+    {
+      "label": "candidate-conversations",
+      "command": [
+        "python3",
+        "scripts/check108.py"
+      ],
+      "exit": 0,
+      "seconds": 85.50485706329346,
+      "cliBinarySHA256": "98d13fbe7a7fd73beac7a0308da634c18cf8b7f1ddd50d5118b0725de95f7963",
+      "goTestsCompileSeparately": false
+    },
+    {
+      "label": "candidate-controls",
+      "command": [
+        "python3",
+        "scripts/check112-controls.py"
+      ],
+      "exit": 0,
+      "seconds": 41.46477198600769,
+      "cliBinarySHA256": "98d13fbe7a7fd73beac7a0308da634c18cf8b7f1ddd50d5118b0725de95f7963",
+      "goTestsCompileSeparately": false
+    },
+    {
+      "label": "candidate-browser",
+      "command": [
+        "python3",
+        "scripts/run-browser112.py"
+      ],
+      "exit": 0,
+      "seconds": 47.560038805007935,
+      "cliBinarySHA256": "98d13fbe7a7fd73beac7a0308da634c18cf8b7f1ddd50d5118b0725de95f7963",
+      "goTestsCompileSeparately": false
+    },
+    {
+      "label": "candidate-services",
+      "command": [
+        "python3",
+        "scripts/check113-services.py"
+      ],
+      "exit": 1,
+      "seconds": 24.619300842285156,
+      "cliBinarySHA256": "98d13fbe7a7fd73beac7a0308da634c18cf8b7f1ddd50d5118b0725de95f7963",
+      "goTestsCompileSeparately": false
+    },
+    {
+      "label": "candidate-services02",
+      "command": [
+        "python3",
+        "scripts/check113-services.py"
+      ],
+      "exit": 0,
+      "seconds": 29.762500047683716,
+      "cliBinarySHA256": "98d13fbe7a7fd73beac7a0308da634c18cf8b7f1ddd50d5118b0725de95f7963",
+      "goTestsCompileSeparately": false
+    },
+    {
+      "label": "candidate-import",
+      "command": [
+        "python3",
+        "scripts/integration.py"
+      ],
+      "exit": 0,
+      "seconds": 4.173065185546875,
+      "cliBinarySHA256": "98d13fbe7a7fd73beac7a0308da634c18cf8b7f1ddd50d5118b0725de95f7963",
+      "goTestsCompileSeparately": false
+    },
+    {
+      "label": "candidate-race",
+      "command": [
+        "go",
+        "test",
+        "-p",
+        "1",
+        "-race",
+        "-count=1",
+        "-v",
+        "./..."
+      ],
+      "exit": 0,
+      "seconds": 27.839200973510742,
+      "cliBinarySHA256": "98d13fbe7a7fd73beac7a0308da634c18cf8b7f1ddd50d5118b0725de95f7963",
+      "goTestsCompileSeparately": true
+    },
+    {
+      "label": "candidate-vet",
+      "command": [
+        "go",
+        "vet",
+        "./..."
+      ],
+      "exit": 0,
+      "seconds": 0.16731715202331543,
+      "cliBinarySHA256": "98d13fbe7a7fd73beac7a0308da634c18cf8b7f1ddd50d5118b0725de95f7963",
+      "goTestsCompileSeparately": false
+    },
+    {
+      "label": "candidate-structure",
+      "command": [
+        "python3",
+        "scripts/check119-structure.py"
+      ],
+      "exit": 0,
+      "seconds": 0.4609699249267578,
+      "cliBinarySHA256": "98d13fbe7a7fd73beac7a0308da634c18cf8b7f1ddd50d5118b0725de95f7963",
+      "goTestsCompileSeparately": false
+    }
+  ],
+  "goTopLevelPassed": 18,
+  "goParentSkipped": [
+    "--- SKIP: TestCacheCrashChild (0.00s)"
+  ],
+  "skipExplanation": "TestCacheCrashChild is only entered by TestCacheCommittedProcessCrash subprocesses; the parent skip is not counted as execution.",
+  "usage": {
+    "tasks": [
+      {
+        "state": "blocked",
+        "count": 10
+      },
+      {
+        "state": "cancelled",
+        "count": 11
+      },
+      {
+        "state": "completed",
+        "count": 57
+      },
+      {
+        "state": "failed",
+        "count": 10
+      },
+      {
+        "state": "interrupted",
+        "count": 25
+      },
+      {
+        "state": "superseded",
+        "count": 3
+      }
+    ],
+    "attempts": [
+      {
+        "state": "cancelled",
+        "count": 7
+      },
+      {
+        "state": "completed",
+        "count": 57
+      },
+      {
+        "state": "failed",
+        "count": 10
+      },
+      {
+        "state": "interrupted",
+        "count": 36
+      }
+    ],
+    "admissions": [
+      {
+        "action": "model",
+        "count": 195
+      },
+      {
+        "action": "tool",
+        "count": 113
+      }
+    ],
+    "settled": [
+      {
+        "status": "reported",
+        "count": 182,
+        "input": 182,
+        "output": 182,
+        "tokens": 364
+      },
+      {
+        "status": "unavailable",
+        "count": 9,
+        "input": null,
+        "output": null,
+        "tokens": null
+      }
+    ],
+    "unsettledStarts": 12,
+    "observedToolResults": 106,
+    "pendingCleanup": 0,
+    "checkpoints": 177,
+    "controls": 11,
+    "resumes": 10,
+    "realProviderCalls": 0,
+    "officialBenchmarkOrScoringCalls": 0,
+    "codingTokens": "unknown",
+    "note": "All model settlement values are deterministic Faux synthetic counts, not Provider billing; failures and interrupted/unsettled starts retained. Cumulative within web119, prior work resource roots retained separately."
+  },
+  "resources": {
+    "sample": {
+      "utc": "2026-10-10T10:38:06.893Z",
+      "free": 27601477632,
+      "owned": 14092206080,
+      "docker": 88965869568
+    },
+    "baselineDocker": 48503971840,
+    "cumulative": 54554103808,
+    "productHash": "5ecd3b9b4da688f90dfee3cc651b4a2f755595587b6d7d7287383cab23c8e580",
+    "productFiles": 82
+  },
+  "stopped": {
+    "utc": "2026-10-10T10:38:06.492714+00:00",
+    "pgPid": 51385,
+    "redisPid": 51256,
+    "apiWorkerNodeRemaining": [],
+    "analysisContainersRemaining": [],
+    "sentinelsConfirmedAbsent": [
+      "f7cabc3afea254349dd71446413b077cea24699987c2f37ee93b80bab4e9fd1a",
+      "78a74b35ab50ae897707bba7efff0258b4ee943e8453341fe87f7ceac1032d8a",
+      "cf07eecd2c70eee855b4280ff69443c1a46e2502daf24d5ce5098075da0398c7"
+    ],
+    "ownPGStopped": true,
+    "ownRedisStopped": true
+  },
+  "oldEvidencePreservation": [
+    {
+      "inventory": "/Users/panyiming/.local/state/pan-agent/web113/evidence/inventory-final.json",
+      "inventorySHA256": "1202eb87aaa0b77ba9a465d9c161fb4077a36e361bc18f6371a01e5068f25ad4",
+      "entries": 3770,
+      "mismatches": []
+    },
+    {
+      "inventory": "/Users/panyiming/.local/state/pan-agent/web113/repair-01/inventory.json",
+      "inventorySHA256": "fb2f1501043799dd3b0ae2afd17c829420bfd6607eda625c5b11535bf2e5f2e7",
+      "entries": 1350,
+      "mismatches": []
+    }
+  ],
+  "binaryScope": "Final candidate binary reruns all HTTP-facing conversation/control/browser/import/cache/service behavior. Earlier preserved binary records include independent-worker failure/live-stop/dual-container and operation recovery tests; task transactions and Node/Docker behavior are unchanged by the final read-capability/outcome-mapping refinement. The final real-PG Go race suite and compiled graph use the final source.",
+  "rawRoot": "/Users/panyiming/.local/state/pan-agent/web119",
+  "codingTokenUsage": "unknown"
+}

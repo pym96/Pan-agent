@@ -1,6 +1,5 @@
-package main
+package httpapi
 
-// Query-only cache. No worker or control path consumes it.
 import (
 	"bufio"
 	"bytes"
@@ -16,95 +15,19 @@ import (
 	"net"
 	"net/http"
 	"net/http/httptest"
-	"os"
+	"pan-agent/evidence-web/internal/config"
+	"pan-agent/evidence-web/internal/evidence"
+	"pan-agent/evidence-web/internal/identity"
+	"pan-agent/evidence-web/internal/querylog"
 	"strconv"
 	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
-
-	"github.com/jackc/pgx/v5"
 )
 
-type queryClassKey struct{}
-type validatedViewOwner struct{}
-type queryAudit struct {
-	Class  string
-	Count  atomic.Int64
-	Failed atomic.Bool
-}
-type queryTracer struct{}
-
-func (queryTracer) TraceQueryStart(ctx context.Context, _ *pgx.Conn, _ pgx.TraceQueryStartData) context.Context {
-	if q, ok := ctx.Value(queryClassKey{}).(*queryAudit); ok {
-		q.Count.Add(1)
-	}
-	return ctx
-}
-func (queryTracer) TraceQueryEnd(ctx context.Context, _ *pgx.Conn, d pgx.TraceQueryEndData) {
-	if q, ok := ctx.Value(queryClassKey{}).(*queryAudit); ok && d.Err != nil && !errors.Is(d.Err, pgx.ErrNoRows) {
-		q.Failed.Store(true)
-	}
-}
-func audited(ctx context.Context, name string) (context.Context, *queryAudit) {
-	q := &queryAudit{Class: name}
-	return context.WithValue(ctx, queryClassKey{}, q), q
-}
-
-type viewConfig struct {
-	Enabled                      bool
-	Address, Namespace           string
-	TTL, RedisTimeout, PGTimeout time.Duration
-	Slots                        int
-}
-
-func cacheConfig() (viewConfig, error) {
-	c := viewConfig{Address: os.Getenv("WEB_REDIS_ADDR"), Namespace: os.Getenv("WEB_CACHE_NAMESPACE"), TTL: 5 * time.Second, RedisTimeout: 100 * time.Millisecond, PGTimeout: 2 * time.Second, Slots: 4}
-	switch os.Getenv("WEB_CACHE") {
-	case "", "0":
-	case "1":
-		c.Enabled = true
-	default:
-		return c, errors.New("WEB_CACHE must be 0 or 1")
-	}
-	if c.Namespace == "" {
-		c.Namespace = "evidence-web"
-	}
-	if len(c.Namespace) > 100 || strings.ContainsAny(c.Namespace, " \r\n") {
-		return c, errors.New("invalid cache namespace")
-	}
-	for _, x := range []struct {
-		name string
-		dst  *time.Duration
-		max  time.Duration
-	}{{"WEB_CACHE_TTL", &c.TTL, 5 * time.Second}, {"WEB_REDIS_TIMEOUT", &c.RedisTimeout, 100 * time.Millisecond}, {"WEB_PROJECTION_TIMEOUT", &c.PGTimeout, 2 * time.Second}} {
-		if v := os.Getenv(x.name); v != "" {
-			d, e := time.ParseDuration(v)
-			if e != nil || d <= 0 || d > x.max {
-				return c, fmt.Errorf("invalid %s", x.name)
-			}
-			*x.dst = d
-		}
-	}
-	if v := os.Getenv("WEB_PROJECTION_SLOTS"); v != "" {
-		n, e := strconv.Atoi(v)
-		if e != nil || n < 1 || n > 4 {
-			return c, errors.New("invalid WEB_PROJECTION_SLOTS")
-		}
-		c.Slots = n
-	}
-	if c.Enabled {
-		host, _, e := net.SplitHostPort(c.Address)
-		ip := net.ParseIP(host)
-		if e != nil || ip == nil || !ip.IsLoopback() {
-			return c, errors.New("Redis must use an explicit loopback address")
-		}
-	}
-	return c, nil
-}
-
 type viewCache struct {
-	cfg                                viewConfig
+	cfg                                config.Cache
 	epoch, secret                      string
 	start                              time.Time
 	slots                              chan struct{}
@@ -115,8 +38,8 @@ type viewCache struct {
 	keys                               map[string]bool
 }
 
-func newViewCache(c viewConfig) *viewCache {
-	return &viewCache{cfg: c, epoch: id(), secret: id(), start: time.Now(), slots: make(chan struct{}, c.Slots), keys: map[string]bool{}}
+func newViewCache(c config.Cache) *viewCache {
+	return &viewCache{cfg: c, epoch: identity.NewID(), secret: identity.NewID(), start: time.Now(), slots: make(chan struct{}, c.Slots), keys: map[string]bool{}}
 }
 
 type viewEnvelope struct {
@@ -157,7 +80,7 @@ func (c *viewCache) age(e viewEnvelope) (time.Duration, bool) {
 	return time.Duration(m), time.Duration(m) < c.cfg.TTL
 }
 func (c *viewCache) key(owner, kind, obj, query string) string {
-	return c.cfg.Namespace + ":" + c.epoch + ":public-v1:" + owner + ":" + kind + ":" + obj + ":" + hash([]byte(query))
+	return c.cfg.Namespace + ":" + c.epoch + ":public-v1:" + owner + ":" + kind + ":" + obj + ":" + evidence.Hash([]byte(query))
 }
 
 // One connection and one command, no pool wait/reconnect/retry. Deadline covers
@@ -281,26 +204,21 @@ func publicView(v any) any {
 	}
 	return v
 }
-func (a *app) cachedView(kind string, next http.HandlerFunc) http.HandlerFunc {
+func (a *viewHandler) cachedView(kind string, next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		c := a.views
 		if c == nil {
 			next(w, r)
 			return
 		}
-		authCtx, auth := audited(r.Context(), "authentication")
+		authCtx, auth := querylog.Audited(r.Context(), "authentication")
 		owner := a.owner(w, r.WithContext(authCtx))
 		if owner == "" {
 			return
 		}
-		ownCtx, own := audited(r.Context(), "ownership")
+		ownCtx, own := querylog.Audited(r.Context(), "ownership")
 		ctx, cancel := context.WithTimeout(ownCtx, c.cfg.PGTimeout)
-		var allowed bool
-		table := "ew_tasks"
-		if kind == "list" {
-			table = "ew_bundles"
-		}
-		e := a.db.QueryRow(ctx, "SELECT EXISTS(SELECT 1 FROM "+table+" WHERE id=$1 AND account_id=$2)", r.PathValue("id"), owner).Scan(&allowed)
+		allowed, e := a.queries.Allowed(ctx, owner, kind, r.PathValue("id"))
 		cancel()
 		if e != nil {
 			fail(w, 503, "归属校验暂不可用")
@@ -350,7 +268,7 @@ func (a *app) cachedView(kind string, next http.HandlerFunc) http.HandlerFunc {
 		}
 		pctx, pcancel := context.WithTimeout(r.Context(), c.cfg.PGTimeout)
 		defer pcancel()
-		pctx, projection := audited(pctx, "projection")
+		pctx, projection := querylog.Audited(pctx, "projection")
 		pctx = context.WithValue(pctx, validatedViewOwner{}, owner)
 		if c.beforeRead != nil {
 			c.beforeRead(pctx)
@@ -424,10 +342,4 @@ func (c *viewCache) invalidate(ctx context.Context) {
 			log.Print("cache invalidation unavailable; PG commit retained")
 		}
 	}
-}
-
-func (a *app) refreshOwnership(ctx context.Context) {
-	ctx, q := audited(ctx, "control")
-	a.markLost(ctx)
-	log.Printf("view-control sql=%d failed=%t", q.Count.Load(), q.Failed.Load())
 }

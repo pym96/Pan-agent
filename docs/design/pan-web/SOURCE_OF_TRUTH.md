@@ -25,3 +25,7 @@ This is candidate documentation, not independent acceptance or a verified-projec
 #110 Stage A: [checkpoint design](checkpoint110.md), [evidence navigation](../../evidence/web110/SOURCE_OF_TRUTH.md).
 
 #111 Criteria1.0 candidate: [design](operations111.md), [evidence navigation](../../evidence/web111/SOURCE_OF_TRUTH.md). Contract https://github.com/pym96/Pan-agent/issues/111#issuecomment-6081968162 ; baseline `69fbd8a23f72a161ea2d4d7921b121bfc33a2ea7`, workorder/111-candidate. Independent review pending.
+
+## Current #119 Criteria1.0 candidate
+
+Base `5bdfc4d5a87a6b9431cb94d34f2c0db4de180949`; [contract/activation](https://github.com/pym96/Pan-agent/issues/119#issuecomment-6096287219). [Package/interface/config mapping](packages119.md), [Builder evidence](../../evidence/web119/README.md). Pending independent review; no acceptance claim.

@@ -1,19 +1,16 @@
-package main
+package tasks
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
-	"fmt"
+	"pan-agent/evidence-web/internal/evidence"
+	"path/filepath"
+	"time"
+
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"golang.org/x/sys/unix"
-	"os"
-	"os/signal"
-	"path/filepath"
-	"syscall"
-	"time"
 )
 
 // All executor mutations and admissions share the task-row lock with control,
@@ -22,22 +19,16 @@ const ownerLease = 10 * time.Second
 const claimLock int64 = 112010001
 const recoveryLock int64 = 112010002
 
-var errFenced = errors.New("execution authority revoked; stop-only handoff")
+var ErrFenced = errors.New("execution authority revoked; stop-only handoff")
 
-type authority struct {
+type Authority struct {
 	Task, Attempt, Owner string
 	Generation           int64
 }
-type authorityKey struct{}
 
-func getAuthority(ctx context.Context) *authority {
-	a, _ := ctx.Value(authorityKey{}).(*authority)
-	return a
-}
-func requireAuthority(ctx context.Context, tx pgx.Tx) error {
-	a := getAuthority(ctx)
-	if a == nil {
-		return nil
+func requireAuthority(ctx context.Context, tx pgx.Tx, a Authority) error {
+	if !a.Valid() {
+		return ErrFenced
 	}
 	var valid bool
 	err := tx.QueryRow(ctx, `SELECT t.state='running' AND t.execution_id=$2 AND t.worker_id=$3 AND t.generation=$4 AND t.revoked_at IS NULL AND o.revoked_at IS NULL AND o.server_start=pg_postmaster_start_time() AND EXISTS(SELECT 1 FROM pg_stat_activity p WHERE p.pid=o.connection_pid AND p.backend_start=o.connection_start) AND o.heartbeat>clock_timestamp()-interval '10 seconds'
@@ -46,20 +37,20 @@ func requireAuthority(ctx context.Context, tx pgx.Tx) error {
 		return err
 	}
 	if !valid {
-		return errFenced
+		return ErrFenced
 	}
 	return nil
 }
-func executorExec(ctx context.Context, db *pgxpool.Pool, sql string, args ...any) (pgconn.CommandTag, error) {
-	if getAuthority(ctx) == nil {
-		return db.Exec(ctx, sql, args...)
+func executorExec(ctx context.Context, db *pgxpool.Pool, a Authority, sql string, args ...any) (pgconn.CommandTag, error) {
+	if !a.Valid() {
+		return pgconn.CommandTag{}, ErrFenced
 	}
 	tx, e := db.Begin(ctx)
 	if e != nil {
 		return pgconn.CommandTag{}, e
 	}
 	defer tx.Rollback(ctx)
-	if e = requireAuthority(ctx, tx); e != nil {
+	if e = requireAuthority(ctx, tx, a); e != nil {
 		return pgconn.CommandTag{}, e
 	}
 	tag, e := tx.Exec(ctx, sql, args...)
@@ -68,17 +59,16 @@ func executorExec(ctx context.Context, db *pgxpool.Pool, sql string, args ...any
 	}
 	return tag, tx.Commit(ctx)
 }
-func admit(ctx context.Context, db *pgxpool.Pool, got authority, ordinal int64, action string) error {
-	want := getAuthority(ctx)
-	if want == nil || got != *want || ordinal < 1 || (action != "model" && action != "tool") {
-		return errFenced
+func (s *Store) Admit(ctx context.Context, want, got Authority, ordinal int64, action string) error {
+	if !want.Valid() || got != want || ordinal < 1 || (action != "model" && action != "tool") {
+		return ErrFenced
 	}
-	tx, e := db.Begin(ctx)
+	tx, e := s.db.Begin(ctx)
 	if e != nil {
 		return e
 	}
 	defer tx.Rollback(ctx)
-	if e = requireAuthority(ctx, tx); e != nil {
+	if e = requireAuthority(ctx, tx, want); e != nil {
 		return e
 	}
 	var previous int64
@@ -117,8 +107,8 @@ func revokeLost(ctx context.Context, db *pgxpool.Pool) error {
 
 // Called only after the old Node has exited, or by the coordinator which verifies
 // its exact PID/argv first. The task lock prevents a new claim/resume during stop.
-func finishOwned(ctx context.Context, db *pgxpool.Pool, a authority, entry, root string, coordinator bool) error {
-	tx, e := db.Begin(ctx)
+func (s *Store) finishOwned(ctx context.Context, a Authority, entry, root string, coordinator bool) error {
+	tx, e := s.db.Begin(ctx)
 	if e != nil {
 		return e
 	}
@@ -132,26 +122,24 @@ func finishOwned(ctx context.Context, db *pgxpool.Pool, a authority, entry, root
 		return e
 	}
 	if attempt != a.Attempt || gen != a.Generation || owner != a.Owner {
-		return errFenced
+		return ErrFenced
 	}
 	if stopped {
 		return nil
 	}
 	if !coordinator && revoked {
-		return errFenced
+		return ErrFenced
 	}
 	if coordinator && !revoked && state != "cancelling" {
 		return nil
 	}
-	if e = stopNode(pid, entry, filepath.Join(root, attempt)); e != nil {
+	if s.process == nil {
+		return errors.New("stop adapter unavailable")
+	}
+	if e = s.process.Stop(ctx, pid, entry, filepath.Join(root, attempt), a.Task); e != nil {
 		return e
 	}
-	if e = cleanupTask(ctx, a.Task); e != nil {
-		return e
-	}
-	if e = sealInterrupted(ctx, entry, filepath.Join(root, attempt)); e != nil {
-		return e
-	}
+
 	if state == "running" {
 		state = "interrupted"
 	}
@@ -172,11 +160,11 @@ func finishOwned(ctx context.Context, db *pgxpool.Pool, a authority, entry, root
 	}
 	return tx.Commit(ctx)
 }
-func recoverOwners(ctx context.Context, db *pgxpool.Pool, entry, root string) error {
-	if e := revokeLost(ctx, db); e != nil {
+func (s *Store) Maintain(ctx context.Context, entry, root string) error {
+	if e := revokeLost(ctx, s.db); e != nil {
 		return e
 	}
-	conn, e := db.Acquire(ctx)
+	conn, e := s.db.Acquire(ctx)
 	if e != nil {
 		return e
 	}
@@ -185,14 +173,18 @@ func recoverOwners(ctx context.Context, db *pgxpool.Pool, entry, root string) er
 	if e = conn.QueryRow(ctx, "SELECT pg_try_advisory_lock($1)", recoveryLock).Scan(&locked); e != nil || !locked {
 		return e
 	}
-	defer conn.Exec(context.Background(), "SELECT pg_advisory_unlock($1)", recoveryLock)
-	rows, e := db.Query(ctx, `SELECT id,execution_id,worker_id,generation FROM ew_tasks WHERE NOT cleanup_confirmed AND (revoked_at IS NOT NULL OR state='cancelling') AND execution_id IS NOT NULL`)
+	defer func() {
+		bounded, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+		defer cancel()
+		conn.Exec(bounded, "SELECT pg_advisory_unlock($1)", recoveryLock)
+	}()
+	rows, e := s.db.Query(ctx, `SELECT id,execution_id,worker_id,generation FROM ew_tasks WHERE NOT cleanup_confirmed AND (revoked_at IS NOT NULL OR state='cancelling') AND execution_id IS NOT NULL`)
 	if e != nil {
 		return e
 	}
-	all := []authority{}
+	all := []Authority{}
 	for rows.Next() {
-		var a authority
+		var a Authority
 		if e = rows.Scan(&a.Task, &a.Attempt, &a.Owner, &a.Generation); e != nil {
 			rows.Close()
 			return e
@@ -205,103 +197,12 @@ func recoverOwners(ctx context.Context, db *pgxpool.Pool, entry, root string) er
 		return e
 	}
 	for _, a := range all {
-		if e = finishOwned(ctx, db, a, entry, root, true); e != nil {
+		if e = s.finishOwned(ctx, a, entry, root, true); e != nil {
 			return e
 		}
 	}
 	return nil
 }
-func workOwners(db *pgxpool.Pool, entry, root string) error {
-	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
-	defer cancel()
-	wid := id()
-	heartbeatConn, e := db.Acquire(ctx)
-	if e != nil {
-		return e
-	}
-	defer heartbeatConn.Release()
-	var shared bool
-	if e = heartbeatConn.QueryRow(ctx, "SELECT pg_try_advisory_lock_shared($1)", workerLock).Scan(&shared); e != nil || !shared {
-		return errors.New("legacy worker or migration active")
-	}
-	defer heartbeatConn.Exec(context.Background(), "SELECT pg_advisory_unlock_shared($1)", workerLock)
-
-	if _, e := heartbeatConn.Exec(ctx, "INSERT INTO ew_owners(id,pid,connection_start) SELECT $1,$2,backend_start FROM pg_stat_activity WHERE pid=pg_backend_pid()", wid, os.Getpid()); e != nil {
-		return e
-	}
-	env, _ := json.Marshal(nodeEnvironment())
-	if _, e := db.Exec(ctx, "INSERT INTO ew_reconcile_runtime VALUES(111,$1,$2) ON CONFLICT(singleton) DO UPDATE SET entry=excluded.entry,environment=excluded.environment", entry, env); e != nil {
-		return e
-	}
-	// Heartbeat failure permanently ends this process's authority. It cannot renew
-	// an expired lease even before a coordinator notices the expiration.
-	beatDone := make(chan struct{})
-	go func() {
-		defer close(beatDone)
-		ticker := time.NewTicker(time.Second)
-		defer ticker.Stop()
-		for {
-			select {
-			case <-ctx.Done():
-				return
-			case <-ticker.C:
-				c, stop := context.WithTimeout(ctx, 2*time.Second)
-				tag, e := heartbeatConn.Exec(c, "UPDATE ew_owners SET heartbeat=clock_timestamp() WHERE id=$1 AND revoked_at IS NULL AND heartbeat>clock_timestamp()-interval '10 seconds'", wid)
-				stop()
-				if e != nil || tag.RowsAffected() != 1 {
-					cancel()
-					return
-				}
-			}
-		}
-	}()
-	recoveryDone := make(chan struct{})
-	go func() {
-		defer close(recoveryDone)
-		for ctx.Err() == nil {
-			c, stop := context.WithTimeout(ctx, 30*time.Second)
-			_ = recoverOwners(c, db, entry, root)
-			stop()
-			select {
-			case <-ctx.Done():
-				return
-			case <-time.After(time.Second):
-			}
-		}
-	}()
-	defer func() {
-		cancel()
-		<-beatDone
-		<-recoveryDone
-		c, stop := context.WithTimeout(context.Background(), 3*time.Second)
-		defer stop()
-		_, _ = db.Exec(c, "UPDATE ew_owners SET revoked_at=COALESCE(revoked_at,clock_timestamp()) WHERE id=$1", wid)
-		_ = revokeLost(c, db)
-	}()
-	for ctx.Err() == nil {
-		tid, bid, q, e := claimTask(ctx, db, wid)
-		if errors.Is(e, pgx.ErrNoRows) {
-			select {
-			case <-ctx.Done():
-				return nil
-			case <-time.After(300 * time.Millisecond):
-			}
-			continue
-		}
-		if e != nil {
-			return fmt.Errorf("claim failed: %w", e)
-		}
-		a := authority{Task: tid, Owner: wid}
-		if e = db.QueryRow(ctx, "SELECT execution_id,generation FROM ew_tasks WHERE id=$1 AND worker_id=$2", tid, wid).Scan(&a.Attempt, &a.Generation); e != nil {
-			return e
-		}
-		if e = executeTask(context.WithValue(ctx, authorityKey{}, &a), db, tid, bid, q, entry, root); e != nil && !errors.Is(e, errFenced) {
-			return e
-		}
-	}
-	return nil
-}
-
 func assignOwner(ctx context.Context, tx pgx.Tx, tid, wid string) error {
 	var attempt string
 	var gen int64
@@ -311,4 +212,14 @@ func assignOwner(ctx context.Context, tx pgx.Tx, tid, wid string) error {
 	}
 	_, e = tx.Exec(ctx, `INSERT INTO ew_attempts(id,task_id,owner_id,generation) VALUES($1,$2,$3,$4) ON CONFLICT(id) DO UPDATE SET owner_id=$3,generation=$4`, attempt, tid, wid, gen)
 	return e
+}
+
+func (a Authority) Valid() bool {
+	return evidence.ValidHash(a.Task) && evidence.ValidHash(a.Attempt) && evidence.ValidHash(a.Owner) && a.Generation > 0
+}
+func (s *Store) Finish(ctx context.Context, a Authority, entry, root string) error {
+	if !a.Valid() {
+		return ErrFenced
+	}
+	return s.finishOwned(ctx, a, entry, root, false)
 }

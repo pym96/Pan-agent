@@ -1,31 +1,54 @@
-package main
+package httpapi
 
 import (
 	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/jackc/pgx/v5/pgxpool"
 	"io"
 	"net"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"os/exec"
+	"pan-agent/evidence-web/internal/bundles"
+	"pan-agent/evidence-web/internal/config"
+	"pan-agent/evidence-web/internal/evidence"
+	"pan-agent/evidence-web/internal/identity"
+	"pan-agent/evidence-web/internal/querylog"
+	"pan-agent/evidence-web/internal/tasks"
+	"pan-agent/evidence-web/internal/taskview"
+	"pan-agent/evidence-web/internal/testfixture"
 	"path/filepath"
 	"strings"
 	"sync"
 	"sync/atomic"
 	"testing"
 	"time"
+
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-func cacheFixture(t *testing.T) (*app, string, string) {
+type fixtureApp struct {
+	*app
+	db *pgxpool.Pool
+}
+
+func testCacheConfig() (config.Cache, error) {
+	c, e := config.Parse(nil, func(k string) string {
+		if k == "DATABASE_URL" {
+			return "fixture"
+		}
+		return os.Getenv(k)
+	})
+	return c.Cache, e
+}
+func cacheFixture(t *testing.T) (*fixtureApp, string, string) {
 	t.Helper()
-	db := ownershipDB(t)
+	db := testfixture.Database(t)
 	cfg := db.Config()
 	cfg.MaxConns = 8
-	cfg.ConnConfig.Tracer = queryTracer{}
+	cfg.ConnConfig.Tracer = querylog.QueryTracer{}
 	traced, e := pgxpool.NewWithConfig(context.Background(), cfg)
 	if e != nil {
 		t.Fatal(e)
@@ -36,17 +59,17 @@ func cacheFixture(t *testing.T) (*app, string, string) {
 	if addr == "" {
 		t.Skip("owned Redis required")
 	}
-	c := newViewCache(viewConfig{Enabled: true, Address: addr, Namespace: "web113-tests", TTL: 5 * time.Second, RedisTimeout: 100 * time.Millisecond, PGTimeout: 2 * time.Second, Slots: 4})
-	tid := taskFixture(t, db, "conversation", 1)
-	token := id()
-	_, e = db.Exec(context.Background(), "INSERT INTO ew_sessions VALUES($1,'account',now()+interval '1 hour')", hash([]byte(token)))
+	c := newViewCache(config.Cache{Enabled: true, Address: addr, Namespace: "web113-tests", TTL: 5 * time.Second, RedisTimeout: 100 * time.Millisecond, PGTimeout: 2 * time.Second, Slots: 4})
+	tid := testfixture.Task(t, db, "conversation", 1)
+	token := identity.NewID()
+	_, e = db.Exec(context.Background(), "INSERT INTO ew_sessions VALUES($1,'account',now()+interval '1 hour')", evidence.Hash([]byte(token)))
 	if e != nil {
 		t.Fatal(e)
 	}
-	a := &app{db: db, views: c, origin: "http://fixture", web: t.TempDir()}
+	a := &fixtureApp{db: db, app: &app{identity: identity.New(db), commands: tasks.New(db, nil), queries: taskview.New(db), bundles: bundles.New(db), views: c, origin: "http://fixture", web: t.TempDir()}}
 	return a, tid, token
 }
-func viewRequest(a *app, tid, token string) *httptest.ResponseRecorder {
+func viewRequest(a *fixtureApp, tid, token string) *httptest.ResponseRecorder {
 	r := httptest.NewRequest("GET", "http://fixture/api/tasks/"+tid, nil)
 	if token != "" {
 		r.AddCookie(&http.Cookie{Name: "ew_session", Value: token})
@@ -72,9 +95,9 @@ func TestCacheRealIsolationFreshness(t *testing.T) {
 	if viewRequest(a, tid, "").Code != 401 || viewRequest(a, tid, "forged").Code != 401 {
 		t.Fatal("anonymous/invalid token admitted")
 	}
-	b := id()
+	b := identity.NewID()
 	a.db.Exec(context.Background(), "INSERT INTO ew_accounts VALUES('b','b@test','unused');")
-	a.db.Exec(context.Background(), "INSERT INTO ew_sessions VALUES($1,'b',now()+interval '1 hour')", hash([]byte(b)))
+	a.db.Exec(context.Background(), "INSERT INTO ew_sessions VALUES($1,'b',now()+interval '1 hour')", evidence.Hash([]byte(b)))
 	if viewRequest(a, tid, b).Code != 404 {
 		t.Fatal("cross-account hit")
 	}
@@ -119,7 +142,7 @@ func TestCacheRealIsolationFreshness(t *testing.T) {
 	if stateOf(viewRequest(a, tid, token)) != "cancelled" {
 		t.Fatal("long Redis TTL revives old view")
 	}
-	a.db.Exec(context.Background(), "DELETE FROM ew_sessions WHERE token_hash=$1", hash([]byte(token)))
+	a.db.Exec(context.Background(), "DELETE FROM ew_sessions WHERE token_hash=$1", evidence.Hash([]byte(token)))
 	if viewRequest(a, tid, token).Code != 401 {
 		t.Fatal("logged-out session hit")
 	}
@@ -292,7 +315,7 @@ func TestCachePublicAndConfiguration(t *testing.T) {
 			if name == "WEB_CACHE" {
 				t.Setenv(name, "invalid")
 			}
-			if _, e := cacheConfig(); e == nil {
+			if _, e := testCacheConfig(); e == nil {
 				t.Fatal("invalid configuration accepted")
 			}
 		})
@@ -318,7 +341,7 @@ func TestCacheControlUsesPG(t *testing.T) {
 		if action == "cancel" {
 			question = ""
 		}
-		r := httptest.NewRequest("POST", "http://fixture/api/conversations/conversation/tasks/"+tid+"/"+action, strings.NewReader(`{"requestId":"`+id()+`","question":"`+question+`"}`))
+		r := httptest.NewRequest("POST", "http://fixture/api/conversations/conversation/tasks/"+tid+"/"+action, strings.NewReader(`{"requestId":"`+identity.NewID()+`","question":"`+question+`"}`))
 		r.Header.Set("Origin", "http://fixture")
 		r.AddCookie(&http.Cookie{Name: "ew_session", Value: token})
 		w := httptest.NewRecorder()
@@ -352,20 +375,20 @@ func TestCacheCrashChild(t *testing.T) {
 		t.Fatal(e)
 	}
 	cfg.ConnConfig.RuntimeParams["search_path"] = os.Getenv("WEB113_CHILD_SCHEMA")
-	cfg.ConnConfig.Tracer = queryTracer{}
+	cfg.ConnConfig.Tracer = querylog.QueryTracer{}
 	cfg.MaxConns = 8
 	db, e := pgxpool.NewWithConfig(context.Background(), cfg)
 	if e != nil {
 		t.Fatal(e)
 	}
-	c := newViewCache(viewConfig{Enabled: true, Address: os.Getenv("WEB113_TEST_REDIS"), Namespace: "web113-crash", TTL: 5 * time.Second, RedisTimeout: 100 * time.Millisecond, PGTimeout: 2 * time.Second, Slots: 4})
+	c := newViewCache(config.Cache{Enabled: true, Address: os.Getenv("WEB113_TEST_REDIS"), Namespace: "web113-crash", TTL: 5 * time.Second, RedisTimeout: 100 * time.Millisecond, PGTimeout: 2 * time.Second, Slots: 4})
 	if os.Getenv("WEB113_CHILD_HOLD") == "1" {
 		c.afterCommit = func(context.Context) {
 			os.WriteFile(os.Getenv("WEB113_CHILD_MARK")+".committed", []byte("PG committed, before eviction"), 0600)
 			select {}
 		}
 	}
-	a := &app{db: db, views: c}
+	a := &fixtureApp{db: db, app: &app{identity: identity.New(db), commands: tasks.New(db, nil), queries: taskview.New(db), bundles: bundles.New(db), views: c}}
 	server := httptest.NewServer(a.handler())
 	a.origin = server.URL
 	os.WriteFile(os.Getenv("WEB113_CHILD_MARK"), []byte(server.URL), 0600)

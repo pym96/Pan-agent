@@ -79,7 +79,7 @@ For full real HTTP/DB/browser/restart checks use an initialized **test-only** ru
 python3 scripts/local-dev.py test --runtime "$HOME/.local/state/pan-agent/web106/my-runtime" --pg-bin /opt/homebrew/opt/postgresql@14/bin
 ```
 
-Browser tests use Playwright plus installed macOS Chrome. Set CHROME_PATH to another installed compatible Chromium executable when necessary. Browser automation is a dev dependency, not used by the application. Logs and screenshots go to runtime/test-evidence; copy them before rerunning if needed. Exact API inputs, malformed imports, both account directions,89source pointers, inert script text, downloads and app/database restart are exercised. [Scripts](scripts/README.md), [migrations](migrations/README.md), [frontend](web/README.md), [design](../../docs/design/pan-web/README.md).
+Browser tests use Playwright plus installed macOS Chrome. Set CHROME_PATH to another installed compatible Chromium executable when necessary. Browser automation is a dev dependency, not used by the application. Logs and screenshots go to runtime/test-evidence; copy them before rerunning if needed. Exact API inputs, malformed imports, both account directions,89source pointers, inert script text, downloads and app/database restart are exercised. [Scripts](scripts/README.md), [migrations](internal/database/migrations/README.md), [frontend](web/README.md), [design](../../docs/design/pan-web/README.md).
 
 Implementation references: [pgx connection pool](https://pkg.go.dev/github.com/jackc/pgx/v5/pgxpool) and [PostgreSQL14 pg_dump](https://www.postgresql.org/docs/14/app-pgdump.html). This slice does not implement backup automation; operators retain the owned database directory and can separately arrange PostgreSQL backups.
 
@@ -202,3 +202,7 @@ Configuration, ownership, clock and deadline limits are in
 [cache design](../../docs/design/pan-web/cache113.md). Use the dedicated
 [local service instructions](scripts/README.md); Redis is disposable, PG remains
 authoritative. File metadata remains in views; file bodies use download routes.
+
+## #119 Product entry and package ownership
+
+Build `go build ./cmd/pan-web` (root build remains a compatibility entry). [Design/configuration](../../docs/design/pan-web/packages119.md), [internal package navigation](internal/README.md), [current candidate navigation](SOURCE_OF_TRUTH.md). Namespace no longer chooses capabilities; `WEB_MODE=product` is the sole mode. API/Workers supervise maintenance without HTTP polling. SQL migration bytes moved unchanged to `internal/database/migrations/`.

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Own persistent local PostgreSQL and application processes; never manage shared services."""
 import argparse,json,os,pathlib,secrets,signal,subprocess,time,urllib.parse
-p=argparse.ArgumentParser();p.add_argument('--issue',type=int,choices=[106,107,108,109,110,111,112,113],default=106);p.add_argument('command',choices=['init','start','stop','test']);p.add_argument('--runtime',required=True);p.add_argument('--pg-bin',required=True);p.add_argument('--db-port',type=int,default=54106);p.add_argument('--port',type=int,default=8106);a=p.parse_args()
+p=argparse.ArgumentParser();p.add_argument('--issue',type=int,choices=[106,107,108,109,110,111,112,113,119],default=106);p.add_argument('command',choices=['init','start','stop','test']);p.add_argument('--runtime',required=True);p.add_argument('--pg-bin',required=True);p.add_argument('--db-port',type=int,default=54106);p.add_argument('--port',type=int,default=8106);a=p.parse_args()
 r=pathlib.Path(a.runtime).resolve();root=pathlib.Path(__file__).resolve().parents[1];pg=pathlib.Path(a.pg_bin).resolve();cfg=r/'config.json';mark=r/f'web{a.issue}-owner.json'
 def run(args,**kw):return subprocess.run([str(x) for x in args],check=True,**kw)
 if a.command=='init':
@@ -16,12 +16,12 @@ if a.command=='init':
  run([pg/'pg_ctl','-D',r/'pgdata','-l',r/'postgres.log','start'])
  env=os.environ.copy();env.update(data);env['PGPASSWORD']=urllib.parse.urlsplit(data['DATABASE_URL']).password
  run([pg/'createdb','-h','127.0.0.1','-p',str(a.db_port),'-U','web106','web106'],env=env)
- run(['go','build','-o',r/'evidence-web','.'],cwd=root)
+ run(['go','build','-o',r/'evidence-web','./cmd/pan-web'],cwd=root)
  for who in ['a','b']:
   account=env.copy();account['ACCOUNT_EMAIL']=who+'@web106.test';account['ACCOUNT_PASSWORD']=data['ACCOUNT_'+who.upper()+'_PASSWORD'];run([r/'evidence-web','account'],env=account,cwd=root)
  print('Initialized own database and invited accounts. Passwords are only in',cfg);raise SystemExit(0)
 if not mark.exists() or json.loads(mark.read_text())!={'issue':a.issue,'runtime':str(r)}:raise SystemExit('not an owned web106 runtime')
-data=json.loads(cfg.read_text());env=os.environ.copy();env.update(data);env['WEB_ISSUE']=f'web{a.issue}';env['WEB_DIR']=str(root/'web/dist');pidfile=r/'app.pid'
+data=json.loads(cfg.read_text());env=os.environ.copy();env.update(data);env['WEB_ISSUE']=f'web{a.issue}';env['WEB_DIR']=str(root/'web/dist');env.update(json.loads((r/'worker.json').read_text()) if (r/'worker.json').exists() else {});pidfile=r/'app.pid'
 def stop_app():
  if not pidfile.exists():return
  pid=int(pidfile.read_text());ps=subprocess.run(['ps','-p',str(pid),'-o','command='],capture_output=True,text=True)

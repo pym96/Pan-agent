@@ -1,4 +1,4 @@
-package main
+package evidence
 
 import (
 	"encoding/json"
@@ -7,15 +7,15 @@ import (
 )
 
 func TestPinnedSummary(t *testing.T) {
-	b, e := os.ReadFile("../../docs/evidence/terminal-bench-full-live-97-summary.json")
+	b, e := os.ReadFile("../../../../docs/evidence/terminal-bench-full-live-97-summary.json")
 	if e != nil {
 		t.Fatal(e)
 	}
-	if hash(b) != "f67d6e22a5f229637bb90cccc5a2538f6aaa87225efb1b8a9cf182cac37828ab" {
+	if Hash(b) != "f67d6e22a5f229637bb90cccc5a2538f6aaa87225efb1b8a9cf182cac37828ab" {
 		t.Fatal("fixture identity")
 	}
-	m, _ := json.Marshal(Manifest{1, "fixture", "summary.json", map[string]string{"summary.json": hash(b)}})
-	_, o, e := parseBundle(m, map[string][]byte{"summary.json": b})
+	m, _ := json.Marshal(Manifest{1, "fixture", "summary.json", map[string]string{"summary.json": Hash(b)}})
+	_, o, e := ParseBundle(m, map[string][]byte{"summary.json": b})
 	if e != nil {
 		t.Fatal(e)
 	}
@@ -39,7 +39,7 @@ func TestUnambiguousSource(t *testing.T) {
 			t.Fatal("ambiguous JSON accepted")
 		}
 	}
-	v, e := pointerValue([]byte(`{"a/b":{"~x":[null,4]}}`), "/a~1b/~0x/0")
+	v, e := PointerValue([]byte(`{"a/b":{"~x":[null,4]}}`), "/a~1b/~0x/0")
 	if e != nil || v != nil {
 		t.Fatalf("pointer/null: %v %v", v, e)
 	}

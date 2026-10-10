@@ -1,171 +1,14 @@
-package main
+package tasks
 
 import (
 	"context"
 	"encoding/json"
 	"errors"
+	"pan-agent/evidence-web/internal/evidence"
+
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
-	"io"
-	"net/http"
-	"time"
 )
-
-func decodeBody(w http.ResponseWriter, r *http.Request, v any) bool {
-	d := json.NewDecoder(http.MaxBytesReader(w, r.Body, 8192))
-	d.DisallowUnknownFields()
-	if d.Decode(v) != nil {
-		fail(w, 400, "invalid JSON")
-		return false
-	}
-	var extra any
-	if d.Decode(&extra) != io.EOF {
-		fail(w, 400, "invalid JSON")
-		return false
-	}
-	return true
-}
-func (a *app) createConversation(w http.ResponseWriter, r *http.Request) {
-	owner := a.owner(w, r)
-	if owner == "" {
-		return
-	}
-	var in struct {
-		BundleID string `json:"bundleId"`
-	}
-	if !decodeBody(w, r, &in) {
-		return
-	}
-	cid := id()
-	tag, e := a.db.Exec(r.Context(), "INSERT INTO ew_conversations(id,bundle_id,account_id) SELECT $1,id,account_id FROM ew_bundles WHERE id=$2 AND account_id=$3", cid, in.BundleID, owner)
-	if e != nil {
-		fail(w, 503, "conversation unavailable")
-		return
-	}
-	if tag.RowsAffected() != 1 {
-		fail(w, 404, "bundle not found")
-		return
-	}
-	send(w, 201, map[string]string{"id": cid, "bundleId": in.BundleID})
-}
-func (a *app) conversations(w http.ResponseWriter, r *http.Request) {
-	owner := a.owner(w, r)
-	if owner == "" {
-		return
-	}
-	rows, e := a.db.Query(r.Context(), "SELECT id,bundle_id,created_at FROM ew_conversations WHERE account_id=$1 AND ($2='' OR bundle_id=$2) ORDER BY created_at DESC", owner, r.URL.Query().Get("bundleId"))
-	if e != nil {
-		fail(w, 503, "conversations unavailable")
-		return
-	}
-	defer rows.Close()
-	out := []any{}
-	for rows.Next() {
-		var cid, bid string
-		var at time.Time
-		if rows.Scan(&cid, &bid, &at) != nil {
-			fail(w, 503, "conversations unavailable")
-			return
-		}
-		out = append(out, map[string]any{"id": cid, "bundleId": bid, "createdAt": at})
-	}
-	if rows.Err() != nil {
-		fail(w, 503, "conversations unavailable")
-		return
-	}
-	send(w, 200, out)
-}
-func (a *app) conversation(w http.ResponseWriter, r *http.Request) {
-	owner := a.owner(w, r)
-	if owner == "" {
-		return
-	}
-	a.markLost(r.Context())
-	var bid string
-	if a.db.QueryRow(r.Context(), "SELECT bundle_id FROM ew_conversations WHERE id=$1 AND account_id=$2", r.PathValue("id"), owner).Scan(&bid) != nil {
-		fail(w, 404, "conversation not found")
-		return
-	}
-	rows, e := a.db.Query(r.Context(), "SELECT id,question,state,message_sequence,request_id,reason,context_sha256 FROM ew_tasks WHERE conversation_id=$1 AND account_id=$2 ORDER BY message_sequence", r.PathValue("id"), owner)
-	if e != nil {
-		fail(w, 503, "history unavailable")
-		return
-	}
-	defer rows.Close()
-	out := []any{}
-	for rows.Next() {
-		var tid, q, st, req string
-		var seq int64
-		var reason, h *string
-		if rows.Scan(&tid, &q, &st, &seq, &req, &reason, &h) != nil {
-			fail(w, 503, "history unavailable")
-			return
-		}
-		out = append(out, map[string]any{"id": tid, "question": q, "state": st, "sequence": seq, "requestId": req, "reason": reason, "contextSHA256": h})
-	}
-	if rows.Err() != nil {
-		fail(w, 503, "history unavailable")
-		return
-	}
-	send(w, 200, map[string]any{"id": r.PathValue("id"), "bundleId": bid, "messages": out})
-}
-func (a *app) appendQuestion(w http.ResponseWriter, r *http.Request) {
-	owner := a.owner(w, r)
-	if owner == "" {
-		return
-	}
-	var in struct {
-		Question  string `json:"question"`
-		RequestID string `json:"requestId"`
-	}
-	if !decodeBody(w, r, &in) {
-		return
-	}
-	if len(in.Question) < 1 || len(in.Question) > 4000 || len(in.RequestID) < 1 || len(in.RequestID) > 128 {
-		fail(w, 400, "question 1–4000 bytes; requestId 1–128 bytes")
-		return
-	}
-	tx, e := a.db.Begin(r.Context())
-	if e != nil {
-		fail(w, 503, "submission unavailable")
-		return
-	}
-	defer tx.Rollback(r.Context())
-	var bid string
-	var seq int64
-	if tx.QueryRow(r.Context(), "SELECT bundle_id,next_sequence FROM ew_conversations WHERE id=$1 AND account_id=$2 FOR UPDATE", r.PathValue("id"), owner).Scan(&bid, &seq) != nil {
-		fail(w, 404, "conversation not found")
-		return
-	}
-	var tid, q, st string
-	var oldSeq int64
-	e = tx.QueryRow(r.Context(), "SELECT id,question,state,message_sequence FROM ew_tasks WHERE account_id=$1 AND conversation_id=$2 AND request_id=$3", owner, r.PathValue("id"), in.RequestID).Scan(&tid, &q, &st, &oldSeq)
-	if e == nil {
-		if q != in.Question {
-			fail(w, 409, "requestId already bound to different question")
-			return
-		}
-		send(w, 200, map[string]any{"id": tid, "sequence": oldSeq, "state": st})
-		return
-	}
-	if !errors.Is(e, pgx.ErrNoRows) {
-		fail(w, 503, "submission unavailable")
-		return
-	}
-	tid = id()
-	_, e = tx.Exec(r.Context(), "INSERT INTO ew_tasks(id,bundle_id,account_id,question,state,conversation_id,message_sequence,request_id) VALUES($1,$2,$3,$4,'queued',$5,$6,$7)", tid, bid, owner, in.Question, r.PathValue("id"), seq, in.RequestID)
-	if e == nil {
-		_, e = tx.Exec(r.Context(), "UPDATE ew_conversations SET next_sequence=next_sequence+1 WHERE id=$1", r.PathValue("id"))
-	}
-	if e == nil {
-		e = tx.Commit(r.Context())
-	}
-	if e != nil {
-		fail(w, 503, "submission unavailable")
-		return
-	}
-	send(w, 201, map[string]any{"id": tid, "sequence": seq, "state": "queued"})
-}
 
 // Snapshot public completed answers only; never copy archive internals or Provider continuation.
 type publicTurn struct {
@@ -195,7 +38,7 @@ func claimTask(ctx context.Context, db *pgxpool.Pool, wid string) (tid, bid, q s
 		return
 	}
 	defer tx.Rollback(ctx)
-	if runtimeIssue() == "web112" || runtimeIssue() == "web113" {
+	{
 		if _, e = tx.Exec(ctx, "SELECT pg_advisory_xact_lock($1)", claimLock); e != nil {
 			err = e
 			return
@@ -247,7 +90,7 @@ func claimTask(ctx context.Context, db *pgxpool.Pool, wid string) (tid, bid, q s
 		err = e
 		return
 	}
-	if runtimeIssue() == "web112" || runtimeIssue() == "web113" {
+	{
 		if e = assignOwner(ctx, tx, tid, wid); e != nil {
 			err = e
 			return
@@ -291,7 +134,7 @@ func claimTask(ctx context.Context, db *pgxpool.Pool, wid string) (tid, bid, q s
 				return
 			}
 			t.Answer = r.Result.FinalText
-			t.ResultSHA = hash(raw)
+			t.ResultSHA = evidence.Hash(raw)
 			snapshot.Turns = append(snapshot.Turns, t)
 		}
 		e = rows.Err()
@@ -318,7 +161,7 @@ func claimTask(ctx context.Context, db *pgxpool.Pool, wid string) (tid, bid, q s
 		}
 		return
 	}
-	_, e = tx.Exec(ctx, "UPDATE ew_tasks SET state='running',worker_id=$2,started_at=now(),cleanup_confirmed=false,context_text=$3,context_sha256=$4 WHERE id=$1", tid, wid, string(raw), hash(raw))
+	_, e = tx.Exec(ctx, "UPDATE ew_tasks SET state='running',worker_id=$2,started_at=now(),cleanup_confirmed=false,context_text=$3,context_sha256=$4 WHERE id=$1", tid, wid, string(raw), evidence.Hash(raw))
 	if e == nil {
 		e = tx.Commit(ctx)
 	}

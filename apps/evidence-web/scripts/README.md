@@ -72,3 +72,5 @@ nearest-rank latency, outcomes, cache hits and all PG query categories.
 ownership probes. No real Provider credentials are read. Existing #112 fault,
 control and browser runners accept the new web113 namespace; worker-control.py
 also supports its two owned Worker slots.
+
+#119: `local-dev.py --issue 119` owns its own database; `worker-control.py` configures pinned execution and two slots. `check119-structure.py` verifies package dependencies, exported interfaces and migration byte identity. Existing 108/112/113 probes accept #119 namespace; archived runners are unchanged.

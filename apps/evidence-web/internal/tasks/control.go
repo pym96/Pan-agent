@@ -1,74 +1,56 @@
-package main
+package tasks
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
+	"pan-agent/evidence-web/internal/identity"
+	"pan-agent/evidence-web/internal/result"
+
 	"github.com/jackc/pgx/v5"
-	"net/http"
 )
 
-// Conversation lock serializes revisions/submission; task lock arbitrates completion vs cancellation.
-func (a *app) control(w http.ResponseWriter, r *http.Request) {
-	owner := a.owner(w, r)
-	if owner == "" {
-		return
-	}
-	var in struct {
-		RequestID string `json:"requestId"`
-		Question  string `json:"question"`
-	}
-	if !decodeBody(w, r, &in) {
-		return
-	}
-	action := r.PathValue("action")
+func (a *Store) Control(ctx context.Context, owner string, key, taskID, verb string, in ControlInput) result.Value {
+	action := verb
 	if (action != "cancel" && action != "replace") || len(in.RequestID) < 1 || len(in.RequestID) > 128 || (action == "replace" && (len(in.Question) < 1 || len(in.Question) > 4000)) || (action == "cancel" && in.Question != "") {
-		fail(w, 400, "invalid control action/requestId/question")
-		return
+		return result.Fail(result.Invalid, "invalid control action/requestId/question")
 	}
-	cid, tid := r.PathValue("id"), r.PathValue("task")
-	ctx := r.Context()
+	cid, tid := key, taskID
 	tx, e := a.db.Begin(ctx)
 	if e != nil {
-		fail(w, 503, "control unavailable")
-		return
+		return result.Fail(result.Unavailable, "control unavailable")
 	}
 	defer tx.Rollback(ctx)
 	var bid string
 	var seq int64
 	if tx.QueryRow(ctx, "SELECT bundle_id,next_sequence FROM ew_conversations WHERE id=$1 AND account_id=$2 FOR UPDATE", cid, owner).Scan(&bid, &seq) != nil {
-		fail(w, 404, "conversation not found")
-		return
+		return result.Fail(result.Missing, "conversation not found")
 	}
 	var oldTarget, oldAction, oldQuestion, decision string
 	var replacement *string
 	e = tx.QueryRow(ctx, "SELECT target_id,action,question,replacement_id,decision FROM ew_controls WHERE account_id=$1 AND conversation_id=$2 AND request_id=$3", owner, cid, in.RequestID).Scan(&oldTarget, &oldAction, &oldQuestion, &replacement, &decision)
 	if e == nil {
 		if oldTarget != tid || oldAction != action || oldQuestion != in.Question {
-			fail(w, 409, "requestId bound to different control")
-			return
+			return result.Fail(result.Conflict, "requestId bound to different control")
 		}
-		send(w, 200, map[string]any{"targetId": tid, "replacementId": replacement, "decision": decision})
-		return
+		return result.OK(result.Success, map[string]any{"targetId": tid, "replacementId": replacement, "decision": decision})
 	}
 	if !errors.Is(e, pgx.ErrNoRows) {
-		fail(w, 503, "control unavailable")
-		return
+		return result.Fail(result.Unavailable, "control unavailable")
 	}
 	var state string
 	var active, stopped bool
 	var targetSeq int64
 	if tx.QueryRow(ctx, "SELECT state,active_branch,message_sequence,cleanup_confirmed FROM ew_tasks WHERE id=$1 AND conversation_id=$2 AND account_id=$3 FOR UPDATE", tid, cid, owner).Scan(&state, &active, &targetSeq, &stopped) != nil {
-		fail(w, 404, "task not found in conversation")
-		return
+		return result.Fail(result.Missing, "task not found in conversation")
 	}
 	if action == "replace" {
 		var current string
 		e = tx.QueryRow(ctx, "SELECT id FROM ew_tasks WHERE conversation_id=$1 AND active_branch AND state IN ('running','cancelling','queued') ORDER BY CASE WHEN state IN ('running','cancelling') THEN 0 ELSE 1 END,message_sequence LIMIT 1", cid).Scan(&current)
 		if e != nil || current != tid || !active || (state != "running" && state != "queued") {
-			fail(w, 409, "target is not the current replaceable task; append instead")
-			return
+			return result.Fail(result.Conflict, "target is not the current replaceable task; append instead")
 		}
-		next := id()
+		next := identity.NewID()
 		replacement = &next
 		_, e = tx.Exec(ctx, "UPDATE ew_tasks SET active_branch=false,state=CASE WHEN id=$2 THEN state ELSE 'superseded' END,reason=CASE WHEN id=$2 THEN reason ELSE 'superseded by explicit replacement '||$3 END,finished_at=CASE WHEN id=$2 THEN finished_at ELSE now() END,cleanup_confirmed=CASE WHEN id=$2 THEN cleanup_confirmed ELSE true END WHERE conversation_id=$1 AND active_branch AND (id=$2 OR (message_sequence>$4 AND state IN ('queued','blocked')))", cid, tid, next, targetSeq)
 		if e == nil {
@@ -78,20 +60,17 @@ func (a *app) control(w http.ResponseWriter, r *http.Request) {
 			_, e = tx.Exec(ctx, "UPDATE ew_conversations SET next_sequence=next_sequence+1 WHERE id=$1", cid)
 		}
 		if e != nil {
-			fail(w, 503, "replacement unavailable")
-			return
+			return result.Fail(result.Unavailable, "replacement unavailable")
 		}
 	}
 	decision = state
 	e = nil
 	var hasPoint bool
 	if e = tx.QueryRow(ctx, "SELECT EXISTS(SELECT 1 FROM ew_checkpoints WHERE task_id=$1 AND eligible)", tid).Scan(&hasPoint); e != nil {
-		fail(w, 503, "control unavailable")
-		return
+		return result.Fail(result.Unavailable, "control unavailable")
 	}
 	if _, e = tx.Exec(ctx, "UPDATE ew_checkpoints SET eligible=false WHERE task_id=$1", tid); e != nil {
-		fail(w, 503, "control unavailable")
-		return
+		return result.Fail(result.Unavailable, "control unavailable")
 	}
 	if state == "queued" || (hasPoint && stopped && (state == "interrupted" || state == "failed")) {
 		decision = "cancelled"
@@ -114,8 +93,7 @@ func (a *app) control(w http.ResponseWriter, r *http.Request) {
 		e = tx.Commit(ctx)
 	}
 	if e != nil {
-		fail(w, 503, "control unavailable")
-		return
+		return result.Fail(result.Unavailable, "control unavailable")
 	}
-	send(w, 200, map[string]any{"targetId": tid, "replacementId": replacement, "decision": decision})
+	return result.OK(result.Success, map[string]any{"targetId": tid, "replacementId": replacement, "decision": decision})
 }

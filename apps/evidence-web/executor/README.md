@@ -27,3 +27,5 @@ check-isolation.mjs runs a harmless actual Docker probe for denied input writes,
 #113 reuses #112 ownership admission under the separate `web113` resource
 namespace, with the same default 1CPU/1GiB analysis containers. Redis is never
 passed to or consumed by the executor or Native Pan.
+
+#119 supersedes the historical namespace capability selectors above: `WEB_ISSUE` is only a validated resource namespace; the current Go entry injects `WEB_MODE=product`, and Node requires explicit authority for every model/tool action. Defaults are 1 CPU/1 GiB. Go process/stream/stop adapter now lives in `../internal/executor/`. No changes to the TypeScript Product package.

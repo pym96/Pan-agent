@@ -2,7 +2,7 @@ import {resourceGate} from './resources.mjs';
 import {spawn} from 'node:child_process';
 import {lstat,readFile,realpath} from 'node:fs/promises';
 import {join,resolve} from 'node:path';
-export const runtimeIssue=()=>['web108','web109','web110','web111','web112','web113'].includes(process.env.WEB_ISSUE)?process.env.WEB_ISSUE:'web107';
+export const runtimeIssue=()=>{const n=process.env.WEB_ISSUE;if(!/^[a-zA-Z0-9][a-zA-Z0-9_-]{0,63}$/.test(n||''))throw Error('resource_namespace_required');return n};
 export const MAX_OUTPUT=2*1024*1024;
 export function command(binary,args,{input='',signal,timeout=180000,limit=MAX_OUTPUT}={}){
  return new Promise((done,reject)=>{const child=spawn(binary,args,{env:process.env,stdio:['pipe','pipe','pipe']});let out='',err='',size=0,overflow=false;const timer=setTimeout(()=>child.kill('SIGKILL'),timeout);const cancel=()=>child.kill('SIGKILL');signal?.addEventListener('abort',cancel,{once:true});
@@ -22,7 +22,7 @@ export async function safeArtifact(root,name){
  const dir=join(root,'output');if((await lstat(dir)).isSymbolicLink()||await realpath(dir)!==resolve(dir))throw Error('artifact_root_alias');
  const path=join(dir,name),s=await lstat(path);if(!s.isFile()||s.isSymbolicLink()||s.nlink!==1||s.size>MAX_OUTPUT)throw Error('artifact_not_regular');return readFile(path);
 }
-export function dockerTool({root,taskId,image,record,operation,admit,cpus=2,memory=4}){
+export function dockerTool({root,taskId,image,record,operation,admit,cpus=1,memory=1}){
  if(!/^[a-f0-9]{64}$/.test(taskId)||!/^sha256:[a-f0-9]{64}$/.test(image)||cpus<1||cpus>4||memory<1||memory>8)throw Error('executor_configuration');
  const name=runtimeIssue()+'-'+taskId;
  return {name:'analyze_python',description:'Run Python standard-library code in an offline, unprivileged Docker sandbox; /input read-only, /output writable. No host commands or network.',parameters:{type:'object',properties:{code:{type:'string'}},required:['code'],additionalProperties:false},

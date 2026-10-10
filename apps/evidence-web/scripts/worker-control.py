@@ -1,17 +1,18 @@
 #!/usr/bin/env python3
-"""Start/stop only this web107 runtime's single worker. Requires explicit operator config."""
+"""Start/stop only this runtime's Product workers. Requires explicit operator config."""
 import argparse,json,os,pathlib,subprocess,signal,time
 p=argparse.ArgumentParser();p.add_argument('command',choices=['configure','start','stop']);p.add_argument('--runtime',required=True);p.add_argument('--pan-entry');p.add_argument('--image');p.add_argument('--slot',type=int,choices=[1,2],default=1);a=p.parse_args()
 r=pathlib.Path(a.runtime).resolve();root=pathlib.Path(__file__).resolve().parents[1]
-issue=113 if (r/'web113-owner.json').exists() else 112 if (r/'web112-owner.json').exists() else 111 if (r/'web111-owner.json').exists() else 110 if (r/'web110-owner.json').exists() else 109 if (r/'web109-owner.json').exists() else 108 if (r/'web108-owner.json').exists() else 107
-if json.loads((r/f'web{issue}-owner.json').read_text())!={'issue':issue,'runtime':str(r)}:raise SystemExit('not an owned runtime')
-config=r/'worker.json';pidfile=r/('worker-'+str(a.slot)+'.pid' if issue in [112,113] else 'worker.pid')
-if issue not in [112,113] and a.slot!=1:raise SystemExit('second slot only supported in web112')
+markers=list(r.glob('web*-owner.json'))
+if len(markers)!=1:raise SystemExit('requires one owned runtime marker')
+owned=json.loads(markers[0].read_text());issue=owned.get('issue')
+if owned!={'issue':issue,'runtime':str(r)} or markers[0].name!=f'web{issue}-owner.json':raise SystemExit('not an owned runtime')
+config=r/'worker.json';pidfile=r/('worker-'+str(a.slot)+'.pid')
 if a.command=='configure':
  if not a.pan_entry or not a.image:raise SystemExit('--pan-entry and --image required')
  pan=pathlib.Path(a.pan_entry).resolve();assert pan.is_file();image=subprocess.check_output(['docker','image','inspect',a.image,'--format','{{.Id}}'],text=True).strip();assert image.startswith('sha256:')
  host=os.environ.get('DOCKER_HOST') or subprocess.check_output(['docker','context','inspect','--format','{{.Endpoints.docker.Host}}'],text=True).strip();(r/'empty-docker').mkdir(exist_ok=True)
- config.write_text(json.dumps({'WEB_ISSUE':f'web{issue}','PAN_ENTRY':str(pan),'PAN_IMAGE':image,'WEB107_EXECUTOR':str(root/'executor/main.mjs'),'WEB107_TASK_ROOT':str(r/'tasks'),'DOCKER_HOST':host,'DOCKER_CONFIG':str(r/'empty-docker'),'ANALYSIS_CPUS':'1' if issue in [112,113] else '2','ANALYSIS_MEMORY_GIB':'1' if issue in [112,113] else '4',**({'WEB_OPERATION_MODE':'1'} if issue in [111,112,113] else {}),**({'WEB_CHECKPOINT_MODE':'1'} if issue in [110,111,112,113] else {})},indent=2));config.chmod(0o600);print('Pinned worker image and public Pan entry; no provider credentials');raise SystemExit(0)
+ config.write_text(json.dumps({'WEB_ISSUE':f'web{issue}','PAN_ENTRY':str(pan),'PAN_IMAGE':image,'WEB107_EXECUTOR':str(root/'executor/main.mjs'),'WEB107_TASK_ROOT':str(r/'tasks'),'DOCKER_HOST':host,'DOCKER_CONFIG':str(r/'empty-docker'),'ANALYSIS_CPUS':'1','ANALYSIS_MEMORY_GIB':'1','WEB_MODE':'product','WEB_OPERATION_MODE':'1','WEB_CHECKPOINT_MODE':'1'},indent=2));config.chmod(0o600);print('Pinned worker image and public Pan entry; no provider credentials');raise SystemExit(0)
 if a.command=='stop':
  if not pidfile.exists():raise SystemExit('no owned worker PID receipt; inspect before signalling')
  pid=int(pidfile.read_text());cmd=subprocess.run(['ps','-p',str(pid),'-o','command='],capture_output=True,text=True)

@@ -52,3 +52,5 @@ Worker uses its owned child channel/process handle and task-labelled Docker iden
 
 [Design and operating boundaries](cache113.md): PG authority, process-bound
 signed cache snapshots, bounded age/fallback, separate query accounting.
+
+- [#119 package ownership and independent maintenance](packages119.md): explicit execution authority and read-only query seam.

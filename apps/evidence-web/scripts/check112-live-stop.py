@@ -4,7 +4,7 @@ import pathlib,os,json,time,signal,subprocess
 src=pathlib.Path(__file__).with_name('check112-faults.py').read_text();exec(compile(src.split('\ntry:\n app=start')[0],str(pathlib.Path(__file__).with_name('check112-faults.py')),'exec'))
 marker=None
 try:
- app=start('app');ready();a=client();login(a,'a');source=(ROOT.parents[1]/'docs/evidence/terminal-bench-full-live-97-summary.json').read_bytes();bid=upload(a,source);cid=conversation(a,bid);_,t=append(a,cid,'owned live container');tid=t['id'];env['WEB_TOOL_BARRIER']=tid;worker=start('worker');exists(R/'tasks'/tid/'output/tool-ready');held=task(tid);save('live.json',held);name='web112-'+tid
+ app=start('app');ready();a=client();login(a,'a');source=(ROOT.parents[1]/'docs/evidence/terminal-bench-full-live-97-summary.json').read_bytes();bid=upload(a,source);cid=conversation(a,bid);_,t=append(a,cid,'owned live container');tid=t['id'];env['WEB_TOOL_BARRIER']=tid;worker=start('worker');exists(R/'tasks'/tid/'output/tool-ready');held=task(tid);save('live.json',held);name=f'web{issue}-'+tid
  inspect=lambda:json.loads(subprocess.check_output(['docker','inspect',name],env=env))[0]
  check(inspect()['State']['Running'],'old container actually running');save('running-container.json',inspect())
  marker=R/'tasks'/tid/'stop-unconfirmed';marker.write_text('owned controlled stop uncertainty; preserve slot')

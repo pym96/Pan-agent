@@ -1,0 +1,7 @@
+{
+  "path": "/Users/panyiming/.local/state/pan-agent/web119/inventory.json",
+  "sha256": "76d9debf87c0d7ba9137c80cd27b9f534377d9d312e1b0809f13c8c1bb8761ba",
+  "entries": 3829,
+  "allStoppedBeforeInventory": true,
+  "binding": "Candidate source is the full SHA in Handoff; inventory excludes future handoff and remote receipts."
+}
