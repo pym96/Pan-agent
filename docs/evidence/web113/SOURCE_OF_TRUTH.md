@@ -6,3 +6,9 @@ Role Working Agent (Builder), #113 Criteria1.0, baseline
 [Evidence report](report.md) and [design](../../design/pan-web/cache113.md).
 The host SOURCE_OF_TRUTH.md remains outside this WorkOrder's write scope.
 Candidate evidence is not an independent Verdict or a promoted project fact.
+
+## Current repair
+
+The first candidate was independently rejected for C-WEB113-01 (unvalidated
+JSON suffix). [Repair 01](repair-01/README.md) is the current Builder delta;
+original report/metrics remain historical evidence, not acceptance of new bytes.

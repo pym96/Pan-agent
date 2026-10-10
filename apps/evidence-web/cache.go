@@ -230,6 +230,12 @@ func (c *viewCache) lookup(ctx context.Context, key string) (viewEnvelope, strin
 	if d.Decode(&v) != nil || v.Key != key || v.Epoch != c.epoch || !hmac.Equal([]byte(v.MAC), []byte(c.signature(v))) {
 		return viewEnvelope{}, "miss"
 	}
+	// Decode accepts a stream prefix. The cache contract requires exactly one
+	// complete envelope, with only JSON whitespace after it.
+	var extra any
+	if d.Decode(&extra) != io.EOF {
+		return viewEnvelope{}, "miss"
+	}
 	if _, ok := c.age(v); !ok {
 		return viewEnvelope{}, "miss"
 	}

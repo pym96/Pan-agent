@@ -1,0 +1,62 @@
+{
+  "previousCandidate": "bdbc270baece1580ca356c68e294dde835ad33bf",
+  "criteria": "1.0",
+  "builderOnly": true,
+  "rawInventory": {
+    "path": "/Users/panyiming/.local/state/pan-agent/web113/repair-01/inventory.json",
+    "sha256": "fb2f1501043799dd3b0ae2afd17c829420bfd6607eda625c5b11535bf2e5f2e7",
+    "entries": 1350
+  },
+  "results": {
+    "red.log": {
+      "sha256": "be38170164ce0cbd2a23dcbb62bfa2b23ec1b95ffc1214676c2d758156316f9f"
+    },
+    "green.log": {
+      "sha256": "9b320af52e9d4de1079dc18334e8e81b60e54f8ce70f7f16c5076d69c986c977"
+    },
+    "vet.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "build.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "evidence-web": {
+      "sha256": "567660d2f0221504eb2c7da166a6fc0d6f76edf1c09771a27d442ef497454b0b"
+    },
+    "preservation.json": {
+      "sha256": "fdae7915615f5f48747d5f0ab1ae462ed300163a5c2df7d91920766fb861131f"
+    },
+    "stop.json": {
+      "sha256": "11b6fbe17ce74cd45d6421f59e43e6a1d63acb2264e3b9490b64e829cee246da"
+    }
+  },
+  "goRaceTopLevelPasses": 14,
+  "suffixCases": 5,
+  "redNegativeFailures": 3,
+  "resourceAfter": {
+    "sample": {
+      "utc": "2026-10-10T08:40:51.924Z",
+      "free": 28433850368,
+      "owned": 13360144384,
+      "docker": 88965873664
+    },
+    "baselineDocker": 48503971840,
+    "cumulative": 53822046208,
+    "productHash": "5ecd3b9b4da688f90dfee3cc651b4a2f755595587b6d7d7287383cab23c8e580",
+    "productFiles": 82
+  },
+  "preservation": {
+    "priorCandidate": "bdbc270baece1580ca356c68e294dde835ad33bf",
+    "priorInventorySHA256": "1202eb87aaa0b77ba9a465d9c161fb4077a36e361bc18f6371a01e5068f25ad4",
+    "entries": 3770,
+    "mismatches": [],
+    "verdictPath": "/Users/panyiming/.local/state/pan-agent/web113/regulator/Verdict.md",
+    "verdictSHA256": "4b2a6381309a312511071e7b7d5999cf1142c74f61ad3261fcc7d01cedbaa75a",
+    "previousLedgerSHA256": "1b11641a5c1f9181b9fea833a7cb58bc65f487684754da168aae9b1114042dea",
+    "newRealProviderCalls": 0,
+    "newFauxExecutions": 0,
+    "newBenchmarkCalls": 0,
+    "newScoringCalls": 0,
+    "codingTokens": "unknown"
+  }
+}

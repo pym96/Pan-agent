@@ -499,3 +499,46 @@ func TestRealRedisPauseEightQueries(t *testing.T) {
 	}
 	t.Log("real Redis CLIENT PAUSE; eight concurrent queries, four PG slots, four excess 503, deadline release and recovered hit")
 }
+
+func TestCacheCompleteJSONEnvelope(t *testing.T) {
+	for _, tc := range []struct {
+		name, suffix string
+		hit          bool
+	}{
+		{"no_suffix", "", true},
+		{"legal_whitespace", " \t\r\n", true},
+		{"illegal_suffix", "\nTHIS_IS_NOT_JSON", false},
+		{"second_object", "\n{}", false},
+		{"second_scalar", "\nnull", false},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			a, tid, token := cacheFixture(t)
+			original := viewRequest(a, tid, token)
+			if original.Code != 200 {
+				t.Fatal("initial projection failed")
+			}
+			key := a.views.key("account", "task", tid, "")
+			raw, err := a.views.redis(context.Background(), "GET", key)
+			if err != nil || len(raw) == 0 {
+				t.Fatal("real Redis fixture missing", err)
+			}
+			if _, err = a.views.redis(context.Background(), "SET", key, string(raw)+tc.suffix, "PX", "5000"); err != nil {
+				t.Fatal(err)
+			}
+			// Change PG without eviction: a hit returns the old signed value; a miss
+			// must actually read and return the new authoritative projection.
+			if _, err = a.db.Exec(context.Background(), "UPDATE ew_tasks SET state='cancelled' WHERE id=$1", tid); err != nil {
+				t.Fatal(err)
+			}
+			got := viewRequest(a, tid, token)
+			wantMode, wantState := "miss", "cancelled"
+			if tc.hit {
+				wantMode, wantState = "hit", "queued"
+			}
+			t.Logf("status=%d cache=%s state=%s", got.Code, got.Header().Get("X-View-Cache"), stateOf(got))
+			if got.Code != 200 || got.Header().Get("X-View-Cache") != wantMode || stateOf(got) != wantState {
+				t.Fatalf("want %s/%s", wantMode, wantState)
+			}
+		})
+	}
+}

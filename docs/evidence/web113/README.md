@@ -10,3 +10,5 @@ private web113 state root; final inventory binds them by SHA256.
 - [Resource ledger](resources.json), [task/call ledger](ledger.json),
   [stop confirmation](stop.json), [baseline preservation](baseline-preservation.json).
 - [Raw inventory binding](inventory-binding.json), [exact changed files](changed-files.json).
+
+- [Repair 01: complete JSON envelope validation after Regulator rejection](repair-01/README.md).
