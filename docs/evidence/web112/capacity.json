@@ -1,0 +1,129 @@
+[
+  {
+    "workers": 1,
+    "completed": 12,
+    "denominator": 12,
+    "completionRate": 1.0,
+    "durationSeconds": 232.610938,
+    "throughputTasksPerSecond": 0.0515882877356352,
+    "queueSamples": 12,
+    "queueP50Seconds": 96.459589,
+    "queueP95Seconds": 212.401239,
+    "neverAdmitted": [],
+    "unfinished": [],
+    "failures": [],
+    "knownSyntheticExchanges": 36,
+    "unknownExchanges": 0,
+    "syntheticTokens": 72,
+    "observedToolExecutions": 24,
+    "actualOverlap": [],
+    "maxConcurrentAnalysisCpu": 1,
+    "maxConcurrentAnalysisMemoryGiB": 1
+  },
+  {
+    "workers": 2,
+    "completed": 12,
+    "denominator": 12,
+    "completionRate": 1.0,
+    "durationSeconds": 140.915002,
+    "throughputTasksPerSecond": 0.08515771798378147,
+    "queueSamples": 12,
+    "queueP50Seconds": 49.050752,
+    "queueP95Seconds": 118.209841,
+    "neverAdmitted": [],
+    "unfinished": [],
+    "failures": [],
+    "knownSyntheticExchanges": 36,
+    "unknownExchanges": 0,
+    "syntheticTokens": 72,
+    "observedToolExecutions": 24,
+    "actualOverlap": [
+      {
+        "tasks": [
+          "a9fcaa0af27b1f49dcae684c510437594f6f56583126fbb0b26f652d36356d6e",
+          "dda5159ff9fa207b7a777f0fe2a1c28de86093b368d33bd99841c16342a025bf"
+        ],
+        "seconds": 0.551681084
+      },
+      {
+        "tasks": [
+          "a9fcaa0af27b1f49dcae684c510437594f6f56583126fbb0b26f652d36356d6e",
+          "dda5159ff9fa207b7a777f0fe2a1c28de86093b368d33bd99841c16342a025bf"
+        ],
+        "seconds": 0.224400708
+      },
+      {
+        "tasks": [
+          "62a9f93016f8df9a40f6a702a12c9095aa9c9d634c650d8f49916d5540d12470",
+          "8d6541abd7647c2b14968bc4ff27877a0ee10d381379fa1003750c81373922ff"
+        ],
+        "seconds": 0.296759167
+      },
+      {
+        "tasks": [
+          "62a9f93016f8df9a40f6a702a12c9095aa9c9d634c650d8f49916d5540d12470",
+          "8d6541abd7647c2b14968bc4ff27877a0ee10d381379fa1003750c81373922ff"
+        ],
+        "seconds": 0.179640375
+      },
+      {
+        "tasks": [
+          "5d4d3218b2bf286e75cf197174584f42f195d2506e5806c94c844f2de6c9fdae",
+          "bcf93c5f7c6cf25d301d758363e8ce89e803aae6b0f08a7459015e0d4fe04fdf"
+        ],
+        "seconds": 0.163642708
+      },
+      {
+        "tasks": [
+          "5d4d3218b2bf286e75cf197174584f42f195d2506e5806c94c844f2de6c9fdae",
+          "bcf93c5f7c6cf25d301d758363e8ce89e803aae6b0f08a7459015e0d4fe04fdf"
+        ],
+        "seconds": 0.177742792
+      },
+      {
+        "tasks": [
+          "668202cb5bd766a48409d50e7bd559b55202e5b8ef0dcedd0179ac13ee9fd5aa",
+          "8eeb09f85ca0bd156a85a8e75b40c1b0398a0e5d6a2bca62acc4d7afe562dc7a"
+        ],
+        "seconds": 0.267932875
+      },
+      {
+        "tasks": [
+          "668202cb5bd766a48409d50e7bd559b55202e5b8ef0dcedd0179ac13ee9fd5aa",
+          "8eeb09f85ca0bd156a85a8e75b40c1b0398a0e5d6a2bca62acc4d7afe562dc7a"
+        ],
+        "seconds": 0.185632208
+      },
+      {
+        "tasks": [
+          "ea54d5b816508ef4d7a400faf423a7e196b72efad94be32c8742f28fc6fe5275",
+          "8bb4e9d329840881086a6ee704a64d7b0cc1e34a8c68945470e3b61dd621736c"
+        ],
+        "seconds": 0.226988
+      },
+      {
+        "tasks": [
+          "ea54d5b816508ef4d7a400faf423a7e196b72efad94be32c8742f28fc6fe5275",
+          "8bb4e9d329840881086a6ee704a64d7b0cc1e34a8c68945470e3b61dd621736c"
+        ],
+        "seconds": 0.169836084
+      },
+      {
+        "tasks": [
+          "e5a59c9755a17b8159b6d56c575ee709fe82b197aa9ac635121ea01978cdd70b",
+          "401b13c9372c7588e2daa4e1269f3fc1a7897618cdee04152679f54aa15bdb4d"
+        ],
+        "seconds": 0.258656958
+      },
+      {
+        "tasks": [
+          "e5a59c9755a17b8159b6d56c575ee709fe82b197aa9ac635121ea01978cdd70b",
+          "401b13c9372c7588e2daa4e1269f3fc1a7897618cdee04152679f54aa15bdb4d"
+        ],
+        "seconds": 0.197458958
+      }
+    ],
+    "maxConcurrentAnalysisCpu": 2,
+    "maxConcurrentAnalysisMemoryGiB": 2
+  }
+]

@@ -369,6 +369,12 @@ func run() error {
 			}
 			continue
 		}
+		if entry.Name() == "007_ownership.sql" || entry.Name() == "008_owner_connection.sql" {
+			var stopped bool
+			if migrationTx.QueryRow(ctx, "SELECT pg_try_advisory_xact_lock($1)", workerLock).Scan(&stopped) != nil || !stopped {
+				return errors.New("stop legacy workers before ownership migration")
+			}
+		}
 		if _, e = migrationTx.Exec(ctx, string(sql)); e != nil {
 			return fmt.Errorf("database migration failed: %s", entry.Name())
 		}

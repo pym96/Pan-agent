@@ -13,3 +13,5 @@ This choice keeps login/upload/statistics/source inspection in one small compone
 #110 adds an explicit owner-bound checkpoint resume action, truthful recoverable/resuming/completed states, distinct attempts and deduplicated known/unknown accounting. Private checkpoint/Provider state never enters the browser. Faux-only limits and unsupported real Kimi recovery are displayed beside the action.
 
 #111 adds explicit “核对并恢复 · 重建环境”, unresolved feedback, successful reconciliation and actual tool accounting through the existing task/history view. No private receipt or provider continuation is projected.
+
+#112 displays the selected task execution generation, Worker identity and revoked status; separate conversation selections retain independent result/source/CSV histories. `browser112.mjs` checks two real Workers and browser readback.

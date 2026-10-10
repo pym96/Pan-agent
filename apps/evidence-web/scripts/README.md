@@ -28,3 +28,20 @@ check109-retention.py adds repeated cancel and late-envelope artifact retention 
 
 #111: local-dev --issue111 and worker-control own a new runtime. `check111.py` covers actual crash/receipt reuse, pre-dispatch execution, removed stopped container and unresolved non-starvation. `check111-negative.py` covers receipt/identity/link/ownership attacks and concurrent admission/cancel. `check111-boundaries.py` covers incomplete/multi-tool/persistence/nonzero/image cases; `check111-stop-race.py` covers live Node with expired lease. `run-browser111.py`/`browser111.mjs` exercise the actual reconciliation button, counts, downloads and unrelated sentinels. Use WEB_TEST_ISSUE=111, WEB108_RUNTIME, EVIDENCE_DIR and pinned PAN_IMAGE. Existing #109/#110 probes allow the new isolated namespace; malformed version2 envelopes now reject earlier at reconciliation, preserving their zero-send assertion. Migration probe includes006 replay.
 `run-browser111-readback.py` / `browser111-readback.mjs` take PREVIOUS_RESULT pointing to a stopped dispatched-without-receipt task JSON. They verify persisted unknown UI after reload and an explicit readonly recheck with no Worker/new calls.
+
+## #112 verification
+
+`check112-smoke.py` covers real two-Worker output and order. `check112-faults.py`
+records pause/revoke, before/after admission, confirmed/unresolved recovery and PG outage.
+`check112-controls.py` checks dedicated connection loss, cancel/replace, client identity
+forgery and unrelated sentinels. `run-browser112.py` / `browser112.mjs` exercise two
+healthy owners and user-visible results/source/CSV/history. `check112-capacity.py` freezes
+its manifest before the paired 12-task load; `recompute112.py EVIDENCE_DIR` independently
+recomputes throughput, nearest-rank p50/p95 and real Docker interval overlap. Each run
+needs a fresh `EVIDENCE_DIR`; retain failed outputs. Read the contract budget first.
+
+All use `WEB_TEST_ISSUE=112`, `WEB108_RUNTIME=<owned runtime>`, `EVIDENCE_DIR=<new dir>`
+and the contract-pinned `PAN_IMAGE`. Candidate package is unpacked at the runtime
+parent's `pan-source/`. No keys or external model endpoints are needed.
+
+`check112-live-stop.py` keeps an actual old Docker process alive after owner expiration, verifies occupied-slot/global stop gating, then observes exact container absence before an independent conversation proceeds. Run separately from the capacity experiment.

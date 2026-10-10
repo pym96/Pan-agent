@@ -25,7 +25,7 @@ import (
 const workerLock int64 = 107010001
 
 func nodeEnvironment() []string {
-	keys := []string{"PATH", "DOCKER_HOST", "DOCKER_CONFIG", "PAN_ENTRY", "PAN_IMAGE", "WEB107_TASK_ROOT", "WEB107_SCENARIO", "ANALYSIS_CPUS", "ANALYSIS_MEMORY_GIB", "WEB_ISSUE", "WEB_FAUX_BARRIER", "WEB_RESULT_BARRIER", "WEB_TOOL_BARRIER", "WEB_CHECKPOINT_MODE", "WEB_CHECKPOINT_FAULT", "WEB_OPERATION_MODE", "WEB_OPERATION_FAULT"}
+	keys := []string{"PATH", "DOCKER_HOST", "DOCKER_CONFIG", "PAN_ENTRY", "PAN_IMAGE", "WEB107_TASK_ROOT", "WEB107_SCENARIO", "ANALYSIS_CPUS", "ANALYSIS_MEMORY_GIB", "WEB_ISSUE", "WEB_FAUX_BARRIER", "WEB_RESULT_BARRIER", "WEB_TOOL_BARRIER", "WEB_CHECKPOINT_MODE", "WEB_CHECKPOINT_FAULT", "WEB_OPERATION_MODE", "WEB_OPERATION_FAULT", "WEB_ADMISSION_FAULT"}
 	out := []string{}
 	for _, k := range keys {
 		if v := os.Getenv(k); v != "" {
@@ -40,7 +40,7 @@ func docker(ctx context.Context, args ...string) ([]byte, error) {
 	return c.Output()
 }
 func cleanupTask(ctx context.Context, tid string) error {
-	if runtimeIssue() == "web109" || (runtimeIssue() == "web110" || runtimeIssue() == "web111") {
+	if runtimeIssue() == "web109" || (runtimeIssue() == "web110" || runtimeIssue() == "web111" || runtimeIssue() == "web112") {
 		if _, e := os.Stat(filepath.Join(os.Getenv("WEB107_TASK_ROOT"), tid, "stop-unconfirmed")); e == nil {
 			return errors.New("controlled stop confirmation unavailable; admission blocked")
 		}
@@ -98,7 +98,7 @@ func stopNode(pid int, entry, root string) error {
 	return errors.New("node stop unconfirmed")
 }
 func sealInterrupted(ctx context.Context, entry, dir string) error {
-	if runtimeIssue() != "web110" && runtimeIssue() != "web111" {
+	if runtimeIssue() != "web110" && runtimeIssue() != "web111" && runtimeIssue() != "web112" {
 		return nil
 	}
 	cmd := exec.CommandContext(ctx, "node", filepath.Join(filepath.Dir(entry), "archive-recover.mjs"), dir)
@@ -164,6 +164,9 @@ func work(db *pgxpool.Pool) error {
 	actual, e := filepath.EvalSymlinks(root)
 	if e != nil || actual != filepath.Clean(root) {
 		return errors.New("task root alias rejected")
+	}
+	if runtimeIssue() == "web112" {
+		return workOwners(db, entry, root)
 	}
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancel()
@@ -263,15 +266,24 @@ func executeTask(ctx context.Context, db *pgxpool.Pool, tid, bid, question, entr
 	if !hashPattern.MatchString(attempt) {
 		return errors.New("attempt identity invalid")
 	}
-	if _, e := db.Exec(ctx, "UPDATE ew_tasks SET execution_id=$2 WHERE id=$1", tid, attempt); e != nil {
+	if _, e := executorExec(ctx, db, "UPDATE ew_tasks SET execution_id=$2 WHERE id=$1", tid, attempt); e != nil {
 		return e
 	}
-	if _, e := db.Exec(ctx, "INSERT INTO ew_attempts(id,task_id) VALUES($1,$2) ON CONFLICT(id) DO NOTHING", attempt, tid); e != nil {
+	if _, e := executorExec(ctx, db, "INSERT INTO ew_attempts(id,task_id) VALUES($1,$2) ON CONFLICT(id) DO NOTHING", attempt, tid); e != nil {
 		return e
 	}
 
 	dir := filepath.Join(root, attempt)
 	defer func() {
+		if a := getAuthority(ctx); a != nil {
+			safe, stop := context.WithTimeout(context.Background(), 30*time.Second)
+			defer stop()
+			e := finishOwned(safe, db, *a, entry, root, false)
+			if e != nil && failure == nil {
+				failure = e
+			}
+			return
+		}
 		safe, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 		defer cancel()
 		err := cleanupTask(safe, tid)
@@ -391,6 +403,19 @@ func executeTask(ctx context.Context, db *pgxpool.Pool, tid, bid, question, entr
 	}
 	defer logs.Close()
 	cmd.Stderr = logs
+	// Starting a child and registering its PID is serialized with revocation.
+	// It receives no job/effect until this transaction commits.
+	var startTx pgx.Tx
+	if getAuthority(ctx) != nil {
+		startTx, e = db.Begin(ctx)
+		if e != nil {
+			return e
+		}
+		defer startTx.Rollback(context.Background())
+		if e = requireAuthority(ctx, startTx); e != nil {
+			return e
+		}
+	}
 	if e = cmd.Start(); e != nil {
 		return e
 	}
@@ -400,13 +425,27 @@ func executeTask(ctx context.Context, db *pgxpool.Pool, tid, bid, question, entr
 			_ = cmd.Wait()
 		}
 	}()
-	if _, e = db.Exec(ctx, "UPDATE ew_tasks SET node_pid=$2 WHERE id=$1", tid, cmd.Process.Pid); e != nil {
-		return e
+	if startTx != nil {
+		_, e = startTx.Exec(ctx, "UPDATE ew_tasks SET node_pid=$2 WHERE id=$1", tid, cmd.Process.Pid)
+		if e == nil {
+			_, e = startTx.Exec(ctx, "UPDATE ew_attempts SET node_pid=$2,state='running' WHERE id=$1", attempt, cmd.Process.Pid)
+		}
+		if e == nil {
+			e = startTx.Commit(ctx)
+		}
+	} else {
+		_, e = db.Exec(ctx, "UPDATE ew_tasks SET node_pid=$2 WHERE id=$1", tid, cmd.Process.Pid)
+		if e == nil {
+			_, e = db.Exec(ctx, "UPDATE ew_attempts SET node_pid=$2,state='running' WHERE id=$1", attempt, cmd.Process.Pid)
+		}
 	}
-	if _, e = db.Exec(ctx, "UPDATE ew_attempts SET node_pid=$2,state='running' WHERE id=$1", attempt, cmd.Process.Pid); e != nil {
+	if e != nil {
 		return e
 	}
 	jobData := map[string]any{"taskId": tid, "attemptId": attempt, "root": dir, "question": question, "contextText": contextText, "contextSHA256": contextHash}
+	if a := getAuthority(ctx); a != nil {
+		jobData["authority"] = a
+	}
 	if checkpoint != nil {
 		jobData["checkpoint"] = json.RawMessage(checkpoint)
 	}
@@ -460,11 +499,22 @@ func executeTask(ctx context.Context, db *pgxpool.Pool, tid, bid, question, entr
 			Event        json.RawMessage `json:"event"`
 			CheckpointID string          `json:"checkpointId"`
 			SHA          string          `json:"sha256"`
+			Authority    authority       `json:"authority"`
+			Ordinal      int64           `json:"ordinal"`
+			Action       string          `json:"action"`
 		}
 		if json.Unmarshal(b, &envelope) != nil {
 			return errors.New("executor protocol invalid")
 		}
-		if envelope.Kind == "checkpoint" || envelope.Kind == "invalidate" || envelope.Kind == "dispatch" || envelope.Kind == "receipt" {
+		if envelope.Kind == "admission" {
+			if e = admit(ctx, db, envelope.Authority, envelope.Ordinal, envelope.Action); e != nil {
+				return e
+			}
+			ack, _ := json.Marshal(map[string]any{"action": "admission_ack", "authority": envelope.Authority, "ordinal": envelope.Ordinal})
+			if _, e = io.WriteString(stdin, string(ack)+"\n"); e != nil {
+				return e
+			}
+		} else if envelope.Kind == "checkpoint" || envelope.Kind == "invalidate" || envelope.Kind == "dispatch" || envelope.Kind == "receipt" {
 			if e = checkpointBarrier(ctx, db, tid, attempt, dir, envelope.Kind, envelope.CheckpointID, envelope.SHA); e != nil {
 				return e
 			}
@@ -472,7 +522,7 @@ func executeTask(ctx context.Context, db *pgxpool.Pool, tid, bid, question, entr
 				return e
 			}
 		} else if envelope.Kind == "event" {
-			if _, e = db.Exec(ctx, "INSERT INTO ew_task_events(task_id,event) VALUES($1,$2)", tid, envelope.Event); e != nil {
+			if _, e = executorExec(ctx, db, "INSERT INTO ew_task_events(task_id,event) VALUES($1,$2)", tid, envelope.Event); e != nil {
 				return e
 			}
 		} else if envelope.Kind == "result" {
@@ -498,13 +548,15 @@ func executeTask(ctx context.Context, db *pgxpool.Pool, tid, bid, question, entr
 	if final == nil || !reply.Cleanup {
 		return errors.New("executor result unavailable")
 	}
-	if _, e = db.Exec(ctx, "UPDATE ew_tasks SET attempt_result=$2 WHERE id=$1 AND state='cancelling'", tid, []byte(final)); e != nil {
+	if _, e = executorExec(ctx, db, "UPDATE ew_tasks SET attempt_result=$2 WHERE id=$1 AND state='cancelling'", tid, []byte(final)); e != nil {
 		return e
 	}
 	cleanCtx, cleanCancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cleanCancel()
-	if e = cleanupTask(cleanCtx, tid); e != nil {
-		return e
+	if getAuthority(ctx) == nil {
+		if e = cleanupTask(cleanCtx, tid); e != nil {
+			return e
+		}
 	}
 	state := "failed"
 	if reply.Result.Status == "completed" {
@@ -518,6 +570,9 @@ func executeTask(ctx context.Context, db *pgxpool.Pool, tid, bid, question, entr
 		return e
 	}
 	defer tx.Rollback(ctx)
+	if e = requireAuthority(ctx, tx); e != nil {
+		return e
+	}
 	var current string
 	if e = tx.QueryRow(ctx, "SELECT state FROM ew_tasks WHERE id=$1 FOR UPDATE", tid).Scan(&current); e != nil {
 		return e
@@ -586,6 +641,9 @@ func executeTask(ctx context.Context, db *pgxpool.Pool, tid, bid, question, entr
 }
 
 func runtimeIssue() string {
+	if os.Getenv("WEB_ISSUE") == "web112" {
+		return "web112"
+	}
 	if os.Getenv("WEB_ISSUE") == "web111" {
 		return "web111"
 	}

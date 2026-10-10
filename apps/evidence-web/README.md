@@ -189,3 +189,7 @@ Tests: `check110.py`, `check110-negative.py` with WEB_TEST_ISSUE=110, WEB108_RUN
 Use a new `--issue 111 --port 8111 --db-port 54111` runtime, candidate-built installed Pan package and the pinned Python image. worker-control enables `WEB_CHECKPOINT_MODE=1` and `WEB_OPERATION_MODE=1`. The page offers “核对并恢复 · 重建环境” only for a stopped, active, owned pending point. It reconciles before allocating a new attempt; insufficient evidence stays unknown. The request body remains `{requestId,checkpointId}`. Single-tool completed receipts reuse results; durable pre-dispatch proof permits the pending call; dispatched without valid receipt never replays. Real Kimi and partial multi-tool gaps remain unsupported.
 
 All #111 test scripts use `WEB_TEST_ISSUE=111`, `WEB108_RUNTIME`, a fresh `EVIDENCE_DIR` and pinned `PAN_IMAGE`. #106–110 regressions run in this isolated runtime with operation mode disabled, preserving prior assertions. [Design](../../docs/design/pan-web/operations111.md) / [evidence and reproduction](../../docs/evidence/web111/README.md).
+
+## #112 concurrent local Workers
+
+Use `WEB_ISSUE=web112` for two independent Workers with durable ownership generations. [Design](../../docs/design/pan-web/ownership112.md) and [evidence](../../docs/evidence/web112/README.md) define the admission/stop boundary. Use a fresh dedicated runtime; stop legacy Workers before additive migrations. `worker-control.py --slot 1|2` keeps separate PID receipts. Default analysis quota is 1 CPU / 1 GiB per container; no real Provider calls.

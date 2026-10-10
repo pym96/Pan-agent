@@ -41,6 +41,10 @@ func (a *app) submitTask(w http.ResponseWriter, r *http.Request) {
 	send(w, 201, map[string]string{"id": tid, "state": "queued", "mode": "offline-faux"})
 }
 func (a *app) markLost(ctx context.Context) {
+	if runtimeIssue() == "web112" {
+		_ = revokeLost(ctx, a.db)
+		return
+	}
 	_, _ = a.db.Exec(ctx, "UPDATE ew_tasks SET state='interrupted',reason='worker_heartbeat_lost; stop not yet confirmed',finished_at=now() WHERE state='running' AND NOT EXISTS (SELECT 1 FROM ew_worker_lease WHERE singleton=107 AND worker_id=ew_tasks.worker_id AND heartbeat>now()-interval '10 seconds')")
 }
 func (a *app) taskList(w http.ResponseWriter, r *http.Request) {
@@ -109,7 +113,9 @@ func (a *app) task(w http.ResponseWriter, r *http.Request) {
 		events = append(events, b)
 	}
 	rows.Close()
-	send(w, 200, map[string]any{"id": r.PathValue("id"), "question": q, "state": state, "bundleId": bid, "result": result, "reason": reason, "cleanupConfirmed": cleanup, "events": events, "recovery": a.checkpointMetadata(r.Context(), r.PathValue("id")), "mode": "offline-faux", "cancelRequestedAt": cancelAt, "stopConfirmedAt": stopAt, "activeBranch": active, "replaces": replaces, "attemptResult": attempt, "startedAt": startedAt, "finishedAt": finishedAt, "contextText": contextText, "contextSHA256": contextHash, "conversationId": conversationID, "sequence": sequence, "notice": "确定性 Faux 经真实 Native Pan/Docker；不验证自然语言理解或真实模型质量"})
+	var ownership json.RawMessage
+	_ = a.db.QueryRow(r.Context(), `SELECT jsonb_build_object('workerId',worker_id,'generation',generation,'revokedAt',revoked_at,'attemptId',execution_id) FROM ew_tasks WHERE id=$1 AND account_id=$2`, r.PathValue("id"), owner).Scan(&ownership)
+	send(w, 200, map[string]any{"ownership": ownership, "id": r.PathValue("id"), "question": q, "state": state, "bundleId": bid, "result": result, "reason": reason, "cleanupConfirmed": cleanup, "events": events, "recovery": a.checkpointMetadata(r.Context(), r.PathValue("id")), "mode": "offline-faux", "cancelRequestedAt": cancelAt, "stopConfirmedAt": stopAt, "activeBranch": active, "replaces": replaces, "attemptResult": attempt, "startedAt": startedAt, "finishedAt": finishedAt, "contextText": contextText, "contextSHA256": contextHash, "conversationId": conversationID, "sequence": sequence, "notice": "确定性 Faux 经真实 Native Pan/Docker；不验证自然语言理解或真实模型质量"})
 }
 func (a *app) taskFile(w http.ResponseWriter, r *http.Request) {
 	owner := a.owner(w, r)

@@ -1,0 +1,118 @@
+{
+  "baseSHA": "ebbe2f6e2a03f57ad632b1bd8514340b321c20ee",
+  "criteria": "1.0",
+  "builderOnly": true,
+  "checks": {
+    "browser112-01/result.json": {
+      "passed": true,
+      "checkCount": 3,
+      "sha256": "2236e7d9af0c860693b13e171fe09a584d1c47c35de501d6e5b89dce0e0fc4ec"
+    },
+    "capacity-01/result.json": {
+      "passed": true,
+      "checkCount": 27,
+      "sha256": "287281a693e37b408352464e5ae9fdd334ece4707f6f6a90ad194620bd403509"
+    },
+    "controls-03/result.json": {
+      "passed": true,
+      "checkCount": 17,
+      "sha256": "a473d7ed3d3a0c50ee11765a50de276a3fc3236457b80358654536f8492543b7"
+    },
+    "faults-01/result.json": {
+      "passed": true,
+      "checkCount": 21,
+      "sha256": "1430af7739cf6f4567970fd2f4178e84a5ea0b8eaa1ea4b56de89f4b413c72fe"
+    },
+    "faults-02/result.json": {
+      "passed": true,
+      "checkCount": 21,
+      "sha256": "ad0025660943ea9bbaa66d2cf1275d010326ef86c35c7d4fe2913fe96f7ed430"
+    },
+    "legacy-check107-01/result.json": {
+      "passed": true,
+      "checkCount": 31,
+      "sha256": "71cf25c9f3618585592734496b166d92b9b24cb6567536a45694220bdcb5ea9f"
+    },
+    "legacy-check108-01/result.json": {
+      "passed": true,
+      "checkCount": 37,
+      "sha256": "d78051e7207cc1689c0366525770d07c8bdf527b7f62eb15aa0bbd5526f20690"
+    },
+    "legacy-check109-01/result.json": {
+      "passed": true,
+      "checkCount": 38,
+      "sha256": "70c4aa67bf287c1108c01b2c1ba7d69a64d6d7d6b2236a6b9112f371f6cbba88"
+    },
+    "legacy-check110-01/result.json": {
+      "passed": true,
+      "checkCount": 19,
+      "sha256": "6b9db940b4cf2a8dafe993e61281d197440a6361eb39058085abb161bc5b9ca1"
+    },
+    "legacy-check110-races-01/result.json": {
+      "passed": true,
+      "checkCount": 9,
+      "sha256": "e9db00fb9d71bd6fe7c039b093fd4db24b50b2fee6f29c8658f668f2f5c532b6"
+    },
+    "legacy-check111-01/result.json": {
+      "passed": true,
+      "checkCount": 33,
+      "sha256": "7fb744c615843f7819bf30fca6f31d6e296ba2cda135303ba0d9489e034187ff"
+    },
+    "legacy-check111-boundaries-01/result.json": {
+      "passed": true,
+      "checkCount": 11,
+      "sha256": "8587efd2d5edd3d8bccb08f1fee3ee20a2c42e1af0099969146df3507d33e8f6"
+    },
+    "legacy-check111-negative-01/result.json": {
+      "passed": true,
+      "checkCount": 20,
+      "sha256": "804272214378c3232e2f57ad70072191a844f98e70cad0802d42349d2afdb4e9"
+    },
+    "live-stop-01/result.json": {
+      "passed": true,
+      "checkCount": 8,
+      "sha256": "47720755bb277c0593e66b75a1cf7d295d798dca99bea8e67cc629f710e00cee"
+    },
+    "smoke-01/result.json": {
+      "passed": true,
+      "checkCount": 4,
+      "sha256": "b89e38b0a359fd09271696fc4bfdff880d9ae0cc79808c4dcab6722af5610a4e"
+    }
+  },
+  "productTests": 209,
+  "goRace": "ownership-race-02.log",
+  "goVet": "go-vet.log",
+  "integration106": "integration106-01/",
+  "capacityManifestSHA256": "cb4612b1e9db8658badf0c85e1837b377b020ffbca690b6b0820b87488aae182",
+  "packageAndBinary": {
+    "evidence-web-build": "81b4c2091b85ef9debaf134a680edaa44adb829695ae9ac1a61bb3c9651a1d46",
+    "runtime/evidence-web": "81b4c2091b85ef9debaf134a680edaa44adb829695ae9ac1a61bb3c9651a1d46",
+    "legacy/evidence-web": "81b4c2091b85ef9debaf134a680edaa44adb829695ae9ac1a61bb3c9651a1d46",
+    "pan-agent-0.1.0.tgz": "70b6c7680f07f936343737f064e94cb9838aefb6264448c3639a935accce9d0e"
+  },
+  "resource": {
+    "samples": 122,
+    "unparseable": [],
+    "minFreeBytes": 27176378368,
+    "maxCumulativeBytes": 50308403200,
+    "limitBytes": 57982058496,
+    "minRequiredFreeBytes": 21474836480,
+    "last": {
+      "utc": "2026-10-10T05:10:37.201Z",
+      "free": 27190534144,
+      "owned": 9846521856,
+      "docker": 88965853184,
+      "baselineDocker": 48503971840,
+      "increment": 50308403200
+    }
+  },
+  "realProviderCalls": 0,
+  "benchmarkCalls": 0,
+  "scoringCalls": 0,
+  "codingTokens": "unknown",
+  "failedDiagnosticDirectories": [
+    "controls-01",
+    "controls-02"
+  ],
+  "stopEvidence": "final-stop-and-isolation.json"
+}

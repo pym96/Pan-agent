@@ -244,3 +244,5 @@ Current candidate #44: [public text streaming, English compact UI and installed 
 - [#110 confirmed-boundary checkpoint recovery (offline Faux)](docs/evidence/web110/README.md).
 
 #111 candidate: [bounded tool reconciliation and environment reconstruction](docs/evidence/web111/README.md).
+
+#112 concurrent ownership candidate: [design](docs/design/pan-web/ownership112.md), [evidence](docs/evidence/web112/README.md).

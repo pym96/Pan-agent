@@ -45,3 +45,5 @@ Worker uses its owned child channel/process handle and task-labelled Docker iden
 [Design and pending Kimi storage policy](checkpoint110.md); [Builder evidence](../../evidence/web110/README.md).
 
 #111: [operation reconciliation design](operations111.md), [evidence](../../evidence/web111/README.md).
+
+- [#112 concurrent ownership](ownership112.md): task generations, atomic admission/revocation, managed stop and paired Faux capacity experiment.

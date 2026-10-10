@@ -147,6 +147,9 @@ func checkpointBarrier(ctx context.Context, db *pgxpool.Pool, tid, attempt, dir,
 		return e
 	}
 	defer tx.Rollback(ctx)
+	if e = requireAuthority(ctx, tx); e != nil {
+		return e
+	}
 	var state, current string
 	if e = tx.QueryRow(ctx, "SELECT state,execution_id FROM ew_tasks WHERE id=$1 FOR UPDATE", tid).Scan(&state, &current); e != nil {
 		return e

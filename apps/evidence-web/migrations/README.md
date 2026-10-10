@@ -11,3 +11,5 @@ A session-scoped advisory lock on a dedicated PostgreSQL connection excludes a s
 - `005-checkpoints.sql`: nullable current execution/resume references, separate attempts, private checkpoint payloads/eligibility and an idempotent resume ledger. Historical tasks receive no fabricated attempt records. Existing migration hash receipts remain unchanged.
 
 006_operations.sql adds private Worker verifier configuration and retained reconciliation decisions without altering prior task/checkpoint records.
+
+007 adds per-owner leases, task/attempt generations and the append-only action-admission ledger. 008 binds owner authority to its dedicated PG backend/start identity and revokes older owners during migration. Both require legacy Workers stopped; migrations acquire the exclusive Worker advisory lock. Existing source/results/usage are preserved.
