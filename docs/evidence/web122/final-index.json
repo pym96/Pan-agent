@@ -1,0 +1,242 @@
+{
+  "criteria": "1.0",
+  "baseline": "494169799fa57ed85539c1d1a7c2bc0c2684c56b",
+  "liveRuntimeSHA": "27dde5c199364858c48e4e2f673dec92c6bd66dd",
+  "root": "/Users/panyiming/.local/state/pan-agent/web122",
+  "latestJourney": {
+    "completed": true,
+    "mode": "kimi",
+    "toolFrame": true,
+    "bundleId": "f4fea6676d153432ae660f4360149e63772bc4a885911ad057c15e7aa1e54ca1",
+    "conversationId": "4da051eb701a11522a51fba5504224f25b1381992e0afd8e5ffc86b75fcd09d9",
+    "questions": [
+      "统计这份报告各结果类别、有效评分分母及已知/未知用量，说明用量统计覆盖范围，给出来源并生成明细CSV。",
+      "只列出其中有效评分失败的任务，保留原始行来源并生成CSV；没有评分的任务不要算作失败。"
+    ],
+    "tasks": [
+      {
+        "id": "0ebdca835f9028b6782534c5838434f0286a82c62b213d4b40d077e706e3967b",
+        "attemptId": "0ebdca835f9028b6782534c5838434f0286a82c62b213d4b40d077e706e3967b",
+        "providerSends": 6,
+        "state": "completed"
+      },
+      {
+        "id": "4eda76248d7e3037f208db9c734bdc1bf71e732c8ed72c14ce984719f374d607",
+        "attemptId": "4eda76248d7e3037f208db9c734bdc1bf71e732c8ed72c14ce984719f374d607",
+        "providerSends": 5,
+        "state": "completed"
+      }
+    ],
+    "inputSHA256": "f67d6e22a5f229637bb90cccc5a2538f6aaa87225efb1b8a9cf182cac37828ab",
+    "note": "Uncut real browser recording. No benchmark tasks run. Answer correctness checked separately."
+  },
+  "cumulativeLiveLedger": {
+    "realTasks": [
+      {
+        "taskId": "3bc4d0ec718349e01a864d085d64520b97ff3fb26338925f995da860b8130522",
+        "state": "completed",
+        "cleanupConfirmed": true,
+        "startedAt": "2026-10-11T10:44:50.832512+08:00",
+        "finishedAt": "2026-10-11T10:46:47.88739+08:00"
+      },
+      {
+        "taskId": "e69475e81b1ff87c9580faf4725bf3117902756c06ca8c78d2634f1a9ee9253c",
+        "state": "completed",
+        "cleanupConfirmed": true,
+        "startedAt": "2026-10-11T10:40:11.911842+08:00",
+        "finishedAt": "2026-10-11T10:44:47.494846+08:00"
+      },
+      {
+        "taskId": "d2311640dc8c1cd628d7a41ea6d5f653479e5f18b2e2629cf3009de40aaced76",
+        "state": "interrupted",
+        "cleanupConfirmed": true,
+        "startedAt": "2026-10-11T10:35:07.132494+08:00",
+        "finishedAt": "2026-10-11T10:35:07.231493+08:00"
+      },
+      {
+        "taskId": "0ebdca835f9028b6782534c5838434f0286a82c62b213d4b40d077e706e3967b",
+        "state": "completed",
+        "cleanupConfirmed": true,
+        "startedAt": "2026-10-11T10:49:53.657194+08:00",
+        "finishedAt": "2026-10-11T10:53:09.950975+08:00"
+      },
+      {
+        "taskId": "4eda76248d7e3037f208db9c734bdc1bf71e732c8ed72c14ce984719f374d607",
+        "state": "completed",
+        "cleanupConfirmed": true,
+        "startedAt": "2026-10-11T10:53:11.774598+08:00",
+        "finishedAt": "2026-10-11T10:54:56.986453+08:00"
+      }
+    ],
+    "realProviderSends": 25,
+    "settledModelTurns": 25,
+    "reportedUsageTurns": 25,
+    "unsettledSends": 0,
+    "knownTokenSubtotals": {
+      "input": 111613,
+      "output": 10673,
+      "totalTokens": 122286,
+      "cacheRead": 0
+    },
+    "unknownFieldTurns": {
+      "cacheWrite": 25
+    },
+    "allTaskStates": {
+      "offline-faux:completed": 3,
+      "kimi:completed": 4,
+      "kimi:interrupted": 1
+    },
+    "actualDockerExecutions": 18,
+    "validationToolResults": 4,
+    "reportedModels": [
+      "k3-256k"
+    ],
+    "scope": "All #122 real task attempts, including zero-send interrupted live01 and overbroad live02; offline/Faux/fake transport excluded from real usage. No benchmark score."
+  },
+  "resource": {
+    "sample": {
+      "utc": "2026-10-11T03:00:17.187Z",
+      "free": 24045641728,
+      "owned": 17031086080,
+      "docker": 88965861376
+    },
+    "baselineDocker": 48503971840,
+    "cumulative": 57492975616,
+    "productHash": "5ecd3b9b4da688f90dfee3cc651b4a2f755595587b6d7d7287383cab23c8e580",
+    "productFiles": 82
+  },
+  "video": {
+    "file": "video/pan-web122-live.mp4",
+    "durationSeconds": 306.96,
+    "source": "live-browser03/demo.webm",
+    "editing": "Whole original latest two-question browser recording transcoded to H.264. No cuts, no time jumps, no Faux or previous-run splice. Older two journey videos retained separately.",
+    "checks": "ffprobe; complete ffmpeg decode exit0; Chrome ended=true, error=null at16x"
+  },
+  "files": {
+    "execution-manifest-live01.json": {
+      "sha256": "fc4bf16e91a18778322e4394b90b9be28662d7122be9affb40c5edb4f615da50",
+      "bytes": 10657
+    },
+    "execution-manifest-live02.json": {
+      "sha256": "3ba392ce2ce6e1fe21c4d84ba44f4a9c82f24f44f724281b1cf892c58a9215ad",
+      "bytes": 11253
+    },
+    "execution-manifest-live03.json": {
+      "sha256": "3c9d1cb22ba8611cf661b38b12d42087fba61191458d952b8446d73a43a81a73",
+      "bytes": 11093
+    },
+    "inventory-final.json": {
+      "sha256": "1e2131bcebf6ac62aefa6f2f8cd305127f2bd7cca82cf7943bb3bb08ae59cdb7",
+      "bytes": 1295400
+    },
+    "evidence/real-ledger-summary.json": {
+      "sha256": "838c2fa48d85feb4cd315aea67945cb14284b52f8b9c9105985349da9aafe7ad",
+      "bytes": 2026
+    },
+    "evidence/verify-live-browser03.json": {
+      "sha256": "cdee3e0a41317cb1efb92f8cbd2293b859ac82be9dfa8b6ff5b17fd6f5e43073",
+      "bytes": 4333
+    },
+    "evidence/verify-portable.json": {
+      "sha256": "cdee3e0a41317cb1efb92f8cbd2293b859ac82be9dfa8b6ff5b17fd6f5e43073",
+      "bytes": 4333
+    },
+    "evidence/resource-final.json": {
+      "sha256": "113ca342501cffb43d048bf57428bfea8e8b39edd63c926ea7f167d83897d4ef",
+      "bytes": 306
+    },
+    "evidence/live-final-status.json": {
+      "sha256": "6e5f6398b81cac8d961216e28597dddcaae729408e75a2078a6b46aea3827c1d",
+      "bytes": 123
+    },
+    "evidence/go-build-live03.txt": {
+      "sha256": "71f499dd6af2e87f1de9206aec92129f91bed66efb81a152f456e886cc481301",
+      "bytes": 1345
+    },
+    "evidence/node-offline08.log": {
+      "sha256": "1cbfd9a45c424aa2b9f19efdf1e2e60fcf5cabaa1cad0046e4f3f3743346e52e",
+      "bytes": 221
+    },
+    "evidence/go-race03.log": {
+      "sha256": "0708c5fdc9a315a603b25f618a2535e227d532696d5be5d3773fe974de54c8ca",
+      "bytes": 11211
+    },
+    "evidence/vet-final.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "readback/checks.json": {
+      "sha256": "e3785fb79b9b065acd36ae2ae9eec030ad1e5757470cef63d49b4d1ee36d6df6",
+      "bytes": 549
+    },
+    "readback/before.json": {
+      "sha256": "9d7c18d96aacdef185e63f7a5ee5400d21727543d761548421d104af55684bfa",
+      "bytes": 278076
+    },
+    "readback/after.json": {
+      "sha256": "9d7c18d96aacdef185e63f7a5ee5400d21727543d761548421d104af55684bfa",
+      "bytes": 278076
+    },
+    "live-browser03/journey.json": {
+      "sha256": "c7b020e37f294e3a28fb7fa2c7bcc3301c8d1600bddbb7c50adacb5a1bf6e0ac",
+      "bytes": 1211
+    },
+    "live-browser03/chapters.json": {
+      "sha256": "cbf4dce25ee5e4a28b42aa7f07ad9b80d265a8dc06ee812130bbc71f01ad0f45",
+      "bytes": 1283
+    },
+    "live-browser03/task-1.json": {
+      "sha256": "e605a44101d9710867918099892f778407a7aeee65033a0f3fbd678964958d71",
+      "bytes": 182910
+    },
+    "live-browser03/task-2.json": {
+      "sha256": "d6c47e077943a4910e9547c166aba7b80a8225c4b436b285bad899cebfdff9b4",
+      "bytes": 84654
+    },
+    "live-browser03/round1-analysis.json": {
+      "sha256": "cc9c1c8f13330c2d90fb71b45abe568f7ab3e79436723096f5695dfe6efdf2ed",
+      "bytes": 15820
+    },
+    "live-browser03/round2-analysis.json": {
+      "sha256": "3d490cea93c183c2239c7b3a6e390637984767c3c85d4d96748b9b3d91e2bf68",
+      "bytes": 3415
+    },
+    "live-browser03/round1-details.csv": {
+      "sha256": "1fbe2e0fbf0240a16e1f1393244b703f4f887ec02fcfb79117001abf0c934168",
+      "bytes": 15907
+    },
+    "live-browser03/round2-details.csv": {
+      "sha256": "da045e75ca6c5d56961acf875ac62b2865e6639b49cc9ae214007432f681bc34",
+      "bytes": 1092
+    },
+    "live-browser03/demo.webm": {
+      "sha256": "f40fae510f43027d92084b36e671636cb33beadce5fb151a0d48966e89d1dc9f",
+      "bytes": 27005690
+    },
+    "video/pan-web122-live.mp4": {
+      "sha256": "7d9784a67bc58f7e7b5a104b83365d389f6f5a88bb24109729749935e6deadf4",
+      "bytes": 7361418
+    },
+    "evidence/video-probe.json": {
+      "sha256": "0b453e0f700faff8cd23785fff5b276781b5ffe8888f72b949099057c85b7952",
+      "bytes": 275
+    },
+    "evidence/video-decode.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "evidence/video-browser.json": {
+      "sha256": "1c74393ce89cf1483f060d69d886e8bb831c04a21a4dcec8b6a6d729d146a7eb",
+      "bytes": 124
+    },
+    "pan-web122-live03-macos-arm64.tar.gz": {
+      "sha256": "ee6a84371b53c3585fd9884fd7e00ae08b363b85c676b9aedd90bfc2771209c4",
+      "bytes": 9260526
+    },
+    "install04/manifest.json": {
+      "sha256": "bdcd52a0a1cd6f9c5cfe9b2dde006efb543a3e7bcb1626ab88466fe85ef6e04a",
+      "bytes": 13214
+    }
+  },
+  "reviewState": "Builder verified; awaiting independent Regulator. No accepted claim, no main change."
+}

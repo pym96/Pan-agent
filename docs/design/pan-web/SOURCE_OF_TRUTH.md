@@ -1,3 +1,9 @@
+# Current #122 candidate design
+
+[Live composition](live122.md) and [Builder evidence](../../evidence/web122/README.md); independent review pending.
+
+## Historical design navigation
+
 # #106 navigation
 
 - Contract: https://github.com/pym96/Pan-agent/issues/106#issuecomment-6074638346
