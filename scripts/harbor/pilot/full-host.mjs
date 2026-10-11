@@ -12,9 +12,10 @@ const HERE=dirname(fileURLToPath(import.meta.url));
 const GiB=2**30;
 export const MIN_FREE_BYTES=20*GiB;
 export const DISK_POLICY=Object.freeze({minFreeBytes:MIN_FREE_BYTES,incrementExclusiveBytes:54*GiB});
+export const DEMO115_DISK_POLICY=Object.freeze({minFreeBytes:MIN_FREE_BYTES,incrementExclusiveBytes:56*GiB});
 function allocated(p){if(!existsSync(p))return 0;const s=lstatSync(p);return s.isSymbolicLink()?0:s.isDirectory()?readdirSync(p).reduce((n,f)=>n+allocated(join(p,f)),0):s.blocks*512;}
 export function sample(root){const s=statfsSync(root),raw=join(homedir(),'Library/Containers/com.docker.docker/Data/vms/0/data/Docker.raw');return {utc:new Date().toISOString(),free:s.bavail*s.bsize,owned:allocated(root),docker:existsSync(raw)?statSync(raw).blocks*512:null};}
-export function resourceCheck(root,baseline,now=sample(root)){check([now.free,now.owned,now.docker,baseline.docker].every(n=>Number.isFinite(n)&&n>=0),'resource_sample_unknown');check(now.free>=MIN_FREE_BYTES&&now.owned+Math.max(0,now.docker-baseline.docker)<DISK_POLICY.incrementExclusiveBytes,'resource_boundary');return now;}
+export function resourceCheck(root,baseline,now=sample(root),policy=DISK_POLICY){check(policy===DISK_POLICY||policy===DEMO115_DISK_POLICY,'resource_policy_unknown');check([now.free,now.owned,now.docker,baseline.docker].every(n=>Number.isFinite(n)&&n>=0),'resource_sample_unknown');check(now.free>=MIN_FREE_BYTES&&now.owned+Math.max(0,now.docker-baseline.docker)<policy.incrementExclusiveBytes,'resource_boundary');return now;}
 let dockerRoot;
 export function configure(root){dockerRoot=join(root,'docker-client');mkdirSync(dockerRoot,{recursive:true});}
 const env=()=>{check(dockerRoot,'docker_context_missing');return {PATH:'/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin',HOME:dockerRoot,DOCKER_CONFIG:dockerRoot,DOCKER_HOST:'unix://'+homedir()+'/.docker/run/docker.sock'};};

@@ -1,4 +1,4 @@
-import {normalizeDemo,validateDemo,demoAuthority,demoSample,demoSelection,DEMO_BASELINE} from './full-demo-config-58.mjs';
+import {normalizeDemo,validateDemo,demoAuthority,demoSample,demoSelection,demoDiskPolicy,demoExecutionPolicy,DEMO_BASELINE} from './full-demo-config-58.mjs';
 import {successor97,attachSuccessor,reconcileSuccessor,verifySuccessorArchive} from './full-successor-104.mjs';
 import {recoveryAllowed} from './handoff-state.mjs';
 import {upgrade97,attachUpgrade,reconcilePredecessor} from './full-upgrade-102.mjs';
@@ -10,7 +10,7 @@ import {migrateExecuted97,attachHistory} from './full-history.mjs';
 import {migrate97,validateSuccessor} from './full-migrate.mjs';
 import {selectTasks} from './selection.mjs';
 import {Store,initialize,lock,durable,aggregate} from './full-store.mjs';
-import {production,resourceCheck,projectFor,DISK_POLICY,EXECUTION_POLICY} from './full-host.mjs';
+import {production,resourceCheck,projectFor,DISK_POLICY} from './full-host.mjs';
 import {restoreEvidence,attachRecovery,checkImportedStops,RECOVERY_PACKAGE} from './full-recovery.mjs';
 import {validateLayout,sampleDurable,archiveTask,pendingArchives,flushTree,verifyDemoArchiveStorage} from './full-durable.mjs';
 const HERE=dirname(fileURLToPath(import.meta.url));
@@ -19,7 +19,7 @@ function manifest(){const raw=readFileSync(join(HERE,'full-manifest.json'));chec
 const load=p=>JSON.parse(readFileSync(p));
 function args(argv){const [command,...rest]=argv,options={};check(['init','prepare','status','run','cancel','recover','migrate97','migrate97-executed','restore97','archive','upgrade97','successor97'].includes(command),'full_command');for(let i=0;i<rest.length;i+=2){check(['--campaign','--task','--task-root','--activation','--entry','--source','--layout','--demo-config'].includes(rest[i])&&rest[i+1]&&!options[rest[i]],'full_option');options[rest[i]]=rest[i+1];}check(options['--campaign'],'campaign_required');return {command,o:options,root:resolve(options['--campaign'])};}
 const identity=(host,runnerSha,lock)=>({manifestHash:MANIFEST_HASH,panHash:lock.package_sha256,runnerSha,model:MODEL,budget:METERED_LIMITS,mode:host.mode});
-function snapshot(store,host){if(store.meta.demo58)validateDemo(store,host);const s=store.meta.durability?(host.sampleRecovery??sampleDurable)(store.root,store.meta.durability.ownedRoots):host.sample(store.root);appendFileSync(join(store.root,'resources.jsonl'),JSON.stringify(s)+'\n');resourceCheck(store.root,store.meta.resourceBaseline,s);return s;}
+function snapshot(store,host){if(store.meta.demo58)validateDemo(store,host);const s=store.meta.durability?(host.sampleRecovery??sampleDurable)(store.root,store.meta.durability.ownedRoots):host.sample(store.root);appendFileSync(join(store.root,'resources.jsonl'),JSON.stringify(s)+'\n');resourceCheck(store.root,store.meta.resourceBaseline,s,store.meta.demo58?demoDiskPolicy(store.meta.demo58):DISK_POLICY);return s;}
 function archiveCurrent(store,host,reservation){if(store.meta.demo58)validateDemo(store,host);verifyDemoArchiveStorage(store,reservation);return archiveTask(store,reservation);}
 function lastPreparation(store,id){return (store.meta.successor104?store.rows:store.allRows).filter(r=>r.event==='preparation'&&r.task===id).at(-1);}
 export function proposedBinding(store,m,ids){
@@ -32,7 +32,7 @@ export function proposedBinding(store,m,ids){
  check(pendingArchives(store).length===0,'archive_required');
  const ps=ids.map(id=>{check(m.tasks.some(t=>t.id===id)&&!store.reserved(id),'task_not_unstarted');const p=lastPreparation(store,id);check(p?.detail.ready===true,'task_not_prepared');return p;});
  check(ids.length>0&&new Set(ids).size===ids.length,'task_selection');
- return {...store.meta.identity,taskIds:ids,images:Object.fromEntries(ps.map(p=>[p.task,p.detail.image])),full:{campaignId:store.meta.campaignId,root:store.root,checkpoint:store.head,resourcePolicy:DISK_POLICY,segmentIndex:(store.oldRunIds?.length??0)+store.allRows.filter(r=>r.event==='segment_open').length+1,preparations:Object.fromEntries(ps.map(p=>[p.task,digest(canonical(p))]))}};
+ return {...store.meta.identity,taskIds:ids,images:Object.fromEntries(ps.map(p=>[p.task,p.detail.image])),full:{campaignId:store.meta.campaignId,root:store.root,checkpoint:store.head,resourcePolicy:store.meta.demo58?demoDiskPolicy(store.meta.demo58):DISK_POLICY,segmentIndex:(store.oldRunIds?.length??0)+store.allRows.filter(r=>r.event==='segment_open').length+1,preparations:Object.fromEntries(ps.map(p=>[p.task,digest(canonical(p))]))}};
 }
 export async function main(argv=process.argv.slice(2),dependencies={}){
  const host={...production,...dependencies},m=manifest(),{command,o,root}=args(argv);
@@ -51,10 +51,10 @@ export async function main(argv=process.argv.slice(2),dependencies={}){
    host.internal(dirname(root));
    if(host.mode==='live')check(realpathSync(c.layout.runner)===realpathSync(resolve(HERE,'../../..')),'durable_runner_identity');
    const pkg=host.verifyProduct(c.layout.entry,c.layout),runnerSha=host.runnerSha();demoAuthority(c);
-   resourceCheck(dirname(root),{docker:DEMO_BASELINE},demoSample(dirname(root),c,host));
+   resourceCheck(dirname(root),{docker:DEMO_BASELINE},demoSample(dirname(root),c,host),demoDiskPolicy(c));
    check(!existsSync(root)&&!existsSync(c.layout.archiveRoot)&&!existsSync(c.ledgerRoot),'demo_not_fresh');
    mkdirSync(c.layout.archiveRoot,{recursive:true});
-   const store=initialize(root,{schema:3,campaignId:crypto.randomUUID(),identity:{...identity(host,runnerSha,pkg),executionPolicy:EXECUTION_POLICY,demo58:c},resourceBaseline:{docker:DEMO_BASELINE},durability:c.layout,demo58:c,createdUTC:new Date().toISOString()});
+   const store=initialize(root,{schema:3,campaignId:crypto.randomUUID(),identity:{...identity(host,runnerSha,pkg),executionPolicy:demoExecutionPolicy(c),demo58:c},resourceBaseline:{docker:DEMO_BASELINE},durability:c.layout,demo58:c,createdUTC:new Date().toISOString()});
    console.log(JSON.stringify(aggregate(store,m)));return;
   }
   const pkg=host.verifyProduct(resolve(o['--entry'])),runnerSha=host.runnerSha();
@@ -73,14 +73,15 @@ export async function main(argv=process.argv.slice(2),dependencies={}){
  const release=await lock(root);let controller,timer,ledger;
  try{
   store.reload();validateDemo(store,host,supplied);verifySuccessorArchive(store);host.configure?.(root);
-  if(command==='archive'){check(!store.pending().length,'reconciliation_required');for(const r of pendingArchives(store))archiveCurrent(store,host,r);console.log(JSON.stringify(aggregate(store,m)));return;}
+  if(command==='archive'){if(store.meta.demo58?.version===2)snapshot(store,host);check(!store.pending().length,'reconciliation_required');for(const r of pendingArchives(store))archiveCurrent(store,host,r);if(store.meta.demo58?.version===2)snapshot(store,host);console.log(JSON.stringify(aggregate(store,m)));return;}
   if(command==='recover'){
+   if(store.meta.demo58?.version===2)snapshot(store,host);
    await reconcilePredecessor(store,host);await reconcileSuccessor(store,host);
    for(const segment of store.pending()){
     const owned=store.rows.filter(r=>r.event==='reserved'&&r.runId===segment.runId);let confirmed=true;
     for(const r of owned){const result=await host.reconcile(r.project,r.image,{stop:true,ticket:join(root,'segments',r.runId,r.task,'broker-ticket.json')});store.add('reconciliation',{runId:segment.runId,task:r.task,result});if(!result.confirmed)confirmed=false;}
     check(confirmed,'residual_stop_unknown');for(const r of owned)archiveCurrent(store,host,r);store.add('segment_reconciled',{runId:segment.runId,unknownResultsPreserved:true});
-   }console.log(JSON.stringify(aggregate(store,m)));return;
+   }if(store.meta.demo58?.version===2)snapshot(store,host);console.log(JSON.stringify(aggregate(store,m)));return;
   }
   check(!store.meta.successor104||store.rows.some(r=>r.event==='successor_reconciled'),'successor_reconciliation_required');
   check(!store.meta.upgrade102||store.rows.some(r=>r.event==='predecessor_reconciled'),'predecessor_reconciliation_required');
@@ -142,7 +143,7 @@ export async function main(argv=process.argv.slice(2),dependencies={}){
     await host.checkpoint?.('before_result',task.id);
     store.add('result',{task:task.id,runId:gate.runId,...classified,stopConfirmed:stopped,elapsedSeconds:(performance.now()-start)/1000});
     await host.checkpoint?.('after_result',task.id);
-    await host.checkpoint?.('before_archive',task.id);archiveCurrent(store,host,store.reserved(task.id));await host.checkpoint?.('after_archive',task.id);
+    await host.checkpoint?.('before_archive',task.id);archiveCurrent(store,host,store.reserved(task.id));await host.checkpoint?.('after_archive',task.id);if(store.meta.demo58?.version===2)poll();
     store.add('continuation',{runId:gate.runId,task:task.id,allowed:!controller.signal.aborted&&stopped,session:report?.continuation??null,faults:report?.faults??[],globalStops:report?.globalStops??[],cleanupConfirmed:stopped,archiveComplete:true});
     if(controller.signal.aborted)break;
    }

@@ -1,3 +1,7 @@
+# #115 Criteria1.0 Stage A
+
+[Current contract](https://github.com/pym96/Pan-agent/issues/115#issuecomment-6108658964), [budget interface](budget115.md), [evidence](../../evidence/demo-video-115.md). Candidate from c327b74a5b3d496aff613d52645e63ef8f170bb0; only offline adaptation. Original #58 accepted identity and replay evidence reused unchanged. Historical navigation follows.
+
 Criteria2.1 repair: prior candidate rejected for nested campaign writes. Direct-child owner invariant and6 new targeted checks submitted for independent review; see [configuration](runner-config.md) and [repair report](../../evidence/demo-video-58.md). Original Verdict/tests retained without repeat.
 
 # Criteria2.1 source navigation

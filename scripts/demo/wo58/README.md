@@ -1,3 +1,7 @@
+# #115 Stage A resource check
+
+`node scripts/demo/wo58/resource115.mjs` reads cumulative roots and enforces the #115-only56GiB profile; zero campaign/model/container writes. [Interface and commands](../../../docs/demo/wo58/budget115.md). Existing replay/capture tools below are unchanged.
+
 # #58 offline presentation helpers
 
 - `replay.mjs`: installed RunArchiveStore verification/read followed by metadata-only auxiliary projection; accepts one sealed copy and refuses unsealed/symlink inputs.

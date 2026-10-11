@@ -140,3 +140,5 @@ Raw artifacts remain at their stable source, Git, Trace, Test, evaluator, or ext
 - [#114 local deployment and private Faux demonstration](web114/README.md) — candidate evidence, not live-model/benchmark or acceptance.
 
 - [#122 Web real Kimi analysis candidate evidence](web122/README.md).
+
+- [#115 Stage A budget adaptation](demo-video-115.md) / [summary](demo-video-115-summary.json): offline56GiB profile, unchanged old54GiB modes; pending independent review, no real demo run.

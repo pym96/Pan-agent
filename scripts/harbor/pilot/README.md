@@ -281,3 +281,5 @@ models or Docker. See [design](../../../docs/design/handoff-recovery-103.md).
 ## #58 explicit independent demo configuration (Criteria2.1 candidate)
 
 `full-cli.mjs init --demo-config CONFIG ...` adds an opt-in fresh, durable one-task namespace with bound authority/output/ledger/archive and inherited cumulative accounting. It reuses the full execution/stop/archive loop; no old defaults or signatures change. See [configuration and post-acceptance workflow](../../../docs/demo/wo58/runner-config.md). `full-demo-config-58.mjs` validates persisted/signed identities; `test_demo_config_58.mjs` supplies offline positive/negative controls. No production campaign or activation is created by installing this candidate.
+
+- #115 Stage A: explicit demo config version2 binds the56GiB profile across init, signatures, reopening and resource samples; old version1/non-demo remain54GiB. [Interface](../../../docs/demo/wo58/budget115.md), [evidence](../../../docs/evidence/demo-video-115.md). `test_demo_budget_115.mjs` adds offline policy/boundary/stop/archive checks and reuses old demo fixtures.

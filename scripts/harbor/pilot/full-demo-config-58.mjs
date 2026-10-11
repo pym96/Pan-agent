@@ -1,8 +1,8 @@
 // Explicit fresh demo configuration. No new scheduler, signature format or task loop.
-import {existsSync,lstatSync,readFileSync,statSync} from 'node:fs';
+import {existsSync,lstatSync,readFileSync,statSync,realpathSync} from 'node:fs';
 import {join,resolve,dirname,isAbsolute,basename} from 'node:path';
 import {check,canonical,digest} from './policy.mjs';
-import {EXECUTION_POLICY,DISK_POLICY} from './full-host.mjs';
+import {EXECUTION_POLICY,DISK_POLICY,DEMO115_DISK_POLICY} from './full-host.mjs';
 import {validateLayout,sampleDurable,verifyArchivedTasks} from './full-durable.mjs';
 export const DEMO_BASELINE=48503971840;
 const within=(p,r)=>p===r||p.startsWith(r+'/');
@@ -19,10 +19,23 @@ export function demoRequiredRoots(home){return [
  '/opt/homebrew/Cellar/python@3.12/3.12.9',
  join(home,'Desktop/todo/面试/career-planning/60-项目/pan-agent/typescript/node_modules')
 ];}
+// Version 2 is the finite #115 budget profile, never an arbitrary budget override.
+export function demoDiskPolicy(c){
+ check(c?.version===1||c?.version===2,'demo_resource_policy');
+ return c.version===2?DEMO115_DISK_POLICY:DISK_POLICY;
+}
+export function demoExecutionPolicy(c){return {...EXECUTION_POLICY,disk:demoDiskPolicy(c)};}
+export function demo115RequiredRoots(home){return [
+ ...demoRequiredRoots(home),
+ ...['web106','web107','web108','web109','web110','web111','web112','web113','web114','web119','web122','wo58-video-20261009'].map(n=>'/Volumes/WD_BLACK/pan-agent/'+n),
+ join(home,'Library/Caches/go-build'),join(home,'go/pkg/mod'),join(home,'.npm'),
+ existsSync('/opt/homebrew/opt/postgresql@14')?realpathSync('/opt/homebrew/opt/postgresql@14'):'/opt/homebrew/opt/postgresql@14',
+ join(home,'Desktop/todo/面试/career-planning/30-已有资产与参考/作品演示/Pan-Web-离线完整流程演示-20261011.mp4')
+];}
 const keys=(o,expected)=>check(o&&typeof o==='object'&&!Array.isArray(o)&&canonical(Object.keys(o).sort())===canonical(expected.sort()),'demo_config_fields');
 export function normalizeDemo(raw,root,host){
  keys(raw,['version','campaignRoot','authorityPath','authorityHash','ledgerRoot','outputRoot','mediaRoot','layout','baselineDocker','resourcePolicy','taskIds']);
- check(raw.version===1&&raw.baselineDocker===DEMO_BASELINE&&canonical(raw.resourcePolicy)===canonical(DISK_POLICY),'demo_resource_policy');
+ check(raw.baselineDocker===DEMO_BASELINE&&canonical(raw.resourcePolicy)===canonical(demoDiskPolicy(raw)),'demo_resource_policy');
  check(Array.isArray(raw.taskIds)&&raw.taskIds.length===1&&raw.taskIds[0]==='log-summary-date-ranges','demo_task_selection');
  check(typeof raw.authorityHash==='string'&&/^[a-f0-9]{64}$/.test(raw.authorityHash),'demo_authority_hash');
  keys(raw.layout,['version','runner','entry','python','harborRoot','taskRoot','archiveRoot','ownedRoots']);
@@ -50,11 +63,12 @@ export function normalizeDemo(raw,root,host){
  const forbidden=[join(oldState,'wo75'),join(oldState,'benchmark97-next'),join(oldState,'wo97'),join(oldState,'wo97-image-prep'),'/Volumes/WD_BLACK/pan-agent/wo97-full-live-20260925'];
  for(const p of [owner,c.mediaRoot])check(!forbidden.some(f=>within(p,f)||within(f,p)),'demo_old_state_overlap');
  if(host.mode==='live'){
-  check(c.mediaRoot==='/Volumes/WD_BLACK/pan-agent/wo58-video-20261009','demo_media_root');
+  if(c.version===2)check(basename(owner).startsWith('wo115-'),'demo115_owner_namespace');
+  check(c.mediaRoot===(c.version===2?'/Volumes/WD_BLACK/pan-agent/wo58-video-20261009/wo115-media':'/Volumes/WD_BLACK/pan-agent/wo58-video-20261009'),'demo_media_root');
  }
  // Persistent historical roots must be explicit, even when absent on this machine.
  // Temporary historical roots are always added by sampleDurable, never caller-removable.
- for(const required of [...demoRequiredRoots(host.home),c.mediaRoot])check(c.layout.ownedRoots.includes(path(required)),'demo_required_root_missing');
+ for(const required of [...(c.version===2?demo115RequiredRoots(host.home):demoRequiredRoots(host.home)),c.mediaRoot])check(c.layout.ownedRoots.includes(path(required)),'demo_required_root_missing');
  check(c.layout.ownedRoots.some(r=>within(owner,r)),'demo_new_root_missing');
  validateLayout(c.layout,c.campaignRoot,host.mode);
  if(host.mode==='live'){
@@ -70,7 +84,7 @@ export function validateDemo(store,host,supplied){
  if(supplied)check(canonical(normalizeDemo(supplied,store.root,host))===canonical(c),'demo_config_conflict');
  check(store.meta.schema===3&&!store.meta.history&&!store.meta.recovery&&!store.meta.upgrade102&&!store.meta.successor104,'demo_no_import');
  check(canonical(store.meta.durability)===canonical(c.layout)&&canonical(store.meta.resourceBaseline)===canonical({docker:DEMO_BASELINE}),'demo_meta_identity');
- check(canonical(store.meta.identity.demo58)===canonical(c)&&canonical(store.meta.identity.executionPolicy)===canonical(EXECUTION_POLICY),'demo_signed_config');
+ check(canonical(store.meta.identity.demo58)===canonical(c)&&canonical(store.meta.identity.executionPolicy)===canonical(demoExecutionPolicy(c)),'demo_signed_config');
  check(digest(readFileSync(c.authorityPath))===c.authorityHash,'demo_authority_changed');
  verifyArchivedTasks(store);
  return c;

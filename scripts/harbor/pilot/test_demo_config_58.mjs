@@ -12,7 +12,7 @@ const BASE=process.env.WO58_TEST_ROOT;assert(BASE,'set issue-owned persistent WO
 const pkg=JSON.parse(readFileSync(new URL('./package-identity.json',import.meta.url)));
 const task='log-summary-date-ranges',image='sha256:'+'a'.repeat(64);
 // No HOME/environment mutation; host seams are explicit offline dependencies only.
-function fixture(){
+export function fixture(){
  const dir=mkdtempSync(join(BASE,'case-')),home=join(dir,'fake-home'),owner=join(home,'.local/state/pan-agent/wo58-video-20261009/campaigns/demo'),root=join(owner,'campaign'),media=join(dir,'media'),runner=join(dir,'runner');
  for(const p of [home,owner,media,runner])mkdirSync(p,{recursive:true});
  const keys=generateKeyPairSync('ed25519'),sha='f'.repeat(40),authorityPath=join(owner,'authority.json');

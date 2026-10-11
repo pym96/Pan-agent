@@ -1,0 +1,248 @@
+{
+  "issue": 115,
+  "criteria": "1.0",
+  "stage": "A",
+  "baselineSHA": "c327b74a5b3d496aff613d52645e63ef8f170bb0",
+  "state": "Builder checks passed; independent Regulator pending",
+  "policy": {
+    "profile": "demo config version2 / #115 only",
+    "incrementExclusiveBytes": 60129542144,
+    "minFreeBytes": 21474836480,
+    "baselineDocker": 48503971840,
+    "oldPolicyUnchanged": 57982058496
+  },
+  "verification": {
+    "relatedOfflineRegression": {
+      "tests": 143,
+      "passed": 143,
+      "failed": 0,
+      "skipped": 0
+    },
+    "finalDemoAfterPostRecoverySample": {
+      "tests": 51,
+      "passed": 51,
+      "failed": 0,
+      "skipped": 0
+    },
+    "note": "Runs overlap; do not sum as unique tests."
+  },
+  "realEffects": {
+    "providerCalls": 0,
+    "taskOrScorerContainerStarts": 0,
+    "imagePulls": 0,
+    "productionCampaignsCreated": 0,
+    "productionSignatures": 0,
+    "realCredentialsRead": 0
+  },
+  "privateRoot": "/Users/panyiming/.local/state/pan-agent/wo58-video-20261009/wo115-stage-a",
+  "externalRoot": "/Volumes/WD_BLACK/pan-agent/wo58-video-20261009/wo115-stage-a",
+  "productionPreparation": {
+    "existingOwner": "campaigns/demo-20261009-01",
+    "onlyPublicAuthority": true,
+    "campaignExists": false,
+    "newBinding": null,
+    "activation": null
+  },
+  "preservedIdentity": {
+    "passed": true,
+    "oldPreparationFiles": 6,
+    "fixedArtifacts": {
+      "/Volumes/WD_BLACK/pan-agent/wo58-video-20261009/regulator-criteria21-repair/Verdict.md": "584f745415ee3120fbfcf49cccf994345b43c22bc96d565c5c3ecce32061b0e4",
+      "/Volumes/WD_BLACK/pan-agent/wo58-video-20261009/regulator-criteria21-repair/evidence.tar.gz": "5e9e05de92a278f8e87eb2e94507359804605576d589f830ec027d1fc0a84f93",
+      "/Volumes/WD_BLACK/pan-agent/wo58-video-20261009/regulator-criteria21-repair/inventory.json": "80eea8d63cd948be4408695ea4caf8ff6518f35d6a6e1e2b10159110e6d4e02a",
+      "/Users/panyiming/.local/state/pan-agent/handoff-recovery-work/repair-source-settlement/packages/pan-agent-0.1.0.tgz": "5ecd3b9b4da688f90dfee3cc651b4a2f755595587b6d7d7287383cab23c8e580"
+    }
+  },
+  "resourceDuring": {
+    "scope": "115 Stage A and separately authorized demo",
+    "sample": {
+      "utc": "2026-10-11T11:48:53.548Z",
+      "free": 23428321280,
+      "owned": 17612439552,
+      "docker": 88965861376
+    },
+    "roots": [
+      "/Users/panyiming/.local/state/pan-agent",
+      "/opt/homebrew/Cellar/python@3.12/3.12.9",
+      "/Users/panyiming/Desktop/todo/面试/career-planning/60-项目/pan-agent/typescript/node_modules",
+      "/Volumes/WD_BLACK/pan-agent/web106",
+      "/Volumes/WD_BLACK/pan-agent/web107",
+      "/Volumes/WD_BLACK/pan-agent/web108",
+      "/Volumes/WD_BLACK/pan-agent/web109",
+      "/Volumes/WD_BLACK/pan-agent/web110",
+      "/Volumes/WD_BLACK/pan-agent/web111",
+      "/Volumes/WD_BLACK/pan-agent/web112",
+      "/Volumes/WD_BLACK/pan-agent/web113",
+      "/Volumes/WD_BLACK/pan-agent/web114",
+      "/Volumes/WD_BLACK/pan-agent/web119",
+      "/Volumes/WD_BLACK/pan-agent/web122",
+      "/Volumes/WD_BLACK/pan-agent/wo58-video-20261009",
+      "/Users/panyiming/Library/Caches/go-build",
+      "/Users/panyiming/go/pkg/mod",
+      "/Users/panyiming/.npm",
+      "/opt/homebrew/Cellar/postgresql@14/14.18",
+      "/Users/panyiming/Desktop/todo/面试/career-planning/30-已有资产与参考/作品演示/Pan-Web-离线完整流程演示-20261011.mp4"
+    ],
+    "baselineDocker": 48503971840,
+    "cumulative": 58074329088,
+    "policy": {
+      "minFreeBytes": 21474836480,
+      "incrementExclusiveBytes": 60129542144
+    },
+    "passed": true,
+    "failure": null
+  },
+  "evidence": {
+    "contract.json": {
+      "sha256": "9be56ab6d5faf9841dce59cb720bcde42a524abfbfda7ebb9688eaaf6980c2aa",
+      "bytes": 10074
+    },
+    "demo-final-exit.json": {
+      "sha256": "bfdedf06596faa2042b0fedd9653ec1023d2e96ed56dc40b607985bc8438c1d5",
+      "bytes": 11
+    },
+    "demo-final.log": {
+      "sha256": "b5b0c72a3034f2cf3d60ef03d07e160a1180f079e6ee13cb56e4e0c6b8a7a7f4",
+      "bytes": 4720
+    },
+    "demo-tests01.log": {
+      "sha256": "2504568baf7a7c7bb0642e5ae6bd6edaf54a1bfea92cf349a66d5f80efcd86ef",
+      "bytes": 4536
+    },
+    "old-preparation-inventory.json": {
+      "sha256": "b4a39c8452ece84a9c138e5b072f5f72fe888e3604f66578da981897f2e42cef",
+      "bytes": 1597
+    },
+    "preserved-identity.json": {
+      "sha256": "34760e0c588780b5ecdfbc7d2d92e42eecd74b2b60ce5304725754411294236f",
+      "bytes": 760
+    },
+    "product-identity.json": {
+      "sha256": "816c41cbe6f9ec167f0cd76ce61857d966699ccdc15458fc68a5aac8c16bc595",
+      "bytes": 9884
+    },
+    "regression-command.json": {
+      "sha256": "92e866b70aa0e6cb04d6247bc2ddb54f4635b12ce2c70fffffb12c872889024b",
+      "bytes": 1911
+    },
+    "regression01-exit.json": {
+      "sha256": "bfdedf06596faa2042b0fedd9653ec1023d2e96ed56dc40b607985bc8438c1d5",
+      "bytes": 11
+    },
+    "regression01.log": {
+      "sha256": "88f4af5642c55b7951b3c748da7ca7fecde7c356705e4343983e55d335ea1101",
+      "bytes": 12957
+    },
+    "resource-before.json": {
+      "sha256": "c4f8b9c660504d309e77172c6c800f6aee78c380385e1cbd56d00b8ec01b8a9d",
+      "bytes": 529
+    },
+    "resource-during.json": {
+      "sha256": "c3f3bee30718fc84b90e4f54b285cee80ea965e5e070238e2c2cced027caf0d7",
+      "bytes": 1425
+    },
+    "resource-final.json": {
+      "sha256": "538cc43f7598cffaa87a0300d902b44a7a755b57a2ac9d535b5782fc9d1029a2",
+      "bytes": 1425
+    },
+    "raw-inventory.json": {
+      "sha256": "e00b7c4355e21092371b390529a6bcf73f7b3729c81d0e9c572cbcd1b250ef63",
+      "bytes": 1344157
+    },
+    "stop.json": {
+      "sha256": "5b85ab013ae4d7a351f9c10ebe0442428f284c881ac917d7a682d604c6512d5a",
+      "bytes": 175
+    },
+    "collection-note.json": {
+      "sha256": "ecc52958488857d0ef4cc71f175e1e010e54230a6c0d7d836a159b14ecba62e0",
+      "bytes": 395
+    },
+    "scope-check.json": {
+      "sha256": "1668b0ffd7c20510dfd78b299ab0394cae65eda9b01d9c188a478fe776417dac",
+      "bytes": 697
+    },
+    "resource-closing.json": {
+      "sha256": "95fda43ac370cfb6d64179540048c5d24703f94add5d111ae3508fd921342c6b",
+      "bytes": 1425
+    }
+  },
+  "resourceAfterTests": {
+    "scope": "115 Stage A and separately authorized demo",
+    "sample": {
+      "utc": "2026-10-11T11:54:26.027Z",
+      "free": 23400304640,
+      "owned": 17880764416,
+      "docker": 88965861376
+    },
+    "roots": [
+      "/Users/panyiming/.local/state/pan-agent",
+      "/opt/homebrew/Cellar/python@3.12/3.12.9",
+      "/Users/panyiming/Desktop/todo/面试/career-planning/60-项目/pan-agent/typescript/node_modules",
+      "/Volumes/WD_BLACK/pan-agent/web106",
+      "/Volumes/WD_BLACK/pan-agent/web107",
+      "/Volumes/WD_BLACK/pan-agent/web108",
+      "/Volumes/WD_BLACK/pan-agent/web109",
+      "/Volumes/WD_BLACK/pan-agent/web110",
+      "/Volumes/WD_BLACK/pan-agent/web111",
+      "/Volumes/WD_BLACK/pan-agent/web112",
+      "/Volumes/WD_BLACK/pan-agent/web113",
+      "/Volumes/WD_BLACK/pan-agent/web114",
+      "/Volumes/WD_BLACK/pan-agent/web119",
+      "/Volumes/WD_BLACK/pan-agent/web122",
+      "/Volumes/WD_BLACK/pan-agent/wo58-video-20261009",
+      "/Users/panyiming/Library/Caches/go-build",
+      "/Users/panyiming/go/pkg/mod",
+      "/Users/panyiming/.npm",
+      "/opt/homebrew/Cellar/postgresql@14/14.18",
+      "/Users/panyiming/Desktop/todo/面试/career-planning/30-已有资产与参考/作品演示/Pan-Web-离线完整流程演示-20261011.mp4"
+    ],
+    "baselineDocker": 48503971840,
+    "cumulative": 58342653952,
+    "policy": {
+      "minFreeBytes": 21474836480,
+      "incrementExclusiveBytes": 60129542144
+    },
+    "passed": true,
+    "failure": null
+  },
+  "rawInventoryEntries": 4181,
+  "resourceClosing": {
+    "scope": "115 Stage A and separately authorized demo",
+    "sample": {
+      "utc": "2026-10-11T11:55:16.769Z",
+      "free": 23397212160,
+      "owned": 17882124288,
+      "docker": 88965861376
+    },
+    "roots": [
+      "/Users/panyiming/.local/state/pan-agent",
+      "/opt/homebrew/Cellar/python@3.12/3.12.9",
+      "/Users/panyiming/Desktop/todo/面试/career-planning/60-项目/pan-agent/typescript/node_modules",
+      "/Volumes/WD_BLACK/pan-agent/web106",
+      "/Volumes/WD_BLACK/pan-agent/web107",
+      "/Volumes/WD_BLACK/pan-agent/web108",
+      "/Volumes/WD_BLACK/pan-agent/web109",
+      "/Volumes/WD_BLACK/pan-agent/web110",
+      "/Volumes/WD_BLACK/pan-agent/web111",
+      "/Volumes/WD_BLACK/pan-agent/web112",
+      "/Volumes/WD_BLACK/pan-agent/web113",
+      "/Volumes/WD_BLACK/pan-agent/web114",
+      "/Volumes/WD_BLACK/pan-agent/web119",
+      "/Volumes/WD_BLACK/pan-agent/web122",
+      "/Volumes/WD_BLACK/pan-agent/wo58-video-20261009",
+      "/Users/panyiming/Library/Caches/go-build",
+      "/Users/panyiming/go/pkg/mod",
+      "/Users/panyiming/.npm",
+      "/opt/homebrew/Cellar/postgresql@14/14.18",
+      "/Users/panyiming/Desktop/todo/面试/career-planning/30-已有资产与参考/作品演示/Pan-Web-离线完整流程演示-20261011.mp4"
+    ],
+    "baselineDocker": 48503971840,
+    "cumulative": 58344013824,
+    "policy": {
+      "minFreeBytes": 21474836480,
+      "incrementExclusiveBytes": 60129542144
+    },
+    "passed": true,
+    "failure": null
+  }
+}

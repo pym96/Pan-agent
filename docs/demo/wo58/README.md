@@ -1,3 +1,7 @@
+# #115 Stage A candidate
+
+[56GiB profile and future commands](budget115.md) / [evidence](../../evidence/demo-video-115.md). Independent review pending; no production preparation or live execution. Older #58 records below remain historical.
+
 Criteria2.1 repair: prior candidate rejected for nested campaign writes. Direct-child owner invariant and6 new targeted checks submitted for independent review; see [configuration](runner-config.md) and [repair report](../../evidence/demo-video-58.md). Original Verdict/tests retained without repeat.
 
 # Current: Criteria2.1 offline runner adaptation
