@@ -39,7 +39,20 @@ func (a *Reader) Task(ctx context.Context, owner string, key string) result.Valu
 	if rows.Err() != nil {
 		return result.Fail(result.Unavailable, "无法读取事件")
 	}
+	mode := "offline-faux"
+	if state == "queued" {
+		mode = "pending"
+	}
+	for _, ev := range events {
+		var v struct {
+			Type string `json:"type"`
+			Mode string `json:"mode"`
+		}
+		if json.Unmarshal(ev, &v) == nil && v.Type == "execution.identity" && v.Mode != "" {
+			mode = v.Mode
+		}
+	}
 	var ownership json.RawMessage
 	_ = a.db.QueryRow(ctx, `SELECT jsonb_build_object('workerId',worker_id,'generation',generation,'revokedAt',revoked_at,'attemptId',execution_id) FROM ew_tasks WHERE id=$1 AND account_id=$2`, key, owner).Scan(&ownership)
-	return result.OK(result.Success, map[string]any{"ownership": ownership, "id": key, "question": q, "state": state, "bundleId": bid, "result": taskResult, "reason": reason, "cleanupConfirmed": cleanup, "events": events, "recovery": a.checkpointMetadata(ctx, key), "mode": "offline-faux", "cancelRequestedAt": cancelAt, "stopConfirmedAt": stopAt, "activeBranch": active, "replaces": replaces, "attemptResult": attempt, "startedAt": startedAt, "finishedAt": finishedAt, "contextText": contextText, "contextSHA256": contextHash, "conversationId": conversationID, "sequence": sequence, "notice": "确定性 Faux 经真实 Native Pan/Docker；不验证自然语言理解或真实模型质量"})
+	return result.OK(result.Success, map[string]any{"ownership": ownership, "id": key, "question": q, "state": state, "bundleId": bid, "result": taskResult, "reason": reason, "cleanupConfirmed": cleanup, "events": events, "recovery": a.checkpointMetadata(ctx, key), "mode": mode, "cancelRequestedAt": cancelAt, "stopConfirmedAt": stopAt, "activeBranch": active, "replaces": replaces, "attemptResult": attempt, "startedAt": startedAt, "finishedAt": finishedAt, "contextText": contextText, "contextSHA256": contextHash, "conversationId": conversationID, "sequence": sequence, "notice": "执行终态、产物验证与答案正确性分开；具体模式见执行身份，未知用量不补零"})
 }

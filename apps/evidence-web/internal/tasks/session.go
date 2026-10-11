@@ -6,6 +6,7 @@ import (
 	"errors"
 	"os"
 	"pan-agent/evidence-web/internal/identity"
+	"strings"
 	"time"
 
 	"github.com/jackc/pgx/v5"
@@ -18,6 +19,7 @@ type Session struct {
 	store *Store
 	conn  *pgxpool.Conn
 	id    string
+	live  bool
 }
 
 func (s *Store) OpenSession(ctx context.Context, entry string, environment []string) (*Session, error) {
@@ -25,12 +27,26 @@ func (s *Store) OpenSession(ctx context.Context, entry string, environment []str
 	if e != nil {
 		return nil, e
 	}
+	live := false
+	for _, v := range environment {
+		if v == "WEB_PROVIDER=kimi" {
+			live = true
+		}
+		if strings.HasPrefix(v, "KIMI_API_KEY=") {
+			conn.Release()
+			return nil, errors.New("credential must not enter reconciliation environment")
+		}
+	}
+	lockSQL := "SELECT pg_try_advisory_lock_shared($1)"
+	if live {
+		lockSQL = "SELECT pg_try_advisory_lock($1)"
+	}
 	var shared bool
-	if e = conn.QueryRow(ctx, "SELECT pg_try_advisory_lock_shared($1)", workerLock).Scan(&shared); e != nil || !shared {
+	if e = conn.QueryRow(ctx, lockSQL, workerLock).Scan(&shared); e != nil || !shared {
 		conn.Release()
 		return nil, errors.New("legacy worker or migration active")
 	}
-	session := &Session{store: s, conn: conn, id: identity.NewID()}
+	session := &Session{store: s, conn: conn, id: identity.NewID(), live: live}
 	if _, e = conn.Exec(ctx, "INSERT INTO ew_owners(id,pid,connection_start) SELECT $1,$2,backend_start FROM pg_stat_activity WHERE pid=pg_backend_pid()", session.id, os.Getpid()); e != nil {
 		session.Close()
 		return nil, e
@@ -57,7 +73,11 @@ func (s *Session) Close() {
 	defer cancel()
 	s.store.db.Exec(ctx, "UPDATE ew_owners SET revoked_at=COALESCE(revoked_at,clock_timestamp()) WHERE id=$1", s.id)
 	revokeLost(ctx, s.store.db)
-	s.conn.Exec(ctx, "SELECT pg_advisory_unlock_shared($1)", workerLock)
+	unlock := "SELECT pg_advisory_unlock_shared($1)"
+	if s.live {
+		unlock = "SELECT pg_advisory_unlock($1)"
+	}
+	s.conn.Exec(ctx, unlock, workerLock)
 	s.conn.Release()
 }
 

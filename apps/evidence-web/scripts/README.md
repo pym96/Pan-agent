@@ -78,3 +78,12 @@ also supports its two owned Worker slots.
 #114: `check114-deploy.py` probes installed operator failures and lifecycle; `browser114.mjs` records the real offline-Faux journey with cancellation/receipt recovery and same-path backup restore. Both preserve dedicated output directories. See [deployment manual](../deploy/README.md).
 
 `browser114-readback.mjs` records a labelled additional read-only account-isolation/history clip from an already completed journey; it submits no task and is not presented as the same continuous operation.
+
+#122: `browser122.mjs` records two actual installed Web questions, public context,
+source navigation and downloads. Mode is selected by the private deployment config;
+it does not alter questions or synthesize responses. Only execute Kimi mode under
+an authorized committed-SHA manifest. Failure keeps the terminal and video.
+
+`faux-resume122.mjs` is restricted to offline-faux test deployments. It kills only
+the recorded owned Node after a persisted receipt, restarts services, explicitly
+resumes, and asserts exactly two Docker executions across both attempts.

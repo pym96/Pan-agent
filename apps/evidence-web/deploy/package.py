@@ -13,6 +13,6 @@ shutil.copy2(P(__file__).with_name('README.md'),out/'deploy/README.md');shutil.c
 with tarfile.open(a.pan_tar) as tar:tar.extractall(out,filter='data')
 (out/'package').rename(out/'pan')
 report=src.parents[1]/'docs/evidence/terminal-bench-full-live-97-summary.json';op.require(op.digest(report)=='f67d6e22a5f229637bb90cccc5a2538f6aaa87225efb1b8a9cf182cac37828ab','report mismatch');shutil.copy2(report,out/'inputs/summary.json')
-op.write(out/'inputs/manifest.json',{'version':1,'title':'授权报告 · 离线Faux演示','summary':'summary.json','files':{'summary.json':op.digest(report)}})
-op.write(out/'manifest.json',{'version':1,'mode':'offline-faux','os':sys.platform,'image':op.IMAGE,'panTarSHA256':op.digest(a.pan_tar),'files':op.tree(out),'note':'PG/Node/Docker/Python are declared host dependencies; init pins executable hashes. No real Provider.'})
+op.write(out/'inputs/manifest.json',{'version':1,'title':'授权报告 · 私有分析','summary':'summary.json','files':{'summary.json':op.digest(report)}})
+op.write(out/'manifest.json',{'version':1,'modes':['offline-faux','kimi'],'os':sys.platform,'image':op.IMAGE,'panTarSHA256':op.digest(a.pan_tar),'files':op.tree(out),'note':'PG/Node/Docker/Python are declared host dependencies; init pins executable hashes. Provider credential injected at startup only; live recovery unsupported.'})
 print('built '+str(out))

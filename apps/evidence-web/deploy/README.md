@@ -60,3 +60,41 @@ The stopped physical PG and all private data are copied at one quiescent point. 
 ## Verification and evidence
 
 `../scripts/browser114.mjs` operates an explicitly initialized test deployment, records the real page to WebM, verifies two accounts and task/CSV/source identities, performs a declared fault/cancel and same-path backup restore, and leaves services stopped. Requires Playwright's ffmpeg component in an operator-selected cache (`PLAYWRIGHT_BROWSERS_PATH`); no global browser installation required when an existing Chrome path is supplied. Its video is private and visibly labeled; chapter timestamps map to original task evidence. See [#114 evidence](../../../docs/evidence/web114/README.md) and [design](../../../docs/design/pan-web/deployment114.md). Independent Regulator decides acceptance of the full candidate SHA.
+
+## #122: explicit Kimi mode
+
+Install the manifest-bound package as above. `init --provider kimi --workers 1`
+selects real `kimi-code / k3-256k / high` at the fixed official Chat Completions
+endpoint. The default `--provider offline-faux` remains deterministic regression.
+Only the frozen authorized report is admitted in this live composition; attachments
+outside that report and task metadata fail before any provider request.
+
+Provide `KIMI_API_KEY` in the **start process environment**. Do not put its value
+in commands, config.json, browser inputs, screenshots or backup directories. The
+operator fails if it is missing; only the trusted Worker receives it, and only
+its task Node receives the provider credential. API, PostgreSQL, Redis, Docker
+CLI and analysis container receive no provider credential. Restart requires
+explicit reinjection; backup/restore does not preserve it. No Keychain, credential
+file discovery or ambient provider endpoint is used.
+
+Live runs are serialized by an exclusive PostgreSQL Worker lock. Faux uses its
+existing shared lock and capacity limit. Do not mix modes within one live database.
+Model errors (including authentication, quota and rate limit) stop the Worker;
+inspect retained safe metadata before an explicit new attempt. No automatic replay
+or custom retry loop is added. One network exchange and each tool operation remain
+bounded; the Faux 180-second whole-task timer is **disabled** in Kimi mode.
+
+Live process loss preserves interrupted/unknown history. Kimi checkpoint and
+operation resume are unsupported and rejected before send; only Faux supports
+existing recovery. Browser refresh reads state and never resubmits a task. A new
+explicit question gets a new task/attempt and completed public context as quoted
+history; private reasoning/continuation never leaves the adapter's process memory.
+
+`analysis.json`/`details.csv` validation checks structure, immutable hashes and
+resolvable source pointers, **not** the semantic correctness of an answer. A
+validation tool returns errors into the same model loop. The UI distinguishes
+execution state, validation status and readable model answer. Inspect all attempts
+and unknown usage, not only the latest successful answer.
+
+[Composition and privacy boundaries](../../../docs/design/pan-web/live122.md)
+· [Candidate evidence](../../../docs/evidence/web122/README.md).

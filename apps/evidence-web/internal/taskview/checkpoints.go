@@ -58,11 +58,13 @@ func (a *Reader) checkpointMetadata(ctx context.Context, tid string) map[string]
 func (a *Reader) checkpointAccounting(ctx context.Context, tid string) map[string]any {
 	unavailable := map[string]any{"unavailable": true, "known": nil, "unknown": nil, "input": nil, "output": nil, "totalTokens": nil}
 	rows, e := a.db.Query(ctx, "SELECT DISTINCT ON (event->>'runId',event->>'turn') event FROM ew_task_events WHERE task_id=$1 AND event->>'type'='model.turn_settled' ORDER BY event->>'runId',event->>'turn',sequence", tid)
-	result := map[string]any{"label": "Faux synthetic; actual settled exchanges deduplicated by run/turn", "known": 0, "unknown": 0, "input": 0.0, "output": 0.0, "totalTokens": 0.0}
+	result := map[string]any{"label": "settled exchanges deduplicated by run/turn; mode in task identity", "known": 0, "unknown": 0, "input": 0.0, "output": 0.0, "totalTokens": 0.0}
 	if e != nil {
 		return unavailable
 	}
 	defer rows.Close()
+	fieldTotals := map[string]float64{}
+	fieldUnknown := map[string]int{}
 	for rows.Next() {
 		var raw []byte
 		if rows.Scan(&raw) != nil {
@@ -79,8 +81,12 @@ func (a *Reader) checkpointAccounting(ctx context.Context, tid string) map[strin
 		}
 		if event.Usage.Status == "reported" {
 			result["known"] = result["known"].(int) + 1
-			for _, k := range []string{"input", "output", "totalTokens"} {
-				result[k] = result[k].(float64) + event.Usage.Value[k]
+			for _, k := range []string{"input", "output", "totalTokens", "cacheRead", "cacheWrite"} {
+				if v, ok := event.Usage.Value[k]; ok {
+					fieldTotals[k] += v
+				} else {
+					fieldUnknown[k]++
+				}
 			}
 		} else {
 			result["unknown"] = result["unknown"].(int) + 1
@@ -102,6 +108,15 @@ func (a *Reader) checkpointAccounting(ctx context.Context, tid string) map[strin
 	if a.db.QueryRow(ctx, `SELECT count(*) FROM (SELECT DISTINCT event->>'toolCallId' FROM ew_task_events WHERE task_id=$1 AND event->>'type'='operation.persisted' AND event->>'phase'='dispatched' EXCEPT SELECT DISTINCT event->>'toolCallId' FROM ew_task_events WHERE task_id=$1 AND event->>'type'='sandbox.result') x`, tid).Scan(&uncertainTools) != nil {
 		return unavailable
 	}
+	for _, k := range []string{"input", "output", "totalTokens", "cacheRead", "cacheWrite"} {
+		result[k] = fieldTotals[k]
+		fieldUnknown[k] += result["unknown"].(int) + missing
+		if fieldUnknown[k] > 0 {
+			result[k] = nil
+		}
+	}
+	result["knownSubtotals"] = fieldTotals
+	result["fieldUnknown"] = fieldUnknown
 	result["observedToolExecutions"] = finishedTools
 	result["dispatchedWithoutObservedResult"] = uncertainTools
 	result["unknown"] = result["unknown"].(int) + missing

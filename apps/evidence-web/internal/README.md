@@ -16,3 +16,8 @@
 - `testfixture/`: isolated real-PG test setup (not linked into the executable)
 
 [Design and mapping](../../../docs/design/pan-web/packages119.md).
+
+#122 keeps provider credentials in the Worker-only `config.Execution.KimiKey`
+field, never in persistable reconciliation environment. Executor injects it into
+only the task Node. Live sessions acquire an exclusive Worker lock; read projections
+remain mutation-free and retain partial usage as unknown plus known subtotals.

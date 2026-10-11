@@ -58,7 +58,10 @@ func (r *Runner) Execute(ctx context.Context, a tasks.Authority, question string
 	_ = os.Chmod(filepath.Join(dir, "input"), 0555)
 
 	cmd := exec.CommandContext(ctx, "node", entry, "--task-root", dir)
-	cmd.Env = r.cfg.Environment
+	cmd.Env = append([]string(nil), r.cfg.Environment...)
+	if r.cfg.Mode == "kimi" {
+		cmd.Env = append(cmd.Env, "KIMI_API_KEY="+r.cfg.KimiKey)
+	}
 	cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
 	stdin, e := cmd.StdinPipe()
 	if e != nil {
@@ -95,6 +98,22 @@ func (r *Runner) Execute(ctx context.Context, a tasks.Authority, question string
 			_ = cmd.Wait()
 		}
 	}()
+	identity := map[string]any{"type": "execution.identity", "attemptId": attempt, "mode": r.cfg.Mode, "provider": "pan-faux", "model": "web107-scripted", "reasoning": "off"}
+	for _, setting := range r.cfg.Environment {
+		if setting == "WEB_CHECKPOINT_MODE=1" {
+			identity["model"] = "checkpoint-faux-v1"
+		}
+	}
+	if r.cfg.Mode == "kimi" {
+		identity["provider"] = "kimi-code"
+		identity["model"] = "k3-256k"
+		identity["reasoning"] = "high"
+		identity["endpoint"] = "https://api.kimi.com/coding/v1/chat/completions"
+	}
+	rawIdentity, _ := json.Marshal(identity)
+	if e = r.store.Event(ctx, a, rawIdentity); e != nil {
+		return e
+	}
 	jobData := map[string]any{"taskId": tid, "attemptId": attempt, "root": dir, "question": question, "contextText": input.ContextText, "contextSHA256": input.ContextHash, "authority": a}
 	if input.Checkpoint != nil {
 		jobData["checkpoint"] = json.RawMessage(input.Checkpoint)
@@ -200,5 +219,11 @@ func (r *Runner) Execute(ctx context.Context, a tasks.Authority, question string
 	if final == nil || !reply.Cleanup {
 		return errors.New("executor result unavailable")
 	}
-	return r.store.Publish(ctx, a, final)
+	if e = r.store.Publish(ctx, a, final); e != nil {
+		return e
+	}
+	if r.cfg.Mode == "kimi" && reply.Result.Status == "model_error" {
+		return errors.New("live provider failed; worker stopped; inspect safe metadata before explicit new attempt")
+	}
+	return nil
 }

@@ -3,9 +3,10 @@ import {spawn} from 'node:child_process';
 import {lstat,readFile,realpath} from 'node:fs/promises';
 import {join,resolve} from 'node:path';
 export const runtimeIssue=()=>{const n=process.env.WEB_ISSUE;if(!/^[a-zA-Z0-9][a-zA-Z0-9_-]{0,63}$/.test(n||''))throw Error('resource_namespace_required');return n};
+export function dockerEnvironment(env=process.env){return Object.fromEntries(['PATH','DOCKER_HOST','DOCKER_CONFIG'].filter(k=>env[k]).map(k=>[k,env[k]]))}
 export const MAX_OUTPUT=2*1024*1024;
 export function command(binary,args,{input='',signal,timeout=180000,limit=MAX_OUTPUT}={}){
- return new Promise((done,reject)=>{const child=spawn(binary,args,{env:process.env,stdio:['pipe','pipe','pipe']});let out='',err='',size=0,overflow=false;const timer=setTimeout(()=>child.kill('SIGKILL'),timeout);const cancel=()=>child.kill('SIGKILL');signal?.addEventListener('abort',cancel,{once:true});
+ return new Promise((done,reject)=>{const child=spawn(binary,args,{env:dockerEnvironment(),stdio:['pipe','pipe','pipe']});let out='',err='',size=0,overflow=false;const timer=setTimeout(()=>child.kill('SIGKILL'),timeout);const cancel=()=>child.kill('SIGKILL');signal?.addEventListener('abort',cancel,{once:true});
  const collect=(target)=>b=>{size+=b.length;if(size>limit){overflow=true;child.kill('SIGKILL');return};if(target==='out')out+=b;else err+=b};child.stdout.on('data',collect('out'));child.stderr.on('data',collect('err'));child.on('error',reject);child.on('close',(code,sig)=>{clearTimeout(timer);signal?.removeEventListener('abort',cancel);done({exitCode:code,signal:sig,stdout:out,stderr:err,overflow})});child.stdin.on('error',()=>{});child.stdin.end(input);
  });
 }

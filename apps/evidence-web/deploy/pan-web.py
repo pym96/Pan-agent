@@ -55,6 +55,11 @@ def baseenv(c):
 def environment(c):
  d=P(c['data']);release=P(c['release']);e=baseenv(c)
  e.update(DATABASE_URL=f"postgres://panweb:{c['dbPassword']}@127.0.0.1:{c['pgPort']}/panweb?sslmode=disable",LISTEN_ADDR=f"127.0.0.1:{c['httpPort']}",APP_ORIGIN=f"http://127.0.0.1:{c['httpPort']}",WEB_DIR=str(release/'web'),WEB_MODE='product',WEB_ISSUE=c['namespace'],WEB_CACHE='1',WEB_REDIS_ADDR=f"127.0.0.1:{c['redisPort']}",WEB_CACHE_NAMESPACE=c['namespace'],WEB107_TASK_ROOT=str(d/'tasks'),WEB107_EXECUTOR=str(release/'executor/main.mjs'),PAN_ENTRY=str(release/'pan/dist/index.js'),PAN_IMAGE=IMAGE,WEB_CHECKPOINT_MODE='1',WEB_OPERATION_MODE='1',ANALYSIS_CPUS='1',ANALYSIS_MEMORY_GIB='1')
+ mode=c.get('provider','offline-faux');require(mode in ['offline-faux','kimi'],'invalid provider')
+ e['WEB_PROVIDER']=mode
+ if mode=='kimi':
+  require(c['workers']==1 and not c.get('testMode'),'live requires one worker and no fault mode')
+  e['WEB_CHECKPOINT_MODE']='0';e['WEB_OPERATION_MODE']='0'
  faults=c.get('faults',{})
  require(not faults or c['testMode'],'fault injection requires explicit test mode')
  require(set(faults)<=FAULTS and all(isinstance(v,str) for v in faults.values()),'unknown fault configuration')
@@ -99,7 +104,7 @@ def ownprocesses(c):
  return [line.strip() for line in raw.splitlines() if any(n in line for n in needles) and int(line.split()[0])!=os.getpid()]
 def state(c):
  r=receipts(c);running={n:alive(v) for n,v in r.items()}
- return {'processes':running,'containers':containers(c),'ownedProcesses':ownprocesses(c),'mode':'offline-faux','testMode':c['testMode']}
+ return {'processes':running,'containers':containers(c),'ownedProcesses':ownprocesses(c),'mode':c.get('provider','offline-faux'),'testMode':c['testMode']}
 def stopped(c):
  s=state(c);require(not any(s['processes'].values()) and not s['containers'] and not s['ownedProcesses'],'stop unknown or owned execution remains; inspect private logs/receipts')
 def ready(c):
@@ -116,6 +121,9 @@ def ready(c):
  except (OSError,RuntimeError):return False
 def start(c):
  environment(c);dependencies(c)
+ live=c.get('provider')=='kimi'
+ key=os.environ.get('KIMI_API_KEY','') if live else ''
+ require(not live or key.strip(),'KIMI_API_KEY must be provided to this start process; no fallback')
  r=receipts(c)
  if any(alive(v) for v in r.values()):
   require(ready(c),'partial deployment running; stop/inspect before start');print('already ready');return
@@ -136,8 +144,10 @@ def start(c):
    with urllib.request.urlopen(env['APP_ORIGIN'],timeout=1) as x:return x.status==200
   except OSError:return False
  waitfor(apiready)
- for i in range(c['workers']):spawn(c,f'worker{i}',[P(c['release'])/'bin/evidence-web','worker'],env)
- waitfor(lambda:ready(c));print('ready '+env['APP_ORIGIN']+' — 离线Faux演示，非真实LLM能力测试')
+ worker_env=dict(env)
+ if live:worker_env['KIMI_API_KEY']=key
+ for i in range(c['workers']):spawn(c,f'worker{i}',[P(c['release'])/'bin/evidence-web','worker'],worker_env)
+ waitfor(lambda:ready(c));print('ready '+env['APP_ORIGIN']+' — '+c.get('provider','offline-faux'))
 def stop(c):
  for name in list(receipts(c)):
   if name.startswith('worker'):terminate(c,name)
@@ -176,7 +186,7 @@ def init(a):
  d.mkdir(parents=True,exist_ok=True);d.chmod(0o700)
  with (d/'.init-claim').open('x') as f:f.write('initialization owns this directory; retain on failure\n')
  for n in ['logs','tasks','tmp','docker']: (d/n).mkdir(mode=0o700)
- c={'version':1,'release':str(release),'data':str(d),'pgBin':str(pg),'redis':str(release/'bin/redis-server'),'dependencies':deps,'path':str(node.parent)+':'+str(docker.parent)+':/usr/bin:/bin:/usr/sbin:/sbin','dockerHost':call(['docker','context','inspect','--format','{{.Endpoints.docker.Host}}']),'namespace':'dep-'+secrets.token_hex(8),'httpPort':a.port,'pgPort':a.pg_port,'redisPort':a.redis_port,'workers':a.workers,'testMode':a.test_mode,'faults':{},'dbPassword':secrets.token_hex(24),'accounts':{who:{'email':who+'@pan.local','password':secrets.token_hex(18)} for who in ['a','b']}}
+ c={'version':1,'provider':a.provider,'release':str(release),'data':str(d),'pgBin':str(pg),'redis':str(release/'bin/redis-server'),'dependencies':deps,'path':str(node.parent)+':'+str(docker.parent)+':/usr/bin:/bin:/usr/sbin:/sbin','dockerHost':call(['docker','context','inspect','--format','{{.Endpoints.docker.Host}}']),'namespace':'dep-'+secrets.token_hex(8),'httpPort':a.port,'pgPort':a.pg_port,'redisPort':a.redis_port,'workers':a.workers,'testMode':a.test_mode,'faults':{},'dbPassword':secrets.token_hex(24),'accounts':{who:{'email':who+'@pan.local','password':secrets.token_hex(18)} for who in ['a','b']}}
  c['dependencies'][c['redis']]=digest(c['redis']);write(d/'config.json',c)
  pw=d/'db-password';pw.write_text(c['dbPassword']+'\n');pw.chmod(0o600)
  env=baseenv(c)
@@ -214,7 +224,7 @@ def restore(a):
 def main():
  p=argparse.ArgumentParser(description=__doc__);sub=p.add_subparsers(dest='command',required=True)
  i=sub.add_parser('install');i.add_argument('--package',required=True);i.add_argument('--dest',required=True)
- i=sub.add_parser('init');i.add_argument('--data',required=True);i.add_argument('--pg-bin',required=True);i.add_argument('--port',type=int,default=8114);i.add_argument('--pg-port',type=int,default=54114);i.add_argument('--redis-port',type=int,default=63114);i.add_argument('--workers',type=int,choices=[1,2],default=1);i.add_argument('--test-mode',action='store_true')
+ i=sub.add_parser('init');i.add_argument('--data',required=True);i.add_argument('--pg-bin',required=True);i.add_argument('--port',type=int,default=8114);i.add_argument('--pg-port',type=int,default=54114);i.add_argument('--redis-port',type=int,default=63114);i.add_argument('--workers',type=int,choices=[1,2],default=1);i.add_argument('--test-mode',action='store_true');i.add_argument('--provider',choices=['offline-faux','kimi'],default='offline-faux')
  for cmd in ['start','stop','restart','status','backup','restore']:
   i=sub.add_parser(cmd);i.add_argument('--data',required=True)
   if cmd in ['backup','restore']:i.add_argument('--backup',required=True)

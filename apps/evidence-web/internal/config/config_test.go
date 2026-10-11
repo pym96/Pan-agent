@@ -2,6 +2,7 @@ package config_test
 
 import (
 	"pan-agent/evidence-web/internal/config"
+	"strings"
 	"testing"
 	"time"
 )
@@ -47,5 +48,38 @@ func TestProductConfiguration(t *testing.T) {
 		}); e == nil {
 			t.Fatal(v)
 		}
+	}
+}
+
+func TestLiveCredentialBoundary122(t *testing.T) {
+	env := map[string]string{"DATABASE_URL": "fixture", "WEB_PROVIDER": "kimi", "WEB107_TASK_ROOT": "/tmp/tasks", "WEB107_EXECUTOR": "/tmp/executor/main.mjs", "PAN_ENTRY": "/tmp/pan/index.js", "PAN_IMAGE": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "KIMI_API_KEY": "SYNTHETIC-SECRET-122", "DATABASE_PASSWORD": "SYNTHETIC-DB"}
+	get := func(k string) string { return env[k] }
+	c, e := config.Parse([]string{"worker"}, get)
+	if e != nil {
+		t.Fatal(e)
+	}
+	if c.Execution.KimiKey != env["KIMI_API_KEY"] {
+		t.Fatal("worker credential missing")
+	}
+	for _, v := range c.Execution.Environment {
+		if strings.Contains(v, "SYNTHETIC") {
+			t.Fatal("secret in persistable environment")
+		}
+	}
+	c, e = config.Parse(nil, get)
+	if e != nil || c.Execution.KimiKey != "" {
+		t.Fatal("API must not receive credential")
+	}
+	delete(env, "KIMI_API_KEY")
+	if _, e = config.Parse([]string{"worker"}, get); e == nil {
+		t.Fatal("missing key fallback")
+	}
+	env["KIMI_API_KEY"] = "synthetic"
+	for k, v := range map[string]string{"KIMI_ENDPOINT": "https://attacker.invalid", "KIMI_MODEL": "unsupported", "KIMI_REASONING": "low", "WEB_PROVIDER": "fallback"} {
+		env[k] = v
+		if _, e = config.Parse([]string{"worker"}, get); e == nil {
+			t.Fatal("unsupported config", k)
+		}
+		delete(env, k)
 	}
 }

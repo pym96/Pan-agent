@@ -31,3 +31,10 @@ passed to or consumed by the executor or Native Pan.
 #119 supersedes the historical namespace capability selectors above: `WEB_ISSUE` is only a validated resource namespace; the current Go entry injects `WEB_MODE=product`, and Node requires explicit authority for every model/tool action. Defaults are 1 CPU/1 GiB. Go process/stream/stop adapter now lives in `../internal/executor/`. No changes to the TypeScript Product package.
 
 #114: `resources.mjs` contains the standalone equivalent of the accepted inode-deduplicated host sampler and strict cumulative thresholds; no benchmark-runner import is required by the deployment. Includes historical roots plus the installed program/data and web114 archives. `check-resources114.mjs` verifies allocation aliases and limit boundaries.
+
+#122 adds `live.mjs`: explicit installed Kimi composition, fixed profile/endpoint,
+quoted completed public history, bounded artifact validation with in-loop feedback.
+`check-live122.mjs` and `check-live-failures122.mjs` use **fake transport only**;
+the former runs real Docker. They never establish real model success.
+Docker subprocess environment is now an explicit allowlist, not Node's environment.
+See [live design](../../../docs/design/pan-web/live122.md).

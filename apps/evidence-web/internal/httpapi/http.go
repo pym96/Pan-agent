@@ -29,10 +29,11 @@ type app struct {
 	origin   string
 	secure   bool
 	web      string
+	mode     string
 }
 
 func New(c config.Config, ids *identity.Store, commands *tasks.Store, queries *taskview.Reader, b *bundles.Store) http.Handler {
-	return (&app{identity: ids, commands: commands, queries: queries, bundles: b, views: newViewCache(c.Cache), origin: c.Origin, secure: c.Secure, web: c.Web}).handler()
+	return (&app{identity: ids, commands: commands, queries: queries, bundles: b, views: newViewCache(c.Cache), origin: c.Origin, secure: c.Secure, web: c.Web, mode: c.Execution.Mode}).handler()
 }
 
 type validatedViewOwner struct{}
@@ -227,7 +228,7 @@ func (a *app) handler() http.Handler {
 	mux.HandleFunc("POST /api/logout", a.logout)
 	mux.HandleFunc("GET /api/me", func(w http.ResponseWriter, r *http.Request) {
 		if owner := reader.owner(w, r); owner != "" {
-			send(w, 200, map[string]string{"id": owner})
+			send(w, 200, map[string]string{"id": owner, "mode": a.mode})
 		}
 	})
 	mux.HandleFunc("POST /api/conversations/{id}/tasks/{task}/resume", a.resume)

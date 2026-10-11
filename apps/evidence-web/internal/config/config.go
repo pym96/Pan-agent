@@ -67,6 +67,7 @@ func cacheConfig(get func(string) string) (Cache, error) {
 
 type Execution struct {
 	Namespace, Root, Entry string
+	Mode, KimiKey          string
 	Environment            []string
 }
 type Config struct {
@@ -117,7 +118,30 @@ func Parse(args []string, get func(string) string) (Config, error) {
 			return c, errors.New("maintenance interval must be >0 and <=1m")
 		}
 	}
-	x := Execution{Namespace: get("WEB_ISSUE"), Root: get("WEB107_TASK_ROOT"), Entry: get("WEB107_EXECUTOR")}
+	x := Execution{Mode: get("WEB_PROVIDER"), Namespace: get("WEB_ISSUE"), Root: get("WEB107_TASK_ROOT"), Entry: get("WEB107_EXECUTOR")}
+	if x.Mode == "" {
+		x.Mode = "offline-faux"
+	}
+	if x.Mode != "offline-faux" && x.Mode != "kimi" {
+		return c, errors.New("WEB_PROVIDER must be offline-faux or kimi")
+	}
+	if x.Mode == "kimi" {
+		if v := get("KIMI_MODEL"); v != "" && v != "k3-256k" {
+			return c, errors.New("unsupported Kimi model")
+		}
+		if v := get("KIMI_REASONING"); v != "" && v != "high" {
+			return c, errors.New("unsupported Kimi reasoning")
+		}
+		if get("KIMI_ENDPOINT") != "" {
+			return c, errors.New("Kimi endpoint is fixed")
+		}
+		if c.Command == "worker" {
+			x.KimiKey = get("KIMI_API_KEY")
+			if strings.TrimSpace(x.KimiKey) == "" {
+				return c, errors.New("KIMI_API_KEY required for Kimi worker")
+			}
+		}
+	}
 	if x.Namespace == "" {
 		x.Namespace = "evidence-web"
 	}
@@ -146,7 +170,7 @@ func Parse(args []string, get func(string) string) (Config, error) {
 			x.Environment = append(x.Environment, k+"="+v)
 		}
 	}
-	x.Environment = append(x.Environment, "WEB_ISSUE="+x.Namespace, "WEB_MODE=product")
+	x.Environment = append(x.Environment, "WEB_ISSUE="+x.Namespace, "WEB_MODE=product", "WEB_PROVIDER="+x.Mode)
 	c.Execution = x
 	c.Email = strings.ToLower(strings.TrimSpace(get("ACCOUNT_EMAIL")))
 	c.Password = get("ACCOUNT_PASSWORD")

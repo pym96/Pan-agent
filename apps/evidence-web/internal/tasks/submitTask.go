@@ -19,5 +19,5 @@ func (a *Store) SubmitTask(ctx context.Context, owner string, key string, in Sub
 	if tag.RowsAffected() != 1 {
 		return result.Fail(result.Missing, "证据包不存在")
 	}
-	return result.OK(result.Created, map[string]string{"id": tid, "state": "queued", "mode": "offline-faux"})
+	return result.OK(result.Created, map[string]string{"id": tid, "state": "queued", "mode": "pending"})
 }

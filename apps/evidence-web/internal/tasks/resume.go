@@ -35,6 +35,13 @@ func (a *Store) Resume(ctx context.Context, owner string, key, taskID string, in
 	if tx.QueryRow(ctx, "SELECT state,cleanup_confirmed,active_branch,cancel_requested_at IS NOT NULL FROM ew_tasks WHERE id=$1 AND account_id=$2 AND conversation_id=$3 AND bundle_id=$4 FOR UPDATE", tid, owner, cid, bid).Scan(&state, &stopped, &active, &cancelled) != nil {
 		return result.Fail(result.Missing, "task not found")
 	}
+	var live bool
+	if tx.QueryRow(ctx, "SELECT EXISTS(SELECT 1 FROM ew_task_events WHERE task_id=$1 AND event->>'type'='execution.identity' AND event->>'mode'='kimi')", tid).Scan(&live) != nil {
+		return result.Fail(result.Unavailable, "execution identity unavailable")
+	}
+	if live {
+		return result.Fail(result.Conflict, "live Kimi resume unsupported; no provider send; create an explicit new task")
+	}
 	if (state != "interrupted" && state != "failed") || !stopped || !active || cancelled {
 		return result.Fail(result.Conflict, "task not stopped or checkpoint superseded")
 	}

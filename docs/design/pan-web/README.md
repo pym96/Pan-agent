@@ -56,3 +56,5 @@ signed cache snapshots, bounded age/fallback, separate query accounting.
 - [#119 package ownership and independent maintenance](packages119.md): explicit execution authority and read-only query seam.
 
 - [#114 local deployment assembly](deployment114.md), [operator manual](../../../apps/evidence-web/deploy/README.md).
+
+- [#122 real Kimi Web composition and boundaries](live122.md) (candidate).

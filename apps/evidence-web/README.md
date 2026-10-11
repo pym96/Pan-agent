@@ -210,3 +210,7 @@ authoritative. File metadata remains in views; file bodies use download routes.
 ## #119 Product entry and package ownership
 
 Build `go build ./cmd/pan-web` (root build remains a compatibility entry). [Design/configuration](../../docs/design/pan-web/packages119.md), [internal package navigation](internal/README.md), [current candidate navigation](SOURCE_OF_TRUTH.md). Namespace no longer chooses capabilities; `WEB_MODE=product` is the sole mode. API/Workers supervise maintenance without HTTP polling. SQL migration bytes moved unchanged to `internal/database/migrations/`.
+
+#122 candidate adds explicit Kimi mode and preserves Faux. See
+[deployment/credential injection](deploy/README.md) and
+[live boundaries](../../docs/design/pan-web/live122.md). No live checkpoint resume.

@@ -28,6 +28,13 @@ class OperatorTests(unittest.TestCase):
    with self.assertRaisesRegex(RuntimeError,'ambient'):op.environment(c)
   c['testMode']=True;c['faults']={'WEB_OPERATION_FAULT':'after-receipt'}
   with patch.dict(op.os.environ,{},clear=True):self.assertEqual(op.environment(c)['WEB_OPERATION_FAULT'],'after-receipt')
+ def test_live_environment_excludes_provider_secret(self):
+  c={'data':'/data','release':'/release','path':'/bin','dockerHost':'unix:///socket','dbPassword':'synthetic-db','pgPort':1,'httpPort':2,'redisPort':3,'namespace':'dep-test','testMode':False,'faults':{},'provider':'kimi','workers':1}
+  with patch.dict(op.os.environ,{'KIMI_API_KEY':'SYNTHETIC-PROVIDER'},clear=True):
+   e=op.environment(c);self.assertNotIn('KIMI_API_KEY',e);self.assertEqual(e['WEB_CHECKPOINT_MODE'],'0');self.assertEqual(e['WEB_OPERATION_MODE'],'0')
+   self.assertNotIn('SYNTHETIC-PROVIDER',str(c));self.assertNotIn('KIMI_API_KEY',op.baseenv(c))
+  c['workers']=2
+  with self.assertRaisesRegex(RuntimeError,'one worker'):op.environment(c)
  def test_stop_cannot_claim_live_or_unknown(self):
   for state in [{'processes':{'worker':True},'containers':[],'ownedProcesses':[]},{'processes':{},'containers':['running'],'ownedProcesses':[]},{'processes':{},'containers':[],'ownedProcesses':['orphan']}]:
    with patch.object(op,'state',return_value=state):

@@ -1,0 +1,57 @@
+{
+  "baseline": "494169799fa57ed85539c1d1a7c2bc0c2684c56b",
+  "contract": "https://github.com/pym96/Pan-agent/issues/122#issuecomment-6104471326",
+  "realProviderSends": 0,
+  "logs": {
+    "go-race03.log": {
+      "path": "/Users/panyiming/.local/state/pan-agent/web122/evidence/go-race03.log",
+      "sha256": "0708c5fdc9a315a603b25f618a2535e227d532696d5be5d3773fe974de54c8ca"
+    },
+    "vet-final.log": {
+      "path": "/Users/panyiming/.local/state/pan-agent/web122/evidence/vet-final.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "build04.log": {
+      "path": "/Users/panyiming/.local/state/pan-agent/web122/evidence/build04.log",
+      "sha256": "df4fedd7b84403ace4fa2fb5ecba6fbf69d8ad14ad80b209b952493a93d435cc"
+    },
+    "node-offline05.log": {
+      "path": "/Users/panyiming/.local/state/pan-agent/web122/evidence/node-offline05.log",
+      "sha256": "1cbfd9a45c424aa2b9f19efdf1e2e60fcf5cabaa1cad0046e4f3f3743346e52e"
+    },
+    "node-failures01.log": {
+      "path": "/Users/panyiming/.local/state/pan-agent/web122/evidence/node-failures01.log",
+      "sha256": "316f1e72506ffd6603255771797025ef7d46cd9cce1836ba5ea6eaca879bb677"
+    },
+    "isolation.log": {
+      "path": "/Users/panyiming/.local/state/pan-agent/web122/evidence/isolation.log",
+      "sha256": "26e64854d158ba2ec588481dab9938b9b07c736383f4ddea976c36a5c59fa8b5"
+    },
+    "operator02.log": {
+      "path": "/Users/panyiming/.local/state/pan-agent/web122/evidence/operator02.log",
+      "sha256": "0f7e4b97443e54aca647179972594d13bb587afcbf151fab8228148587ea844a"
+    },
+    "structure.log": {
+      "path": "/Users/panyiming/.local/state/pan-agent/web122/evidence/structure.log",
+      "sha256": "bd7d3f8afa6d2ba9f3407915f177530717a0441a5d74490dc5d190a0c5d46664"
+    },
+    "faux-browser01.log": {
+      "path": "/Users/panyiming/.local/state/pan-agent/web122/evidence/faux-browser01.log",
+      "sha256": "6679de0052c2fee0dbd1e1f90b6a6a3b73bb4d82e139ceb5b5eb9283eed2a15d"
+    },
+    "faux-resume01.log": {
+      "path": "/Users/panyiming/.local/state/pan-agent/web122/evidence/faux-resume01.log",
+      "sha256": "7d729109c38681b54750069e6e6fbec9df4373229835ca3db1b9b13950982329"
+    },
+    "scope-prelive.json": {
+      "path": "/Users/panyiming/.local/state/pan-agent/web122/evidence/scope-prelive.json",
+      "sha256": "eeebce604b3851e01b870944d010bd3eeb3cf2585ebec94625b5f13aab939615"
+    },
+    "pan-dist.json": {
+      "path": "/Users/panyiming/.local/state/pan-agent/web122/evidence/pan-dist.json",
+      "sha256": "462da9bbe40f571eb8fe573af68c6beb63656c22a8225ceca67d2b7470bf7d21"
+    }
+  },
+  "tests": "Go race with real PG/Redis, vet, Go/UI build; installed Kimi fake transport with actual Native/Docker; privacy markers; auth/rate-limit/cancel/pre-send resume rejection; artifact negatives; Docker isolation; operator tests; package structure/migration identity; two Faux browser turns and explicit receipt recovery",
+  "carryForward": "Faux installed build02 exercises unchanged execution/recovery behavior. Final changes add identity hashes/labels, unknown-field accounting and live-only composition; final Go race and Node privacy tests use latest source. No real model evidence claimed by offline probes."
+}
