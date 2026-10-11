@@ -136,3 +136,5 @@ Raw artifacts remain at their stable source, Git, Trace, Test, evaluator, or ext
 - [#113 Redis query cache: bounded freshness, fallback and paired measurements](web113/README.md)
 
 - [web119](web119/README.md): Go encapsulation, explicit execution authority, query/maintenance separation (Builder candidate).
+
+- [#114 local deployment and private Faux demonstration](web114/README.md) — candidate evidence, not live-model/benchmark or acceptance.

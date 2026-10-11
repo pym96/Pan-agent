@@ -1,0 +1,265 @@
+{
+  "criteria": "1.0",
+  "role": "Working Agent (Builder)",
+  "baseline": "effbf27db194d95a83238b665a00e7ef0da33d0f",
+  "acceptance": "pending independent Regulator",
+  "package": {
+    "path": "/Users/panyiming/.local/state/pan-agent/web114/pan-web114-macos-arm64.tar.gz",
+    "sha256": "d8da32cf78973a0d4829fb58882ed06e3f39ee9534f2a804ac7b3c92bf262a81",
+    "manifestSHA256": "18d0b170189465465d5deea0154dca6bcec2bef0b92e2c88831dd653de428a7e",
+    "install": "/Users/panyiming/.local/state/pan-agent/web114/install06",
+    "data": "/Users/panyiming/.local/state/pan-agent/web114/data06",
+    "binarySHA256": "527a217cb3a2057b6244d3538021de347d0092e655c601f8d1b97b9fcf6ffc14",
+    "panTarSHA256": "70b6c7680f07f936343737f064e94cb9838aefb6264448c3639a935accce9d0e",
+    "image": "sha256:8129910271f9764b5c05038d351ad7b9f9d94b85351355b69c5526eadd111775",
+    "panDistFiles": 82
+  },
+  "video": {
+    "path": "/Users/panyiming/.local/state/pan-agent/web114/video/pan-web114-offline-demo.mp4",
+    "sha256": "5193b3f6606d56796b5d3ff2d6e3a233c7a33c97f97f77d880d642826a279585",
+    "duration": "222.120000"
+  },
+  "videoSourceMapSHA256": "b6cc48ca52674685d954d042df36e47d1ea1d328764de5655fc9b84f49bcdb07",
+  "videoPlayback": {
+    "ended": true,
+    "duration": 222.12,
+    "currentTime": 222.12,
+    "videoWidth": 1440,
+    "videoHeight": 1080,
+    "playbackRate": 16
+  },
+  "backup": {
+    "path": "/Users/panyiming/.local/state/pan-agent/web114/journey08/backup",
+    "manifestSHA256": "ce74a94dfc55a383ea5fe7a934add10c3ee02afdf65edc817a6fcbbfaf540a9b",
+    "entries": 1402,
+    "scope": "stopped physical same-host same-program/data paths; old original retained"
+  },
+  "checks": {
+    "C-DEP114-01": {
+      "passed": true,
+      "checks": [
+        "install refuses existing program",
+        "missing configuration explicit failure",
+        "occupied port refuses init before mutation",
+        "nonempty init preserves accounts/config",
+        "normal mode rejects configured test fault",
+        "normal mode rejects ambient fault",
+        "repeated healthy start is idempotent",
+        "actual three listeners loopback only; one Worker heartbeat ready",
+        "live backup refused",
+        "unknown PID identity not signalled",
+        "repeated stop proves absence",
+        "invalid package manifest rejected"
+      ],
+      "realProviderCalls": 0,
+      "credentials": "private data/config.json only"
+    },
+    "C-DEP114-02": {
+      "passed": true,
+      "bundleId": "e36875beaff4adaa367819b04704728cd97c222a63cfcbc7e91398eb5de88f99",
+      "conversationId": "aa9844c572a6b1c4c4afabd97a8cd775df123a5fc485513c95e7aef2d389917e",
+      "first": "ee60a0540b4b95931b721c64e6a304192a86be4ab759f7ca0aed4995fe8b63c9",
+      "second": "46efc9346f013a57be19322521f514d73c2441a252563456ad99202c210a5616",
+      "cancelled": "048e01b4ff1d7fbada0be59b6e5dd148ed802ba34b3be3c24a5d49296207882c",
+      "recovered": "496327c59876d8cf39d43182005ff41cbda984c959818155182443d9e3b043ed",
+      "sourceSHA256": "f67d6e22a5f229637bb90cccc5a2538f6aaa87225efb1b8a9cf182cac37828ab",
+      "csvSHA256": "5228bbb06b7717ac587d7612b3d88f6c2969fb1a4177ccc5cae5975a027ee5b9",
+      "providerCalls": 0,
+      "checks": [
+        "two real browser turns and actual context",
+        "89 classifications,23 valid,five CSV rows",
+        "source navigation",
+        "two invited accounts isolation",
+        "running cancellation confirmed",
+        "receipt fault and explicit resume only two tool executions",
+        "all stopped backup same-path restore and fresh login",
+        "history/result/usage unchanged,Redis recreated"
+      ]
+    },
+    "C-DEP114-03": {
+      "Go": [
+        {
+          "name": "race",
+          "command": [
+            "go",
+            "test",
+            "-p",
+            "1",
+            "-race",
+            "-count=1",
+            "-v",
+            "./..."
+          ],
+          "exit": 0
+        },
+        {
+          "name": "vet",
+          "command": [
+            "go",
+            "vet",
+            "./..."
+          ],
+          "exit": 0
+        },
+        {
+          "name": "build",
+          "command": [
+            "go",
+            "build",
+            "-trimpath",
+            "-o",
+            "/Users/panyiming/.local/state/pan-agent/web114/regression-binary",
+            "./cmd/pan-web"
+          ],
+          "exit": 0
+        }
+      ],
+      "operatorUnitTests": 4,
+      "resourceAllocationBoundary": "pass",
+      "UIBuild": "build05.log: npm ci and build pass",
+      "videoDecode": "decode.log: exit 0, no errors",
+      "readback": {
+        "passed": true,
+        "deniedStatus": 404,
+        "first": "ee60a0540b4b95931b721c64e6a304192a86be4ab759f7ca0aed4995fe8b63c9",
+        "second": "46efc9346f013a57be19322521f514d73c2441a252563456ad99202c210a5616",
+        "bundleId": "e36875beaff4adaa367819b04704728cd97c222a63cfcbc7e91398eb5de88f99",
+        "readOnly": true,
+        "providerCalls": 0,
+        "editing": "additional later readback clip, visibly labelled"
+      },
+      "goTopLevelPasses": 18,
+      "goParentSkips": [
+        "--- SKIP: TestCacheCrashChild (0.00s)"
+      ],
+      "skipMeaning": "TestCacheCrashChild is a child-only entry; TestCacheCommittedProcessCrash actually runs its children. No missing real-PG/Redis fixture skip."
+    }
+  },
+  "usage": {
+    "taskStates": {
+      "interrupted": 2,
+      "completed": 9,
+      "cancelled": 2
+    },
+    "tasks": 13,
+    "attempts": {
+      "interrupted": 3,
+      "completed": 9,
+      "cancelled": 2
+    },
+    "admissions": {
+      "model": 28,
+      "tool": 19
+    },
+    "knownSettlements": 28,
+    "syntheticTokens": 56,
+    "unavailableSettlements": 0,
+    "unsettledStarts": 2,
+    "pendingCleanup": 0,
+    "realProviderCalls": 0,
+    "officialBenchmarkCalls": 0,
+    "codingTokens": "unknown",
+    "note": "Unique deployed tasks only. Preserved data/backup copies are not double-counted. SQL-only unit fixtures are separate tests; Faux settlement is synthetic, not billed Provider use."
+  },
+  "resources": {
+    "sample": {
+      "utc": "2026-10-11T01:20:54.919Z",
+      "free": 25440444416,
+      "owned": 15596920832,
+      "docker": 88965840896
+    },
+    "baselineDocker": 48503971840,
+    "cumulative": 56058789888,
+    "productHash": "5ecd3b9b4da688f90dfee3cc651b4a2f755595587b6d7d7287383cab23c8e580",
+    "productFiles": 82
+  },
+  "stopped": [
+    {
+      "deployment": "data01",
+      "processes": {},
+      "containers": [],
+      "ownedProcesses": [],
+      "mode": "offline-faux",
+      "testMode": true
+    },
+    {
+      "deployment": "data02",
+      "processes": {},
+      "containers": [],
+      "ownedProcesses": [],
+      "mode": "offline-faux",
+      "testMode": true
+    },
+    {
+      "deployment": "data03",
+      "processes": {},
+      "containers": [],
+      "ownedProcesses": [],
+      "mode": "offline-faux",
+      "testMode": true
+    },
+    {
+      "deployment": "data04",
+      "processes": {},
+      "containers": [],
+      "ownedProcesses": [],
+      "mode": "offline-faux",
+      "testMode": true
+    },
+    {
+      "deployment": "data05",
+      "processes": {},
+      "containers": [],
+      "ownedProcesses": [],
+      "mode": "offline-faux",
+      "testMode": true
+    },
+    {
+      "deployment": "data06",
+      "processes": {},
+      "containers": [],
+      "ownedProcesses": [],
+      "mode": "offline-faux",
+      "testMode": true
+    },
+    {
+      "deployment": "deploy-probe01/data",
+      "processes": {},
+      "containers": [],
+      "ownedProcesses": [],
+      "mode": "offline-faux",
+      "testMode": false
+    },
+    {
+      "deployment": "deploy-probe02/data",
+      "processes": {},
+      "containers": [],
+      "ownedProcesses": [],
+      "mode": "offline-faux",
+      "testMode": false
+    },
+    {
+      "deployment": "deploy-probe03/data",
+      "processes": {},
+      "containers": [],
+      "ownedProcesses": [],
+      "mode": "offline-faux",
+      "testMode": false
+    }
+  ],
+  "previousPreservation": {
+    "inventory": "/Users/panyiming/.local/state/pan-agent/web119/inventory.json",
+    "sha256": "76d9debf87c0d7ba9137c80cd27b9f534377d9d312e1b0809f13c8c1bb8761ba",
+    "entries": 3829,
+    "mismatches": []
+  },
+  "knownLimits": [
+    "macOS arm64 host only; no public deployment/real LLM",
+    "same program/data paths and same PG major version required for restore",
+    "operator restore is an explicit stopped maintenance operation; not online/distributed disaster recovery",
+    "long-held Product stop/reconcile transactions remain",
+    "full failed recordings/probes and interrupted tasks preserved; passing final journey does not relabel them",
+    "TypeScript Product unchanged; no new TS suite or performance claim"
+  ],
+  "evidenceRoot": "/Users/panyiming/.local/state/pan-agent/web114"
+}

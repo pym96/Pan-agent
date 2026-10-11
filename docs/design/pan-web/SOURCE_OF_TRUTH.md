@@ -29,3 +29,5 @@ This is candidate documentation, not independent acceptance or a verified-projec
 ## Current #119 Criteria1.0 candidate
 
 Base `5bdfc4d5a87a6b9431cb94d34f2c0db4de180949`; [contract/activation](https://github.com/pym96/Pan-agent/issues/119#issuecomment-6096287219). [Package/interface/config mapping](packages119.md), [Builder evidence](../../evidence/web119/README.md). Pending independent review; no acceptance claim.
+
+#114 candidate: [deployment assembly](deployment114.md) and [evidence](../../evidence/web114/README.md); current contract controls scope, independent review pending.

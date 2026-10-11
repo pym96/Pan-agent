@@ -1,3 +1,7 @@
+# Current local deployment candidate (#114)
+
+Start with the [single-host install/start/stop/backup manual](deploy/README.md). Offline Faux only, current macOS host, loopback listeners. [Evidence](../../docs/evidence/web114/README.md); independent review pending. Historical development entries below remain for regression/traceability.
+
 # Evidence Web · #106
 
 An independent **Product candidate**: invited accounts import a private copy of the frozen #97 report, inspect classifications and segment7 usage, follow JSON Pointer citations, and download immutable inputs. Go owns HTTP/auth/import/persistence; React renders the page; PostgreSQL is authoritative for accounts, sessions, bundles and file bytes. No model, Pan execution, Redis, benchmark or public deployment.

@@ -250,3 +250,5 @@ Current candidate #44: [public text streaming, English compact UI and installed 
 - [#113 bounded task query cache candidate and evidence](docs/evidence/web113/README.md)
 
 - [#119 Go package candidate and evidence](docs/evidence/web119/README.md).
+
+Current local Web deployment candidate: [single-host operator](apps/evidence-web/deploy/README.md), [#114 evidence](docs/evidence/web114/README.md). Offline Faux only; independent acceptance pending.

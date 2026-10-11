@@ -1,0 +1,6 @@
+{
+  "path": "/Users/panyiming/.local/state/pan-agent/web114/inventory.json",
+  "sha256": "e3254a98f8f65eadcd2bbc5831c6d9905e9012409844720e1f6da400552ca54f",
+  "entries": 17547,
+  "scope": "Private raw inventory. Candidate tracked source is bound by Handoff full Git SHA. Future Handoff/PR/remote receipts excluded."
+}

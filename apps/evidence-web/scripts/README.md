@@ -74,3 +74,7 @@ control and browser runners accept the new web113 namespace; worker-control.py
 also supports its two owned Worker slots.
 
 #119: `local-dev.py --issue 119` owns its own database; `worker-control.py` configures pinned execution and two slots. `check119-structure.py` verifies package dependencies, exported interfaces and migration byte identity. Existing 108/112/113 probes accept #119 namespace; archived runners are unchanged.
+
+#114: `check114-deploy.py` probes installed operator failures and lifecycle; `browser114.mjs` records the real offline-Faux journey with cancellation/receipt recovery and same-path backup restore. Both preserve dedicated output directories. See [deployment manual](../deploy/README.md).
+
+`browser114-readback.mjs` records a labelled additional read-only account-isolation/history clip from an already completed journey; it submits no task and is not presented as the same continuous operation.
