@@ -56,3 +56,8 @@ rejection. Real PG/Redis race tests cover single live Worker, resume isolation,
 authority/fencing and cache behavior. Actual live work requires committed code and
 an append-only manifest before the two-question browser journey. All attempts stay
 private; only safe summaries/hash inventories enter Git. Independent review pending.
+
+The prompt fixes the reporting scope (classification counts, valid-score denominator,
+segment7 task accounting only, no success-rate/benchmark-score claim). It supplies
+no expected counts, failed-task list or prewritten analysis. An earlier broader
+answer remains in [live02 evidence](../../evidence/web122/live02.json).

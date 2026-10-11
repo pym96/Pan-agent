@@ -1,0 +1,50 @@
+{
+  "tasks": [
+    {
+      "taskId": "e69475e81b1ff87c9580faf4725bf3117902756c06ca8c78d2634f1a9ee9253c",
+      "state": "completed",
+      "providerSends": 9,
+      "toolCalls": 8,
+      "usage": {
+        "status": "reported",
+        "value": {
+          "cacheRead": 0,
+          "input": 46482,
+          "output": 4208,
+          "totalTokens": 50690
+        }
+      },
+      "artifactValidation": "valid",
+      "rows": 89
+    },
+    {
+      "taskId": "3bc4d0ec718349e01a864d085d64520b97ff3fb26338925f995da860b8130522",
+      "state": "completed",
+      "providerSends": 5,
+      "toolCalls": 4,
+      "usage": {
+        "status": "reported",
+        "value": {
+          "cacheRead": 0,
+          "input": 18730,
+          "output": 1773,
+          "totalTokens": 20503
+        }
+      },
+      "artifactValidation": "valid",
+      "rows": 5
+    }
+  ],
+  "reportingScope": "Both executed and artifacts validated. q1 additionally displayed a conditional success ratio and cumulative usage; preserved as an overbroad answer, not promoted as a benchmark score. Narrow prompt revision follows in a new manifest.",
+  "files": {
+    "execution-manifest-live02.json": "3ba392ce2ce6e1fe21c4d84ba44f4a9c82f24f44f724281b1cf892c58a9215ad",
+    "live-browser02/task-1.json": "0fe122b745ea0b885c0c7068bbe97c5abc323a34a83b10addbcb67d3e5e619d5",
+    "live-browser02/task-2.json": "7caf5fc92940642bca9e12c22af2ee3f5bd0622bced80f63f279e34f5cd50558",
+    "live-browser02/round1-analysis.json": "747711f154a89c7dd66db269e332bcc690f6317ecc31c4eb7afa8e8a7ad22916",
+    "live-browser02/round2-analysis.json": "cc809c41ab53eee666159b7705820dbc4a330ab94edcb3cfb45f28dbb79b0ebe",
+    "live-browser02/round1-details.csv": "3de3c6368e8cec7aba60897c87b317b1ef11c92bbf15b489c8ee0fb6de67ed6e",
+    "live-browser02/round2-details.csv": "a2bb2df28318e984f8205700e74e5c900bb04bfd202f1f494c3e805ba887babc",
+    "live-browser02/demo.webm": "dceca098e1f8350d0cd4c1b2cb8f0cf39c138c68eefe713724bf5e03dcb8718f",
+    "evidence/live-stop02.log": "98f5d232ce0cc47dd9a8741ed0075dbae5cbe2a958d17f1e475c217b1cc2adbe"
+  }
+}

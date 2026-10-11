@@ -46,3 +46,15 @@ and continues rejecting unrelated attachments and altered hashes. Tests now incl
 the real three-file layout. Safe startup error codes are retained without arbitrary
 exception text. This is a Web input-boundary defect, not a provider failure. Further
 live work uses a new code SHA/manifest/task; the first attempt is not erased or resumed.
+
+## Live02: two completed tasks, reporting scope narrowed afterward
+
+[Retained results/hash index](live02.json). Actual installed Kimi drove Python/Docker,
+with 89-row and five-row CSVs and valid hashes/pointers. q1 also presented an unsolicited
+18/23 conditional ratio and the separately labeled cumulative observed-usage field.
+Those values were not injected into the prompt and are not promoted as a benchmark
+score. Builder judged the answer broader than the contract's reporting boundary and
+retained it verbatim. The next prompt explicitly limits reporting to counts, valid
+score denominator and segment7 task accounting; it adds no expected counts or task
+answers. New commit/manifest/tasks are used, and both earlier completions stay in the
+cumulative denominator. This is a prompt scope correction, not a provider/parser fix.
