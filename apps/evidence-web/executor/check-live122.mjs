@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict';
-import {mkdir,writeFile,readFile,readdir,chmod,symlink} from 'node:fs/promises';
+import {mkdir,writeFile,readFile,readdir,chmod,symlink,cp} from 'node:fs/promises';
 import {join,resolve} from 'node:path';
 import {pathToFileURL} from 'node:url';
 import {execute,digest} from './main.mjs';
-import {validateLiveConfig,validateArtifacts,LIVE_PROMPT} from './live.mjs';
+import {validateLiveConfig,validateLiveInput,safeLiveError,validateArtifacts,LIVE_PROMPT} from './live.mjs';
 import {dockerEnvironment} from './docker-tool.mjs';
 const root=resolve(process.argv[2]);await mkdir(root,{recursive:true});
 const Pan=await import(pathToFileURL(process.env.PAN_ENTRY));
@@ -14,7 +14,7 @@ assert.throws(()=>validateLiveConfig(Pan,{KIMI_API_KEY:''}),/credential/);
 for(const cp of [{version:1},{version:2}])assert.throws(()=>validateLiveConfig(Pan,process.env,{checkpoint:cp}),/unsupported/);
 assert.throws(()=>validateLiveConfig(Pan,{...process.env,KIMI_ENDPOINT:'https://evil.invalid'}),/unsupported/);
 const tid='1'.repeat(64),dir=join(root,tid);await mkdir(join(dir,'input'),{recursive:true});await mkdir(join(dir,'output'));await chmod(join(dir,'output'),0o777);
-await writeFile(join(dir,'input/task.json'),JSON.stringify({summary:'summary.json'}));await writeFile(join(dir,'input/summary.json'),await readFile(new URL('../../../docs/evidence/terminal-bench-full-live-97-summary.json',import.meta.url)));
+await writeFile(join(dir,'input/task.json'),JSON.stringify({summary:'summary.json'}));await writeFile(join(dir,'input/summary.json'),await readFile(new URL('../../../docs/evidence/terminal-bench-full-live-97-summary.json',import.meta.url)));await writeFile(join(dir,'input/manifest.json'),JSON.stringify({version:1,title:'offline boundary',summary:'summary.json',files:{'summary.json':'f67d6e22a5f229637bb90cccc5a2538f6aaa87225efb1b8a9cf182cac37828ab'}}));
 // Fake transport generates tool code; no real model requests or target answers.
 const code=`import json, csv, hashlib, os
 from pathlib import Path
@@ -48,5 +48,7 @@ await writeFile(join(dir,'output/analysis.json'),Buffer.concat([good,Buffer.from
 let obj=JSON.parse(good);obj.sources[0].sha256='0'.repeat(64);await writeFile(join(dir,'output/analysis.json'),JSON.stringify(obj));await assert.rejects(validateArtifacts(dir),/identity/);
 obj=JSON.parse(good);obj.sources[0].pointer='/absent';await writeFile(join(dir,'output/analysis.json'),JSON.stringify(obj));await assert.rejects(validateArtifacts(dir),/pointer/);
 await writeFile(join(dir,'output/analysis.json'),good);await writeFile(join(dir,'output/details.csv'),'bad header\n');await assert.rejects(validateArtifacts(dir),/header/);await writeFile(join(dir,'output/details.csv'),csv);
+const badInput=join(root,'bad-input');await mkdir(badInput);await cp(join(dir,'input'),join(badInput,'input'),{recursive:true});await writeFile(join(badInput,'input/extra.txt'),'unrelated');await assert.rejects(validateLiveInput(badInput),/not_authorized/);
+assert.equal(safeLiveError(Error('Bearer synthetic raw error')),'live_executor_failed');
 assert.ok(!LIVE_PROMPT.includes('valid_failure')&&!LIVE_PROMPT.includes('89'));
 console.log(JSON.stringify({status:'passed',realProviderSends:0,fakeTransportSends:calls,privateMarkerAbsent:true,publicContextReceived:context,continuationInMemory:continuation,validationFeedback:feedback,actualDocker:true,artifactNegativeCases:6}));

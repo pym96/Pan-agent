@@ -6,7 +6,7 @@ const root=resolve(process.argv[2]);await mkdir(root,{recursive:true});Object.as
 const results=[];
 for(const [i,kind] of ['auth','rate-limit','cancel','checkpoint1','checkpoint2'].entries()){
  const id=String(i+3).repeat(64),dir=join(root,id);await mkdir(join(dir,'input'),{recursive:true});await mkdir(join(dir,'output'));
- await writeFile(join(dir,'input/task.json'),'{"summary":"summary.json"}');await writeFile(join(dir,'input/summary.json'),await readFile(new URL('../../../docs/evidence/terminal-bench-full-live-97-summary.json',import.meta.url)));
+ await writeFile(join(dir,'input/task.json'),'{"summary":"summary.json"}');await writeFile(join(dir,'input/summary.json'),await readFile(new URL('../../../docs/evidence/terminal-bench-full-live-97-summary.json',import.meta.url)));await writeFile(join(dir,'input/manifest.json'),JSON.stringify({version:1,title:'offline boundary',summary:'summary.json',files:{'summary.json':'f67d6e22a5f229637bb90cccc5a2538f6aaa87225efb1b8a9cf182cac37828ab'}}));
  let sends=0;const ac=new AbortController(),records=[];const job={taskId:id,attemptId:id,authority:{Task:id,Attempt:id,Owner:'a'.repeat(64),Generation:1},root:dir,question:'synthetic failure'};
  if(kind.startsWith('checkpoint'))job.checkpoint={version:Number(kind.at(-1))};
  const fetchImplementation=async(url,opts)=>{sends++;assert.equal(url,'https://api.kimi.com/coding/v1/chat/completions');if(kind==='cancel'){setTimeout(()=>ac.abort(),25);return new Promise((_,reject)=>opts.signal.addEventListener('abort',()=>reject(new DOMException('Abort','AbortError')),{once:true}))}return new Response('SYNTHETIC-RAW-ERROR-PRIVATE',{status:kind==='auth'?403:429})};

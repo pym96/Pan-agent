@@ -27,3 +27,22 @@ and explicit receipt recovery. The #114 installed Pan dist remains exactly 82 fi
 The resource sampler's `productHash` refers to its retained #97 runner verification,
 not the Web package. Current Pan identity is explicitly in `pan-dist.json` and the
 Web package/installation manifest. No historical ledger baseline is reset.
+
+## Live01: failed before any send; retained and repaired
+
+Manifest `execution-manifest-live01.json` binds code
+`e156863cdb9833d7fcb24cd2e691f130284cc46d`.
+Task `d2311640dc8c1cd628d7a41ea6d5f653479e5f18b2e2629cf3009de40aaced76`
+ended interrupted with stop confirmed and **0 provider.send / 0 model-turn starts**.
+The real importer copies `manifest.json`; Builder's first live allowlist omitted
+this authorized input. Direct executor fixtures also omitted it, so they missed the
+composition mismatch. Raw task input, events, stderr, original manifest and browser
+video remain under `live-data01` / `live-browser01`.
+
+An offline replay against the original installed executor rejects the exact retained
+Go layout before admission/send; the repaired validator accepts the same read-only
+layout. It verifies that manifest declares only the fixed report with its actual hash,
+and continues rejecting unrelated attachments and altered hashes. Tests now include
+the real three-file layout. Safe startup error codes are retained without arbitrary
+exception text. This is a Web input-boundary defect, not a provider failure. Further
+live work uses a new code SHA/manifest/task; the first attempt is not erased or resumed.

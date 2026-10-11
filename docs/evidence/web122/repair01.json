@@ -1,0 +1,14 @@
+{
+  "cause": "authorized manifest omitted from live input allowlist",
+  "providerSends": 0,
+  "originalEvidence": {
+    "execution-manifest-live01.json": "fc4bf16e91a18778322e4394b90b9be28662d7122be9affb40c5edb4f615da50",
+    "evidence/manifest-repro.json": "7f4d40b53148a6e767ec3572d4018dfec27929f5eaeefaeeba9783bf918640d8",
+    "evidence/node-offline06.log": "1cbfd9a45c424aa2b9f19efdf1e2e60fcf5cabaa1cad0046e4f3f3743346e52e",
+    "evidence/node-failures02.log": "316f1e72506ffd6603255771797025ef7d46cd9cce1836ba5ea6eaca879bb677",
+    "live-browser01/task-1.json": "6b863f24ed88f942ad4e72cb1c7dca2c00d1a6c6a94ff691a65b1f9aed57c588",
+    "live-browser01/failure.json": "1ff1b118f9ec740c2587ff7e0630c63f3c13eb003e0164bd22854e69bafad7e4",
+    "live-browser01/demo.webm": "848c9961fed47a77b1c7dfe9cd0c91010107200ee638187695c9be1aa1dcf1c1",
+    "evidence/live-stop01.log": "98f5d232ce0cc47dd9a8741ed0075dbae5cbe2a958d17f1e475c217b1cc2adbe"
+  }
+}

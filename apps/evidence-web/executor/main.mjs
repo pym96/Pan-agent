@@ -1,4 +1,4 @@
-import {LIVE_IDENTITY,LIVE_PROMPT,validateLiveConfig,liveAdapter,artifactTool,validateArtifacts,knownArtifactError} from './live.mjs';
+import {LIVE_IDENTITY,LIVE_PROMPT,validateLiveConfig,validateLiveInput,safeLiveError,liveAdapter,artifactTool,validateArtifacts,knownArtifactError} from './live.mjs';
 import {executionAdmission} from './ownership.mjs';
 import {checkpointAdapter,checkpointIO} from './checkpoint.mjs';
 import {readFile,writeFile,mkdir,readdir,lstat} from 'node:fs/promises';
@@ -35,7 +35,7 @@ export async function execute(job,{adapterFactory=fauxFactory,codeOverride,fetch
  const admit=executionAdmission(job,handshake,signal);
  const Pan=await import(pathToFileURL(process.env.PAN_ENTRY));const live=process.env.WEB_PROVIDER==='kimi';
  if(process.env.WEB_PROVIDER&&!['kimi','offline-faux'].includes(process.env.WEB_PROVIDER))throw Error('provider_configuration');
- if(live){validateLiveConfig(Pan,process.env,job);const meta=JSON.parse(await readFile(join(root,'input/task.json'),'utf8'));if(!/^[a-zA-Z0-9][a-zA-Z0-9._-]*$/.test(meta.summary)||digest(await readFile(join(root,'input',meta.summary)))!=='f67d6e22a5f229637bb90cccc5a2538f6aaa87225efb1b8a9cf182cac37828ab'||(await readdir(join(root,'input'))).some(n=>n!==meta.summary&&n!=='task.json'))throw Error('live_input_not_authorized')}
+ if(live){validateLiveConfig(Pan,process.env,job);await validateLiveInput(root)}
  const code=live?'':codeOverride??await readFile(new URL('./analysis.py',import.meta.url),'utf8');
  const observations=[];const observe=async e=>{observations.push(e);await record({kind:'event',event:e})};
  const snapshot=job.contextText?JSON.parse(job.contextText):{turns:[]};
@@ -93,5 +93,5 @@ export async function execute(job,{adapterFactory=fauxFactory,codeOverride,fetch
 if(process.argv[1]&&pathToFileURL(resolve(process.argv[1])).href===import.meta.url){
  const ac=new AbortController();process.on('SIGTERM',()=>ac.abort());process.on('SIGINT',()=>ac.abort());
  const rl=createInterface({input:process.stdin});let admitted=false,ack;const handshake=e=>new Promise((resolve,reject)=>{ack=resolve;process.stdout.write(JSON.stringify(e)+'\n');ac.signal.addEventListener('abort',()=>reject(Error('checkpoint_ack_cancelled')),{once:true})});rl.on('close',()=>ac.abort());
- rl.on('line',async line=>{if(admitted){try{const message=JSON.parse(line),action=message.action;if(action==='cancel')ac.abort();else if(action==='checkpoint_ack'||action==='admission_ack'){const fn=ack;ack=null;fn?.(message)}}catch{};return;}admitted=true;try{const job=JSON.parse(line);const result=await execute(job,{signal:ac.signal,handshake,record:e=>{process.stdout.write(JSON.stringify(e)+'\n')}});process.stdout.write(JSON.stringify(result)+'\n');process.exitCode=0}catch(error){process.stderr.write(process.env.WEB_PROVIDER==='kimi'?'live_executor_failed; no raw error persisted\n':String(error.stack)+'\n');process.stdout.write(JSON.stringify({kind:'failure',error:'executor_failed; inspect private task evidence',cleanupConfirmed:false})+'\n');process.exitCode=1}finally{rl.close();process.stdin.destroy()}});
+ rl.on('line',async line=>{if(admitted){try{const message=JSON.parse(line),action=message.action;if(action==='cancel')ac.abort();else if(action==='checkpoint_ack'||action==='admission_ack'){const fn=ack;ack=null;fn?.(message)}}catch{};return;}admitted=true;try{const job=JSON.parse(line);const result=await execute(job,{signal:ac.signal,handshake,record:e=>{process.stdout.write(JSON.stringify(e)+'\n')}});process.stdout.write(JSON.stringify(result)+'\n');process.exitCode=0}catch(error){process.stderr.write(process.env.WEB_PROVIDER==='kimi'?safeLiveError(error)+'; no raw error persisted\n':String(error.stack)+'\n');process.stdout.write(JSON.stringify({kind:'failure',error:'executor_failed; inspect private task evidence',cleanupConfirmed:false})+'\n');process.exitCode=1}finally{rl.close();process.stdin.destroy()}});
 }

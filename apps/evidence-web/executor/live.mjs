@@ -59,3 +59,18 @@ export function artifactTool(root,record,admit){
  }};
 }
 export function knownArtifactError(e){return /^(analysis_|source_|input_|csv_|artifact_)[a-z_]+$/.test(e.message)?e.message:e.code==='ENOENT'?'artifact_missing':'artifact_invalid_json_or_io'}
+
+export async function validateLiveInput(root){
+ const dir=join(root,'input'),meta=JSON.parse(await readFile(join(dir,'task.json'),'utf8'));
+ if(typeof meta.summary!=='string'||!/^[A-Za-z0-9][A-Za-z0-9._-]*$/.test(meta.summary)||['manifest.json','task.json'].includes(meta.summary))throw Error('live_input_not_authorized');
+ const sha=hash(await readFile(join(dir,meta.summary)));
+ if(sha!=='f67d6e22a5f229637bb90cccc5a2538f6aaa87225efb1b8a9cf182cac37828ab')throw Error('live_input_not_authorized');
+ const manifest=JSON.parse(await readFile(join(dir,'manifest.json'),'utf8'));
+ if(manifest.version!==1||manifest.summary!==meta.summary||!manifest.files||Object.keys(manifest.files).length!==1||manifest.files[meta.summary]!==sha)throw Error('live_manifest_not_authorized');
+ const {readdir}=await import('node:fs/promises');
+ if((await readdir(dir)).some(n=>![meta.summary,'task.json','manifest.json'].includes(n)))throw Error('live_input_not_authorized');
+}
+export function safeLiveError(error){
+ const codes=new Set(['live_input_not_authorized','live_manifest_not_authorized','live_resume_unsupported','kimi_credential_unavailable','kimi_configuration_unsupported','kimi_endpoint_identity','context_hash_mismatch','context_bounds','task_root_identity','ownership_identity','product_mode_required','provider_configuration']);
+ return codes.has(error?.message)?error.message:'live_executor_failed';
+}
