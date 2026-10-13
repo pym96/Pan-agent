@@ -75,7 +75,7 @@ def receipts(c):return json.loads(receiptfile(c).read_text()) if receiptfile(c).
 def spawn(c,name,args,env):
  rec=receipts(c);require(name not in rec or not alive(rec[name]),'service already running')
  with (P(c['data'])/'logs'/f'{name}.log').open('a') as f:
-  p=subprocess.Popen([str(x) for x in args],env=env,cwd=c['data'],stdout=f,stderr=f,stdin=subprocess.DEVNULL,start_new_session=True)
+  p=subprocess.Popen([str(x) for x in args],env=env,cwd=c['data'],stdout=f,stderr=f,stdin=subprocess.DEVNULL,start_new_session=True,umask=0o022 if name.startswith('worker') else 0o077)
  identity=process(p.pid);require(identity is not None,'process failed immediately; inspect logs')
  rec[name]={'pid':p.pid,'identity':identity}
  if name=='redis':rec[name]['serviceTitle']=c['redis']+' 127.0.0.1:'+str(c['redisPort'])
