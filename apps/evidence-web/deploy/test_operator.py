@@ -35,6 +35,24 @@ class OperatorTests(unittest.TestCase):
    self.assertNotIn('SYNTHETIC-PROVIDER',str(c));self.assertNotIn('KIMI_API_KEY',op.baseenv(c))
   c['workers']=2
   with self.assertRaisesRegex(RuntimeError,'one worker'):op.environment(c)
+ def test_linux_package_identity_platform_and_bytes(self):
+  import json
+  with tempfile.TemporaryDirectory() as t:
+   p=P(t);(p/'binary').write_bytes(b'linux-package')
+   manifest={'version':2,'os':'linux','architecture':'x86_64','sourceSHA':'a'*40,'files':op.tree(p)}
+   (p/'manifest.json').write_text(json.dumps(manifest))
+   with patch.object(op.sys,'platform','linux'),patch.object(op.platform,'machine',return_value='x86_64'):
+    self.assertEqual(op.package_identity(p)['sourceSHA'],'a'*40)
+    (p/'binary').write_bytes(b'tampered')
+    with self.assertRaisesRegex(RuntimeError,'inventory mismatch'):op.package_identity(p)
+    (p/'binary').write_bytes(b'linux-package')
+   with patch.object(op.sys,'platform','darwin'):
+    with self.assertRaisesRegex(RuntimeError,'platform mismatch'):op.package_identity(p)
+   with patch.object(op.sys,'platform','linux'),patch.object(op.platform,'machine',return_value='aarch64'):
+    with self.assertRaisesRegex(RuntimeError,'architecture mismatch'):op.package_identity(p)
+ def test_linux_image_is_bound_in_environment(self):
+  c={'data':'/data','release':'/release','path':'/bin','dockerHost':'unix:///socket','dbPassword':'synthetic','pgPort':1,'httpPort':2,'redisPort':3,'namespace':'dep-wo126-test','testMode':False,'faults':{},'image':'sha256:'+'a'*64}
+  with patch.dict(op.os.environ,{},clear=True):self.assertEqual(op.environment(c)['PAN_IMAGE'],c['image'])
  def test_stop_cannot_claim_live_or_unknown(self):
   for state in [{'processes':{'worker':True},'containers':[],'ownedProcesses':[]},{'processes':{},'containers':['running'],'ownedProcesses':[]},{'processes':{},'containers':[],'ownedProcesses':['orphan']}]:
    with patch.object(op,'state',return_value=state):

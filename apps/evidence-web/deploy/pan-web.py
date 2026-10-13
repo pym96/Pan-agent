@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Trusted-local, loopback-only deployment operator. No daemon or shell dependency."""
-import argparse, contextlib, fcntl, hashlib, json, os, pathlib, secrets, shutil, signal, socket, subprocess, sys, time, urllib.request
+import argparse, contextlib, fcntl, hashlib, json, os, pathlib, secrets, shutil, signal, socket, subprocess, sys, time, urllib.request, platform
 P=pathlib.Path
 HERE=P(__file__).resolve().parent
 IMAGE='sha256:8129910271f9764b5c05038d351ad7b9f9d94b85351355b69c5526eadd111775'
@@ -54,7 +54,7 @@ def baseenv(c):
  return {'PATH':c['path'],'HOME':c['data'],'TMPDIR':str(P(c['data'])/'tmp'),'LANG':'en_US.UTF-8','LC_ALL':'C','DOCKER_HOST':c['dockerHost'],'DOCKER_CONFIG':str(P(c['data'])/'docker')}
 def environment(c):
  d=P(c['data']);release=P(c['release']);e=baseenv(c)
- e.update(DATABASE_URL=f"postgres://panweb:{c['dbPassword']}@127.0.0.1:{c['pgPort']}/panweb?sslmode=disable",LISTEN_ADDR=f"127.0.0.1:{c['httpPort']}",APP_ORIGIN=f"http://127.0.0.1:{c['httpPort']}",WEB_DIR=str(release/'web'),WEB_MODE='product',WEB_ISSUE=c['namespace'],WEB_CACHE='1',WEB_REDIS_ADDR=f"127.0.0.1:{c['redisPort']}",WEB_CACHE_NAMESPACE=c['namespace'],WEB107_TASK_ROOT=str(d/'tasks'),WEB107_EXECUTOR=str(release/'executor/main.mjs'),PAN_ENTRY=str(release/'pan/dist/index.js'),PAN_IMAGE=IMAGE,WEB_CHECKPOINT_MODE='1',WEB_OPERATION_MODE='1',ANALYSIS_CPUS='1',ANALYSIS_MEMORY_GIB='1')
+ e.update(DATABASE_URL=f"postgres://panweb:{c['dbPassword']}@127.0.0.1:{c['pgPort']}/panweb?sslmode=disable",LISTEN_ADDR=f"127.0.0.1:{c['httpPort']}",APP_ORIGIN=f"http://127.0.0.1:{c['httpPort']}",WEB_DIR=str(release/'web'),WEB_MODE='product',WEB_ISSUE=c['namespace'],WEB_CACHE='1',WEB_REDIS_ADDR=f"127.0.0.1:{c['redisPort']}",WEB_CACHE_NAMESPACE=c['namespace'],WEB107_TASK_ROOT=str(d/'tasks'),WEB107_EXECUTOR=str(release/'executor/main.mjs'),PAN_ENTRY=str(release/'pan/dist/index.js'),PAN_IMAGE=c.get('image',IMAGE),WEB_CHECKPOINT_MODE='1',WEB_OPERATION_MODE='1',ANALYSIS_CPUS='1',ANALYSIS_MEMORY_GIB='1')
  mode=c.get('provider','offline-faux');require(mode in ['offline-faux','kimi'],'invalid provider')
  e['WEB_PROVIDER']=mode
  if mode=='kimi':
@@ -129,7 +129,7 @@ def start(c):
   require(ready(c),'partial deployment running; stop/inspect before start');print('already ready');return
  stopped(c)
  for p in [c['httpPort'],c['pgPort'],c['redisPort']]:freeport(p)
- call(['docker','image','inspect',IMAGE],baseenv(c))
+ call(['docker','image','inspect',c.get('image',IMAGE)],baseenv(c))
  d=P(c['data']);env=environment(c)
  spawn(c,'pg',[P(c['pgBin'])/'postgres','-D',d/'pgdata'],baseenv(c))
  def pgready():
@@ -159,7 +159,18 @@ def stop(c):
  terminate(c,'redis')
  # postgres SIGTERM is smart shutdown; all owned clients must already have exited.
  terminate(c,'pg');stopped(c);print('all owned services/executions stopped')
+def package_identity(root):
+ root=P(root);m=json.loads((root/'manifest.json').read_text())
+ require(m['os']==sys.platform,'package platform mismatch')
+ if m.get('version',1)>=2:
+  require(m['architecture']==platform.machine(),'package architecture mismatch')
+  require(len(m['sourceSHA'])==40 and all(c in '0123456789abcdef' for c in m['sourceSHA']),'invalid source identity')
+ actual=tree(root);actual.pop('manifest.json',None)
+ require(actual==m['files'],'package inventory mismatch')
+ return m
+
 def load(data):
+ package_identity(HERE.parent)
  d=P(data).resolve();c=json.loads((d/'config.json').read_text());require(c['data']==str(d),'data path binding mismatch')
  require((d/'config.json').stat().st_mode&0o077==0 and d.stat().st_mode&0o077==0,'private directory/config permissions required')
  require(c['workers'] in [1,2] and len({c['httpPort'],c['pgPort'],c['redisPort']})==3 and all(type(c[k]) is int and 1024<=c[k]<=65535 for k in ['httpPort','pgPort','redisPort']),'invalid ports/workers')
@@ -176,7 +187,7 @@ def lock(data):
   yield
 
 def init(a):
- release=HERE.parent;require((release/'manifest.json').exists(),'init requires installed package')
+ release=HERE.parent;require((release/'manifest.json').exists(),'init requires installed package');manifest=package_identity(release)
  d=P(a.data).resolve();require(not d.is_relative_to(release) and not release.is_relative_to(d),'program and data directories must be separate');require(not d.exists() or not any(d.iterdir()),'init requires empty data directory')
  require(len({a.port,a.pg_port,a.redis_port})==3,'ports must differ')
  require(all(1024<=p<=65535 for p in [a.port,a.pg_port,a.redis_port]),'invalid port')
@@ -186,7 +197,7 @@ def init(a):
  d.mkdir(parents=True,exist_ok=True);d.chmod(0o700)
  with (d/'.init-claim').open('x') as f:f.write('initialization owns this directory; retain on failure\n')
  for n in ['logs','tasks','tmp','docker']: (d/n).mkdir(mode=0o700)
- c={'version':1,'provider':a.provider,'release':str(release),'data':str(d),'pgBin':str(pg),'redis':str(release/'bin/redis-server'),'dependencies':deps,'path':str(node.parent)+':'+str(docker.parent)+':/usr/bin:/bin:/usr/sbin:/sbin','dockerHost':call(['docker','context','inspect','--format','{{.Endpoints.docker.Host}}']),'namespace':'dep-'+secrets.token_hex(8),'httpPort':a.port,'pgPort':a.pg_port,'redisPort':a.redis_port,'workers':a.workers,'testMode':a.test_mode,'faults':{},'dbPassword':secrets.token_hex(24),'accounts':{who:{'email':who+'@pan.local','password':secrets.token_hex(18)} for who in ['a','b']}}
+ c={'version':1,'image':manifest['image'],'provider':a.provider,'release':str(release),'data':str(d),'pgBin':str(pg),'redis':str(release/'bin/redis-server'),'dependencies':deps,'path':str(node.parent)+':'+str(docker.parent)+':/usr/bin:/bin:/usr/sbin:/sbin','dockerHost':call(['docker','context','inspect','--format','{{.Endpoints.docker.Host}}']),'namespace':'dep-'+('wo126-' if manifest.get('os')=='linux' else '')+secrets.token_hex(8),'httpPort':a.port,'pgPort':a.pg_port,'redisPort':a.redis_port,'workers':a.workers,'testMode':a.test_mode,'faults':{},'dbPassword':secrets.token_hex(24),'accounts':{who:{'email':who+'@pan.local','password':secrets.token_hex(18)} for who in ['a','b']}}
  c['dependencies'][c['redis']]=digest(c['redis']);write(d/'config.json',c)
  pw=d/'db-password';pw.write_text(c['dbPassword']+'\n');pw.chmod(0o600)
  env=baseenv(c)
@@ -208,7 +219,7 @@ def init(a):
  print('initialized; invited account secrets are only in private config.json')
 def install(a):
  src=P(a.package).resolve();dst=P(a.dest).resolve();require(not dst.is_relative_to(src) and not src.is_relative_to(dst),'package and install destination must be separate');require(not dst.exists(),'install destination already exists')
- manifest=json.loads((src/'manifest.json').read_text());actual=tree(src);actual.pop('manifest.json',None);require(actual==manifest['files'],'package inventory mismatch')
+ package_identity(src)
  dst.parent.mkdir(parents=True,exist_ok=True);shutil.copytree(src,dst);print('installed '+str(dst))
 def backup(c,target):
  stopped(c);out=P(target).resolve();require(not out.exists(),'backup destination exists');require(not out.is_relative_to(P(c['data'])),'backup must be outside data')

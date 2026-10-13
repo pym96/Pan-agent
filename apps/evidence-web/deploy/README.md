@@ -98,3 +98,23 @@ and unknown usage, not only the latest successful answer.
 
 [Composition and privacy boundaries](../../../docs/design/pan-web/live122.md)
 · [Candidate evidence](../../../docs/evidence/web122/README.md).
+
+
+## #126 Linux candidate — blocked before deployment
+
+Linux packaging accepts `--platform-lock /private/platform-lock.json`, required on
+Linux. The JSON binds `os: "linux"`, `architecture` (Python platform.machine(),
+e.g. `x86_64`), full `sourceSHA`, `panTarSHA256`, `redisSHA256`, and the immutable
+Docker `image` ID. Construct and retain this lock from a reviewed candidate build
+and independently verified dependencies; a caller-supplied lock is not a signature
+or acceptance verdict. The packager checks local input hashes and the actual image
+platform. The installed manifest records the lock and all packaged file hashes.
+Install/init/lifecycle reject a different OS, architecture or changed package bytes.
+Linux uses an explicit package image, leaving macOS's existing hashes unchanged.
+
+This candidate is not ready for service use. The unchanged Web executor currently
+requires macOS Docker.raw before every analysis tool. Linux reproduction fails
+closed; adapting that resource gate is outside the current WorkOrder write scope.
+Do not fabricate the backing file or skip the gate. See
+[partial evidence and ScopeChallenge](../../../docs/evidence/server-migration-126/README.md).
+No Linux end-to-end, real Provider or restart verification has occurred.
