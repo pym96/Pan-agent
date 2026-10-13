@@ -100,21 +100,65 @@ and unknown usage, not only the latest successful answer.
 · [Candidate evidence](../../../docs/evidence/web122/README.md).
 
 
-## #126 Linux candidate — blocked before deployment
+## #126 Linux deployment (Criteria1.1 candidate)
 
-Linux packaging accepts `--platform-lock /private/platform-lock.json`, required on
-Linux. The JSON binds `os: "linux"`, `architecture` (Python platform.machine(),
-e.g. `x86_64`), full `sourceSHA`, `panTarSHA256`, `redisSHA256`, and the immutable
-Docker `image` ID. Construct and retain this lock from a reviewed candidate build
-and independently verified dependencies; a caller-supplied lock is not a signature
-or acceptance verdict. The packager checks local input hashes and the actual image
-platform. The installed manifest records the lock and all packaged file hashes.
-Install/init/lifecycle reject a different OS, architecture or changed package bytes.
-Linux uses an explicit package image, leaving macOS's existing hashes unchanged.
+Linux packaging requires `--platform-lock /private/platform-lock.json`. This JSON
+binds `os: "linux"`, `architecture` (Python platform.machine(), e.g. `x86_64`), full
+`sourceSHA`, `panTarSHA256`, `redisSHA256`, and immutable Docker `image` ID. Create
+and retain the lock from the candidate build and verified dependencies. It is an
+operator-supplied identity record, not a signature or independent Verdict. The
+packager checks bytes and image platform; install/init/lifecycle verify the package
+inventory and platform. The macOS input hashes and accounting formula are unchanged.
 
-This candidate is not ready for service use. The unchanged Web executor currently
-requires macOS Docker.raw before every analysis tool. Linux reproduction fails
-closed; adapting that resource gate is outside the current WorkOrder write scope.
-Do not fabricate the backing file or skip the gate. See
-[partial evidence and ScopeChallenge](../../../docs/evidence/server-migration-126/README.md).
-No Linux end-to-end, real Provider or restart verification has occurred.
+Use the project toolchain entry (Node22+, Go1.24+, Python3.10+) for build/init.
+PostgreSQL14.18 can be compiled in the project prefix using official source plus
+SHA256, `configure --without-readline --prefix=...`, `make -j2`, `make install`.
+Use a distinct `--dest` per deployment, and a new private `--data` path; never copy
+Mac physical PG data or active checkpoints across hosts. Import the authorized
+report through the normal UI. Local historical task databases remain on the Mac.
+
+```sh
+python3 -B deploy/package.py --out "$PACKAGE" --pan-tar "$PAN_TAR" \
+  --redis "$REDIS_BINARY" --platform-lock "$PLATFORM_LOCK"
+python3 -B deploy/pan-web.py install --package "$PACKAGE" --dest "$PROGRAM"
+python3 -B "$PROGRAM/deploy/pan-web.py" init --data "$DATA" \
+  --project-root "$PROJECT_ROOT" --pg-bin "$PG_BIN" \
+  --port 8127 --pg-port 54127 --redis-port 63127 --workers 1 --provider kimi
+```
+
+Init samples a real Linux baseline and binds a private resource profile/hash into
+config. The project root includes sources/builds/toolchains/cache/program/data and
+Evidence; tasks and program must belong to it. Allocated project bytes use dev/inode
+deduplication and exclude external symlinks. Bound image logical bytes and labelled
+containers are separate; shared Docker layers are not claimed as owned physical
+bytes. Project/task/DockerRootDir filesystems each require at least20GiB available,
+deduplicated by device. No Mac Docker.raw/baseline or total increment cap is used
+on Linux. Missing profiles, unknown measurements and low space fail before tool
+container creation, retaining the error. The trusted profile is not user-uploaded
+or model-selected. Single worker; each tool remains1CPU/1GiB, no GPU.
+
+The Worker uses umask022 so declared0444 input files remain readable to the
+unprivileged container user; private data and task directories remain0700. PG,
+Redis and API keep umask077. This handles Linux bind mount permissions rather than
+changing tool code or relaxing directory privacy.
+
+For remote Kimi start/restart, with KIMI_API_KEY already in the **local controlling
+process environment**, use `scripts/deploy/start126.py --host HOST --program PROGRAM
+--data DATA [--action restart]` from the repository root. The key travels on encrypted
+SSH stdin only and is passed solely to Worker. No credential file is deployed.
+For other commands: `ssh HOST 'python3 -B PROGRAM/deploy/pan-web.py status --data DATA'`
+(or `stop`). Repeated healthy start is a no-op. Start a fresh SSH connection for
+status to confirm control-session independence. Stop/start only when no tasks are
+queued or running; this is persisted-history validation, not in-flight recovery.
+
+Mac browser access: `ssh -N -L 127.0.0.1:8127:127.0.0.1:8127 HOST` then open
+http://127.0.0.1:8127. Keep the same local/remote port for configured Origin checks.
+The access tunnel may close/reopen without resubmission. Download proxies are
+transient and are not forwarded to business services; real Provider traffic goes
+directly from the server. Services survive the initiating SSH command through
+separate sessions. Dedicated processes and containers are identified by private
+receipts and `dep-wo126-*`; never use global Docker cleanup.
+
+[Linux candidate evidence](../../../docs/evidence/server-migration-126/README.md)
+includes all failed and successful attempts, dependency/image identities and final
+lifecycle observations. Independent Regulator decides acceptance.

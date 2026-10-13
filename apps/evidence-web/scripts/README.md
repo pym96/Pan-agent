@@ -87,3 +87,5 @@ an authorized committed-SHA manifest. Failure keeps the terminal and video.
 `faux-resume122.mjs` is restricted to offline-faux test deployments. It kills only
 the recorded owned Node after a persisted receipt, restarts services, explicitly
 resumes, and asserts exactly two Docker executions across both attempts.
+
+#126: browser126.mjs drives the actual two-turn UI with cross-account negatives; check-results126.py recomputes the imported-row oracle; readback126.py compares existing history/artifacts without task submission. Private directories are explicit arguments/environment.

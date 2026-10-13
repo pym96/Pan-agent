@@ -1,0 +1,39 @@
+{
+  "processes": {
+    "pg": true,
+    "redis": true,
+    "api": true,
+    "worker0": true
+  },
+  "containers": [],
+  "ownedProcesses": [
+    "348337 /media/usv012/pjx/agent/pan-agent/wo126/postgresql/bin/postgres -D /media/usv012/pjx/agent/pan-agent/wo126/data-live/pgdata",
+    "348348 /media/usv012/pjx/agent/pan-agent/wo126/program-live/bin/redis-server 127.0.0.1:63127",
+    "348354 /media/usv012/pjx/agent/pan-agent/wo126/program-live/bin/evidence-web",
+    "348367 /media/usv012/pjx/agent/pan-agent/wo126/program-live/bin/evidence-web worker"
+  ],
+  "mode": "kimi",
+  "testMode": false,
+  "ready": true,
+  "activeTasks": 0,
+  "sends": 12,
+  "receipts": {
+    "pg": {
+      "pid": 348337,
+      "identity": "Tue Oct 13 13:52:39 2026 /media/usv012/pjx/agent/pan-agent/wo126/postgresql/bin/postgres -D /media/usv012/pjx/agent/pan-agent/wo126/data-live/pgdata"
+    },
+    "redis": {
+      "pid": 348348,
+      "identity": "Tue Oct 13 13:52:39 2026 /media/usv012/pjx/agent/pan-agent/wo126/program-live/bin/redis-server 127.0.0.1:63127",
+      "serviceTitle": "/media/usv012/pjx/agent/pan-agent/wo126/program-live/bin/redis-server 127.0.0.1:63127"
+    },
+    "api": {
+      "pid": 348354,
+      "identity": "Tue Oct 13 13:52:39 2026 /media/usv012/pjx/agent/pan-agent/wo126/program-live/bin/evidence-web"
+    },
+    "worker0": {
+      "pid": 348367,
+      "identity": "Tue Oct 13 13:52:39 2026 /media/usv012/pjx/agent/pan-agent/wo126/program-live/bin/evidence-web worker"
+    }
+  }
+}

@@ -1,0 +1,32 @@
+[
+  {
+    "data": "/media/usv012/pjx/agent/pan-agent/wo126/data-faux",
+    "program": "/media/usv012/pjx/agent/pan-agent/wo126/program-faux",
+    "namespace": "dep-wo126-045ea67d133d99a8",
+    "containersIncludingStopped": [],
+    "httpPort": 8126,
+    "pgPort": 54126,
+    "redisPort": 63126,
+    "desiredState": "stopped"
+  },
+  {
+    "data": "/media/usv012/pjx/agent/pan-agent/wo126/data-faux02",
+    "program": "/media/usv012/pjx/agent/pan-agent/wo126/program-faux02",
+    "namespace": "dep-wo126-0338c903f67d4f4f",
+    "containersIncludingStopped": [],
+    "httpPort": 8126,
+    "pgPort": 54126,
+    "redisPort": 63126,
+    "desiredState": "stopped"
+  },
+  {
+    "data": "/media/usv012/pjx/agent/pan-agent/wo126/data-live",
+    "program": "/media/usv012/pjx/agent/pan-agent/wo126/program-live",
+    "namespace": "dep-wo126-a67da9c294463b4b",
+    "containersIncludingStopped": [],
+    "httpPort": 8127,
+    "pgPort": 54127,
+    "redisPort": 63127,
+    "desiredState": "running"
+  }
+]

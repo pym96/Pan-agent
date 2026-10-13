@@ -1,5 +1,4 @@
-# #126 candidate evidence navigation
+# #126 current candidate evidence
 
-Current contract: https://github.com/pym96/Pan-agent/issues/126
-Current blocker: https://github.com/pym96/Pan-agent/issues/126#issuecomment-6138680732
-[Evidence and limitations](README.md). No accepted status or live deployment is claimed.
+Criteria1.1: https://github.com/pym96/Pan-agent/issues/126#issuecomment-6138797440
+[Current results, files and preserved failures](README.md). Final full candidate SHA is bound by GitHub Handoff; independent Verdict pending.

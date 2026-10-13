@@ -1,0 +1,22 @@
+{
+  "pg": {
+    "pid": 345304,
+    "proxyPresent": false,
+    "kimiKeyPresent": false
+  },
+  "redis": {
+    "pid": 345315,
+    "proxyPresent": false,
+    "kimiKeyPresent": false
+  },
+  "api": {
+    "pid": 345321,
+    "proxyPresent": false,
+    "kimiKeyPresent": false
+  },
+  "worker0": {
+    "pid": 345334,
+    "proxyPresent": false,
+    "kimiKeyPresent": true
+  }
+}

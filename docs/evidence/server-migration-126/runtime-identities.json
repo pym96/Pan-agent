@@ -1,0 +1,29 @@
+{
+  "dependencies": {
+    "/media/usv012/pjx/agent/pan-agent/toolchains/node-v22.23.3/bin/node": "fde6a4bf8d0562f7751d1a2d6cb9b417c4cfe107bbcb0aa3e9a24e125e348f48",
+    "/usr/bin/docker": "c92959788f191fa3bfc20189a3f748517025f6ceefe67b6cd08a01f99f340904",
+    "/media/usv012/pjx/agent/pan-agent/wo126/postgresql/bin/postgres": "10fc2e6627bdce9af9e3487254f98a630bf3b75f16c0d8331b18d7dfdb4f66a2",
+    "/media/usv012/pjx/agent/pan-agent/wo126/postgresql/bin/initdb": "3b67f486c13cc96c6d490ef944dbce9e6b3634102ce85485b483ce9b44b885f8",
+    "/media/usv012/pjx/agent/pan-agent/wo126/postgresql/bin/psql": "d57fcdbbf8de16e35747cb121363bf028bfd6379b40fcaf826a81aa9490567a4",
+    "/media/usv012/pjx/agent/pan-agent/wo126/postgresql/bin/createdb": "1ce8b9b0adae0324ac5d12f26d7c3161a8cb40356316dcb935d93544aeac1f94",
+    "/media/usv012/pjx/agent/pan-agent/wo126/program-live/bin/redis-server": "863e4221e24830415c0e1d052a254e0bdb57a61425d9dcbd5f1b71997dfecd1a",
+    "/media/usv012/pjx/agent/pan-agent/wo126/data-live/resource-profile.json": "2d72977fc06b59ba0e3a72388374ed41aed1ea4d4f4d4bb16b3e988885780a58"
+  },
+  "platformLock": {
+    "os": "linux",
+    "architecture": "x86_64",
+    "sourceSHA": "884b1617d1975e8b6bba96fa6106c3f962d750d2",
+    "panTarSHA256": "be2596c9a761073d025ed255c5c8e56beb92801fd02b9f6f968391bda37f89e5",
+    "redisSHA256": "863e4221e24830415c0e1d052a254e0bdb57a61425d9dcbd5f1b71997dfecd1a",
+    "image": "sha256:df18428df8a0f9189c84e7424d214b4c50092af1f9dca5842a00c41c39bda316",
+    "imageRepoDigests": [
+      "python@sha256:a6e34c598f2467ed0e9a8d349809fcd8b5c603269512df273a0bb1784edc11b1"
+    ],
+    "redisVersion": "Redis server v=6.0.16 sha=00000000:0 malloc=jemalloc-5.2.1 bits=64 build=d6ed09173b889769"
+  },
+  "packageManifestSHA256": "5eb6afc03fdc765d39aab03d66ae74c4eababd1bff67aa3936157a12be749abb",
+  "node": "v22.23.3",
+  "python": "Python 3.10.12",
+  "postgres": "postgres (PostgreSQL) 14.18",
+  "docker": "27.3.1"
+}

@@ -38,3 +38,5 @@ quoted completed public history, bounded artifact validation with in-loop feedba
 the former runs real Docker. They never establish real model success.
 Docker subprocess environment is now an explicit allowlist, not Node's environment.
 See [live design](../../../docs/design/pan-web/live122.md).
+
+#126 Criteria1.1 adds trusted, hash-bound Linux resource profiles in resources.mjs; check-resources126.mjs checks boundaries and pre-container refusal. Set TMPDIR to a project-owned test directory. Mac cumulative accounting remains unchanged.

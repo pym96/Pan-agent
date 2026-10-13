@@ -1,0 +1,18 @@
+{
+  "implementationSHA": "884b1617d1975e8b6bba96fa6106c3f962d750d2",
+  "realTasks": 2,
+  "providerSends": 12,
+  "known": 12,
+  "unknown": 0,
+  "inputTokens": 54804,
+  "outputTokens": 7809,
+  "cacheWriteUnknownExchanges": 12,
+  "csvRows": [
+    89,
+    5
+  ],
+  "sourceAndContextVerified": true,
+  "priorFauxFailed": 1,
+  "fauxCompleted": 2,
+  "sandboxExecutionsChecked": 12
+}

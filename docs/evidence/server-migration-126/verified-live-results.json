@@ -1,0 +1,220 @@
+{
+  "passed": true,
+  "journey": "live-browser01",
+  "inputSHA256": "f67d6e22a5f229637bb90cccc5a2538f6aaa87225efb1b8a9cf182cac37828ab",
+  "expectedCounts": {
+    "unscored": 20,
+    "valid_failure": 5,
+    "success": 18,
+    "unknown_interrupted": 20,
+    "not_started": 26
+  },
+  "expectedValidDenominator": 23,
+  "expectedSegment7Usage": {
+    "known": 1,
+    "unknown": 1,
+    "unsettled": 0,
+    "input": 470,
+    "output": 161
+  },
+  "checks": [
+    {
+      "round": 1,
+      "csvRows": 89,
+      "exactOriginalIndices": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31,
+        32,
+        33,
+        34,
+        35,
+        36,
+        37,
+        38,
+        39,
+        40,
+        41,
+        42,
+        43,
+        44,
+        45,
+        46,
+        47,
+        48,
+        49,
+        50,
+        51,
+        52,
+        53,
+        54,
+        55,
+        56,
+        57,
+        58,
+        59,
+        60,
+        61,
+        62,
+        63,
+        64,
+        65,
+        66,
+        67,
+        68,
+        69,
+        70,
+        71,
+        72,
+        73,
+        74,
+        75,
+        76,
+        77,
+        78,
+        79,
+        80,
+        81,
+        82,
+        83,
+        84,
+        85,
+        86,
+        87,
+        88
+      ],
+      "allOriginalTaskStateRewardScoreCellsMatch": true,
+      "artifactHashesMatch": true,
+      "providerSends": 6,
+      "modelCalls": 6,
+      "toolCalls": 5,
+      "accounting": {
+        "cacheRead": 0,
+        "cacheWrite": null,
+        "dispatchedWithoutObservedResult": 0,
+        "fieldUnknown": {
+          "cacheRead": 0,
+          "cacheWrite": 6,
+          "input": 0,
+          "output": 0,
+          "totalTokens": 0
+        },
+        "input": 30567,
+        "known": 6,
+        "knownSubtotals": {
+          "cacheRead": 0,
+          "input": 30567,
+          "output": 5829,
+          "totalTokens": 36396
+        },
+        "label": "settled exchanges deduplicated by run/turn; mode in task identity",
+        "observedToolExecutions": 4,
+        "output": 5829,
+        "totalTokens": 36396,
+        "unknown": 0
+      },
+      "usage": {
+        "status": "reported",
+        "value": {
+          "cacheRead": 0,
+          "input": 30567,
+          "output": 5829,
+          "totalTokens": 36396
+        }
+      },
+      "countsPaths": [
+        "/resultCategoryCounts"
+      ],
+      "denominatorPaths": [
+        "/validScoreDenominator/count"
+      ],
+      "usagePaths": [
+        "/segment7OnlyUsage/usageFieldTotals",
+        "/segment7OnlyUsage/tasks/0/usage"
+      ],
+      "strictScope": false
+    },
+    {
+      "round": 2,
+      "csvRows": 5,
+      "exactOriginalIndices": [
+        1,
+        10,
+        13,
+        21,
+        23
+      ],
+      "allOriginalTaskStateRewardScoreCellsMatch": true,
+      "artifactHashesMatch": true,
+      "providerSends": 6,
+      "modelCalls": 6,
+      "toolCalls": 5,
+      "accounting": {
+        "cacheRead": 0,
+        "cacheWrite": null,
+        "dispatchedWithoutObservedResult": 0,
+        "fieldUnknown": {
+          "cacheRead": 0,
+          "cacheWrite": 6,
+          "input": 0,
+          "output": 0,
+          "totalTokens": 0
+        },
+        "input": 24237,
+        "known": 6,
+        "knownSubtotals": {
+          "cacheRead": 0,
+          "input": 24237,
+          "output": 1980,
+          "totalTokens": 26217
+        },
+        "label": "settled exchanges deduplicated by run/turn; mode in task identity",
+        "observedToolExecutions": 4,
+        "output": 1980,
+        "totalTokens": 26217,
+        "unknown": 0
+      },
+      "usage": {
+        "status": "reported",
+        "value": {
+          "cacheRead": 0,
+          "input": 24237,
+          "output": 1980,
+          "totalTokens": 26217
+        }
+      }
+    }
+  ],
+  "actualSecondExchangeReceivesFirstPublicAnswer": true,
+  "notBenchmarkScore": true,
+  "note": "Builder independent calculation, not an independent Regulator Verdict. Prior live02 reporting-scope deviation is preserved separately."
+}

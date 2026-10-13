@@ -1,0 +1,6 @@
+{
+  "tamperedBytes": "package inventory mismatch",
+  "wrongArchitecture": "package architecture mismatch",
+  "wrongPlatform": "package platform mismatch",
+  "originalUnchanged": true
+}
