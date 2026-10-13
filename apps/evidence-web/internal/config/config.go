@@ -164,7 +164,14 @@ func Parse(args []string, get func(string) string) (Config, error) {
 			}
 		}
 	}
-	keys := []string{"PATH", "DOCKER_HOST", "DOCKER_CONFIG", "PAN_ENTRY", "PAN_IMAGE", "WEB107_TASK_ROOT", "WEB107_SCENARIO", "ANALYSIS_CPUS", "ANALYSIS_MEMORY_GIB", "WEB_FAUX_BARRIER", "WEB_RESULT_BARRIER", "WEB_TOOL_BARRIER", "WEB_CHECKPOINT_MODE", "WEB_CHECKPOINT_FAULT", "WEB_OPERATION_MODE", "WEB_OPERATION_FAULT", "WEB_ADMISSION_FAULT"}
+	if profile := get("WEB_RESOURCE_PROFILE"); profile != "" {
+		if !filepath.IsAbs(profile) || !regexp.MustCompile(`^[a-f0-9]{64}$`).MatchString(get("WEB_RESOURCE_PROFILE_SHA256")) {
+			return c, errors.New("invalid trusted resource profile binding")
+		}
+	} else if get("WEB_RESOURCE_PROFILE_SHA256") != "" {
+		return c, errors.New("resource profile path required")
+	}
+	keys := []string{"WEB_RESOURCE_PROFILE", "WEB_RESOURCE_PROFILE_SHA256", "PATH", "DOCKER_HOST", "DOCKER_CONFIG", "PAN_ENTRY", "PAN_IMAGE", "WEB107_TASK_ROOT", "WEB107_SCENARIO", "ANALYSIS_CPUS", "ANALYSIS_MEMORY_GIB", "WEB_FAUX_BARRIER", "WEB_RESULT_BARRIER", "WEB_TOOL_BARRIER", "WEB_CHECKPOINT_MODE", "WEB_CHECKPOINT_FAULT", "WEB_OPERATION_MODE", "WEB_OPERATION_FAULT", "WEB_ADMISSION_FAULT"}
 	for _, k := range keys {
 		if v := get(k); v != "" {
 			x.Environment = append(x.Environment, k+"="+v)

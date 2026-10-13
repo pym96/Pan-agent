@@ -57,6 +57,8 @@ def environment(c):
  e.update(DATABASE_URL=f"postgres://panweb:{c['dbPassword']}@127.0.0.1:{c['pgPort']}/panweb?sslmode=disable",LISTEN_ADDR=f"127.0.0.1:{c['httpPort']}",APP_ORIGIN=f"http://127.0.0.1:{c['httpPort']}",WEB_DIR=str(release/'web'),WEB_MODE='product',WEB_ISSUE=c['namespace'],WEB_CACHE='1',WEB_REDIS_ADDR=f"127.0.0.1:{c['redisPort']}",WEB_CACHE_NAMESPACE=c['namespace'],WEB107_TASK_ROOT=str(d/'tasks'),WEB107_EXECUTOR=str(release/'executor/main.mjs'),PAN_ENTRY=str(release/'pan/dist/index.js'),PAN_IMAGE=c.get('image',IMAGE),WEB_CHECKPOINT_MODE='1',WEB_OPERATION_MODE='1',ANALYSIS_CPUS='1',ANALYSIS_MEMORY_GIB='1')
  mode=c.get('provider','offline-faux');require(mode in ['offline-faux','kimi'],'invalid provider')
  e['WEB_PROVIDER']=mode
+ if c.get('resourceProfile'):
+  e['WEB_RESOURCE_PROFILE']=c['resourceProfile'];e['WEB_RESOURCE_PROFILE_SHA256']=c['resourceProfileSHA256']
  if mode=='kimi':
   require(c['workers']==1 and not c.get('testMode'),'live requires one worker and no fault mode')
   e['WEB_CHECKPOINT_MODE']='0';e['WEB_OPERATION_MODE']='0'
@@ -198,7 +200,16 @@ def init(a):
  with (d/'.init-claim').open('x') as f:f.write('initialization owns this directory; retain on failure\n')
  for n in ['logs','tasks','tmp','docker']: (d/n).mkdir(mode=0o700)
  c={'version':1,'image':manifest['image'],'provider':a.provider,'release':str(release),'data':str(d),'pgBin':str(pg),'redis':str(release/'bin/redis-server'),'dependencies':deps,'path':str(node.parent)+':'+str(docker.parent)+':/usr/bin:/bin:/usr/sbin:/sbin','dockerHost':call(['docker','context','inspect','--format','{{.Endpoints.docker.Host}}']),'namespace':'dep-'+('wo126-' if manifest.get('os')=='linux' else '')+secrets.token_hex(8),'httpPort':a.port,'pgPort':a.pg_port,'redisPort':a.redis_port,'workers':a.workers,'testMode':a.test_mode,'faults':{},'dbPassword':secrets.token_hex(24),'accounts':{who:{'email':who+'@pan.local','password':secrets.token_hex(18)} for who in ['a','b']}}
- c['dependencies'][c['redis']]=digest(c['redis']);write(d/'config.json',c)
+ c['dependencies'][c['redis']]=digest(c['redis'])
+ if sys.platform=='linux':
+  require(a.project_root,'Linux requires project root')
+  project=P(a.project_root).resolve();require(project.is_dir() and d.is_relative_to(project) and release.is_relative_to(project),'project ownership mismatch')
+  profile={'profile':'linux-project-v1','projectRoot':str(project),'taskRoot':str(d/'tasks'),'namespace':c['namespace'],'image':c['image']}
+  script="import {linuxSample,checkLinuxSample} from "+json.dumps(str(release/'executor/resources.mjs'))+";const s=linuxSample(JSON.parse(process.argv[1]),process.argv[2]);checkLinuxSample(s);console.log(JSON.stringify(s));"
+  profile['baseline']=json.loads(call([node,'--input-type=module','-e',script,json.dumps(profile),d/'tasks'],environment(c)))
+  write(d/'resource-profile.json',profile);c['resourceProfile']=str(d/'resource-profile.json');c['resourceProfileSHA256']=digest(c['resourceProfile'])
+  c['dependencies'][c['resourceProfile']]=c['resourceProfileSHA256']
+ write(d/'config.json',c)
  pw=d/'db-password';pw.write_text(c['dbPassword']+'\n');pw.chmod(0o600)
  env=baseenv(c)
  q=subprocess.run([str(pg/'initdb'),'-D',str(d/'pgdata'),'-U','panweb','--auth=scram-sha-256','--pwfile='+str(pw)],env=env,capture_output=True,text=True)
@@ -235,7 +246,7 @@ def restore(a):
 def main():
  p=argparse.ArgumentParser(description=__doc__);sub=p.add_subparsers(dest='command',required=True)
  i=sub.add_parser('install');i.add_argument('--package',required=True);i.add_argument('--dest',required=True)
- i=sub.add_parser('init');i.add_argument('--data',required=True);i.add_argument('--pg-bin',required=True);i.add_argument('--port',type=int,default=8114);i.add_argument('--pg-port',type=int,default=54114);i.add_argument('--redis-port',type=int,default=63114);i.add_argument('--workers',type=int,choices=[1,2],default=1);i.add_argument('--test-mode',action='store_true');i.add_argument('--provider',choices=['offline-faux','kimi'],default='offline-faux')
+ i=sub.add_parser('init');i.add_argument('--data',required=True);i.add_argument('--pg-bin',required=True);i.add_argument('--project-root');i.add_argument('--port',type=int,default=8114);i.add_argument('--pg-port',type=int,default=54114);i.add_argument('--redis-port',type=int,default=63114);i.add_argument('--workers',type=int,choices=[1,2],default=1);i.add_argument('--test-mode',action='store_true');i.add_argument('--provider',choices=['offline-faux','kimi'],default='offline-faux')
  for cmd in ['start','stop','restart','status','backup','restore']:
   i=sub.add_parser(cmd);i.add_argument('--data',required=True)
   if cmd in ['backup','restore']:i.add_argument('--backup',required=True)
