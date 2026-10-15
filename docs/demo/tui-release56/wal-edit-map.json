@@ -1,0 +1,129 @@
+{
+  "runId": "2f9d0adb-ba86-47fe-8b38-f34d24db34ba",
+  "editing": "Cuts shorten operator waiting; archive detail footage is separately captured from the same sealed run. No mixed task attempts. Speeds explicitly labeled.",
+  "scenes": [
+    {
+      "capture": "capture-live/terminal.cast",
+      "start": 2,
+      "end": 8,
+      "title": "01 / THE TASK \u2014 Five visible records. Recover the missing data.",
+      "label": "LIVE",
+      "speed": 1,
+      "note": "One real task \u00b7 Kimi Code k3-256k \u00b7 original failures retained"
+    },
+    {
+      "capture": "capture-live/terminal.cast",
+      "start": 8,
+      "end": 28,
+      "title": "02 / INSPECT \u2014 Model requests shell access; operator approves once.",
+      "label": "LIVE",
+      "speed": 2,
+      "note": "One real task \u00b7 Kimi Code k3-256k \u00b7 original failures retained"
+    },
+    {
+      "capture": "capture-live/terminal.cast",
+      "start": 100,
+      "end": 180,
+      "title": "03 / BUILD \u2014 Inspect bytes, decode the WAL and check its integrity.",
+      "label": "LIVE",
+      "speed": 4,
+      "note": "One real task \u00b7 Kimi Code k3-256k \u00b7 original failures retained"
+    },
+    {
+      "capture": "capture-live/terminal.cast",
+      "start": 180,
+      "end": 204,
+      "title": "04 / FEEDBACK \u2014 The first recovery script fails its checksum check.",
+      "label": "LIVE",
+      "speed": 2,
+      "note": "One real task \u00b7 Kimi Code k3-256k \u00b7 original failures retained"
+    },
+    {
+      "capture": "capture-details3/terminal.cast",
+      "start": 58.5,
+      "end": 68.3,
+      "title": "05 / FAILURE EVIDENCE \u2014 A checksum mismatch changes the next action.",
+      "label": "ARCHIVE DETAIL",
+      "speed": 1,
+      "note": "One real task \u00b7 Kimi Code k3-256k \u00b7 original failures retained",
+      "crop": [
+        0,
+        0,
+        116,
+        8
+      ]
+    },
+    {
+      "capture": "capture-details3/terminal.cast",
+      "start": 69.5,
+      "end": 79.5,
+      "title": "06 / CORRECTION \u2014 Model changes checksum endianness, then reruns.",
+      "label": "ARCHIVE DETAIL",
+      "speed": 1,
+      "note": "One real task \u00b7 Kimi Code k3-256k \u00b7 original failures retained",
+      "crop": [
+        0,
+        0,
+        116,
+        15
+      ]
+    },
+    {
+      "capture": "capture-details3/terminal.cast",
+      "start": 80.5,
+      "end": 90.5,
+      "title": "07 / VERIFIED BY TOOL \u2014 Header and all four frame checksums now pass.",
+      "label": "ARCHIVE DETAIL",
+      "speed": 1,
+      "note": "One real task \u00b7 Kimi Code k3-256k \u00b7 original failures retained",
+      "crop": [
+        0,
+        5,
+        116,
+        19
+      ]
+    },
+    {
+      "capture": "capture-details3/terminal.cast",
+      "start": 97,
+      "end": 107,
+      "title": "08 / DELIVERABLE \u2014 Eleven records exported to recovered.json.",
+      "label": "ARCHIVE DETAIL",
+      "speed": 1,
+      "note": "One real task \u00b7 Kimi Code k3-256k \u00b7 original failures retained"
+    },
+    {
+      "capture": "capture-details3/terminal.cast",
+      "start": 117,
+      "end": 127,
+      "title": "09 / SECOND ERROR \u2014 SQLite checkpointed the WAL; a later read fails.",
+      "label": "ARCHIVE DETAIL",
+      "speed": 1,
+      "note": "Preserved in trace: the model subsequently checks its untouched original WAL copy.",
+      "crop": [
+        0,
+        0,
+        116,
+        14
+      ]
+    },
+    {
+      "capture": "capture-live/terminal.cast",
+      "start": 338,
+      "end": 355,
+      "title": "10 / RESULT \u2014 Five base records, eleven recovered; originals preserved.",
+      "label": "LIVE",
+      "speed": 1,
+      "note": "Independent adapted upstream checks: 7/7 passed. Not an official benchmark score."
+    },
+    {
+      "capture": "capture-live/terminal.cast",
+      "start": 355,
+      "end": 370,
+      "title": "11 / REPLAY \u2014 Inspect this same run without executing it again.",
+      "label": "LIVE \u2192 ARCHIVED REPLAY",
+      "speed": 1,
+      "note": "Independent replay probe: 0 model / 0 tool / 0 network calls; archive unchanged."
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+/** Installed package replay probe; refuses provider and tool execution. */
+import assert from 'node:assert/strict';
+import {PassThrough} from 'node:stream';
+import {readFile,writeFile,readdir} from 'node:fs/promises';
+import {join,resolve} from 'node:path';
+import {pathToFileURL} from 'node:url';
+import {createHash} from 'node:crypto';
+const [installed,workspace,memory,runId,report]=process.argv.slice(2);
+const {runCli,runTui}=await import(pathToFileURL(join(resolve(installed),'dist/index.js')));
+let providerCalls=0,toolCalls=0,networkCalls=0,text='',sent=0;
+globalThis.fetch=async()=>{networkCalls++;throw Error('network forbidden');};
+const commands=[`:replay ${runId}`,':exit'];
+const input=new PassThrough(),output=new PassThrough();
+output.on('data',chunk=>{text+=chunk;if(String(chunk).endsWith('You > '))setImmediate(()=>input.write(commands[sent++]+'\n'));});
+const files=await readdir(memory,{recursive:true});
+const hashes=async()=>Object.fromEntries(await Promise.all(files.filter(f=>/\.jsonl?$/.test(f)).map(async f=>[f,createHash('sha256').update(await readFile(join(memory,f))).digest('hex')])));
+const before=await hashes();
+const adapter={providerId:'replay-guard',modelId:'replay-guard',reasoningLevel:'off',async exchange(){providerCalls++;throw Error('provider forbidden');}};
+const code=await runCli(['--kernel','native','--workspace',workspace,'--memory-root',memory],{home:join(resolve(report),'../isolated-home'),output,createNativeAdapter:()=>adapter,createTools:()=>({tools:[{name:'read',description:'forbidden',parameters:{type:'object'},validate:value=>({ok:true,value}),async execute(){toolCalls++;throw Error('tool forbidden');}}],boundary:'trusted-local'}),startTui:options=>runTui({...options,input})});
+assert.equal(code,0);assert.equal(providerCalls,0);assert.equal(toolCalls,0);assert.equal(networkCalls,0);assert.deepEqual(await hashes(),before);assert.ok(text.toLowerCase().includes('recovered') && text.includes('11')); 
+await writeFile(report,JSON.stringify({code,runId,providerCalls,toolCalls,networkCalls,archiveUnchanged:true,output:text},null,2)+'\n');console.log('Replay verified: zero provider, tool and fetch calls.');

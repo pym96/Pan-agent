@@ -1,5 +1,7 @@
 # TUI demonstration
 
+New: [Criteria1.4 database-recovery demonstration](WAL-DEMO.md). Earlier release evidence below is unchanged.
+
 The 41-second video was independently accepted under Criteria1.2. [Watch/download the v0.1.0 video](https://github.com/pym96/Pan-agent/releases/download/v0.1.0/pan-agent-demo.mp4). Pan-authored code is MIT licensed.
 
 The candidate records the actual installed TUI in a 112-column, 34-row PTY. It shows a benign JavaScript file task, shell approval, output, run listing and the same run's archive replay. Input is automated; it is not a fabricated terminal interface. Long idle waits may be shortened in the rendered MP4. Source `terminal.cast` preserves original timing and bytes.

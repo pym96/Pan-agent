@@ -72,6 +72,8 @@ Ask a task such as “Create hello.js that prints hello, run it, and check the f
 
 ## Demonstration
 
+[Watch database recovery and same-run trace replay](https://github.com/pym96/Pan-agent/releases/download/v0.1.1/pan-agent-wal-demo.mp4) — a real Kimi-driven task: recover 11 records, inspect a failed checksum, correct it and verify the output. [Task, adaptation and recording details](docs/demo/tui-release56/WAL-DEMO.md). This is an adapted Terminal-Bench task demonstration, not an official benchmark score.
+
 [Watch/download the 41-second demo](https://github.com/pym96/Pan-agent/releases/download/v0.1.0/pan-agent-demo.mp4) — an actual installed TUI task followed by same-run replay. [Recording details](docs/demo/tui-release56/README.md). The recording shows the installed TUI, a file task and the same run's trace replay, with its real/offline mode disclosed.
 
 ## License

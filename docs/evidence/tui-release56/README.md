@@ -1,5 +1,7 @@
 # TUI release preparation — Builder candidate
 
+New: [Criteria1.4 database-recovery demonstration](WAL-DEMO.md). Earlier release evidence below is unchanged.
+
 Later MIT/licensed package preparation: [Criteria1.3 final release evidence](FINAL-RELEASE.md). The Stage A observations and hashes below remain unchanged historical evidence.
 
 Contract: [#56 Criteria1.2](https://github.com/pym96/Pan-agent/issues/56#issuecomment-6187219818). Base: `0acdaef8af20ea36243dcd1c47b1765b3db98978`. This is Builder evidence, not an acceptance Verdict or public release.
