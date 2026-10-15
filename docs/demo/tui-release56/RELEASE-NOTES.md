@@ -1,6 +1,6 @@
 # Pan Agent v0.1.0 — TUI learning release
 
-Publication status: prepared, pending independent final review and Master publication. These are release notes for the intended tag `v0.1.0`, not a claim that it is already downloadable.
+Release tag: `v0.1.0`. Download the assets from the GitHub release linked below.
 
 Pan Agent is a local terminal runtime with file/shell tools, per-operation approval and sealed run archives. This release includes an offline scripted walkthrough and supports real tasks through configured DeepSeek or Kimi Code credentials.
 
@@ -10,9 +10,9 @@ Pan Agent is a local terminal runtime with file/shell tools, per-operation appro
 - `pan-agent-demo.mp4`: accepted 41-second demonstration of one real Kimi file task followed by a separately captured replay of the same run. Input automated, idle waits shortened; no fabricated UI.
 - `SHA256SUMS`: SHA-256 checksums of the package and video.
 
-Intended release: https://github.com/pym96/Pan-agent/releases/tag/v0.1.0
+Release: https://github.com/pym96/Pan-agent/releases/tag/v0.1.0
 
-## Quick start after publication
+## Quick start
 
 Download the tarball and checksum file from the release, verify the package's SHA-256, then:
 

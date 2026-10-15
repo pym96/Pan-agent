@@ -12,8 +12,10 @@ Fresh empty-cache offline consumer installation succeeded. All 84 compiled `dist
 
 Actual installed offline TUI task creates the expected `console.log("PAN_DEMO_OK");\n` source, executes three real tools through four scripted model exchanges and reports zero network attempts. Fresh-process replay rejects provider/tool/fetch execution and checks unchanged archives. No real provider requests were made for this revision.
 
-[Final manifest](final-artifact-manifest.json) locates the new package, video, checksum file and primary checks relative to the Handoff artifact root. `SHA256SUMS` lists package/video only, suitable for downloading separately. Release notes are in `docs/demo/tui-release56/RELEASE-NOTES.md`.
+[Current release manifest](release-artifact-manifest.json) locates the new package, video, checksum file and primary checks relative to the Handoff artifact root. `SHA256SUMS` lists package/video only, suitable for downloading separately. Release notes are in `docs/demo/tui-release56/RELEASE-NOTES.md`.
 
 ## Remaining steps owned by Master/Regulator
 
 Independent review at the pushed full candidate SHA, exact-SHA PR integration, then publication at `v0.1.0`. Master verifies downloaded public assets against SHA256SUMS and confirms README URLs. Neither public Release nor main update is performed by Builder. Historical evidence keeps its original identity.
+
+Wording correction before acceptance: user-facing pages now use timeless download instructions. Only packed README bytes differ from candidate 970d024; the prior final-artifact-manifest.json remains preserved. Fresh install/replay were repeated; the offline task evidence carries forward by exact executable-byte equivalence. Publication remains pending in the manifest and Handoff, not in the permanent user flow.

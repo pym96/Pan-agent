@@ -12,12 +12,12 @@ The installed runtime needs no Python, Go, Docker, PostgreSQL, Redis or TypeScri
 
 ## Install
 
-The **v0.1.0 release is prepared but not published yet**. Its intended download links are:
+Download the **v0.1.0** assets from GitHub Releases:
 
 - [TUI package: pan-agent-0.1.0.tgz](https://github.com/pym96/Pan-agent/releases/download/v0.1.0/pan-agent-0.1.0.tgz)
 - [SHA256SUMS](https://github.com/pym96/Pan-agent/releases/download/v0.1.0/SHA256SUMS)
 
-After the release is published, download both files into a new directory and run:
+Download both files into a new directory and run:
 
 ```sh
 shasum -a 256 -c SHA256SUMS --ignore-missing
@@ -27,7 +27,7 @@ npm install ./pan-agent-0.1.0.tgz --omit=dev --ignore-scripts --no-audit --no-fu
 
 On systems whose `shasum` does not support `--ignore-missing`, run `shasum -a 256 pan-agent-0.1.0.tgz` and compare it with the matching line in SHA256SUMS. The checksum file also lists the optional video. No build is needed for the prebuilt package. The package is not published on npm.
 
-To build before release:
+To build from source:
 
 ```sh
 git clone https://github.com/pym96/Pan-agent.git
@@ -72,7 +72,7 @@ Ask a task such as “Create hello.js that prints hello, run it, and check the f
 
 ## Demonstration
 
-[Watch/download the 41-second demo](https://github.com/pym96/Pan-agent/releases/download/v0.1.0/pan-agent-demo.mp4) — release-pending link. The video has been reviewed; public upload is pending. [Recording details](docs/demo/tui-release56/README.md). The recording shows the installed TUI, a file task and the same run's trace replay, with its real/offline mode disclosed.
+[Watch/download the 41-second demo](https://github.com/pym96/Pan-agent/releases/download/v0.1.0/pan-agent-demo.mp4) — an actual installed TUI task followed by same-run replay. [Recording details](docs/demo/tui-release56/README.md). The recording shows the installed TUI, a file task and the same run's trace replay, with its real/offline mode disclosed.
 
 ## License
 

@@ -1,0 +1,105 @@
+{
+  "schema": "tui-release56-final/v1",
+  "acceptedBase": "20c361438b32be8af0cb1c55f15ce8ca875bc313",
+  "license": "MIT",
+  "copyright": "2026 Pan Agent contributors",
+  "version": "0.1.0",
+  "intendedTag": "v0.1.0",
+  "publication": "pending-independent-review-and-master",
+  "distBinEqualStageA": true,
+  "modelCalls": 0,
+  "files": [
+    {
+      "path": "RELEASE-NOTES.md",
+      "bytes": 2165,
+      "sha256": "089f7b7f79fb7b03cbf6da169f12d99c6cd9fdcce9f2faf84a30f15022c27272"
+    },
+    {
+      "path": "SHA256SUMS",
+      "bytes": 171,
+      "sha256": "1097452a849369ffb66f7a6991c50b8ced321736e296c602ded1ac863c26b9db"
+    },
+    {
+      "path": "docs-tests.log",
+      "bytes": 572,
+      "sha256": "87bf791c53da43b8c3e6133584d4ccdb3779e843b89e174ad31c23cf73a76bfe"
+    },
+    {
+      "path": "final-replay-probe.json",
+      "bytes": 1809,
+      "sha256": "3d07eb2db55ba7ecfb832a6ca9a86152c888440ce67cb58d0280bdf93cf94403"
+    },
+    {
+      "path": "help.log",
+      "bytes": 2213,
+      "sha256": "d4399b78d933886c9db5639fedbf644e32fa5b2c4813bfdc06c8be64a6ca4634"
+    },
+    {
+      "path": "offline/capture.json",
+      "bytes": 1379,
+      "sha256": "18604dbe6246009caca4caf9f3b574951707191340b620718c8c0ca7185d40ef"
+    },
+    {
+      "path": "offline/demo/archives/runs/692e454d-c3f6-449b-853f-09ea2f919b79/events.jsonl",
+      "bytes": 29323,
+      "sha256": "ce8a84eabc76397ef5540b2a5d8d76b2236de790049d7dfce2c0ac55c44c57e8"
+    },
+    {
+      "path": "offline/demo/archives/runs/692e454d-c3f6-449b-853f-09ea2f919b79/manifest.json",
+      "bytes": 338,
+      "sha256": "9193aa3ebf4a842ee38197a2fffcec93df202048146d77a54ccd9f42addd9ea8"
+    },
+    {
+      "path": "offline/demo/demo-report.json",
+      "bytes": 805,
+      "sha256": "2fd8b7636c6f417c2edf1b5279f685fe5151c7ea61547bb91ae4dff604c9f316"
+    },
+    {
+      "path": "offline/demo/workspace/hello.js",
+      "bytes": 28,
+      "sha256": "2637a7671bc84d086375c9dc4b6e4d3bf2bc9110ac373f8877f936a7c9eecc8c"
+    },
+    {
+      "path": "offline/terminal.cast",
+      "bytes": 304778,
+      "sha256": "248425162300229c94c28ad25b58accd92fe935caf176ea0b90f7b116b9c1a0a"
+    },
+    {
+      "path": "offline/terminal.raw",
+      "bytes": 211011,
+      "sha256": "f2224fece42a3de356409f27e339666bba76facf7cce37722b86879ff0645fd7"
+    },
+    {
+      "path": "pack.log",
+      "bytes": 4709,
+      "sha256": "3ec8dd00148e833a7c4b47e752071f4633b3cbe8f2490818777db1c87dd9a157"
+    },
+    {
+      "path": "package-delta.json",
+      "bytes": 232,
+      "sha256": "3b4f46293aa9d1674427c400683c282ad86efeebd381822e90a60ee6668ca3db"
+    },
+    {
+      "path": "pan-agent-0.1.0.tgz",
+      "bytes": 100862,
+      "sha256": "28c20fe51a2d99f8a03d635c6ba373fc6fdf6e81032ad0985769777afe77596a"
+    },
+    {
+      "path": "pan-agent-demo.mp4",
+      "bytes": 314683,
+      "sha256": "5fedf88db14d5a4f2250815451c402773aaf7aa51f42da2350286cec58ea427a"
+    },
+    {
+      "path": "replay-probe.json",
+      "bytes": 1797,
+      "sha256": "0e8a5bb70e2742db5fa96ac45351022bb9a3f1fcb1cd534c9d1849337085e065"
+    },
+    {
+      "path": "runtime-equivalence.json",
+      "bytes": 9063,
+      "sha256": "32999343cf64fdfccd9676fa75a4952f25a3d1f31cdf9ef5e8b80d768ba9e02c"
+    }
+  ],
+  "supersedesArtifactCandidate": "970d024d9e88a7f44231a3ef4662002a15adfbc7",
+  "change": "User-facing wording only; packed README differs, dist/bin identical. Offline task evidence carried unchanged; fresh replay probe rerun against new consumer."
+}

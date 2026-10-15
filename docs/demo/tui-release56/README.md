@@ -1,6 +1,6 @@
 # TUI demonstration
 
-Status: 41-second video independently accepted under Criteria1.2; MIT selected. Final licensed package is awaiting Criteria1.3 review/publication. [Intended v0.1.0 video URL](https://github.com/pym96/Pan-agent/releases/download/v0.1.0/pan-agent-demo.mp4) is release-pending.
+The 41-second video was independently accepted under Criteria1.2. [Watch/download the v0.1.0 video](https://github.com/pym96/Pan-agent/releases/download/v0.1.0/pan-agent-demo.mp4). Pan-authored code is MIT licensed.
 
 The candidate records the actual installed TUI in a 112-column, 34-row PTY. It shows a benign JavaScript file task, shell approval, output, run listing and the same run's archive replay. Input is automated; it is not a fabricated terminal interface. Long idle waits may be shortened in the rendered MP4. Source `terminal.cast` preserves original timing and bytes.
 
