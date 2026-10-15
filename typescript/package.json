@@ -27,7 +27,8 @@
     "dist/",
     "bin/",
     "RUNBOOK.md",
-    "README.md"
+    "README.md",
+    "LICENSE"
   ],
   "bin": {
     "pan-agent": "bin/pan-agent.mjs"
@@ -46,5 +47,6 @@
       "import": "./dist/providers/faux/faux-model-adapter.js"
     }
   },
-  "types": "./dist/index.d.ts"
+  "types": "./dist/index.d.ts",
+  "license": "MIT"
 }

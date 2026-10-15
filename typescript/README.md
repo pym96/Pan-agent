@@ -49,4 +49,6 @@ Archives verify their stored hash chain and preserve run identity. They are not 
 
 ## License and distribution status
 
-Author license selection is pending. This package is a review candidate, not a publicly released open-source package. Runtime code has no third-party npm runtime dependencies. Build-time dependencies: TypeScript (Apache-2.0), @types/node (MIT), undici-types (MIT). No dependency license grants rights to Pan's own source. The release process must include the selected author license and check notices before publication.
+Pan-authored code is licensed under the MIT License included as `LICENSE` in this package, copyright 2026 Pan Agent contributors. Third-party licenses are not replaced by Pan's license. This v0.1.0 package is awaiting final review/publication; it is not published on npm.
+
+Runtime code has no third-party npm runtime dependencies. Build-time dependencies: TypeScript (Apache-2.0), @types/node (MIT), undici-types (MIT). These dependencies are not bundled. The repository's license inventory documents separate recording tools and retained references.

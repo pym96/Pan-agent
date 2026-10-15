@@ -1,6 +1,6 @@
 # TUI demonstration
 
-Status: 41-second candidate video recorded, pending independent review; **no public video URL yet**. Public release is also blocked on author license selection.
+Status: 41-second video independently accepted under Criteria1.2; MIT selected. Final licensed package is awaiting Criteria1.3 review/publication. [Intended v0.1.0 video URL](https://github.com/pym96/Pan-agent/releases/download/v0.1.0/pan-agent-demo.mp4) is release-pending.
 
 The candidate records the actual installed TUI in a 112-column, 34-row PTY. It shows a benign JavaScript file task, shell approval, output, run listing and the same run's archive replay. Input is automated; it is not a fabricated terminal interface. Long idle waits may be shortened in the rendered MP4. Source `terminal.cast` preserves original timing and bytes.
 
@@ -18,3 +18,5 @@ Rendering: `python render.py RECORDING/terminal.cast OUTPUT.mp4` in an environme
 Finished candidate: `pan-agent-demo.mp4`, 41 seconds. Live task footage (first 27 seconds) is followed by a separately recorded same-run replay (14 seconds); headers distinguish the sections. This edit removes a failed overlay-navigation attempt from the showcase, not an unsuccessful model task. Raw captures are retained.
 
 [Renderer](render.py) · [Video assembly](assemble.sh)
+
+[Final release notes](RELEASE-NOTES.md) · [Final licensing/package evidence](../../evidence/tui-release56/FINAL-RELEASE.md)

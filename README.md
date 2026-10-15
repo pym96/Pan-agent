@@ -12,7 +12,22 @@ The installed runtime needs no Python, Go, Docker, PostgreSQL, Redis or TypeScri
 
 ## Install
 
-Release downloads are **pending review and license selection**. Until published, build from this repository:
+The **v0.1.0 release is prepared but not published yet**. Its intended download links are:
+
+- [TUI package: pan-agent-0.1.0.tgz](https://github.com/pym96/Pan-agent/releases/download/v0.1.0/pan-agent-0.1.0.tgz)
+- [SHA256SUMS](https://github.com/pym96/Pan-agent/releases/download/v0.1.0/SHA256SUMS)
+
+After the release is published, download both files into a new directory and run:
+
+```sh
+shasum -a 256 -c SHA256SUMS --ignore-missing
+npm install ./pan-agent-0.1.0.tgz --omit=dev --ignore-scripts --no-audit --no-fund
+./node_modules/.bin/pan-agent --help
+```
+
+On systems whose `shasum` does not support `--ignore-missing`, run `shasum -a 256 pan-agent-0.1.0.tgz` and compare it with the matching line in SHA256SUMS. The checksum file also lists the optional video. No build is needed for the prebuilt package. The package is not published on npm.
+
+To build before release:
 
 ```sh
 git clone https://github.com/pym96/Pan-agent.git
@@ -23,10 +38,7 @@ mkdir -p artifacts
 mkdir -p consumer
 cd consumer
 npm install ../artifacts/pan-agent-0.1.0.tgz --omit=dev --ignore-scripts --no-audit --no-fund
-./node_modules/.bin/pan-agent --help
 ```
-
-Once the `.tgz` is available in Releases, install that downloaded file with the same `npm install` command. No build is needed for a prebuilt package. The package is not published on npm.
 
 ## Try it without an API key
 
@@ -60,11 +72,11 @@ Ask a task such as “Create hello.js that prints hello, run it, and check the f
 
 ## Demonstration
 
-[Recording guide and video status](docs/demo/tui-release56/README.md). A 41-second live-task and same-run replay video is recorded and awaiting review; no public video asset is available yet. The recording shows the installed TUI, a file task and the same run's trace replay, with its real/offline mode disclosed.
+[Watch/download the 41-second demo](https://github.com/pym96/Pan-agent/releases/download/v0.1.0/pan-agent-demo.mp4) — release-pending link. The video has been reviewed; public upload is pending. [Recording details](docs/demo/tui-release56/README.md). The recording shows the installed TUI, a file task and the same run's trace replay, with its real/offline mode disclosed.
 
 ## License
 
-**License selection pending.** No open-source license has been granted for this repository yet. Public release is blocked until the author selects a license and the package/notice checks are complete. [Dependency and licensing inventory](docs/demo/tui-release56/LICENSE-INVENTORY.md).
+[MIT License](LICENSE), copyright 2026 Pan Agent contributors. Third-party dependencies and retained external materials keep their own licenses; MIT applies to Pan-authored code. [Dependency and licensing inventory](docs/demo/tui-release56/LICENSE-INVENTORY.md).
 
 ## Development
 
