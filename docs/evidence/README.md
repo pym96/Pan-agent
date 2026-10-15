@@ -1,5 +1,7 @@
 # Project Evidence
 
+- [TUI release preparation](tui-release56/README.md): installed package, real/offline terminal capture and SHA-bound candidate evidence; not independently accepted or publicly released.
+
 - [`terminal-bench-image-prep-97.md`](terminal-bench-image-prep-97.md) records #97 Criteria1.3 image preparation:30/32 cached,2 failed downloads, preserved reservations and resource evidence; candidate pending independent review, no task/model/scoring execution. [Machine-readable summary](terminal-bench-image-prep-97-summary.json).
 
 - [`verified-project-facts.md`](verified-project-facts.md) is the only project-level register of independently accepted implementation facts.

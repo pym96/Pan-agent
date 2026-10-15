@@ -1,0 +1,262 @@
+{
+  "schema": "tui-release56-artifacts/v1",
+  "base": "0acdaef8af20ea36243dcd1c47b1765b3db98978",
+  "license": "human-selection-pending",
+  "publication": "blocked",
+  "liveRun": "cc0089e2-73a1-494a-a96a-d07074a3a4b7",
+  "offlineRun": "6ba00f78-46bc-49b5-80e9-aa7dbbeb702d",
+  "videoEdit": {
+    "liveRenderedSeconds": [
+      0,
+      27
+    ],
+    "replayRenderedSeconds": [
+      0,
+      14
+    ],
+    "separatelyCapturedReplay": true,
+    "idleShortened": true,
+    "inputAutomated": true
+  },
+  "files": [
+    {
+      "path": "configure.log",
+      "bytes": 537,
+      "sha256": "a0f9bccd3cd3e56e83fa42978d6b5a2e03b603983201b38fd37b5fa3bc8d5e9a"
+    },
+    {
+      "path": "existing-directory.log",
+      "bytes": 60,
+      "sha256": "5f760d05f9089d6fd6e7f0561e3053c195b1042230190966e2c5961cbad3ba2f"
+    },
+    {
+      "path": "final-replay-probe.json",
+      "bytes": 1819,
+      "sha256": "f65a35d591632931cf8564d38af3ff785a1ead7e8fe9f09c37a7957c481e0430"
+    },
+    {
+      "path": "live-replay-final/capture.json",
+      "bytes": 1133,
+      "sha256": "375bebae36d237e115a61b79eab705d79054dd6870987005b3ec2371dc356644"
+    },
+    {
+      "path": "live-replay-final/terminal.cast",
+      "bytes": 106270,
+      "sha256": "d7c2c35f1b4249db5336f15c1f8cfa92c8f2de7eb0e3d11589da055a694fa7e6"
+    },
+    {
+      "path": "live-replay-final/terminal.raw",
+      "bytes": 73008,
+      "sha256": "e81fafbee80be41104a0a34459ecb7f57e2ef5927fb46bb911e9fc016289a0ec"
+    },
+    {
+      "path": "live/archives/runs/cc0089e2-73a1-494a-a96a-d07074a3a4b7/events.jsonl",
+      "bytes": 26883,
+      "sha256": "5a9f6cf9d06ca2cd83653241fe6d99946e97c777c951c798fb0c7b514e6acf22"
+    },
+    {
+      "path": "live/archives/runs/cc0089e2-73a1-494a-a96a-d07074a3a4b7/manifest.json",
+      "bytes": 338,
+      "sha256": "abfaaf1892cdb3e03102000f325cbad6bc7a4c9e0e945ea2fb45996ce82a843f"
+    },
+    {
+      "path": "live/capture.json",
+      "bytes": 1737,
+      "sha256": "277d4a732b06bc3cb923b04e59418adb8d3b19c830adcc95787469c4786c3c0c"
+    },
+    {
+      "path": "live/home/.pan-agent/settings.json",
+      "bytes": 127,
+      "sha256": "0893a9d4093309dc37f521f5f35f0f93b2db6a494fc997475cd7452e1fdd01e1"
+    },
+    {
+      "path": "live/terminal.cast",
+      "bytes": 464296,
+      "sha256": "f5b8236368d46dc8a2fb2567830ab380487c963f8c580e91f65f8406bd891c8f"
+    },
+    {
+      "path": "live/terminal.raw",
+      "bytes": 321077,
+      "sha256": "f3a3c34840968c1ad5266bd6074dc3d5ce2492b5ac36cca655eaee498dd53e09"
+    },
+    {
+      "path": "live/workspace/hello.js",
+      "bytes": 28,
+      "sha256": "fb1f24306ddda5fc513e51259db1cc51e7060bdff9329ebbefe1d5601376b2c7"
+    },
+    {
+      "path": "malformed.log",
+      "bytes": 2104,
+      "sha256": "9eb69ac7a987a3d54c9b11c0fc289fcac69430162ce5f2b7e074f803773bda18"
+    },
+    {
+      "path": "offline-replay-probe.json",
+      "bytes": 1807,
+      "sha256": "53bc3d0c0097c3b0c72f69fed30e258af3fd8c255ff3523452cdd11f861c3db2"
+    },
+    {
+      "path": "offline-verified/capture.json",
+      "bytes": 1322,
+      "sha256": "ef391e905e5206a2560e71e750143b479df0a4004d64c8e06be75ad3921a8d12"
+    },
+    {
+      "path": "offline-verified/demo/archives/runs/6ba00f78-46bc-49b5-80e9-aa7dbbeb702d/events.jsonl",
+      "bytes": 29963,
+      "sha256": "ac765607b68a5c4c79f18d783a70b05873e2b6758b947e724056f953d25bcacd"
+    },
+    {
+      "path": "offline-verified/demo/archives/runs/6ba00f78-46bc-49b5-80e9-aa7dbbeb702d/manifest.json",
+      "bytes": 338,
+      "sha256": "b68d50b6b5d630bd8017b9068cd4260878416fea7b703ba88c4bc494f86b477e"
+    },
+    {
+      "path": "offline-verified/demo/demo-report.json",
+      "bytes": 805,
+      "sha256": "2fd8b7636c6f417c2edf1b5279f685fe5151c7ea61547bb91ae4dff604c9f316"
+    },
+    {
+      "path": "offline-verified/demo/workspace/hello.js",
+      "bytes": 28,
+      "sha256": "2637a7671bc84d086375c9dc4b6e4d3bf2bc9110ac373f8877f936a7c9eecc8c"
+    },
+    {
+      "path": "offline-verified/terminal.cast",
+      "bytes": 305030,
+      "sha256": "485f44aeb7dfb27c2f71b9fc95567a86abf0390b5da883867e88231da7188aaa"
+    },
+    {
+      "path": "offline-verified/terminal.raw",
+      "bytes": 211256,
+      "sha256": "94bdb2cfa35dea13f0963044e830d43d9d78f957dd3de318f7f91271fbdf92b1"
+    },
+    {
+      "path": "pack-final.log",
+      "bytes": 4684,
+      "sha256": "fd43d1055ab91a13843b4888b105275d7a4d8164a43949f05c6db6c47b531d94"
+    },
+    {
+      "path": "package-equivalence.json",
+      "bytes": 9242,
+      "sha256": "d0eacb03dbecb02a55f7801ddb2d8790b72c4bd449fb7c3cb42e77686050d0d1"
+    },
+    {
+      "path": "pan-agent-0.1.0.tgz",
+      "bytes": 100080,
+      "sha256": "af03b6c319782d8a452c7bf8a335b66fe14346493e3d93c6bbcd3ce179751d1e"
+    },
+    {
+      "path": "pan-agent-demo.mp4",
+      "bytes": 314683,
+      "sha256": "5fedf88db14d5a4f2250815451c402773aaf7aa51f42da2350286cec58ea427a"
+    },
+    {
+      "path": "pan-agent-live.mp4",
+      "bytes": 233892,
+      "sha256": "9f644b4d6c1f772548fcb87bd085ff5bf86e21fa6ca38e69a3a5de9708af6ff4"
+    },
+    {
+      "path": "pan-agent-replay.mp4",
+      "bytes": 136056,
+      "sha256": "a18305ff21c5c8809898a038479078a521606b10cf10744d5a218763a57cdede"
+    },
+    {
+      "path": "regression.log",
+      "bytes": 25444,
+      "sha256": "71366ab68eab45371b28fe762d8425e80c111157eea88d04806fc3fc0e6aec33"
+    },
+    {
+      "path": "replay-probe.json",
+      "bytes": 1819,
+      "sha256": "f65a35d591632931cf8564d38af3ff785a1ead7e8fe9f09c37a7957c481e0430"
+    }
+  ],
+  "tarFiles": [
+    "package/dist/providers/deepseek/abortable-body.js",
+    "package/dist/runtime/agent-kernel.js",
+    "package/dist/protocol/agent-tool.js",
+    "package/dist/tui/attachment-picker.js",
+    "package/dist/input/attachments.js",
+    "package/dist/runtime/authorization.js",
+    "package/dist/tools/authorized-file.js",
+    "package/dist/protocol/canonical-protocol.js",
+    "package/dist/providers/faux/checkpoint-faux.js",
+    "package/dist/runtime/checkpoint.js",
+    "package/dist/cli.js",
+    "package/dist/tui/compact-tui.js",
+    "package/dist/tui/daily-editor.js",
+    "package/dist/tui/daily-workspace.js",
+    "package/dist/providers/deepseek/deepseek-profile.js",
+    "package/dist/providers/deepseek/deepseek-transport.js",
+    "package/dist/providers/faux/faux-model-adapter.js",
+    "package/dist/config/first-run.js",
+    "package/dist/tui/framed-input.js",
+    "package/dist/index.js",
+    "package/dist/config/keychain.js",
+    "package/dist/providers/kimi/kimi-continuation.js",
+    "package/dist/providers/kimi/kimi-profile.js",
+    "package/dist/providers/kimi/kimi-structure.js",
+    "package/dist/providers/kimi/kimi-transport.js",
+    "package/dist/protocol/model-adapter-contract.js",
+    "package/dist/runtime/native-kernel.js",
+    "package/dist/providers/deepseek/pan-deepseek-model-adapter.js",
+    "package/dist/providers/kimi/pan-kimi-model-adapter.js",
+    "package/dist/tools/pan-trusted-local-tools.js",
+    "package/dist/tui/presentation.js",
+    "package/dist/memory/retrospective-ledger.js",
+    "package/dist/memory/run-archive.js",
+    "package/dist/memory/runbook.js",
+    "package/dist/tui/scrollbar.js",
+    "package/dist/runtime/session.js",
+    "package/dist/config/settings.js",
+    "package/dist/input/task-envelope.js",
+    "package/dist/tui/terminal-input.js",
+    "package/dist/tui/tool-activity.js",
+    "package/dist/tui/tui.js",
+    "package/package.json",
+    "package/README.md",
+    "package/RUNBOOK.md",
+    "package/bin/demo.mjs",
+    "package/bin/pan-agent.mjs",
+    "package/dist/providers/deepseek/abortable-body.d.ts",
+    "package/dist/runtime/agent-kernel.d.ts",
+    "package/dist/protocol/agent-tool.d.ts",
+    "package/dist/tui/attachment-picker.d.ts",
+    "package/dist/input/attachments.d.ts",
+    "package/dist/runtime/authorization.d.ts",
+    "package/dist/tools/authorized-file.d.ts",
+    "package/dist/protocol/canonical-protocol.d.ts",
+    "package/dist/providers/faux/checkpoint-faux.d.ts",
+    "package/dist/runtime/checkpoint.d.ts",
+    "package/dist/cli.d.ts",
+    "package/dist/tui/compact-tui.d.ts",
+    "package/dist/tui/daily-editor.d.ts",
+    "package/dist/tui/daily-workspace.d.ts",
+    "package/dist/providers/deepseek/deepseek-profile.d.ts",
+    "package/dist/providers/deepseek/deepseek-transport.d.ts",
+    "package/dist/providers/faux/faux-model-adapter.d.ts",
+    "package/dist/config/first-run.d.ts",
+    "package/dist/tui/framed-input.d.ts",
+    "package/dist/index.d.ts",
+    "package/dist/config/keychain.d.ts",
+    "package/dist/providers/kimi/kimi-continuation.d.ts",
+    "package/dist/providers/kimi/kimi-profile.d.ts",
+    "package/dist/providers/kimi/kimi-structure.d.ts",
+    "package/dist/providers/kimi/kimi-transport.d.ts",
+    "package/dist/protocol/model-adapter-contract.d.ts",
+    "package/dist/runtime/native-kernel.d.ts",
+    "package/dist/providers/deepseek/pan-deepseek-model-adapter.d.ts",
+    "package/dist/providers/kimi/pan-kimi-model-adapter.d.ts",
+    "package/dist/tools/pan-trusted-local-tools.d.ts",
+    "package/dist/tui/presentation.d.ts",
+    "package/dist/memory/retrospective-ledger.d.ts",
+    "package/dist/memory/run-archive.d.ts",
+    "package/dist/memory/runbook.d.ts",
+    "package/dist/tui/scrollbar.d.ts",
+    "package/dist/runtime/session.d.ts",
+    "package/dist/config/settings.d.ts",
+    "package/dist/input/task-envelope.d.ts",
+    "package/dist/tui/terminal-input.d.ts",
+    "package/dist/tui/tool-activity.d.ts",
+    "package/dist/tui/tui.d.ts"
+  ]
+}

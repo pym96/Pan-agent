@@ -1,146 +1,52 @@
-# TypeScript Native Product
+# Pan Agent — terminal runtime
 
-Status: #35 is accepted and landed at `97fb7db1574a240b1a689733bc1b56791879c6d6`; #41 Module relocation is a Builder candidate pending independent review. This package remains **Product**, with explicit Native selection and no Pi dependency. `references/pi/` remains **Frozen Reference**; its only #41 changes retarget Product imports and source locators.
+Requires Node.js >=22.19.0. Runtime dependencies: Node built-ins only. The supported validation environment is macOS arm64 with an interactive terminal; other platforms remain unverified.
 
-One `GeneralAgentSession` owns admission and durable memory and delegates the same iterative semantics through AgentKernel to NativeKernel, using accepted Pan ModelAdapter, DeepSeek transport and trusted-local Tools. An explicitly supplied AgentKernel may enter this seam without exposing internal loop steps. #29 alone decides a future omitted-selector default.
+## Build a package (developers)
 
-## Install
-
-From the repository root, install the exact dependency graph in `package-lock.json` without package lifecycle scripts:
-
-```bash
-npm --prefix typescript ci --ignore-scripts
+```sh
+npm ci --ignore-scripts
+npm run build
+npm pack --pack-destination /path/to/artifacts
 ```
 
-Only TypeScript and Node type development dependencies are installed. Runtime uses Node built-ins. The lockfile pins package versions and registry integrity values; the package file inventory excludes reference code and dependencies.
+The compiler is a pinned development dependency. A consumer does not need it. The archive contains compiled JavaScript, declarations, launchers and operating instructions; `private: true` prevents accidental npm publication.
 
-## Installed JavaScript package
+## Install a prebuilt archive
 
-From this package directory, `npm run build` removes its own generated `dist/` and invokes pinned TypeScript `5.9.3` with `tsconfig.build.json`. `npm pack --pack-destination /absolute/path/to/artifacts` runs the same build in `prepack`; it includes `dist/`, `bin/`, this guide and `RUNBOOK.md`. The package remains `private: true`; this procedure does not publish it. `dist/` and generated tarballs are ignored build output.
-
-Install the resulting `pan-agent-0.1.0.tgz` into a fresh consumer with ordinary Node `22.19.0` or newer:
-
-```bash
-npm install /absolute/path/to/artifacts/pan-agent-0.1.0.tgz \
-  --omit=dev --offline --ignore-scripts --no-audit --no-fund
+```sh
+mkdir pan-consumer
+cd pan-consumer
+npm install /path/to/pan-agent-0.1.0.tgz --omit=dev --ignore-scripts --no-audit --no-fund
 ./node_modules/.bin/pan-agent --help
-./node_modules/.bin/pan-agent --kernel native \
-  --workspace /absolute/path/to/workspace \
-  --memory-root /absolute/path/to/memory
+./node_modules/.bin/pan-agent demo
 ```
 
-The installed executable delegates to compiled `runCli`. #49 removes startup y: exit from idle to inspect startup without a model call. Task submission requires an intentionally configured Provider credential; offline verification injects shipped Pan Faux at the existing API seam. No compiler, TS loader, Python, Pi, checkout link or install-time build is needed by the consumer.
+`demo` is an offline **scripted model**, not a live model result. It uses the real TUI, NativeKernel and local tools in a newly created temporary directory. Submit `Create hello.js, run it, and read it back.` Approve the displayed shell command if intended. Expected source: `console.log("PAN_DEMO_OK");` plus a newline. Optional `demo --directory NEW_DIRECTORY` selects a new directory; existing directories are refused. Retained `demo-report.json` records scripted exchanges and tool executions.
 
-The ESM exports are:
+## Real use
 
-| Import | Shipped interface |
-|---|---|
-| `pan-agent` | `runCli`, `runTui`, Pan `FauxModelAdapter`, `GeneralAgentSession`, archive inspection, Runbook helpers and public declarations |
-| `pan-agent/cli` | Existing CLI functions and types, including the `createNativeAdapter` and `startTui` option seams |
-| `pan-agent/faux` | Pan Faux Adapter and its existing script helpers |
+Run `./node_modules/.bin/pan-agent configure`. Select DeepSeek or Kimi Code, and environment or macOS Keychain credentials. Environment mode reads `DEEPSEEK_API_KEY` or `KIMI_API_KEY` at task time; settings never save the secret. Kimi models are selected in configure, not through `--model` overrides.
 
-An external plain JavaScript verifier imports these exports, supplies a four-response Faux script to `createNativeAdapter`, and passes streams into the real `runTui` via `startTui`. It retains real ToolResults, Contexts and sealed archives; it does not supply another agent loop. The installed package README intentionally contains no repository-relative Markdown links, so it remains readable after packing.
-
-#51 adds the newcomer-facing offline first task: in a repository checkout, `scripts/try_preview.sh` installs an already-built artifact into a fresh consumer against an empty npm cache and starts the installed TUI with the scripted `preview-first-task/v1` round trip — offline/simulated, no Provider, credential, network or download. Building the artifact is the separate one-time developer step documented above. Repository checkouts carry the design and verification under `docs/design/preview-first-task.md`.
-
-#52 adds first-run settings: `pan-agent configure` persists provider/model/thinking and the credential source (`environment` = provider key read only at call time, or `keychain` = an explicitly remembered macOS Keychain item) at `~/.pan-agent/settings.json`, mode 0600, never storing a secret. On a TTY first run without settings the same flow is offered; explicit `--model/--thinking` flags override persisted values per run. Repository checkouts carry the design under `docs/design/preview-config.md`.
-
-#62 bounds transcript-scroll layout cost in the TUI: per-entry wrap caching and binary-search anchor resolution keep wheel navigation viewport-bounded (design under `docs/design/transcript-scroll-layout.md`).
-
-#60 adds a draggable conversation scrollbar to the TUI: the final column is reserved as the body-row track (rendered-row geometry, blank when the transcript fits), with SGR primary press/drag/release positioning, unchanged wheel/PageUp/PageDown/Ctrl-End behavior, and safe degradation on terminals without drag-motion reports (design under `docs/design/transcript-scrollbar.md`).
-
-#53 makes `kimi-code` selectable: the Pan-owned Kimi adapter speaks Kimi Code's official OpenAI-compatible endpoint (`https://api.kimi.com/coding/v1`, fixed model `kimi-for-coding`, `KIMI_API_KEY` at call time); DeepSeek behavior is unchanged and never delegated to. Offline proof and limits: `docs/design/preview-kimi.md`.
-
-## Run the TUI
-
-Choose an existing directory deliberately. It may be an actual project checkout or a disposable test workspace.
-
-```bash
-read -s DEEPSEEK_API_KEY
-export DEEPSEEK_API_KEY
-npm --prefix typescript run agent -- \
-  --workspace /absolute/path/to/workspace \
-  --memory-root /absolute/path/to/memory \
-	--kernel native \
-  --model deepseek-v4-flash \
-  --thinking high
+```sh
+mkdir workspace archives
+./node_modules/.bin/pan-agent --kernel native --workspace "$PWD/workspace" --memory-root "$PWD/archives"
 ```
 
-The initial profile is `deepseek-v4-flash` with `high` thinking. Product tasks explicitly pass `--kernel native`; omission fails `kernel_selection_required`, Pi fails `kernel_not_in_product`, and unknown selectors fail validation. These paths and `--help` perform no setup. `deepseek-v4-pro` and listed thinking levels are explicit alternatives. `--memory-root` is required and disjoint from the workspace. Startup, blank input and local commands make no Provider call; the first non-empty submitted task is the first Provider call. There is no startup y.
+Workspace and archive root must be disjoint. Startup, configuration and local commands require no model call. Submitted real tasks use the selected provider and can incur charges.
 
-Proven ordinary existing workspace read/write/edit is automatic. Protected, outside, or uncertain file operations and Shell require Allow once, default Deny. New files/directories and unresolved resource comparisons may require approval under Criteria 1.2. Shell alone offers `Trust shell for this session`; `:trust off` revokes it. Settings may add literal `protectedPaths`; restart to apply edits. Without an approval callback, protected/outside/uncertain and Shell actions are denied. TTY approval uses arrows to choose, Enter to confirm, Ctrl-G to deny, Ctrl-C to cancel, and page keys/wheel to inspect the full escaped operation. See [ADR-0018](../docs/adr/0018-operation-scoped-authorization.md) for exact policy and Criteria 1.1 residual race/partial-effect limits: pathname checks are not atomic with syscalls and do not provide OS containment.
+Tools run with host-user authority. Workspace is a default cwd, not OS containment. Shell and protected/outside/uncertain file operations require approval. Ordinary existing workspace files can be edited automatically. Shell may be trusted for the current session; `:trust off` revokes it. Do not use untrusted tasks or sensitive workspaces.
 
-Each task returns control to `Task>` and the next task continues the selected Kernel's typed transcript. `:context` reports the retained message count and owner. Ctrl-C during a task requests Kernel cancellation; Ctrl-C at the prompt closes the TUI.
+## Inspect and replay
 
-## Trust boundary
+- `:context`: inspect retained context summary.
+- `:details`: inspect detailed execution output.
+- `:runs`: list sealed run archives.
+- `:replay RUN_ID`: render the saved run with zero provider/tool execution.
+- `:exit`: close. Ctrl-C cancels an active task or closes an idle TUI.
 
-`bash` is labelled **trusted-local**. It runs directly as the current host user. `--workspace` establishes the default cwd and relative-path base; it is not path containment, an OS sandbox, a Docker boundary, or a network boundary. Both current Tool implementations accept absolute paths. Use this command only against a workspace and task you trust.
+Archives verify their stored hash chain and preserve run identity. They are not a checkpoint that resumes model execution. Context compaction and cross-process conversation continuation are not claimed. See RUNBOOK.md for operating guidance.
 
-The shell child receives a small allowlist of ordinary process variables and does not inherit `DEEPSEEK_API_KEY` or other ambient Provider credentials. This reduces accidental shell leakage; it does not turn trusted-local execution into a security boundary. OS isolation and enforced path/network policy are not claimed.
+## License and distribution status
 
-## Observable contract
-
-The TUI renders normalized events for each Run:
-
-- Provider/model/response identity, stop reason, and Provider-reported Token usage;
-- typed ToolCall name, correlation ID, arguments, ToolResult text, and error status;
-- one attributable terminal: `completed`, `cancelled`, `model_error`, or `incomplete`.
-
-Provider-private reasoning continuation stays inside the Pan DeepSeek Adapter and never enters this projection. No credential is copied into source, CLI arguments, shell child environment, or Run Archive bytes. The stack does not yet implement checkpoint/resume across processes, enforce a paid-call budget, compact Context, or recover from Context overflow. It performs no application-level history truncation.
-
-## Three-lane memory (WorkOrder #25 accepted implementation)
-
-Every admitted run is archived before any Provider exchange or tool effect: one append-only hash-chained `events.jsonl` per run under `<memory-root>/runs/<run-id>/`, sealed at settlement (`terminal | cancelled | failed`), or settled as `interrupted` by recovery after a process crash, with disclosed torn-tail byte counts and no identity reuse. Sealed archives refuse every application-owned write interface and verify integrity byte-exactly; there is no overwrite or delete interface. A present-but-corrupted manifest (invalid JSON or wrong shape) never blocks startup: `open()` leaves it byte-untouched while `readManifest`/`readArchive`/`listRuns` fail typed with `ArchiveIntegrityError`, and `:runs`/`:replay` render that as `ARCHIVE_ERROR`. `:runs` lists sealed archives and `:replay RUN_ID` renders one with zero Provider calls and zero tool effects.
-
-The Retrospective Ledger (`<memory-root>/retrospective-ledger.jsonl`) holds append-only post-run conclusions and corrections; every entry references a sealed archive identity plus its sealed head hash, and a correction is a new entry with an explicit `supersedes` reference. Entries are not raw trajectory and never auto-promote to project facts.
-
-The Runbook ([`RUNBOOK.md`](RUNBOOK.md)) is the current operating guidance, edited and reverted through ordinary version control. Each run resolves the Runbook snapshot at its creation and binds the content-hash revision into its archive and the model-visible prompt, so later edits never rewrite an old run's meaning. This is an application-level memory contract, not filesystem immutability or OS isolation.
-
-## Deterministic checks
-
-```bash
-npm --prefix typescript run check
-npm --prefix typescript run pan-contracts
-npm --prefix typescript run pan-faux-tools
-```
-
-Product checks use Pan Faux and canonical fixtures plus the content-hashed offline DeepSeek fixtures. Native and memory regression cases have been migrated to Pan inputs. Shared manifests remain byte-identical and run on Native here and on Pi in the independently installed reference. Full source isolation, coverage and relocation evidence is documented in `docs/design/product-isolation.md` from the repository root; the #35 compiled consumer procedure is documented in `docs/design/packed-product-consumer.md`.
-
-## File navigation
-
-Source Modules are indexed by `src/README.md` in the checkout:
-
-| Location | Responsibility |
-|---|---|
-| `src/protocol/` | Canonical protocol, AgentTool and ModelAdapter contracts |
-| `src/runtime/` | GeneralAgentSession, AgentKernel contract and NativeKernel |
-| `src/providers/deepseek/` | Existing DeepSeek profile, transport and Adapter |
-| `src/providers/faux/` | Existing Pan Faux Adapter |
-| `src/tools/` | Trusted-local read/write/edit/bash implementation |
-| `src/memory/` | Archive, retrospective ledger and Runbook implementation |
-| `src/tui/` | Existing TUI and observation/replay rendering |
-| `src/cli.ts`, `src/index.ts` | Concrete composition/CLI entry and public export facade |
-
-The source command remains `npm run agent -- --kernel native ...`. Installed import names and bin behavior remain unchanged; only the internal `pan-agent/faux` target moves to `dist/providers/faux/faux-model-adapter.js`. `tsconfig.build.json` and `scripts/build.mjs` already compile nested source directories; no build algorithm or Runbook asset locator change is required. `dist/` and generated tarballs remain ignored output.
-
-Repository `scripts/check_module_layout.mjs` reconstructs exact source/import correspondence and checks dependency direction, scope and baseline test obligations. `scripts/check_public_package.mjs` compiles the same typed client against old/new installed tarballs and compares public named exports. The unchanged `scripts/verify_packed_consumer.py` and #35 driver/guards verify the real installed task. Historical `check_workorder_34_scope.py` / `check_workorder_35_scope.py` remain unchanged proofs runnable at their respective accepted SHAs; the #41 checker is the current scope gate. See `docs/design/native-module-layout.md` from the repository root for the complete relocation map and reproduction.
-
-## Compact Native presentation
-
-Native CLI explicitly selects the compact TUI: `你 › `, honest tool-result counts, full final answer and local `:details` / `:runs` / `:replay RUN_ID`. [The guide](../docs/design/native-compact-tui.md) documents the offline demo and precise missing-counter behavior. Public legacy renderers and `runTui` without presentation retain their prior output.
-
-#44 candidate adds optional ephemeral public text streaming and English compact labels. See [design and installed demo](../docs/design/native-streaming-tui.md). Existing exchange callers may omit progress; settled records and explicit Native selection are unchanged.
-
-[Explicit file input](../docs/design/native-file-input.md): idle `@` picker, Ctrl-P preview, Ctrl-R removal; Enter selects, a separate Enter submits. `--max-attachment-bytes INTEGER` sets the inclusive aggregate byte policy (default 1048576). Use Escape for literal standalone `@` text.
-
-[TUI A daily workspace](../docs/design/native-daily-workspace.md): fixed TTY regions, inline attachments and editable next draft; non-TTY retains explicit line submission.
-
-#47 Criteria-Version 1.2 adds timer-free compatibility framing (Ctrl-G Back, ESC prefix only) and immutable raw-prefix screen evidence. Old 1.1 grids remain historical failed evidence.
-
-## Explicit Kimi K3 configuration (#68 candidate)
-
-Run `configure` and select `kimi-code:k3-256k`, then low/high/max thinking (default high). Restart with `--kernel native`; Kimi model/thinking CLI overrides remain unsupported. Existing `kimi-code` selections retain the legacy identity. See [K3 design, disposal ownership and offline limits](../docs/design/kimi-k3-offline.md).
-
-- [#110 optional Native checkpoint API and private Adapter capability](../docs/design/pan-web/checkpoint110.md).
-
-#111 navigation: [bounded pending-tool recovery consumer and evidence](../docs/evidence/web111/README.md).
+Author license selection is pending. This package is a review candidate, not a publicly released open-source package. Runtime code has no third-party npm runtime dependencies. Build-time dependencies: TypeScript (Apache-2.0), @types/node (MIT), undici-types (MIT). No dependency license grants rights to Pan's own source. The release process must include the selected author license and check notices before publication.

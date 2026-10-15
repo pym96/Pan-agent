@@ -1,0 +1,20 @@
+# TUI demonstration
+
+Status: 41-second candidate video recorded, pending independent review; **no public video URL yet**. Public release is also blocked on author license selection.
+
+The candidate records the actual installed TUI in a 112-column, 34-row PTY. It shows a benign JavaScript file task, shell approval, output, run listing and the same run's archive replay. Input is automated; it is not a fabricated terminal interface. Long idle waits may be shortened in the rendered MP4. Source `terminal.cast` preserves original timing and bytes.
+
+Two modes are distinguished:
+
+- **Offline scripted model**: `pan-agent demo`, with real NativeKernel and local tools, no API key/network. Expected file: `console.log("PAN_DEMO_OK");\n`.
+- **Live Kimi Code**: one task through the normal installed CLI and provider. Expected file: `console.log("PAN_LIVE_OK");\n`. Only a completed recording can be represented as a successful live demo; failures remain disclosed.
+
+Recording source: `scripts/verify_tui_release56.py` from the repository root. Usage: `python3 scripts/verify_tui_release56.py INSTALLED_EXECUTABLE NEW_RECORDING_DIRECTORY [--live]`. Live requires the already-configured environment credential; never include it in arguments or artifacts. The script uses isolated settings and a benign workspace. It does not alter the runtime.
+
+Rendering: `python render.py RECORDING/terminal.cast OUTPUT.mp4` in an environment with Pillow, pyte and FFmpeg. Default font is the local macOS Menlo font; no font binary is shipped. Color support is a simplified terminal rendering; event text and cursor position come from recorded terminal bytes. The manifest identifies raw captures, package, archive and video hashes.
+
+[License inventory](LICENSE-INVENTORY.md). Candidate evidence and release checklist: `docs/evidence/tui-release56/README.md` in the repository.
+
+Finished candidate: `pan-agent-demo.mp4`, 41 seconds. Live task footage (first 27 seconds) is followed by a separately recorded same-run replay (14 seconds); headers distinguish the sections. This edit removes a failed overlay-navigation attempt from the showcase, not an unsuccessful model task. Raw captures are retained.
+
+[Renderer](render.py) · [Video assembly](assemble.sh)

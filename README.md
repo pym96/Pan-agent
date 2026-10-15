@@ -1,64 +1,83 @@
-# Workspace Agent Harness
+# Pan Agent
 
-**Pan Agent** — the product path of this repository — lets you hand a task to an agent in your terminal: it reads and writes files in a workspace you choose, runs shell commands under your own user authority, shows every step as it happens, and seals each run so you can replay exactly what it did afterwards.
+A terminal agent for working with local files and shell commands. Watch tool calls, approve operations, and replay saved runs without calling the model or executing tools again.
 
-> **Early preview — macOS only.** Pan currently supports macOS with Node.js 22.19.0 or newer. Its shell tools are **trusted-local**: they run with your host user's authority, and the selected workspace is only the default directory — that is not a sandbox. The package is a private local tarball: nothing is published to npm, and no live-model result is claimed here.
+## Requirements
 
-## Try the offline first task
+- Node.js **22.19.0 or newer**, with npm.
+- An interactive terminal. Validated on macOS arm64; Linux and Windows are not yet verified for this release.
+- For real tasks: a DeepSeek or Kimi Code API key. The offline demo requires no key.
 
-No API key, no real Provider, no cost. The try path installs an already-built local artifact **offline** — it downloads nothing and needs no dev dependencies.
+The installed runtime needs no Python, Go, Docker, PostgreSQL, Redis or TypeScript compiler.
 
-**Step 1 — build the artifact once (developer step, needs the locked dev dependencies):**
+## Install
 
-```bash
+Release downloads are **pending review and license selection**. Until published, build from this repository:
+
+```sh
+git clone https://github.com/pym96/Pan-agent.git
+cd Pan-agent
 npm --prefix typescript ci --ignore-scripts
-cd typescript && npm pack --pack-destination /absolute/path/to/artifacts
+mkdir -p artifacts
+(cd typescript && npm pack --pack-destination ../artifacts)
+mkdir -p consumer
+cd consumer
+npm install ../artifacts/pan-agent-0.1.0.tgz --omit=dev --ignore-scripts --no-audit --no-fund
+./node_modules/.bin/pan-agent --help
 ```
 
-**Step 2 — install and try, fully offline (ordinary user path):**
+Once the `.tgz` is available in Releases, install that downloaded file with the same `npm install` command. No build is needed for a prebuilt package. The package is not published on npm.
 
-```bash
-bash scripts/try_preview.sh /absolute/path/to/artifacts/pan-agent-0.1.0.tgz
+## Try it without an API key
+
+From the consumer directory:
+
+```sh
+./node_modules/.bin/pan-agent demo
 ```
 
-The script echoes each step as it runs: it installs the artifact into a fresh consumer directory with an intentionally empty npm cache (`--omit=dev --offline --ignore-scripts --no-audit --no-fund`), confirms the installed executable answers, and starts the actual installed Pan TUI. Then:
+This is an **offline, scripted model** using the real installed TUI, runtime and local tools. It creates a disposable workspace and prints its location. Submit `Create hello.js, run it, and read it back.`; inspect and approve the shell operation. The expected file contains `console.log("PAN_DEMO_OK");`.
 
-1. Confirm the displayed offline identities with `y`.
-2. Enter the frozen first task: `Create hello.js, run it and verify its exact source.`
-3. Watch Pan write `hello.js`, execute `node hello.js`, read the source back, and finish with `verified PAN_PREVIEW_OK`.
-4. Inspect the sealed run with `:runs` and `:replay RUN_ID` — replay only reads the retained record, it never re-executes. `:exit` closes.
+Use `:runs` to find its run ID, then `:replay RUN_ID` to view the same saved run. Replay makes no model calls and does not rerun tools. Use `:exit` to close. Demo files remain available for inspection.
 
-**This demo is offline and simulated.** Replies come from a scripted local adapter, so it demonstrates the product loop — file tools, shell execution, streaming, run archive, replay — without any Provider call, credential or cost. It is not evidence of live model behavior. Only Step 1 touches the development dependency lock; Step 2 needs no compiler, Python, repository path or network.
+## Configure and run real tasks
 
-## Use Pan with a real model
+```sh
+./node_modules/.bin/pan-agent configure
+```
 
-The installed `pan-agent` executable runs against a real Provider when you deliberately configure one. First-run settings keep ordinary preferences at `~/.pan-agent/settings.json` (mode 0600, never a secret); run `./node_modules/.bin/pan-agent configure` to choose provider (deepseek or kimi-code with its fixed official model `kimi-for-coding`) and whether the credential comes from the environment (`DEEPSEEK_API_KEY` / `KIMI_API_KEY`, read only at call time) or from an explicitly remembered macOS Keychain item. The Kimi path uses Kimi Code's official OpenAI-compatible endpoint only; it is proven offline against frozen fixtures — no live Kimi call is claimed. See the [TypeScript operator guide](typescript/README.md) and [Runbook](typescript/RUNBOOK.md) first: startup displays and requires confirmation of the Provider/model/workspace/authority before any model call, and the trusted-local shell boundary above still applies.
+Select your provider, model and credential source. Settings store preferences, **not the API key**. Choose environment credentials and set `KIMI_API_KEY` or `DEEPSEEK_API_KEY` in your terminal using your preferred secret manager; do not put keys in the repository or command arguments. macOS Keychain storage is also available through the configuration wizard.
 
-## Current boundaries and later plans
+```sh
+mkdir -p workspace archives
+./node_modules/.bin/pan-agent --kernel native \
+  --workspace "$PWD/workspace" --memory-root "$PWD/archives"
+```
 
-| Now (this checkout) | Later (separately routed, not claimed here) |
-|---|---|
-| macOS early preview, Node ≥ 22.19.0 | Other platforms |
-| Private local tarball install | npm publication (requires a future Human-authorized release) |
-| Explicit `--kernel native` startup | Default-kernel cutover (#29) |
-| Accepted offline demos with scripted adapter | Live-model validation (#36) |
-| kimi-code selectable (offline-proven, frozen wires) | Live Kimi/DeepSeek validation (#36) |
-| Trusted-local tools with Human confirmation | Startup-confirmation redesign (#49), draggable transcript scrollbar (#60) |
+Ask a task such as “Create hello.js that prints hello, run it, and check the file.” Real mode calls your provider and may incur charges. Blank input, startup, configuration and replay do not call a model.
 
-## Repository guide
+**Local authority:** tools execute as your host user. The workspace is a working directory, **not a sandbox**. Review shell/protected-file approvals and use a disposable directory for your first task. Ctrl-C requests cancellation during execution; at idle it closes the TUI.
 
-- **Product**: the TypeScript Native agent stack — [package guide](typescript/README.md), [source map](typescript/src/README.md), [Runbook](typescript/RUNBOOK.md).
-- **Offline first task proof**: [design and reproduction](docs/design/preview-first-task.md) — deterministic fixture, clean-consumer verifier, fresh-process replay and isolation checks.
-- **Safety and architecture**: [product isolation decision](docs/adr/0017-product-isolation-and-frozen-pi.md), [packed consumer design](docs/design/packed-product-consumer.md), [governance and verification](docs/governance/verification.md).
-- **Learning Wiki**: [what building this system teaches](wiki/index.md) — verified learning facts and open questions.
-- **History and retained experiments**: see the catalog below; historical Evidence keeps its original identity and review status.
-- **Governance entry**: start at `AGENTS.md`; the bounded current assignment lives in `docs/agents/current-assignment.md`.
+## Demonstration
 
----
+[Recording guide and video status](docs/demo/tui-release56/README.md). A 41-second live-task and same-run replay video is recorded and awaiting review; no public video asset is available yet. The recording shows the installed TUI, a file task and the same run's trace replay, with its real/offline mode disclosed.
+
+## License
+
+**License selection pending.** No open-source license has been granted for this repository yet. Public release is blocked until the author selects a license and the package/notice checks are complete. [Dependency and licensing inventory](docs/demo/tui-release56/LICENSE-INVENTORY.md).
+
+## Development
+
+[Package guide](typescript/README.md) · [Architecture vocabulary](CONTEXT.md) · [Design documents](docs/design/README.md) · [Evidence](docs/evidence/README.md)
+
+The TypeScript runtime/TUI is the user-facing product. Historical Python experiments, evaluation infrastructure and Web tooling remain in the repository for reference; they are not prerequisites for using the TUI.
+
+<details>
+<summary>Developer source entry and retained implementation catalog</summary>
 
 ## Default product path | TypeScript Native
 
-Use Node.js `22.19.0` or newer, choose an existing workspace plus a disjoint memory path, install the locked TypeScript dependencies, enter the Provider credential without putting it in command history, then launch the authoritative TUI:
+Developers can also start from source after choosing DeepSeek in `configure`. In Bash, use hidden input for the key; replace the two example paths with existing, disjoint directories:
 
 ```bash
 npm --prefix typescript ci --ignore-scripts
@@ -67,38 +86,14 @@ export DEEPSEEK_API_KEY
 npm --prefix typescript run agent -- \
   --kernel native \
   --workspace /absolute/path/to/workspace \
-  --memory-root /absolute/path/to/memory \
-  --model deepseek-v4-flash \
-  --thinking high
+  --memory-root /absolute/path/to/memory
 ```
 
-The TUI displays the resolved Provider/model/workspace/memory identities and requires confirmation before the first task; submitting that task makes the first Provider call. The selected workspace is the default cwd, not containment. The trusted-local tools run with the current host user's authority. See the [TypeScript operator guide](typescript/README.md), [runbook](typescript/RUNBOOK.md), and [design](docs/design/typescript-pi-general-agent-working-stack.md) before using a real Provider.
+## Retained implementation catalog
 
-## Local compiled package
-
-The source command above remains a development entry. For an installed JavaScript executable, build a local tarball with the pinned compiler, then install that file into a separate directory:
-
-```bash
-npm --prefix typescript ci --ignore-scripts
-npm --prefix typescript pack --pack-destination /absolute/path/to/artifacts
-cd /absolute/path/to/consumer
-npm install /absolute/path/to/artifacts/pan-agent-0.1.0.tgz \
-  --omit=dev --offline --ignore-scripts --no-audit --no-fund
-./node_modules/.bin/pan-agent --help
-```
-
-Use Node `22.19.0` or newer. The installed package contains JavaScript and its Runbook, has no runtime dependencies, and needs no TypeScript compiler or loader. The [package guide](typescript/README.md#installed-javascript-package) documents explicit Native startup and exports; the [consumer verifier](docs/design/packed-product-consumer.md) performs the credential-free, fixed four-exchange create/run/verify task on Node `22.19.0`. This is a local private tarball candidate, with no npm publication or live-model result.
-
-## Source Module navigation
-
-The [Product source map](typescript/src/README.md) locates protocol, runtime, Provider, Tool, memory and TUI code. The [#41 relocation design](docs/design/native-module-layout.md) records exact old→new correspondence and dependency checks. Root `src/cli.ts` still composes the concrete Native product; installed `pan-agent`, `pan-agent/cli` and `pan-agent/faux` imports remain stable. #35 packaging is accepted; #41 relocation is a candidate pending independent review.
-
-## Repository lanes
-
-| Lane | Classification |
+| Area | Classification |
 |---|---|
 | TypeScript Native working stack | **Product** |
-| Pi integration (`references/pi/`) | **Frozen Reference** |
 | Python evented TUI/runtime | **reference-only** |
 | ReAct mechanism | **experiment/reference** |
 | Protocol reliability | **experiment/reference** |
@@ -106,149 +101,6 @@ The [Product source map](typescript/src/README.md) locates protocol, runtime, Pr
 | Proof packs and evaluators | **experiment/reference** |
 | Benchmark machinery | **experiment/reference** |
 
-Language-neutral conformance fixtures under [`conformance/`](conformance/) preserve only cross-implementation semantics: the retained read/write/edit/bash tool meanings, attributable terminal kinds, active-tool cancellation, cross-task Context behavior, and the accepted WorkOrder #28 Kernel contract. The TypeScript runners consume them through the public `GeneralAgentSession` Interface without importing or executing the Python package; the Kernel manifest runs unchanged against explicit Native in Product and Pi in the independently installed Frozen Reference.
+Reference-only Python TUI: `python3 -m workspace_agent_harness.tui` belongs to the historical implementation, not the installed Pan product or its setup path.
 
-## Learning Wiki
-
-The project maintains a source-grounded [Learning Wiki](wiki/index.md) recording what building this system teaches: harness engineering, agent tool design, evaluation methodology, and verification practice. Every substantive page is either a **Verified Learning Fact** (with an explicit verification level — `source-located`, `triangulated`, or `experiment-reproduced` — and stated boundaries) or an **Open Learning Question** (with a verification path). The [log](wiki/log.md) is append-only. The Wiki claims no product, benchmark, or resume authority; it is the project's public learning trail.
-
-## Authoritative TypeScript Native working stack
-
-The [TypeScript package and Human command](typescript/README.md) use one `GeneralAgentSession` lifecycle with explicit Native selection, the accepted Pan DeepSeek Adapter and Pan trusted-local Tools. WorkOrder #34 is [accepted and landed](https://github.com/pym96/Pan-agent/issues/34#issuecomment-5566954695): Product has no Pi dependency. Missing selection fails before setup; `--kernel pi` points to the [separate Frozen Reference instructions](https://github.com/pym96/Pan-agent/blob/13d659a7292748f7f01dd592aa417848917d9065/references/pi/README.md). The [transition decision](docs/adr/0017-product-isolation-and-frozen-pi.md) and [relocation/coverage inventory](docs/design/product-isolation.md) retain that boundary. #35 landed the [compiled package and offline consumer](docs/design/packed-product-consumer.md) after independent review. #41 now organizes the existing Modules as described below. #29's future default and #36 live validation remain separate assignments.
-
-The shell is explicitly **trusted-local**: it runs as the host user, and the selected workspace is only the default cwd. It claims neither path containment nor an OS/network sandbox. The Python shell/PTY implementation remains available for comparison, but it is not the default product route.
-
-## Retained reference and experiment catalog
-
-The architecture is Human-accepted. The code and tests below remain a candidate, but their ordinary operator-trusted implementation boundary has passed a separate same-model Regulator review; high-risk security, public benchmark, fact, and resume gates remain closed:
-
-- [`docs/design/general-vertical-system.md`](docs/design/general-vertical-system.md): Runtime and Domain Pack Interface alternatives, selection, invariants, ordering, errors, configuration, and migration;
-- [`docs/design/deerflow-mechanism-map.md`](docs/design/deerflow-mechanism-map.md): pinned DeerFlow mechanism sources, local decisions, and intentional omissions;
-- [`docs/design/proof-domains.md`](docs/design/proof-domains.md): bounded `data-analysis` and `workspace-coding` tasks and deterministic evaluators;
-- [`docs/design/benchmark-strategy.md`](docs/design/benchmark-strategy.md): a pinned PinchBench compatibility lane plus a 15+15 local vertical evidence campaign;
-- [`docs/adr/0009-general-runtime-and-vertical-domain-packs.md`](docs/adr/0009-general-runtime-and-vertical-domain-packs.md): accepted Runtime/Pack seam decision;
-- [`docs/adr/0010-external-and-vertical-evaluation-lanes.md`](docs/adr/0010-external-and-vertical-evaluation-lanes.md): accepted benchmark/campaign placement;
-- [`docs/design/react-to-swe-mvp.md`](docs/design/react-to-swe-mvp.md): Phase 0 Act-only/ReAct mechanism comparison, dual-channel observations, Docker/gold gates, and the later SWE-style ACI transition;
-- [`docs/adr/0011-react-mvp-before-swe-aci.md`](docs/adr/0011-react-mvp-before-swe-aci.md): accepted decision to isolate ReAct loop grammar before adding coding-interface treatments;
-- [`docs/design/protocol-reliability-v1.md`](docs/design/protocol-reliability-v1.md): frozen 24-context JSON/Strict protocol replay, repair, measurement, identity, and stop contract;
-- [`docs/design/protocol-reliability-v1.1-max-token-sensitivity.md`](docs/design/protocol-reliability-v1.1-max-token-sensitivity.md) and [`docs/design/protocol-reliability-v1.2-max-token-16k-extension.md`](docs/design/protocol-reliability-v1.2-max-token-16k-extension.md): the complete 2K/4K/8K sensitivity design and transparently post-v1.1 16K extension;
-- [`docs/adr/0012-freeze-protocol-reliability-v1.md`](docs/adr/0012-freeze-protocol-reliability-v1.md): accepted decision to calibrate the Translation Layer before coding ACI treatments;
-- [`docs/design/translation-adapter.md`](docs/design/translation-adapter.md) and accepted [`ADR-0013`](docs/adr/0013-typed-native-history-translation-adapter.md): WorkOrder #4's independently accepted offline candidate seam for typed canonical history, provider-native call/result replay, separate reasoning, fail-closed correlation, and ModelProfile-owned output limits;
-- [`docs/design/agent-loop-behavioral-eval-v0.md`](docs/design/agent-loop-behavioral-eval-v0.md) and accepted [`ADR-0014`](docs/adr/0014-evented-agent-loop-and-behavioral-eval.md): WorkOrder #3's independently accepted evented AgentLoop, deep ModelGateway, consumer-only TUI, Context, and Behavioral Eval design freeze;
-- [`docs/design/evented-tui-tracer.md`](docs/design/evented-tui-tracer.md): WorkOrder #6's credential-free, manually testable Python TUI tracer candidate and replay/cancellation entry points; pending independent Regulator review;
-- [`docs/design/provider-context-overflow-recovery.md`](docs/design/provider-context-overflow-recovery.md): WorkOrder #8's one classified Provider Context-overflow recovery candidate, #7 semantic-compaction reuse, one retry ceiling, separate attempt accounting, explicit exhaustion, and deterministic TUI/replay paths; pending independent Regulator review;
-- [`docs/design/behavioral-eval-runtime-v0.md`](docs/design/behavioral-eval-runtime-v0.md): WorkOrder #9's exact 12-case deterministic Behavioral Eval campaign, protected oracles, attributable report, and zero-call replay candidate; pending independent Regulator review;
-- [`docs/design/tui-three-view-projections.md`](docs/design/tui-three-view-projections.md): WorkOrder #10's compact/expanded/trace event projections, visibility filtering, candidate/admission distinction, bounded long-output rendering, and repeatable Python TUI view selection candidate; pending independent Regulator review;
-- [`docs/design/deepseek-live-behavioral-eval-stage-a.md`](docs/design/deepseek-live-behavioral-eval-stage-a.md): WorkOrder #11 Stage A's DeepSeek native-tool Translation/Gateway, balance and call/token/cost controls, content-hashed paired 120-slot lock, and zero-call inventory candidate; pending independent Regulator review and containing no live result;
-- [`docs/design/deepseek-live-budgeted-serial-runner.md`](docs/design/deepseek-live-budgeted-serial-runner.md) and [`Stage B terminal Evidence`](docs/evidence/deepseek-live-stage-b-terminal-2026-08-29.md): WorkOrder #11's independently accepted runner later retained one frozen HTTP 400 Provider exchange, mandatory balance settlement, `model_usage_missing` stop, and the complete `1 failed / 119 skipped / 0 missing` denominator; v2 is terminal, with no task result or arm comparison, and any v3 requires a new lock and fresh Human budget authorization;
-- [`docs/design/deepseek-live-v3-adapter-stage-a.md`](docs/design/deepseek-live-v3-adapter-stage-a.md) and [`candidate Evidence`](docs/evidence/deepseek-live-v3-stage-a-candidate-2026-08-29.md): WorkOrder #19's independently accepted zero-call v3 repair retains Thinking/tools/stable endpoint, omits request-level `tool_choice`, accepts one typed tool call or non-empty ordinary final content, versions the lock/runner/entry identity chain, and preserves the 120-slot controls; accepted on 2026-08-29 and authorizing no live call;
-- [`docs/design/deepseek-live-tui.md`](docs/design/deepseek-live-tui.md), [`historical #21 smoke observation`](docs/evidence/deepseek-live-tui-smoke-candidate-2026-08-31.md), and [`#22 smoke candidate Evidence`](docs/evidence/deepseek-live-trusted-local-smoke-candidate-2026-09-02.md): the accepted Python entry plus WorkOrder #22's candidate trusted-local extension. Default no-shell behavior remains; `--trusted-local` adds a typed non-interactive shell and a separate exact-command/cwd Human PTY confirmation, process-group cancellation, lossless artifacts, lifecycle events, and replay. The trusted-local profile also treats absent/empty Provider reasoning as optional metadata (the default-off profile remains reasoning-required) while retaining executable action validation. The authorized real `deepseek-v4-flash` snake smoke completed on exact candidate bytes with a Human-operated PTY handoff; it makes no sandbox, benchmark, model-quality, or TypeScript migration claim and remains pending independent high-risk review;
-- [`tests/test_general_runtime_contract.py`](tests/test_general_runtime_contract.py): Runtime/Pack seam, authority, admission, and evaluator-limit contracts;
-- [`tests/test_benchmark_campaign_contract.py`](tests/test_benchmark_campaign_contract.py): suite selection, eligibility, aggregation, and append-only attempt contracts.
-- [`workspace_agent_harness/proof_packs.py`](workspace_agent_harness/proof_packs.py): concrete seed Pack implementation candidate; the Runtime Module does not import it;
-- [`tests/test_proof_packs.py`](tests/test_proof_packs.py): same-Runtime/same-model concrete Generality Proof integration contract.
-
-The complete local suite is expected green for this implementation candidate. Passing tests are Evidence, not automatic acceptance. The reviewed foundation includes one concrete seed for each proof Pack, a two-case `vertical-development-smoke`, PinchBench core/full P0 catalog locks, and a 30-case vertical configuration in which only the two seeds are eligible. The newer Phase 0 candidate adds a real-provider Adapter and completed frozen five-case SWE-bench development smoke. Each treatment produced one resolved planned slot, but response-contract failures dominated and one Act-only slot had an infrastructure/artifact failure. It does not include PinchBench task translation, the other 28 fixtures/evaluators, a SWE-bench Lite score, or any accepted project/resume fact.
-
-The ReAct MVP executable lock lives at [`workspace_agent_harness/benchmark_configs/react-mvp-5-v1.json`](workspace_agent_harness/benchmark_configs/react-mvp-5-v1.json). [`scripts/swebench_gold_gate.sh`](scripts/swebench_gold_gate.sh) reproduces one selected case's pinned official gold gate, [`scripts/run_react_mvp_case.py`](scripts/run_react_mvp_case.py) runs one pre-gated attempt, and [`scripts/summarize_react_mvp.py`](scripts/summarize_react_mvp.py) deterministically enumerates and hashes all expected slots. The candidate result and limitations are in [`docs/evidence/react-mvp-30-slot-candidate-2026-08-23.md`](docs/evidence/react-mvp-30-slot-candidate-2026-08-23.md).
-
-The protocol locks are [`protocol-reliability-v1.json`](workspace_agent_harness/benchmark_configs/protocol-reliability-v1.json), its [24-context corpus](workspace_agent_harness/benchmark_configs/protocol-reliability-v1-contexts.json), the [2K/4K/8K sensitivity](workspace_agent_harness/benchmark_configs/protocol-reliability-v1.1-max-token-sensitivity.json), and the separately versioned [16K extension](workspace_agent_harness/benchmark_configs/protocol-reliability-v1.2-max-token-16k-extension.json). [`scripts/freeze_protocol_reliability_contexts.py`](scripts/freeze_protocol_reliability_contexts.py) verifies Trace reconstruction; the protocol and sensitivity runners retain deterministic append-only raw calls; their summarizers report layered reliability, repair/cap cost, confidence intervals, marker diagnostics, and provider identity. Generated state stays under ignored `.scratch/`, `.runs/`, and `logs/` paths.
-
-The completed Working Agent result and its explicit limits are indexed at [`docs/evidence/protocol-reliability-v1-candidate-2026-08-23.md`](docs/evidence/protocol-reliability-v1-candidate-2026-08-23.md). It is a dated provider-protocol measurement, not task quality, a persistent benchmark, VPF, or resume fact.
-
-The follow-up [`maximum-token sensitivity candidate Evidence`](docs/evidence/protocol-max-token-sensitivity-candidate-2026-08-24.md) qualifies that result: higher ceilings extended many malformed Strict/ReAct outputs to 16K without a monotonic L3 gain. It supports bounded validation/repair rather than using 16K as the default protocol fix and remains pending independent review.
-
-The WorkOrder #4 implementation candidate adds [`translation.py`](workspace_agent_harness/translation.py), the provider-specific [`deepseek_translation.py`](workspace_agent_harness/deepseek_translation.py), and an [offline four-cell dry-run](scripts/dry_run_translation_matrix.py). Its offline candidate passed an independent Regulator Gate on 2026-08-25, while its secret-free fixture contracts prove local mapping and rejection behavior only; no live call, causal result, Verified Project Fact, Wiki entry, or resume claim was produced.
-
-## Reference-only Python TUI
-
-This retained reference entry defaults to #21's bounded no-shell tool profile. Choose an existing workspace and a new artifact path outside it; add `--trusted-local` only when you deliberately grant host-user shell and Human PTY authority:
-
-```bash
-read -s DEEPSEEK_API_KEY
-export DEEPSEEK_API_KEY
-PYTHONPATH=. python3 -m workspace_agent_harness.tui \
-  --live-deepseek \
-  --trusted-local \
-  --kernel native \
-  --workspace /absolute/path/to/workspace \
-  --session-root /absolute/new/path/to/live-session
-```
-
-The command displays and asks you to confirm the Provider, model, resolved workspace, and selected authority before accepting `Task>`. Each task gets a new Run and model Context while the workspace persists. Use `:help`, `:view compact|expanded|trace`, `:runs`, `:replay RUN_ID`, or `:exit`. Starting, cancelling before confirmation, using help/views, or replaying makes no Provider call. Run artifacts contain the append-only Event Log, secret-free Provider exchanges, Context artifacts, trusted-local stream/PTY identities when enabled, public metadata, reported usage, and changed workspace paths.
-
-The explicit Native TypeScript entry is the default route documented at the top of this file. Every admitted run is durably archived under `--memory-root` (created if missing; it must be disjoint from the workspace) and bound to the current [`typescript/RUNBOOK.md`](typescript/RUNBOOK.md) revision; `:runs` and `:replay RUN_ID` inspect sealed archives with zero Provider calls or tool effects.
-
-PinchBench is pinned as an external compatibility source, not vendored as the Runtime contract. [`workspace_agent_harness/benchmark_configs/`](workspace_agent_harness/benchmark_configs/) holds content locks; `workspace_agent_harness.benchmarks.load_pinchbench_suite(...)` audits a caller-supplied clean checkout without executing embedded graders. All 21/147 upstream cases are currently ineligible because no local translation is frozen. Any later translated local run must be labelled `pinchbench-compatible`; official compatibility requires the unmodified upstream runner. The Composio thread contributes campaign shape and efficiency metrics only, not reusable tasks or results.
-
-## Previous Local Workspace Agent v1 contract｜historical design baseline
-
-- **Task surface:** Markdown knowledge maintenance, CSV retrieval/cleaning/aggregation, and code modification/test repair.
-- **Agent surface:** an online model adapter, CLI, allowlisted file/command tools, composable Skills and Workflow, explicit budgets, structured Trace, checkpoint/resume, and policy results.
-- **Acceptance suite:** 30 version-frozen local tasks, exactly 10 per task family. Every task uses an isolated fixture workspace and a deterministic grader; tasks and graders freeze before the formal run, and failed cases are retained.
-- **Baseline:** the same model, tools, prompt budget, and task suite run through a minimal ReAct loop. The full system adds only Skills/Workflow, Trace, recovery, and reliability controls.
-- **Metrics:** task success rate is primary; Token use, cost, and latency are secondary; fault-injection recovery rate, unauthorized-operation block rate, and Trace completeness are reliability metrics.
-
-Coze is a **Product Reference** for how task entry, Skills, Workflow, tool execution, observation, debugging, evaluation, and release can be organized. It is not a benchmark and this project does not claim superiority to Coze. The 30-task **Evaluation Suite** is the v1 acceptance mechanism. Only after v1 passes may a v1.1 experiment attempt a clearly named Terminal-Bench subset; BFCL is an on-demand component diagnosis for tool-selection or argument errors. GAIA is outside the current roadmap.
-
-## Explicit exclusions
-
-v1 does not include open-web browsing, GUI/Computer Use, multimodal input/output, autonomous research, cloud multi-tenancy, a complete Coze clone, model training, or a precommitted paper. Research may be reconsidered only after the product exposes a repeated, falsifiable failure mode and additional work cannot delay the job-search deliverable.
-
-## Verified implementation facts
-
-[`docs/evidence/verified-project-facts.md`](docs/evidence/verified-project-facts.md) is the only project-level fact register. It records each accepted atomic Claim, Evidence, Criterion, independent acceptance, date, and limitation. README prose, specs, Wiki pages, and passing structure checks are not implementation Evidence by themselves.
-
-Run the authoritative TypeScript candidate suite with:
-
-```bash
-npm --prefix typescript run check
-```
-
-The retained reference and experiment regression suite remains available with:
-
-```bash
-python3 -m unittest discover -s tests -p 'test_*.py' -v
-```
-
-The historical Local Workspace v1 specification remains [GitHub Issue #1](https://github.com/pym96/workspace-agent-harness/issues/1) and [`docs/spec/v1.md`](docs/spec/v1.md). Domain language lives in [CONTEXT.md](CONTEXT.md); ADR-0008 is the accepted historical product decision, while Human-accepted ADR-0009 and ADR-0010 define the current target. Their bounded ordinary implementation has passed a same-model Regulator Gate; this does not release high-risk security, benchmark, project-fact, or resume claims.
-
-## Native compact TUI candidate | WorkOrder #42
-
-The [compact TUI guide](docs/design/native-compact-tui.md) covers progress, `:details`, archive replay and the offline/scripted interactive demo. Criteria-Version 1.1 governs the candidate; independent and Human review remain required. The established real DeepSeek route above is available for separately chosen Human use.
-
-Current candidate #44: [public text streaming, English compact UI and installed offline demo](docs/design/native-streaming-tui.md). Criteria-Version 1.0; independent review pending.
-
-[WorkOrder #43 explicit file input](docs/design/native-file-input.md): candidate input-layer design, checks and offline installed demo.
-
-[File input repair 1.1](docs/design/native-file-input-repair.md): prospective #43 navigation, query editing and unsubmitted composer feedback; A/B/C remain future work.
-
-## Offline development tooling
-
-[Single-WorkOrder handoff](devtools/overnight/README.md) is independent Product development tooling under #45, outside the Pan install/build/startup graph. It uses SIMULATED local processes only; no real Agent/account activation.
-
-[TUI A daily workspace candidate](docs/design/native-daily-workspace.md) covers #47; #46 remains paused.
-
-#47 Criteria-Version 1.2 adds timer-free compatibility framing (Ctrl-G Back, ESC prefix only) and immutable raw-prefix screen evidence. Old 1.1 grids remain historical failed evidence.
-
-## Independent Evidence Web candidate
-
-[#106 local private report import and inspection](apps/evidence-web/README.md): Go API, PostgreSQL and React; separate from Pan execution. [Design](docs/design/pan-web/README.md) and [candidate evidence](docs/evidence/web106/README.md). No model calls or new benchmark results.
-
-- [#107 single-question Web analysis candidate](docs/evidence/web107/README.md): real offline Pan/Docker computation, persisted tasks and artifacts; independent review pending.
-
-- [#108 ordered evidence conversations](docs/evidence/web108/README.md): persistent follow-ups, idempotent submission and public execution context; Builder candidate, independent review pending.
-
-- [#109 cancellation/replacement candidate](docs/evidence/web109/README.md): durable intent, confirmed-stop admission and retained history; independent review pending.
-
-- [#110 confirmed-boundary checkpoint recovery (offline Faux)](docs/evidence/web110/README.md).
-
-#111 candidate: [bounded tool reconciliation and environment reconstruction](docs/evidence/web111/README.md).
-
-#112 concurrent ownership candidate: [design](docs/design/pan-web/ownership112.md), [evidence](docs/evidence/web112/README.md).
-
-- [#113 bounded task query cache candidate and evidence](docs/evidence/web113/README.md)
-
-- [#119 Go package candidate and evidence](docs/evidence/web119/README.md).
-
-Current local Web deployment candidate: [single-host operator](apps/evidence-web/deploy/README.md), [#114 evidence](docs/evidence/web114/README.md). Offline Faux only; independent acceptance pending.
+</details>
