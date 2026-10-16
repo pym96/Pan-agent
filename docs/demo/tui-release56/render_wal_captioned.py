@@ -44,4 +44,3 @@ def stamp(sec):
 srt='\n\n'.join(str(i+1)+'\n'+stamp(sc['outputStart'])+' --> '+stamp(sc['outputEnd'])+'\n'+'\n'.join(sc['caption']) for i,sc in enumerate(plan['scenes']))+'\n'
 output.with_suffix('.srt').write_text(srt,encoding='utf-8')
 print(output)
-
