@@ -1,5 +1,7 @@
 # TUI release preparation — Builder candidate
 
+[Criteria1.5：逐幕中文解释字幕](CAPTIONS.md)。原有版本和证据保留。
+
 New: [Criteria1.4 database-recovery demonstration](WAL-DEMO.md). Earlier release evidence below is unchanged.
 
 Later MIT/licensed package preparation: [Criteria1.3 final release evidence](FINAL-RELEASE.md). The Stage A observations and hashes below remain unchanged historical evidence.

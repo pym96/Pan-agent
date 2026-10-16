@@ -1,5 +1,7 @@
 # TUI demonstration
 
+[Criteria1.5：逐幕中文解释字幕](CAPTIONS.md)。原有版本和证据保留。
+
 New: [Criteria1.4 database-recovery demonstration](WAL-DEMO.md). Earlier release evidence below is unchanged.
 
 The 41-second video was independently accepted under Criteria1.2. [Watch/download the v0.1.0 video](https://github.com/pym96/Pan-agent/releases/download/v0.1.0/pan-agent-demo.mp4). Pan-authored code is MIT licensed.

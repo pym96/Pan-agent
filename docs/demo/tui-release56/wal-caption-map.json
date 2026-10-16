@@ -1,0 +1,208 @@
+{
+  "runId": "2f9d0adb-ba86-47fe-8b38-f34d24db34ba",
+  "editing": "Cuts shorten operator waiting; archive detail footage is separately captured from the same sealed run. No mixed task attempts. Speeds explicitly labeled.",
+  "scenes": [
+    {
+      "capture": "capture-live/terminal.cast",
+      "start": 2,
+      "end": 8,
+      "title": "01 / THE TASK — Five visible records. Recover the missing data.",
+      "label": "LIVE",
+      "speed": 1,
+      "note": "One real task · Kimi Code k3-256k · original failures retained",
+      "caption": [
+        "目标：找回数据库中缺失的记录。",
+        "WAL（预写日志）可能保留尚未写回主库的修改。"
+      ],
+      "outputStart": 0,
+      "outputEnd": 6.0,
+      "evidence": "source/instruction.md; capture-live task prompt"
+    },
+    {
+      "capture": "capture-live/terminal.cast",
+      "start": 8,
+      "end": 28,
+      "title": "02 / INSPECT — Model requests shell access; operator approves once.",
+      "label": "LIVE",
+      "speed": 2,
+      "note": "One real task · Kimi Code k3-256k · original failures retained",
+      "caption": [
+        "模型先申请运行命令，检查数据库和日志文件。",
+        "操作员逐次批准，让实际工具结果进入后续判断。"
+      ],
+      "outputStart": 6.0,
+      "outputEnd": 16.0,
+      "evidence": "archive tool start and operator capture actions"
+    },
+    {
+      "capture": "capture-live/terminal.cast",
+      "start": 100,
+      "end": 180,
+      "title": "03 / BUILD — Inspect bytes, decode the WAL and check its integrity.",
+      "label": "LIVE",
+      "speed": 4,
+      "note": "One real task · Kimi Code k3-256k · original failures retained",
+      "caption": [
+        "模型检查字节并编写恢复脚本，尝试解码日志。",
+        "校验和用于检查数据完整性；解码后还要验证结果。"
+      ],
+      "outputStart": 16.0,
+      "outputEnd": 36.0,
+      "evidence": "archive write recover_wal.py and byte inspection"
+    },
+    {
+      "capture": "capture-live/terminal.cast",
+      "start": 180,
+      "end": 204,
+      "title": "04 / FEEDBACK — The first recovery script fails its checksum check.",
+      "label": "LIVE",
+      "speed": 2,
+      "note": "One real task · Kimi Code k3-256k · original failures retained",
+      "caption": [
+        "第一次运行恢复脚本，校验和检查没有通过。",
+        "工具返回失败信息，模型根据报错继续排查和修正。"
+      ],
+      "outputStart": 36.0,
+      "outputEnd": 48.0,
+      "evidence": "archive tool error first checksum assertion"
+    },
+    {
+      "capture": "capture-details3/terminal.cast",
+      "start": 58.5,
+      "end": 68.3,
+      "title": "05 / FAILURE EVIDENCE — A checksum mismatch changes the next action.",
+      "label": "ARCHIVE DETAIL",
+      "speed": 1,
+      "note": "One real task · Kimi Code k3-256k · original failures retained",
+      "crop": [
+        0,
+        0,
+        116,
+        8
+      ],
+      "caption": [
+        "这里查看同一次运行保存的错误，不是重新执行。",
+        "校验和不一致，接下来需要检查校验算法与字节序。"
+      ],
+      "outputStart": 48.0,
+      "outputEnd": 57.8,
+      "evidence": "archive checksum AssertionError"
+    },
+    {
+      "capture": "capture-details3/terminal.cast",
+      "start": 69.5,
+      "end": 79.5,
+      "title": "06 / CORRECTION — Model changes checksum endianness, then reruns.",
+      "label": "ARCHIVE DETAIL",
+      "speed": 1,
+      "note": "One real task · Kimi Code k3-256k · original failures retained",
+      "crop": [
+        0,
+        0,
+        116,
+        15
+      ],
+      "caption": [
+        "模型把校验字节序从大端改为小端，然后再次运行。",
+        "字节序决定多字节数值的读取顺序；这里展示已保存的修改。"
+      ],
+      "outputStart": 57.8,
+      "outputEnd": 67.8,
+      "evidence": "archive edit oldText/newText and success"
+    },
+    {
+      "capture": "capture-details3/terminal.cast",
+      "start": 80.5,
+      "end": 90.5,
+      "title": "07 / VERIFIED BY TOOL — Header and all four frame checksums now pass.",
+      "label": "ARCHIVE DETAIL",
+      "speed": 1,
+      "note": "One real task · Kimi Code k3-256k · original failures retained",
+      "crop": [
+        0,
+        5,
+        116,
+        19
+      ],
+      "caption": [
+        "再次运行后，日志头和 4 个数据帧的校验和均通过。",
+        "这是已保存的工具回执：修正通过了本次完整性检查。"
+      ],
+      "outputStart": 67.8,
+      "outputEnd": 77.8,
+      "evidence": "archive bash header checksum OK/all frame checksums OK"
+    },
+    {
+      "capture": "capture-details3/terminal.cast",
+      "start": 97,
+      "end": 107,
+      "title": "08 / DELIVERABLE — Eleven records exported to recovered.json.",
+      "label": "ARCHIVE DETAIL",
+      "speed": 1,
+      "note": "One real task · Kimi Code k3-256k · original failures retained",
+      "caption": [
+        "模型导出 recovered.json，包含按编号排列的 11 条记录。",
+        "这里查看已保存的输出，接下来还要核对恢复是否完整。"
+      ],
+      "outputStart": 77.8,
+      "outputEnd": 87.8,
+      "evidence": "archive extraction stdout and workspace/recovered.json"
+    },
+    {
+      "capture": "capture-details3/terminal.cast",
+      "start": 117,
+      "end": 127,
+      "title": "09 / SECOND ERROR — SQLite checkpointed the WAL; a later read fails.",
+      "label": "ARCHIVE DETAIL",
+      "speed": 1,
+      "note": "Preserved in trace: the model subsequently checks its untouched original WAL copy.",
+      "crop": [
+        0,
+        0,
+        116,
+        14
+      ],
+      "caption": [
+        "第二次检查读不到 WAL：SQLite 已将日志写回主库并移除日志。",
+        "这叫检查点处理；模型随后改用保留的原始日志继续验证。"
+      ],
+      "outputStart": 87.8,
+      "outputEnd": 97.8,
+      "evidence": "archive second FileNotFoundError and subsequent backup-based tool result"
+    },
+    {
+      "capture": "capture-live/terminal.cast",
+      "start": 338,
+      "end": 355,
+      "title": "10 / RESULT — Five base records, eleven recovered; originals preserved.",
+      "label": "LIVE",
+      "speed": 1,
+      "note": "Independent adapted upstream checks: 7/7 passed. Not an official benchmark score.",
+      "caption": [
+        "最终核对：主库原先 5 条，恢复后 11 条，原始文件已保留。",
+        "任务结束后另做 7 项检查均通过；这是路径适配演示，非官方新成绩。"
+      ],
+      "outputStart": 97.8,
+      "outputEnd": 114.8,
+      "evidence": "archive final public response; validation/report.json (post-run checks)"
+    },
+    {
+      "capture": "capture-live/terminal.cast",
+      "start": 355,
+      "end": 370,
+      "title": "11 / REPLAY — Inspect this same run without executing it again.",
+      "label": "LIVE → ARCHIVED REPLAY",
+      "speed": 1,
+      "note": "Independent replay probe: 0 model / 0 tool / 0 network calls; archive unchanged.",
+      "caption": [
+        "打开同一运行的历史回放，查看已经保存的过程。",
+        "回放不重新调用模型或工具；独立探针确认调用为零、归档未变。"
+      ],
+      "outputStart": 114.8,
+      "outputEnd": 129.8,
+      "evidence": "capture-live replay; replay-probe.json"
+    }
+  ],
+  "version": "captions-v1.2",
+  "layout": "Chinese two-line captions in header above actual terminal. Overview scales 0.95 to reserve header; zoom evidence unchanged. No source-time changes."
+}
