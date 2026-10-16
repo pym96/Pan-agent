@@ -1,3 +1,4 @@
+import { markdownRows, paintMarkdown, type StyledCell } from './markdown.ts';
 import { StringDecoder } from 'node:string_decoder';
 import type { ReadStream, WriteStream } from 'node:tty';
 import { readdir, lstat } from 'node:fs/promises';
@@ -18,14 +19,14 @@ import type { ApprovalRequest, ApprovalDecision, ApprovalChoice } from '../runti
 type Focus='composer'|'attachments'|'transcript';
 type Entry={role:'You'|'Pan'|'Tool';text:string;status:string};
 type Anchor={item:number;part:'header'|'text';offset:number};
-type ContentRow={text:string;kind:string;anchor:Anchor;end:number};
+type ContentRow={text:string;kind:string;anchor:Anchor;end:number;cells?:StyledCell[]};
 type Picker={editor:DailyEditor;names:readonly string[];index:number;loading:boolean;capturing:boolean;abort:AbortController};
 /** TTY-only projection. Session, capture authority and archive implementation remain external. */
 export class DailyWorkspace {
  readonly editor=new DailyEditor();
  phase:'idle'|'running'|'cancelling'|'command'|'closed'='idle';
  focus:Focus='composer'; selected:AttachmentSnapshot[]=[]; chip=0;
- entries:Entry[]=[]; picker?:Picker; overlay?:{title:string;lines:string[];offset:number;focus:Focus};
+ entries:Entry[]=[]; picker?:Picker; overlay?:{title:string;lines:string[];offset:number;focus:Focus;assistantText?:string};
  safePaste=false; notice='Ready · Operations requiring permission ask before execution';
  approval?:{request:ApprovalRequest;choice:number;choices:ApprovalChoice[];settle:(choice:ApprovalChoice)=>void};
  toolCursor=0; private revealTool=false;
@@ -53,7 +54,7 @@ export class DailyWorkspace {
  constructor(options:TuiOptions) {
   this.options=options;
   this.input=(options.input??process.stdin) as ReadStream;this.output=(options.output??process.stdout) as WriteStream;this.raw=this.input.isRaw===true;
-  this.limit=validateAttachmentLimit(options.maxAttachmentBytes);this.color=!process.env.NO_COLOR && process.env.TERM!=='dumb';
+  this.limit=validateAttachmentLimit(options.maxAttachmentBytes);this.color=process.env.NO_COLOR===undefined && process.env.TERM!=='dumb';
   options.presentation!.attach(line=>{if(this.replaying)return;if(this.overlay)this.overlay.lines.push(line);else this.notice=line;this.draw();});
   attachWorkspace(options.presentation!,{observe:e=>this.observe(e),progress:e=>this.progress(e),settle:r=>this.settle(r)});
   options.session.setApprovalChannel?.((request,signal)=>this.requestApproval(request,signal));
@@ -152,7 +153,8 @@ export class DailyWorkspace {
  private buildEntryRows(e:Entry,item:number,w:number):ContentRow[]{
   const rows:ContentRow[]=[{text:`${e.role==='Tool'&&e.status==='Activity'?'Tools':e.role} · ${e.status}`,kind:e.role,anchor:{item,part:'header' as const,offset:0},end:1}];
   if(this.activities.has(e)){rows.push({text:'│ '+clip(e.text,w),kind:e.role,anchor:{item,part:'text',offset:0},end:e.text.length});this.layoutStats.builds++;return rows;}
-  for(const r of sourceRows(e.text,w)){this.layoutStats.sourceRowVisits++;rows.push({text:'│ '+r.text,kind:e.role,anchor:{item,part:'text' as const,offset:r.start},end:r.end});}
+  const projected:{text:string;start:number;end:number;cells?:StyledCell[]}[]=e.role==='Pan'?markdownRows(e.text,w):sourceRows(e.text,w);
+  for(const r of projected){this.layoutStats.sourceRowVisits++;rows.push({text:'│ '+r.text,...(r.cells?{cells:[{text:'│'},{text:' '},...r.cells]}:{}),kind:e.role,anchor:{item,part:'text' as const,offset:r.start},end:r.end});}
   this.layoutStats.builds++;return rows;
  }
  private ensureLayout(w:number):void{
@@ -269,7 +271,7 @@ export class DailyWorkspace {
    else if(text===':help')this.overlay.lines.push('Enter sends an idle nonblank draft; busy Enter never queues.','Alt-Enter: newline. Ctrl-V: safe paste/edit mode; Ctrl-G exits it.','@ file picker; arrows choose; Tab attaches; Enter only hints; Ctrl-P preview; Ctrl-R remove.','Wheel/PageUp/Down: conversation. Ctrl-End: follow tail. Up/Down: prompt history at draft edges.','Scrollbar: the final column is the track; primary press/drag jumps, release ends. A terminal without drag motion still positions on press.','Compatibility: raw Esc reserves a frame prefix, never Back. Ctrl-G backs out; pending tails drain before raw typing resumes. Paste enters literal data.','Ctrl-C cancels once; Ctrl-D exits even with pending input; :exit quits. :details / :runs / :replay ID are view only.');
    else if(text===':context')this.overlay.lines.push(`Context messages ${this.options.session.contextMessageCount}`);
    else if(text===':runs'){const store=this.options.archiveStore;if(!store)this.overlay.lines.push('Archives not configured');else{const entries=await readdir(join(store.root,'runs'),{withFileTypes:true});this.overlay.lines.push('Archived records · view only');if(!entries.length)this.overlay.lines.push('No submitted run yet');for(const e of entries)if(e.isDirectory()&&/^[A-Za-z0-9_-]+$/.test(e.name))this.overlay.lines.push(terminalText(e.name));}}
-   else if(text.startsWith(':replay ')){const id=text.slice(8).trim(),store=this.options.archiveStore;if(!store||!/^[A-Za-z0-9_-]+$/.test(id))throw Error();const dir=join(store.root,'runs',id);if(!(await lstat(dir)).isDirectory())throw Error();for(const f of ['manifest.json','events.jsonl'])if(!(await lstat(join(dir,f))).isFile())throw Error();const records=await store.readArchive(id);this.replaying=true;try{this.options.presentation!.replay(records,id);}finally{this.replaying=false;}const activity=ToolActivity.replay(records,id);this.overlay.lines=['REPLAY · view only',activity.summary,...activity.lines];const final=records.filter(e=>e.type==='model.turn_settled'&&typeof e.text==='string').at(-1);if(final)this.overlay.lines.push('Final response',...String(final.text).split('\n').map(terminalText));}
+   else if(text.startsWith(':replay ')){const id=text.slice(8).trim(),store=this.options.archiveStore;if(!store||!/^[A-Za-z0-9_-]+$/.test(id))throw Error();const dir=join(store.root,'runs',id);if(!(await lstat(dir)).isDirectory())throw Error();for(const f of ['manifest.json','events.jsonl'])if(!(await lstat(join(dir,f))).isFile())throw Error();const records=await store.readArchive(id);this.replaying=true;try{this.options.presentation!.replay(records,id);}finally{this.replaying=false;}const activity=ToolActivity.replay(records,id);this.overlay.lines=['REPLAY · view only',activity.summary,...activity.lines];const final=records.filter(e=>e.type==='model.turn_settled'&&typeof e.text==='string').at(-1);if(final){this.overlay.lines.push('Final response');this.overlay.assistantText=String(final.text);}}
    else this.overlay.lines.push('Unknown command · no execution');
   }catch{if(this.overlay)this.overlay.lines.push('Archive unavailable · no execution');}this.draw();
  }
@@ -286,14 +288,14 @@ export class DailyWorkspace {
  private chips():string[]{return this.selected.map((item,i)=>{const parts=item.path.split('/');let n=1;while(n<parts.length&&this.selected.some((other,j)=>j!==i&&other.path.split('/').slice(-n).join('/')===parts.slice(-n).join('/')))n++;return `${this.focus==='attachments'&&i===this.chip?'>':''}[${terminalText(parts.slice(-n).join('/'))}]`;});}
  draw():void {
   if(this.phase==='closed')return;const w=Math.max(1,this.output.columns??80),h=Math.max(1,this.output.rows??24);const view=this.editor.visual(Math.max(1,w-3));const composer=Math.min(view.lines.length,Math.max(1,Math.floor(h/3)));
-  const rows:{text:string;kind?:string}[]=[];let cursor={row:h-1,col:0};
+  const rows:{text:string;kind?:string;cells?:StyledCell[]}[]=[];let cursor={row:h-1,col:0};
   let trackRows=0;let trackGeom:ScrollbarGeometry|undefined;
   if(!this.supported()){rows.push({text:'Pan · Resize terminal (min 40 x 12)'},{text:'Draft retained · Ctrl-C cancel'});cursor={row:Math.min(h-1,2),col:0};}
   else {
    rows.push({text:`Pan · Compat · ${this.overlay?'preview':this.picker?'picker':this.focus}${this.newOutput?' · New output':''} · ${this.phase} · ${terminalText(this.options.model)}`,kind:'header'});
    const matches=this.matches(),p=this.picker;const pickerRows=p?Math.min(7,Math.max(3,h-5-composer-1)):0;const bodyRows=h-5-composer-pickerRows;this.bodyHeight=bodyRows;trackRows=bodyRows;
-   let body:{text:string;kind?:string}[]=[];
-   if(this.overlay){const lines=[this.overlay.title,...this.overlay.lines].flatMap(s=>wrap(s,w-3).map(t=>'│ '+t));this.overlay.offset=Math.min(this.overlay.offset,Math.max(0,lines.length-bodyRows));body=lines.slice(this.overlay.offset,this.overlay.offset+bodyRows).map(text=>({text}));}
+   let body:{text:string;kind?:string;cells?:StyledCell[]}[]=[];
+   if(this.overlay){const lines:{text:string;cells?:StyledCell[]}[]=[this.overlay.title,...this.overlay.lines].flatMap(s=>wrap(s,w-3).map(t=>({text:'│ '+t})));if(this.overlay.assistantText!==undefined)for(const r of markdownRows(this.overlay.assistantText,w-3))lines.push({text:'│ '+r.text,cells:[{text:'│'},{text:' '},...r.cells]});this.overlay.offset=Math.min(this.overlay.offset,Math.max(0,lines.length-bodyRows));body=lines.slice(this.overlay.offset,this.overlay.offset+bodyRows);}
    else {
     const selectedTool=this.entries.filter(e=>e.role==='Tool'&&e.status==='Activity')[this.toolCursor];
     this.ensureLayout(w-3);
@@ -321,7 +323,7 @@ export class DailyWorkspace {
   }
   let frame='\x1b[?25l';for(let i=0;i<h;i++){const row=rows[i]??{text:''};const style=!this.color?'':row.kind==='You'?'\x1b[48;2;48;48;48m':row.kind==='focus'?'\x1b[38;2;0;215;215m':row.kind==='secondary'?'\x1b[38;2;155;155;155m':'';
    // #60: at supported viewports the final column is reserved for the body-row scrollbar track.
-   const clipped=clipCells(row.text,this.supported()?w-1:w);
+   const clipped=row.cells?paintMarkdown(row.cells,this.supported()?w-1:w,this.color):clipCells(row.text,this.supported()?w-1:w);
    const glyph=this.supported()&&trackGeom&&i>=1&&i<=trackRows?(i-1>=trackGeom.thumbStart&&i-1<trackGeom.thumbStart+trackGeom.thumbSize?'█':'│'):'';
    frame+=`\x1b[${i+1};1H\x1b[0m`+(this.color?'\x1b[48;2;30;30;30m\x1b[38;2;230;230;230m':'')+style+'\x1b[2K'+clipped.text+(glyph?' '.repeat(Math.max(0,w-1-clipped.used))+(this.color?glyph==='█'?'\x1b[38;2;0;215;215m':'\x1b[38;2;155;155;155m':'')+glyph:'');
   }

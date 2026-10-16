@@ -12,20 +12,20 @@ The installed runtime needs no Python, Go, Docker, PostgreSQL, Redis or TypeScri
 
 ## Install
 
-Download the **v0.1.0** assets from GitHub Releases:
+Download the **v0.1.4** assets from GitHub Releases:
 
-- [TUI package: pan-agent-0.1.0.tgz](https://github.com/pym96/Pan-agent/releases/download/v0.1.0/pan-agent-0.1.0.tgz)
-- [SHA256SUMS](https://github.com/pym96/Pan-agent/releases/download/v0.1.0/SHA256SUMS)
+- [TUI package: pan-agent-0.1.4.tgz](https://github.com/pym96/Pan-agent/releases/download/v0.1.4/pan-agent-0.1.4.tgz)
+- [SHA256SUMS](https://github.com/pym96/Pan-agent/releases/download/v0.1.4/SHA256SUMS)
 
 Download both files into a new directory and run:
 
 ```sh
 shasum -a 256 -c SHA256SUMS --ignore-missing
-npm install ./pan-agent-0.1.0.tgz --omit=dev --ignore-scripts --no-audit --no-fund
+npm install ./pan-agent-0.1.4.tgz --omit=dev --ignore-scripts --no-audit --no-fund
 ./node_modules/.bin/pan-agent --help
 ```
 
-On systems whose `shasum` does not support `--ignore-missing`, run `shasum -a 256 pan-agent-0.1.0.tgz` and compare it with the matching line in SHA256SUMS. The checksum file also lists the optional video. No build is needed for the prebuilt package. The package is not published on npm.
+On systems whose `shasum` does not support `--ignore-missing`, run `shasum -a 256 pan-agent-0.1.4.tgz` and compare it with the matching line in SHA256SUMS. The checksum file also lists the optional before/after demonstration images. No build is needed for the prebuilt package. The package is not published on npm.
 
 To build from source:
 
@@ -37,7 +37,7 @@ mkdir -p artifacts
 (cd typescript && npm pack --pack-destination ../artifacts)
 mkdir -p consumer
 cd consumer
-npm install ../artifacts/pan-agent-0.1.0.tgz --omit=dev --ignore-scripts --no-audit --no-fund
+npm install ../artifacts/pan-agent-0.1.4.tgz --omit=dev --ignore-scripts --no-audit --no-fund
 ```
 
 ## Try it without an API key
@@ -122,3 +122,11 @@ npm --prefix typescript run agent -- \
 Reference-only Python TUI: `python3 -m workspace_agent_harness.tui` belongs to the historical implementation, not the installed Pan product or its setup path.
 
 </details>
+
+## Assistant Markdown display
+
+Interactive TUI assistant responses and the final response in `:replay` support ATX headings (`#` through `######`), unordered and numbered lists, `**bold**` / `__bold__`, single-backtick inline code and backtick/tilde fenced code with a language label. Code contents remain literal. Incomplete delimiters stay readable while streaming. `NO_COLOR` (including an empty value) or `TERM=dumb` disables Markdown color/emphasis styles; structural markers and text remain. The existing TUI still uses terminal cursor controls.
+
+This is a small display subset, not full CommonMark: nested inline formatting, escapes, tables, HTML, links, block quotes and setext headings fall back to readable literal text. Tool results, permission prompts, user input and non-TTY transcripts remain literal. Markdown is never written back to run archives. Wide text wraps by terminal cells; PageUp/PageDown and resize retain scroll content.
+
+[Before/after screenshots and offline reproduction](docs/demo/tui-release56/MARKDOWN.md).

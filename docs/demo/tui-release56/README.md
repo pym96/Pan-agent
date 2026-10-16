@@ -1,5 +1,7 @@
 # TUI demonstration
 
+[v0.1.4 Markdown display and offline comparison](MARKDOWN.md) · [Release notes](MARKDOWN-RELEASE-NOTES.md)
+
 [Original Harbor evaluation demonstration](HARBOR-DEMO.md) · [v0.1.3 media release notes](HARBOR-RELEASE-NOTES.md)
 
 [Criteria1.5：逐幕中文解释字幕](CAPTIONS.md)。原有版本和证据保留。

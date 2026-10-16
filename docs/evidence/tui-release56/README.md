@@ -1,5 +1,7 @@
 # TUI release preparation — Builder candidate
 
+[Criteria1.8 Markdown display evidence](MARKDOWN.md) · [Artifact manifest](markdown-manifest.json)
+
 [Criteria1.7 completed original-task demonstration](HARBOR-COMPLETED.md) · [Artifact manifest](harbor-completed-manifest.json)
 
 [Criteria1.7 repair preparation](HARBOR-REPAIR.md)

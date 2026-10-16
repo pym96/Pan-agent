@@ -17,7 +17,7 @@ The compiler is a pinned development dependency. A consumer does not need it. Th
 ```sh
 mkdir pan-consumer
 cd pan-consumer
-npm install /path/to/pan-agent-0.1.0.tgz --omit=dev --ignore-scripts --no-audit --no-fund
+npm install /path/to/pan-agent-0.1.4.tgz --omit=dev --ignore-scripts --no-audit --no-fund
 ./node_modules/.bin/pan-agent --help
 ./node_modules/.bin/pan-agent demo
 ```
@@ -49,6 +49,12 @@ Archives verify their stored hash chain and preserve run identity. They are not 
 
 ## License and distribution status
 
-Pan-authored code is licensed under the MIT License included as `LICENSE` in this package, copyright 2026 Pan Agent contributors. Third-party licenses are not replaced by Pan's license. Install the v0.1.0 tarball from GitHub Releases; this package is not published on npm.
+Pan-authored code is licensed under the MIT License included as `LICENSE` in this package, copyright 2026 Pan Agent contributors. Third-party licenses are not replaced by Pan's license. Install the v0.1.4 tarball from GitHub Releases; this package is not published on npm.
 
 Runtime code has no third-party npm runtime dependencies. Build-time dependencies: TypeScript (Apache-2.0), @types/node (MIT), undici-types (MIT). These dependencies are not bundled. The repository's license inventory documents separate recording tools and retained references.
+
+## Assistant Markdown display
+
+Interactive TUI assistant responses and the final response in `:replay` support ATX headings (`#` through `######`), unordered and numbered lists, `**bold**` / `__bold__`, single-backtick inline code and backtick/tilde fenced code with a language label. Code contents remain literal. Incomplete delimiters stay readable while streaming. `NO_COLOR` (including an empty value) or `TERM=dumb` disables Markdown color/emphasis styles; structural markers and text remain. The existing TUI still uses terminal cursor controls.
+
+This is a small display subset, not full CommonMark: nested inline formatting, escapes, tables, HTML, links, block quotes and setext headings fall back to readable literal text. Tool results, permission prompts, user input and non-TTY transcripts remain literal. Markdown is never written back to run archives. Wide text wraps by terminal cells; PageUp/PageDown and resize retain scroll content.

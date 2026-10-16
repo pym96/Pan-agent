@@ -3,7 +3,7 @@ const segmenter = new Intl.Segmenter('en', {granularity:'grapheme'});
 export const graphemes = (s:string):string[] => [...segmenter.segment(s)].map(x=>x.segment);
 export function width(s:string):number {
  if (!s || /^\p{Mark}+$/u.test(s)) return 0;
- return /\p{Extended_Pictographic}|[\u1100-\u115f\u2e80-\ua4cf\uac00-\ud7a3\uf900-\ufaff\ufe10-\ufe6f\uff00-\uff60]/u.test(s)?2:1;
+ return /\p{Extended_Pictographic}|\p{Regional_Indicator}|\u20e3|[\u1100-\u115f\u2e80-\ua4cf\uac00-\ud7a3\uf900-\ufaff\ufe10-\ufe6f\uff00-\uff60]/u.test(s)?2:1;
 }
 export function clipCells(s:string,cells:number):{text:string;used:number} {
  let value='',used=0;for(const g of graphemes(s)){if(used+width(g)>cells)break;value+=g;used+=width(g);}return {text:value,used};
