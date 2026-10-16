@@ -1,6 +1,7 @@
 """Credential-free single-run Harbor DockerEnvironment + original Verifier API."""
 import asyncio,json,sys,os,time,pathlib,hashlib,shlex,base64,signal,shutil
 import importlib.metadata as metadata
+from relay import VerifierRelay
 from harbor.models.task.task import Task
 from harbor.models.trial.paths import TrialPaths
 from harbor.environments.docker.docker import DockerEnvironment
@@ -24,12 +25,14 @@ async def main():
   return o.decode()
  class Recorded(DockerEnvironment):
   async def exec(self,*a,**kw):
+   if getattr(self,'verifying',False) and getattr(self,'verifier_proxy',None):
+    kw['env']={**(kw.get('env') or {}),'HTTP_PROXY':self.verifier_proxy,'HTTPS_PROXY':self.verifier_proxy,'http_proxy':self.verifier_proxy,'https_proxy':self.verifier_proxy}
    r=await super().exec(*a,**kw)
    if getattr(self,'verifying',False):event('verifier_exec',command=a[0] if a else kw.get('command'),return_code=r.return_code,stdout=r.stdout,stderr=r.stderr)
    return r
  task=Task(pathlib.Path(cfg['taskRoot']));trial=TrialPaths(trial_dir=out/'harbor');trial.mkdir()
  env=Recorded(environment_dir=task.paths.environment_dir,environment_name='demo56',session_id=cfg['project'],trial_paths=trial,task_env_config=task.config.environment.model_copy(update={'docker_image':cfg['image']}),mounts=[{'type':'bind','source':str(trial.verifier_dir),'target':'/logs/verifier'}],keep_containers=False)
- cid=None;phase='setup';cancelled=False;active=False;deadline=None
+ cid=None;phase='setup';cancelled=False;active=False;deadline=None;relay=None
  try:
   event('environment_start',task='db-wal-recovery',api='DockerEnvironment')
   await asyncio.wait_for(env.start(force_build=False),task.config.environment.build_timeout_sec)
@@ -56,14 +59,25 @@ async def main():
       command="python3 -c "+shlex.quote("import base64;exec(base64.b64decode('"+script+"'))")+' '+shlex.quote(encoded)
      timeout=min(float(args.get('timeout',120)),max(.1,deadline-time.monotonic()));assert timeout>0
      active=True;event('tool_start',tool=kind)
-     r=await asyncio.wait_for(env.exec('timeout --signal=TERM --kill-after=2 '+str(timeout)+' bash -c '+shlex.quote(command),cwd='/app'),timeout+10)
-     active=False;event('tool_result',tool=kind,exitCode=r.return_code)
+     try:
+      r=await asyncio.wait_for(env.exec('timeout --signal=TERM --kill-after=2 '+str(timeout)+' bash -c '+shlex.quote(command),cwd='/app'),timeout+10)
+     finally:active=False
+     event('tool_result',tool=kind,exitCode=r.return_code)
      result={'content':[{'type':'text','text':(r.stdout or '')+(('\n'+r.stderr) if r.stderr else '')}], 'isError':r.return_code!=0,'details':{'exitCode':r.return_code,'stdout':r.stdout,'stderr':r.stderr}}
+    elif method=='agent_stop':
+     assert phase=='agent' and not active;phase='agent_stopped';cancelled=True
+     state=json.loads(await docker('inspect',cid))[0]['State'];assert state['Running']
+     result={'confirmed':True,'activeTool':False,'containerRetained':True,'reason':msg.get('reason')};event('agent_stop_confirmed',**result)
     elif method=='verify':
-     assert phase=='agent' and not active and not cancelled;phase='verifier';event('agent_stopped_state_retained')
+     assert phase=='agent_stopped' and not active;phase='verifier';event('agent_stopped_state_retained')
      # Remove any agent-written score artifacts before the original verifier.
      for p in trial.verifier_dir.iterdir():
       if p.is_file():p.unlink()
+     if cfg.get('verifierProxyPort'):
+      assert cfg['verifierProxyPort']==17890
+      networks=info['NetworkSettings']['Networks'];assert len(networks)==1;network=next(iter(networks.values()))
+      relay=VerifierRelay(network['Gateway'],network['IPAddress'],17890);env.verifier_proxy=await relay.start()
+      event('verifier_relay_started',bind=network['Gateway'],peer=network['IPAddress'],port=relay.port,upstream='loopback:17890')
      env.verifying=True;event('verifier_start',api='Verifier.verify',timeout=task.config.verifier.timeout_sec)
      value=await asyncio.wait_for(Verifier(task,trial,env).verify(),task.config.verifier.timeout_sec)
      result={'status':'verifier_returned','result':value.model_dump(mode='json'),'testStdout':trial.test_stdout_path.read_text() if trial.test_stdout_path.exists() else None,'testStderr':trial.test_stderr_path.read_text() if trial.test_stderr_path.exists() else None,'ctrf':json.loads((trial.verifier_dir/'ctrf.json').read_text()) if (trial.verifier_dir/'ctrf.json').exists() else None};(out/'verifier-result.json').write_text(json.dumps(result,indent=2));event('verifier_finished',**result);phase='scored'
@@ -74,6 +88,7 @@ async def main():
     event('operation_error',method=method,error=type(e).__name__,detail=str(e));await emit({'id':ident,'error':type(e).__name__+': '+str(e)})
     if method in ['verify','begin'] or isinstance(e,asyncio.TimeoutError):break
  finally:
+  if relay:await relay.close();event('verifier_relay_closed')
   if cid:
    await env.stop_service('main');state=json.loads(await docker('inspect',cid))[0]['State'];assert not state['Running'] and state['Pid']==0
    event('container_stopped',state=state);(out/'stop.json').write_text(json.dumps({'confirmed':True,'containerId':cid,'state':state}))

@@ -1,5 +1,7 @@
 # TUI release preparation — Builder candidate
 
+[Criteria1.7 repair preparation](HARBOR-REPAIR.md)
+
 [Criteria1.6 consumed attempt: timeout, unscored](HARBOR-ATTEMPT.md) · [Harbor preparation](HARBOR-PREP.md)
 
 [Criteria1.5：逐幕中文解释字幕](CAPTIONS.md)。原有版本和证据保留。

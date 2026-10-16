@@ -1,0 +1,10 @@
+import assert from 'node:assert/strict';
+import {scopedApprovals} from './approval.mjs';
+let open=true;const records=[];const channel=scopedApprovals({workspace:'/safe',containerId:'fixed-container',isOpen:()=>open,record:x=>records.push(x)});
+const req={requestId:'one',sessionId:'session',runId:'run',workspace:'/safe',tool:'bash',resourceIdentity:'fixed-container',argumentsHash:'hash'};
+const signal=new AbortController().signal;
+assert.equal((await channel(req,signal)).decision,'allow-once');
+for(const patch of [{sessionId:'wrong'},{runId:'wrong'},{workspace:'/wrong'},{tool:'execHost'},{resourceIdentity:'wrong'}])assert.equal((await channel({...req,...patch},signal)).decision,'deny');
+const abort=new AbortController();abort.abort();assert.equal((await channel(req,abort.signal)).decision,'deny');
+open=false;assert.equal((await channel(req,signal)).decision,'deny');
+assert.equal(records.length,8);console.log(JSON.stringify({passed:true,allow:1,denied:7,checks:'wrong session/run/workspace/tool/container, aborted signal, closed admission'}));
