@@ -1,5 +1,7 @@
 # TUI demonstration
 
+[Original Harbor evaluation demonstration](HARBOR-DEMO.md) · [v0.1.3 media release notes](HARBOR-RELEASE-NOTES.md)
+
 [Criteria1.5：逐幕中文解释字幕](CAPTIONS.md)。原有版本和证据保留。
 
 New: [Criteria1.4 database-recovery demonstration](WAL-DEMO.md). Earlier release evidence below is unchanged.

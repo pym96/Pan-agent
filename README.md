@@ -72,6 +72,8 @@ Ask a task such as “Create hello.js that prints hello, run it, and check the f
 
 ## Demonstration
 
+[Watch the complete Harbor evaluation](https://github.com/pym96/Pan-agent/releases/download/v0.1.3/pan-agent-harbor-demo.mp4) — original database-recovery task, real TUI tool calls, original tests (7/7 passed), cleanup and same-run replay, with Chinese explanations. [Recording and scope](docs/demo/tui-release56/HARBOR-DEMO.md). This is one new demonstration, not an overall benchmark score.
+
 [观看中文解说版 / Watch with Chinese explanations](https://github.com/pym96/Pan-agent/releases/download/v0.1.2/pan-agent-wal-captioned.mp4) — 11 scenes explain the task, failures, correction, validation and same-run replay. [Subtitles and recording details](docs/demo/tui-release56/CAPTIONS.md).
 
 [Watch database recovery and same-run trace replay](https://github.com/pym96/Pan-agent/releases/download/v0.1.1/pan-agent-wal-demo.mp4) — a real Kimi-driven task: recover 11 records, inspect a failed checksum, correct it and verify the output. [Task, adaptation and recording details](docs/demo/tui-release56/WAL-DEMO.md). This is an adapted Terminal-Bench task demonstration, not an official benchmark score.

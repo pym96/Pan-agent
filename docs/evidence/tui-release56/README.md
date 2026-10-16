@@ -1,5 +1,7 @@
 # TUI release preparation — Builder candidate
 
+[Criteria1.7 completed original-task demonstration](HARBOR-COMPLETED.md) · [Artifact manifest](harbor-completed-manifest.json)
+
 [Criteria1.7 repair preparation](HARBOR-REPAIR.md)
 
 [Criteria1.6 consumed attempt: timeout, unscored](HARBOR-ATTEMPT.md) · [Harbor preparation](HARBOR-PREP.md)

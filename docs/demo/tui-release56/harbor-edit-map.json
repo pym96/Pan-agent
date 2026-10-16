@@ -1,0 +1,265 @@
+{
+  "schema": "harbor-demo-edit/v1",
+  "runId": "14386b01-4934-4e58-b981-615bc60d341c",
+  "executionId": "bca1c272-72bf-4f9c-93fa-4da6bead62e6",
+  "sourcePolicy": "Only this new run; details and replay are separately captured sealed archive; held frames explicit; previous failed attempt is not footage",
+  "duration": 151.5,
+  "scenes": [
+    {
+      "capture": "capture/terminal.cast",
+      "start": 0,
+      "end": 3.037,
+      "caption": [
+        "Harbor 启动原始任务容器；Pan 在 Mac 上运行真实 TUI。",
+        "工具经 SSH 进入独立容器，本次按容器范围自动逐次授权。"
+      ],
+      "freezeAt": 3.036,
+      "duration": 10.0,
+      "crop": [
+        0,
+        0,
+        120,
+        8
+      ],
+      "label": "LIVE CAPTURE",
+      "outputStart": 0,
+      "outputEnd": 10.0
+    },
+    {
+      "capture": "capture/terminal.cast",
+      "start": 6,
+      "end": 14,
+      "caption": [
+        "任务：找回全部 11 条记录，并生成 JSON 文件。",
+        "WAL（预写日志）可能保留尚未写回主库的修改。"
+      ],
+      "label": "LIVE CAPTURE",
+      "duration": 8.0,
+      "outputStart": 10.0,
+      "outputEnd": 18.0
+    },
+    {
+      "capture": "capture/terminal.cast",
+      "start": 14,
+      "end": 40,
+      "caption": [
+        "模型根据工具反馈继续操作；本轮共执行 5 次容器工具调用。",
+        "界面显示实际运行；模型完成后还需要原始测试验证。"
+      ],
+      "speed": 2,
+      "label": "LIVE CAPTURE",
+      "duration": 13.0,
+      "outputStart": 18.0,
+      "outputEnd": 31.0
+    },
+    {
+      "capture": "capture-details3/terminal.cast",
+      "start": 26.816,
+      "end": 37,
+      "caption": [
+        "接下来放大同一次运行的 Trace，查看工具实际做了什么。",
+        "这些是封存后的回放画面，不会再次调用模型或执行工具。"
+      ],
+      "freezeAt": 28,
+      "duration": 8.0,
+      "label": "ARCHIVE DETAIL",
+      "outputStart": 31.0,
+      "outputEnd": 39.0
+    },
+    {
+      "capture": "capture-details3/terminal.cast",
+      "start": 37.728,
+      "end": 40.6,
+      "caption": [
+        "首条检查命令返回错误，目录信息仍被保留。",
+        "模型随后改用十六进制查看器，没有重新启动任务。"
+      ],
+      "freezeAt": 38.5,
+      "duration": 10.0,
+      "crop": [
+        0,
+        7,
+        120,
+        21
+      ],
+      "label": "ARCHIVE DETAIL",
+      "outputStart": 39.0,
+      "outputEnd": 49.0
+    },
+    {
+      "capture": "capture-details3/terminal.cast",
+      "start": 43.618,
+      "end": 46.5,
+      "caption": [
+        "WAL 中大量出现 0x42；模型据此尝试按字节 XOR 解码。",
+        "先从真实文件内容判断格式，再执行修复。"
+      ],
+      "freezeAt": 44.5,
+      "duration": 8.0,
+      "crop": [
+        0,
+        8,
+        120,
+        24
+      ],
+      "label": "ARCHIVE DETAIL",
+      "outputStart": 49.0,
+      "outputEnd": 57.0
+    },
+    {
+      "capture": "capture-details3/terminal.cast",
+      "start": 52.453,
+      "end": 55.3,
+      "caption": [
+        "解码后，文件头符合 SQLite WAL 格式，包含 4 个完整帧。",
+        "工具回执同时保留执行参数、退出码和输出，便于复查。"
+      ],
+      "freezeAt": 53,
+      "duration": 12.0,
+      "crop": [
+        0,
+        14,
+        120,
+        17
+      ],
+      "label": "ARCHIVE DETAIL",
+      "outputStart": 57.0,
+      "outputEnd": 69.0
+    },
+    {
+      "capture": "capture-details3/terminal.cast",
+      "start": 58.339,
+      "end": 68,
+      "caption": [
+        "SQLite 读取修复后的 WAL，查询结果出现 11 条记录。",
+        "这是工具观察结果，尚不是官方测试通过的结论。"
+      ],
+      "freezeAt": 60,
+      "duration": 10.0,
+      "crop": [
+        0,
+        0,
+        120,
+        11
+      ],
+      "label": "ARCHIVE DETAIL",
+      "outputStart": 69.0,
+      "outputEnd": 79.0
+    },
+    {
+      "capture": "capture-details3/terminal.cast",
+      "start": 69.22,
+      "end": 79,
+      "caption": [
+        "按 id 排序并写出 recovered.json，保留真实工具回执。",
+        "输入、调用与结果关联到同一 Run ID，可以逐步追溯。"
+      ],
+      "freezeAt": 72,
+      "duration": 10.0,
+      "crop": [
+        0,
+        10,
+        120,
+        23
+      ],
+      "label": "ARCHIVE DETAIL",
+      "outputStart": 79.0,
+      "outputEnd": 89.0
+    },
+    {
+      "capture": "capture/terminal.cast",
+      "start": 48,
+      "end": 54.54,
+      "caption": [
+        "返回实际运行：模型报告完成，并交付 recovered.json。",
+        "Agent 停止后保留容器状态，再启动原始 Harbor Verifier。"
+      ],
+      "freezeAt": 52,
+      "duration": 9.0,
+      "label": "LIVE CAPTURE",
+      "outputStart": 89.0,
+      "outputEnd": 98.0
+    },
+    {
+      "capture": "capture/terminal.cast",
+      "start": 54.547,
+      "end": 435.15,
+      "caption": [
+        "原始验证脚本安装依赖并运行测试；这里加速略过等待。",
+        "评分阶段独立计时，上限仍为 900 秒。"
+      ],
+      "speed": 40,
+      "label": "LIVE CAPTURE",
+      "duration": 9.5,
+      "outputStart": 98.0,
+      "outputEnd": 107.5
+    },
+    {
+      "capture": "capture/terminal.cast",
+      "start": 435.15,
+      "end": 435.2,
+      "caption": [
+        "原始测试 7 项全部通过，Harbor 返回 reward 1。",
+        "验证文件存在、结构、排序、完整性、去重及 WAL 恢复。"
+      ],
+      "freezeAt": 435.16,
+      "duration": 13.0,
+      "crop": [
+        0,
+        16,
+        120,
+        21
+      ],
+      "label": "VERIFIER RESULT",
+      "outputStart": 107.5,
+      "outputEnd": 120.5
+    },
+    {
+      "capture": "capture/terminal.cast",
+      "start": 446.53,
+      "end": 446.54,
+      "caption": [
+        "评分结束后清理本轮容器；停止与移除均已确认。",
+        "任务结果、评分日志和 Trace 保留，供后续复核。"
+      ],
+      "freezeAt": 446.53,
+      "duration": 10.0,
+      "crop": [
+        0,
+        24,
+        120,
+        14
+      ],
+      "label": "CLEANUP RESULT",
+      "outputStart": 120.5,
+      "outputEnd": 130.5
+    },
+    {
+      "capture": "capture-details3/terminal.cast",
+      "start": 12,
+      "end": 23,
+      "caption": [
+        "同一 Run ID 可在 TUI 中回放，查看已保存的结果。",
+        "独立回放检查：模型、工具和网络调用均为 0。"
+      ],
+      "label": "SAME-RUN REPLAY",
+      "duration": 11.0,
+      "outputStart": 130.5,
+      "outputEnd": 141.5
+    },
+    {
+      "capture": "capture-details3/terminal.cast",
+      "start": 26.816,
+      "end": 37,
+      "caption": [
+        "本次新演示：6 次模型调用、5 次工具执行，共 22,008 Token。",
+        "此前超时未评分的尝试单独保留；本片不是整体基准成绩。"
+      ],
+      "freezeAt": 28,
+      "duration": 10.0,
+      "label": "SAME-RUN REPLAY",
+      "outputStart": 141.5,
+      "outputEnd": 151.5
+    }
+  ]
+}
