@@ -1,5 +1,7 @@
 # WO74 Harbor zero-model control
 
+[Original single-task TUI demonstration adapter](demo56/README.md)
+
 Only the public official `hello-world` development example is permitted. This is
 not a Terminal-Bench result or evidence of model ability. No provider is loaded;
 Pan's FauxModelAdapter reports explicitly synthetic zero usage.
