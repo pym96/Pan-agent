@@ -1,0 +1,191 @@
+{
+  "schema": "live-markdown-evidence/v1",
+  "artifactRootLabel": "tui-markdown-live56-20261016",
+  "base": "dbf52c2e16b8dffaa2fde02bb694672ad656ec76",
+  "runtimeVersion": "0.1.4",
+  "mediaVersion": "0.1.5",
+  "runId": "9d9a8c9d-5e57-45f9-9538-2fbe36c697e8",
+  "publication": "pending independent review and Master release",
+  "files": [
+    {
+      "path": "SHA256SUMS",
+      "bytes": 188,
+      "sha256": "d65101221d8e65faa9f20eee8294940f2d3395b4f072c6e4e035886e59b79712"
+    },
+    {
+      "path": "accounting.json",
+      "bytes": 759,
+      "sha256": "0d020e094eeca0b240cf27a079f7b00687e53a65e3791025ce47f382f8b29b69"
+    },
+    {
+      "path": "analyze_markdown_live.py",
+      "bytes": 1635,
+      "sha256": "c0f2e765918c9b6b2e36c559a645f77c83cfdc2d574a1023ddaa07cc3f7e81d5"
+    },
+    {
+      "path": "archives/runs/9d9a8c9d-5e57-45f9-9538-2fbe36c697e8/events.jsonl",
+      "bytes": 5808,
+      "sha256": "a479263a7b39fda5d69f72a1b911a1480e9fb01b2c08c161db800e39aac7e0bb"
+    },
+    {
+      "path": "archives/runs/9d9a8c9d-5e57-45f9-9538-2fbe36c697e8/manifest.json",
+      "bytes": 337,
+      "sha256": "529be1426a5744b48dc081f27e38dadb5e629acd2593be7215c6972961f82b08"
+    },
+    {
+      "path": "capture/final-earlier.txt",
+      "bytes": 5229,
+      "sha256": "7a1594fc5b1a40ca9f83a174ad1aff12b0da525d13ab2ee09a3f283a0d48ab2a"
+    },
+    {
+      "path": "capture/final-first.txt",
+      "bytes": 5257,
+      "sha256": "66313e12156b95bc0abeac651d33fc2f56082477b77d108516ddbe14f3e0093d"
+    },
+    {
+      "path": "capture/final.txt",
+      "bytes": 5171,
+      "sha256": "44c156a387a1bc687eb741e51d2f2bd9b04a04b58fbe613a93b958f2337db9b2"
+    },
+    {
+      "path": "capture/first-streaming-markdown.txt",
+      "bytes": 4877,
+      "sha256": "47515ece0c6538f3249cd57701737917c2d3cef1c797a29cc9bfd0a2313902ef"
+    },
+    {
+      "path": "capture/report.json",
+      "bytes": 3667,
+      "sha256": "e10f6c62e7418803fe7904bbb68bb3796dc7570c87668d0f95295f50c24543da"
+    },
+    {
+      "path": "capture/streaming-1.txt",
+      "bytes": 4877,
+      "sha256": "47515ece0c6538f3249cd57701737917c2d3cef1c797a29cc9bfd0a2313902ef"
+    },
+    {
+      "path": "capture/streaming-2.txt",
+      "bytes": 4912,
+      "sha256": "757f48522b39ce881385a97f1656a7780f323d4bc7218e5ab2cdf8458863ba15"
+    },
+    {
+      "path": "capture/streaming-3.txt",
+      "bytes": 4912,
+      "sha256": "757f48522b39ce881385a97f1656a7780f323d4bc7218e5ab2cdf8458863ba15"
+    },
+    {
+      "path": "capture/streaming-4.txt",
+      "bytes": 4912,
+      "sha256": "757f48522b39ce881385a97f1656a7780f323d4bc7218e5ab2cdf8458863ba15"
+    },
+    {
+      "path": "capture/streaming-5.txt",
+      "bytes": 4912,
+      "sha256": "757f48522b39ce881385a97f1656a7780f323d4bc7218e5ab2cdf8458863ba15"
+    },
+    {
+      "path": "capture/streaming-6.txt",
+      "bytes": 5092,
+      "sha256": "367ba86df59cad6970cba3cf937d97acbbc55958a860d37ba32d6d9a8eec7ab8"
+    },
+    {
+      "path": "capture/streaming-7.txt",
+      "bytes": 5291,
+      "sha256": "11d738b0e52acab36ae34c616902ac3d624c25c3212af7f075334dda25c72de3"
+    },
+    {
+      "path": "capture/streaming-8.txt",
+      "bytes": 5291,
+      "sha256": "11d738b0e52acab36ae34c616902ac3d624c25c3212af7f075334dda25c72de3"
+    },
+    {
+      "path": "capture/streaming-9.txt",
+      "bytes": 5291,
+      "sha256": "11d738b0e52acab36ae34c616902ac3d624c25c3212af7f075334dda25c72de3"
+    },
+    {
+      "path": "capture/terminal.cast",
+      "bytes": 2411043,
+      "sha256": "5907d848962684432972028dc28d4754c72246661315f735bb642dc67fcefec1"
+    },
+    {
+      "path": "capture/terminal.raw",
+      "bytes": 1972403,
+      "sha256": "788c389f4c5a1c7a574377928dd147a702528d01825fef3da13118d97e8c8c5b"
+    },
+    {
+      "path": "derived-verification.json",
+      "bytes": 592,
+      "sha256": "4e06fbd3af51242196e962fe26f7913729e94d8a0a755850803bd6f5abc198b3"
+    },
+    {
+      "path": "download/SHA256SUMS",
+      "bytes": 257,
+      "sha256": "0ed6129f75b0156855262e2f1e01e6a2fe272c45eb212fc8fef5aacf7e45f10f"
+    },
+    {
+      "path": "download/pan-agent-0.1.4.tgz",
+      "bytes": 103086,
+      "sha256": "f18787dbe39c9fb37aae0f305cb24a2056f948c9959c68182a6a657fcc465eff"
+    },
+    {
+      "path": "home/.pan-agent/settings.json",
+      "bytes": 128,
+      "sha256": "3d9541c0f609f9a83b90e317607e90c3dfe64cdc131fd164f07cbba00aaba7be"
+    },
+    {
+      "path": "install.log",
+      "bytes": 26,
+      "sha256": "1695a8f943f6168154b7b8a495036469d464a33ec98b203e7067ee420fb08d65"
+    },
+    {
+      "path": "markdown-live-edit-map.json",
+      "bytes": 1379,
+      "sha256": "c1264941aaea446d2157b2fa58932d3e8ba0c8fdb8f9deea09f16427e339578c"
+    },
+    {
+      "path": "media-check.json",
+      "bytes": 233,
+      "sha256": "29aec06d909d09a172e2336081d5e5668436e2924553a7212647cc80a5d6ddfc"
+    },
+    {
+      "path": "pan-agent-markdown-live.mp4",
+      "bytes": 1632194,
+      "sha256": "633e2318d0194e96a8877ce0b5d98251a050c6ad821df6be8f825a184272efca"
+    },
+    {
+      "path": "pan-agent-markdown-live.srt",
+      "bytes": 506,
+      "sha256": "3673d010e525dc07ac684e8966c1d30f6541c315eeeff21f70d4f4c34d3406e0"
+    },
+    {
+      "path": "preview-code.png",
+      "bytes": 548667,
+      "sha256": "ea334239009c2bc62f64794a6320d1eff8cbfb703788168f82f0144afad828e0"
+    },
+    {
+      "path": "preview-streaming.png",
+      "bytes": 340768,
+      "sha256": "98d97903ad0254889864f76ca0e9cd1cc6670cccf8d9713dde576ec8faa752ba"
+    },
+    {
+      "path": "prompt.txt",
+      "bytes": 671,
+      "sha256": "f238e57c2cc9248d713d70f59165c5d8627923a4c6f11f8bc13cccef75c9793c"
+    },
+    {
+      "path": "record_markdown_live.py",
+      "bytes": 5364,
+      "sha256": "09a2c02c6afae683890530df3161c077097ef78a0fbedcb331fc1cf19f66d859"
+    },
+    {
+      "path": "recorder-executed.py",
+      "bytes": 5333,
+      "sha256": "c97fb24b2cd28b8af8d1b5d619503b1a5ba9998b3a799be0ee354e0610421d4a"
+    },
+    {
+      "path": "render_markdown_live.py",
+      "bytes": 4041,
+      "sha256": "588b40e886092787342e740683008183b83b71d82c4469020c033e65ade511d8"
+    }
+  ]
+}

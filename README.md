@@ -40,19 +40,9 @@ cd consumer
 npm install ../artifacts/pan-agent-0.1.4.tgz --omit=dev --ignore-scripts --no-audit --no-fund
 ```
 
-## Try it without an API key
-
-From the consumer directory:
-
-```sh
-./node_modules/.bin/pan-agent demo
-```
-
-This is an **offline, scripted model** using the real installed TUI, runtime and local tools. It creates a disposable workspace and prints its location. Submit `Create hello.js, run it, and read it back.`; inspect and approve the shell operation. The expected file contains `console.log("PAN_DEMO_OK");`.
-
-Use `:runs` to find its run ID, then `:replay RUN_ID` to view the same saved run. Replay makes no model calls and does not rerun tools. Use `:exit` to close. Demo files remain available for inspection.
-
 ## Configure and run real tasks
+
+**Markdown is built into v0.1.4.** The ordinary installed TUI formats assistant text as it streams; no plugin, rendering service or demo launcher is needed. Configure a real provider first:
 
 ```sh
 ./node_modules/.bin/pan-agent configure
@@ -70,7 +60,21 @@ Ask a task such as “Create hello.js that prints hello, run it, and check the f
 
 **Local authority:** tools execute as your host user. The workspace is a working directory, **not a sandbox**. Review shell/protected-file approvals and use a disposable directory for your first task. Ctrl-C requests cancellation during execution; at idle it closes the TUI.
 
+## Try it without an API key
+
+From the consumer directory:
+
+```sh
+./node_modules/.bin/pan-agent demo
+```
+
+This is an **offline, scripted model** using the real installed TUI, runtime and local tools. It creates a disposable workspace and prints its location. Submit `Create hello.js, run it, and read it back.`; inspect and approve the shell operation. The expected file contains `console.log("PAN_DEMO_OK");`.
+
+Use `:runs` to find its run ID, then `:replay RUN_ID` to view the same saved run. Replay makes no model calls and does not rerun tools. Use `:exit` to close. Demo files remain available for inspection.
+
 ## Demonstration
+
+[Watch real-time Markdown in the installed CLI](https://github.com/pym96/Pan-agent/releases/download/v0.1.5/pan-agent-markdown-live.mp4) — one real Kimi text-only request, original-speed recording, no tools or injected fixture. [Ordinary user path and recording evidence](docs/demo/tui-release56/MARKDOWN-LIVE.md). v0.1.5 adds documentation/video; install the unchanged v0.1.4 package above.
 
 [Watch the complete Harbor evaluation](https://github.com/pym96/Pan-agent/releases/download/v0.1.3/pan-agent-harbor-demo.mp4) — original database-recovery task, real TUI tool calls, original tests (7/7 passed), cleanup and same-run replay, with Chinese explanations. [Recording and scope](docs/demo/tui-release56/HARBOR-DEMO.md). This is one new demonstration, not an overall benchmark score.
 

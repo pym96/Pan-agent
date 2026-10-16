@@ -1,5 +1,7 @@
 # TUI demonstration
 
+[v0.1.5 real-time installed CLI recording](MARKDOWN-LIVE.md) · [Release notes](MARKDOWN-LIVE-RELEASE-NOTES.md)
+
 [v0.1.4 Markdown display and offline comparison](MARKDOWN.md) · [Release notes](MARKDOWN-RELEASE-NOTES.md)
 
 [Original Harbor evaluation demonstration](HARBOR-DEMO.md) · [v0.1.3 media release notes](HARBOR-RELEASE-NOTES.md)

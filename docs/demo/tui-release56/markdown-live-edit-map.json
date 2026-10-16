@@ -1,0 +1,47 @@
+{
+  "schema": "live-markdown-edit/v1",
+  "runId": "9d9a8c9d-5e57-45f9-9538-2fbe36c697e8",
+  "duration": 28.9,
+  "sourcePolicy": "Only contiguous raw live capture 0–28.9s, real time, no holds, replay, fixture or injected provider",
+  "scenes": [
+    {
+      "start": 0,
+      "end": 5,
+      "caption": [
+        "公开安装包直接启动：配置 API 后即可使用，无需渲染插件。",
+        "真实 Kimi 请求；本次仅生成文字，不调用工具。"
+      ],
+      "capture": "capture/terminal.cast",
+      "label": "LIVE / 1x",
+      "duration": 5,
+      "outputStart": 0,
+      "outputEnd": 5
+    },
+    {
+      "start": 5,
+      "end": 24.5,
+      "caption": [
+        "真实响应逐步到达，标题、列表与强调随文字更新。",
+        "这段保持原始播放速度，没有模拟输出或人为延迟。"
+      ],
+      "capture": "capture/terminal.cast",
+      "label": "LIVE / 1x",
+      "duration": 19.5,
+      "outputStart": 5,
+      "outputEnd": 24.5
+    },
+    {
+      "start": 24.5,
+      "end": 28.9,
+      "caption": [
+        "本次真实响应已完成；继续查看代码块和前文。",
+        "Markdown 内置于 v0.1.4，归档仍保存原始文本。"
+      ],
+      "capture": "capture/terminal.cast",
+      "label": "LIVE / 1x",
+      "duration": 4.4,
+      "outputStart": 24.5,
+      "outputEnd": 28.9
+    }
+  ]
+}
