@@ -1,5 +1,7 @@
 # TUI release preparation — Builder candidate
 
+[Criteria1.11 credential guidance](CREDENTIAL-GUIDANCE.md) · [Artifact manifest](credential-manifest.json)
+
 [Criteria1.9 real-time installed CLI evidence](MARKDOWN-LIVE.md) · [Artifact manifest](markdown-live-manifest.json)
 
 [Criteria1.8 Markdown display evidence](MARKDOWN.md) · [Artifact manifest](markdown-manifest.json)

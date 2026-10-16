@@ -7,6 +7,8 @@ import type { RunArchiveStore } from "../memory/run-archive.ts";
 import type { GeneralAgentSession, SessionObservation, TaskRunResult } from "../runtime/session.ts";
 
 export interface TuiOptions {
+	/** Nonsecret configuration context for safe failure guidance only. */
+	readonly credentialSource?: 'environment' | 'keychain';
 	readonly maxAttachmentBytes?: number;
 	/** Omitted retains the legacy/Reference presentation. */
 	readonly presentation?: CompactPresentation;

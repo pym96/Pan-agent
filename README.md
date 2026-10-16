@@ -12,20 +12,20 @@ The installed runtime needs no Python, Go, Docker, PostgreSQL, Redis or TypeScri
 
 ## Install
 
-Download the **v0.1.4** assets from GitHub Releases:
+Download the **v0.1.6** assets from GitHub Releases:
 
-- [TUI package: pan-agent-0.1.4.tgz](https://github.com/pym96/Pan-agent/releases/download/v0.1.4/pan-agent-0.1.4.tgz)
-- [SHA256SUMS](https://github.com/pym96/Pan-agent/releases/download/v0.1.4/SHA256SUMS)
+- [TUI package: pan-agent-0.1.6.tgz](https://github.com/pym96/Pan-agent/releases/download/v0.1.6/pan-agent-0.1.6.tgz)
+- [SHA256SUMS](https://github.com/pym96/Pan-agent/releases/download/v0.1.6/SHA256SUMS)
 
 Download both files into a new directory and run:
 
 ```sh
 shasum -a 256 -c SHA256SUMS --ignore-missing
-npm install ./pan-agent-0.1.4.tgz --omit=dev --ignore-scripts --no-audit --no-fund
+npm install ./pan-agent-0.1.6.tgz --omit=dev --ignore-scripts --no-audit --no-fund
 ./node_modules/.bin/pan-agent --help
 ```
 
-On systems whose `shasum` does not support `--ignore-missing`, run `shasum -a 256 pan-agent-0.1.4.tgz` and compare it with the matching line in SHA256SUMS. The checksum file also lists the optional before/after demonstration images. No build is needed for the prebuilt package. The package is not published on npm.
+On systems whose `shasum` does not support `--ignore-missing`, run `shasum -a 256 pan-agent-0.1.6.tgz` and compare it with the matching line in SHA256SUMS. Compare the package checksum before installing. No build is needed for the prebuilt package. The package is not published on npm.
 
 To build from source:
 
@@ -37,7 +37,7 @@ mkdir -p artifacts
 (cd typescript && npm pack --pack-destination ../artifacts)
 mkdir -p consumer
 cd consumer
-npm install ../artifacts/pan-agent-0.1.4.tgz --omit=dev --ignore-scripts --no-audit --no-fund
+npm install ../artifacts/pan-agent-0.1.6.tgz --omit=dev --ignore-scripts --no-audit --no-fund
 ```
 
 ## Configure and run real tasks
@@ -74,7 +74,7 @@ Use `:runs` to find its run ID, then `:replay RUN_ID` to view the same saved run
 
 ## Demonstration
 
-[Watch real-time Markdown in the installed CLI](https://github.com/pym96/Pan-agent/releases/download/v0.1.5/pan-agent-markdown-live.mp4) — one real Kimi text-only request, original-speed recording, no tools or injected fixture. [Ordinary user path and recording evidence](docs/demo/tui-release56/MARKDOWN-LIVE.md). v0.1.5 adds documentation/video; install the unchanged v0.1.4 package above.
+[Watch real-time Markdown in the installed CLI](https://github.com/pym96/Pan-agent/releases/download/v0.1.5/pan-agent-markdown-live.mp4) — one real Kimi text-only request, original-speed recording, no tools or injected fixture. [Ordinary user path and recording evidence](docs/demo/tui-release56/MARKDOWN-LIVE.md). v0.1.5 adds documentation/video; the recording used v0.1.4; install the latest package above.
 
 [Watch the complete Harbor evaluation](https://github.com/pym96/Pan-agent/releases/download/v0.1.3/pan-agent-harbor-demo.mp4) — original database-recovery task, real TUI tool calls, original tests (7/7 passed), cleanup and same-run replay, with Chinese explanations. [Recording and scope](docs/demo/tui-release56/HARBOR-DEMO.md). This is one new demonstration, not an overall benchmark score.
 
@@ -134,3 +134,7 @@ Interactive TUI assistant responses and the final response in `:replay` support 
 This is a small display subset, not full CommonMark: nested inline formatting, escapes, tables, HTML, links, block quotes and setext headings fall back to readable literal text. Tool results, permission prompts, user input and non-TTY transcripts remain literal. Markdown is never written back to run archives. Wide text wraps by terminal cells; PageUp/PageDown and resize retain scroll content.
 
 [Before/after screenshots and offline reproduction](docs/demo/tui-release56/MARKDOWN.md).
+
+## Missing credential
+
+If an environment credential is missing when you submit a task, the TUI keeps the failed status and shows the expected variable (`KIMI_API_KEY` or `DEEPSEEK_API_KEY`). Exit with `:exit`, set the key in your terminal using your secret manager, then restart Pan. To change the credential source, run `pan-agent configure`. Never paste an API key into a task. Keychain configuration uses its own entry; environment keys do not override a selected Keychain source. Unknown provider errors remain generic rather than exposing raw responses.

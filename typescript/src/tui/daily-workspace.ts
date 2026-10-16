@@ -1,3 +1,4 @@
+import { credentialGuidance } from './credential-guidance.ts';
 import { markdownRows, paintMarkdown, type StyledCell } from './markdown.ts';
 import { StringDecoder } from 'node:string_decoder';
 import type { ReadStream, WriteStream } from 'node:tty';
@@ -17,7 +18,7 @@ import type { InputKey } from './terminal-input.ts';
 import type { ApprovalRequest, ApprovalDecision, ApprovalChoice } from '../runtime/authorization.ts';
 
 type Focus='composer'|'attachments'|'transcript';
-type Entry={role:'You'|'Pan'|'Tool';text:string;status:string};
+type Entry={role:'You'|'Pan'|'Tool'|'Notice';text:string;status:string};
 type Anchor={item:number;part:'header'|'text';offset:number};
 type ContentRow={text:string;kind:string;anchor:Anchor;end:number;cells?:StyledCell[]};
 type Picker={editor:DailyEditor;names:readonly string[];index:number;loading:boolean;capturing:boolean;abort:AbortController};
@@ -278,7 +279,7 @@ export class DailyWorkspace {
  private observe(event:SessionObservation):void {
   if(event.type==='run.started'){this.runId=event.runId;const decoded=decodeAttachedTask(event.task);this.history.push(decoded?.prompt??event.task);if(this.historyIndex!==undefined)this.restoreHistory();this.entries.push({role:'You',text:decoded?.prompt??event.task,status:decoded?`${decoded.attachments.length} attached snapshot(s)`:''});this.touch(this.entries.length-1);this.active={role:'Pan',text:'',status:'Waiting for model'};this.entries.push(this.active);this.activeIndex=this.entries.length-1;this.touch(this.activeIndex);}
   if(event.type==='model.turn_started'){this.turnText='';if(this.active){this.active.status='Responding · provisional';this.touch(this.activeIndex);}}
-  if(event.type==='model.turn_settled'&&this.active){if(!event.failure)this.active.text=event.text;this.active.status=event.failure?'Partial response':'Response received · provisional';this.touch(this.activeIndex);}
+  if(event.type==='model.turn_settled'&&this.active){if(!event.failure)this.active.text=event.text;this.active.status=event.failure?'Partial response':'Response received · provisional';this.touch(this.activeIndex);const hint=credentialGuidance(event.failure,this.options.provider,this.options.credentialSource);if(hint){this.entries.push({role:'Notice',status:'Configuration required',text:hint});this.touch(this.entries.length-1);}}
   if(event.type==='tool.started'&&event.runId===this.runId){if(!this.activityEntry||this.activities.get(this.activityEntry)?.runId!==event.runId){const entry:Entry={role:'Tool',text:'',status:'Activity'};this.entries.push(entry);this.activityEntry=entry;this.activities.set(entry,new ToolActivity(event.runId));}this.activities.get(this.activityEntry)!.observe(event);this.updateActivity();}
   if(event.type==='tool.settled'&&this.activityEntry&&this.activities.get(this.activityEntry)?.runId===event.runId){this.activities.get(this.activityEntry)!.observe(event);this.updateActivity();}
   if(!this.follow)this.newOutput=true;this.draw();

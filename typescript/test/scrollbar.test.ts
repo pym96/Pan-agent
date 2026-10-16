@@ -16,7 +16,7 @@ import { RunArchiveStore } from '../src/memory/run-archive.ts';
 import { createPanTrustedLocalTools } from '../src/tools/pan-trusted-local-tools.ts';
 import { scriptedAdapter, response, call } from './pan-fixture.ts';
 
-type Entry = { role: 'You' | 'Pan' | 'Tool'; text: string; status: string };
+type Entry = DailyWorkspace['entries'][number];
 type WorkspacePrivates = {
  bodyHeight: number; dragging: boolean; grabOffset: number;
  contentRows: { text: string; anchor: { item: number; part: string; offset: number } }[];

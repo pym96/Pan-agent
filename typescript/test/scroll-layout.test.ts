@@ -8,7 +8,7 @@ import { DailyWorkspace } from '../src/tui/daily-workspace.ts';
 import { createCompactPresentation } from '../src/tui/presentation.ts';
 import type { TuiOptions } from '../src/tui/tui.ts';
 
-type Entry = { role: 'You' | 'Pan' | 'Tool'; text: string; status: string };
+type Entry = DailyWorkspace['entries'][number];
 
 function fixture(columns = 120, rows = 40) {
  const input = Object.assign(new PassThrough(), { isTTY: true, isRaw: false, setRawMode(value: boolean) { this.isRaw = value; } });

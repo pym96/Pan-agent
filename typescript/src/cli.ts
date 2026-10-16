@@ -279,6 +279,7 @@ export async function runCli(args: readonly string[], dependencies: CliDependenc
 		? `CREDENTIAL keychain (macOS Keychain service ${keychainReference.service} account ${keychainReference.account}; retrieved only when a Provider call is made)`
 		: `CREDENTIAL environment ${credentialEnv} (required at task time; never saved)`);
 	return (dependencies.startTui ?? runTui)({
+		credentialSource,
 		session,
 		presentation,
 		provider,
