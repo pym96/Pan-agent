@@ -38,6 +38,7 @@ services:
       DATABASE_URL: postgres://pan:local-experiment-only@pg:5432/pan?sslmode=disable
       PI_URL: http://pi:8081
       SSE_TAIL_CACHE: ${SSE_TAIL_CACHE:-1}
+      GOMAXPROCS: 1
     volumes: [".:/source:ro"]
     ports: ["127.0.0.1:18142:8080"]
     depends_on:
@@ -50,6 +51,8 @@ services:
     profiles: [load]
     image: python@sha256:a6e34c598f2467ed0e9a8d349809fcd8b5c603269512df273a0bb1784edc11b1
     entrypoint: [/source/bin/load]
+    environment:
+      GOMAXPROCS: 1
     volumes: [".:/source:ro", "${EVIDENCE_ROOT:?set EVIDENCE_ROOT}:/evidence"]
     cpus: 1
     mem_limit: 1g
