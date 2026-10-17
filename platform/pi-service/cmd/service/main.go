@@ -21,7 +21,7 @@ func main() {
 	if e != nil {
 		log.Fatal(e)
 	}
-	defer s.DB.Close()
+	defer s.Close()
 	if e = s.Init(ctx); e != nil {
 		log.Fatal(e)
 	}
@@ -48,7 +48,7 @@ func main() {
 		}
 		hub.Notify(session)
 	}
-	p := &executor.Pool{Store: s, URL: os.Getenv("PI_URL"), Notify: notify}
+	p := &executor.Pool{Store: s, URL: os.Getenv("PI_URL"), Notify: notify, Fatal: func(err error) { log.Print(err); stop() }}
 	var workers sync.WaitGroup
 	for i := 0; i < 2; i++ {
 		workers.Add(1)

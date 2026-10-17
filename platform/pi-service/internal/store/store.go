@@ -13,6 +13,7 @@ import (
 
 type Store struct {
 	DB           *pgxpool.Pool
+	Reads        *pgxpool.Pool
 	EventQueries atomic.Int64
 	EventQueryNS atomic.Int64
 }
@@ -38,13 +39,21 @@ func Open(ctx context.Context, url string) (*Store, error) {
 	if e != nil {
 		return nil, e
 	}
-	c.MaxConns = 12
+	c.MaxConns = 4
 	p, e := pgxpool.NewWithConfig(ctx, c)
 	if e != nil {
 		return nil, e
 	}
-	return &Store{DB: p}, nil
+	readConfig := c.Copy()
+	readConfig.MaxConns = 8
+	reads, e := pgxpool.NewWithConfig(ctx, readConfig)
+	if e != nil {
+		p.Close()
+		return nil, e
+	}
+	return &Store{DB: p, Reads: reads}, nil
 }
+func (s *Store) Close() { s.Reads.Close(); s.DB.Close() }
 func (s *Store) Init(ctx context.Context) error {
 	_, e := s.DB.Exec(ctx, `CREATE TABLE IF NOT EXISTS sessions(id text PRIMARY KEY, blocked boolean NOT NULL DEFAULT false);
 CREATE TABLE IF NOT EXISTS tasks(id text PRIMARY KEY,session text NOT NULL REFERENCES sessions(id),key text NOT NULL,prompt text NOT NULL,status text NOT NULL,created_at timestamptz NOT NULL DEFAULT now(),started_at timestamptz,finished_at timestamptz,UNIQUE(session,key));
@@ -61,6 +70,10 @@ func (s *Store) Recover(ctx context.Context) error {
 		return e
 	}
 	defer tx.Rollback(ctx)
+	_, e = tx.Exec(ctx, "SELECT pg_advisory_xact_lock(142002)")
+	if e != nil {
+		return e
+	}
 	_, e = tx.Exec(ctx, `UPDATE sessions SET blocked=true WHERE id IN(SELECT session FROM tasks WHERE status='running'); INSERT INTO events(session,task,kind,data) SELECT session,id,'interrupted','{"reason":"service_restart_execution_uncertain"}' FROM tasks WHERE status='running'; UPDATE tasks SET status='interrupted',finished_at=now() WHERE status='running'; INSERT INTO events(session,task,kind,data) SELECT session,id,'cancelled','{"reason":"prior_execution_uncertain"}' FROM tasks WHERE status='queued' AND session IN(SELECT id FROM sessions WHERE blocked); UPDATE tasks SET status='cancelled',finished_at=now() WHERE status='queued' AND session IN(SELECT id FROM sessions WHERE blocked)`)
 	if e != nil {
 		return e
@@ -157,6 +170,14 @@ func (s *Store) Append(ctx context.Context, t Task, kind string, data json.RawMe
 	if e != nil {
 		return e
 	}
+	var status string
+	e = tx.QueryRow(ctx, "SELECT status FROM tasks WHERE id=$1", t.ID).Scan(&status)
+	if e != nil {
+		return e
+	}
+	if status != "running" {
+		return errors.New("task is no longer running")
+	}
 	_, e = tx.Exec(ctx, "INSERT INTO events(session,task,kind,data) VALUES($1,$2,$3,$4)", t.Session, t.ID, kind, data)
 	if e != nil {
 		return e
@@ -172,6 +193,14 @@ func (s *Store) Finish(ctx context.Context, t Task, status string) error {
 	_, e = tx.Exec(ctx, "SELECT pg_advisory_xact_lock(142002)")
 	if e != nil {
 		return e
+	}
+	var current string
+	e = tx.QueryRow(ctx, "SELECT status FROM tasks WHERE id=$1 FOR UPDATE", t.ID).Scan(&current)
+	if e != nil {
+		return e
+	}
+	if current != "running" {
+		return tx.Commit(ctx)
 	}
 	if status != "completed" {
 		_, e = tx.Exec(ctx, "UPDATE sessions SET blocked=true WHERE id=$1", t.Session)
@@ -201,7 +230,7 @@ func (s *Store) Events(ctx context.Context, session string, cursor int64) ([]Eve
 	start := time.Now()
 	s.EventQueries.Add(1)
 	defer func() { s.EventQueryNS.Add(time.Since(start).Nanoseconds()) }()
-	rows, e := s.DB.Query(ctx, "SELECT id,task,kind,data FROM events WHERE session=$1 AND id>$2 ORDER BY id LIMIT 256", session, cursor)
+	rows, e := s.Reads.Query(ctx, "SELECT id,task,kind,data FROM events WHERE session=$1 AND id>$2 ORDER BY id LIMIT 256", session, cursor)
 	if e != nil {
 		return nil, e
 	}

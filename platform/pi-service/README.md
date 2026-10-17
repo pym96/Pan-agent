@@ -4,7 +4,7 @@ A server-only Go API and PostgreSQL control plane around **actual upstream Pi 1.
 
 ## Run
 
-Requires Docker Engine/Compose, Go 1.24+, Node 22.19+ and npm. Use an existing user-space toolchain on PATH; no global installation or server coding-agent login is needed.
+Requires Docker Engine/Compose, Go 1.24+, Node 22.19+ and npm. On the measured server, `scripts/build-owned.sh` also supports a network-disabled1CPU/1GiB build container using existing `GO_ROOT` and `GO_CACHE_ROOT`. Use an existing user-space toolchain on PATH; no global installation or server coding-agent login is needed.
 
 ```sh
 cd platform/pi-service
@@ -35,7 +35,7 @@ Use a new key for a new turn in the same session; duplicate key+same prompt retu
 
 PostgreSQL owns accepted task identity, status and ordered committed events. Pi `SessionManager` files in `pi-data` own finalized model context. They are not a second control-plane event store. Completed-session follow-up restores Pi context; HTTP history reads PostgreSQL. Pi and PostgreSQL do not share a transaction. If execution is interrupted or its result cannot be durably established, the task becomes `interrupted`, queued same-session tasks become `cancelled`, and that session is blocked. No automatic model resend or claim of exactly-once model execution. Retain both volumes when investigating ambiguity.
 
-A PostgreSQL advisory connection lock restricts control-plane execution to one service instance. Startup recovery marks former running work uncertain; lost lock connection shuts the service down. Claims serialize a session; different sessions can use the two workers. Per-session workspaces/config/context paths are explicit. All Pi tools, ambient extensions, MCP, skills, context-file discovery, compaction and model retry are disabled. The normal model protocol adapter remains upstream Pi; `pi/model.mjs` is only a labelled streaming endpoint fixture.
+A PostgreSQL advisory connection lock restricts control-plane execution to one service instance. Startup recovery marks former running work uncertain; lost lock connection shuts the service down. A reserved4-connection control pool (including singleton ownership) is separate from an8-connection event-read pool. Terminal status/event writes are atomic and idempotent; three bounded state-only persistence attempts are allowed, then unresolved persistence stops the service for explicit recovery. No model request is repeated. Claims serialize a session; different sessions can use the two workers. Per-session workspaces/config/context paths are explicit. All Pi tools, ambient extensions, MCP, skills, context-file discovery, compaction and model retry are disabled. The normal model protocol adapter remains upstream Pi; `pi/model.mjs` is only a labelled streaming endpoint fixture.
 
 SSE delivery is at-least-once across reconnects. Consumers persist their last processed ID and deduplicate IDs. IDs are globally ordered committed event identities, so numeric gaps from other sessions are normal. SSE notification buffers hold one hint; data are replayed from committed state. A disposable shared tail caches at most128 subscribed sessions,256 events/64KiB each; older cursors fall back to SQL. Cache misses and invalidation never create authoritative events. Set `SSE_TAIL_CACHE=0` in the API environment for the unoptimized per-subscriber SQL baseline. Slow writes have a5s deadline, disconnect, and can reconnect with a cursor. HTTP disconnect does not cancel durable tasks.
 
@@ -47,7 +47,10 @@ python3 scripts/smoke.py
 # Only this owned Compose project's API is killed/restarted:
 python3 scripts/restart-probe.py
 python3 scripts/slow-consumer.py
+python3 scripts/terminal-failure.py
+export SOURCE_SHA="$(git rev-parse HEAD)"
 ./scripts/run-load.sh 100 1  # then1000/10000, repetitions1–3
+./scripts/run-load.sh 10000 1 100  # optional100 sessions ×100 subscribers
 # Stop the owned stack; preserve database/context volumes:
 docker compose down
 ```

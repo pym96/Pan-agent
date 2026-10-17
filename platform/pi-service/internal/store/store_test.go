@@ -5,9 +5,11 @@ import (
 	"errors"
 	"fmt"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"os"
 	"sync"
 	"testing"
+	"time"
 )
 
 func TestDurableAdmissionAndRecovery(t *testing.T) {
@@ -20,7 +22,7 @@ func TestDurableAdmissionAndRecovery(t *testing.T) {
 	if e != nil {
 		t.Fatal(e)
 	}
-	defer s.DB.Close()
+	defer s.Close()
 	if e = s.Init(ctx); e != nil {
 		t.Fatal(e)
 	}
@@ -95,4 +97,74 @@ func TestDurableAdmissionAndRecovery(t *testing.T) {
 	if _, _, e = s.Submit(ctx, Task{ID: "overflow", Session: "overflow", Key: "one", Prompt: "bounded"}); !errors.Is(e, ErrBusy) {
 		t.Fatal("queue unbounded", e)
 	}
+	running, e = s.Claim(ctx)
+	if e != nil {
+		t.Fatal(e)
+	}
+	held := []*pgxpool.Conn{}
+	for i := 0; i < 8; i++ {
+		conn, e := s.Reads.Acquire(ctx)
+		if e != nil {
+			t.Fatal(e)
+		}
+		held = append(held, conn)
+	}
+	blockedCtx, cancel := context.WithTimeout(ctx, 100*time.Millisecond)
+	_, e = s.Events(blockedCtx, "q0", 0)
+	cancel()
+	if e == nil {
+		t.Fatal("read pool starvation not injected")
+	}
+	finishCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	e = s.Finish(finishCtx, running, "completed")
+	cancel()
+	if e != nil {
+		t.Fatal("readers starved settlement", e)
+	}
+	if e = s.Finish(ctx, running, "completed"); e != nil {
+		t.Fatal(e)
+	}
+	for _, conn := range held {
+		conn.Release()
+	}
+	ev, e := s.Events(ctx, running.Session, 0)
+	if e != nil {
+		t.Fatal(e)
+	}
+	completions := 0
+	for _, v := range ev {
+		if v.Kind == "completed" {
+			completions++
+		}
+	}
+	if completions != 1 {
+		t.Fatal("duplicate settlement event", completions)
+	}
+	if e = s.Append(ctx, running, "text", []byte(`{}`)); e == nil {
+		t.Fatal("late append accepted after terminal")
+	}
+	fault, e := s.Claim(ctx)
+	if e != nil {
+		t.Fatal(e)
+	}
+	_, e = s.DB.Exec(ctx, "ALTER TABLE events ADD CONSTRAINT reject_completed CHECK(kind!='completed') NOT VALID")
+	if e != nil {
+		t.Fatal(e)
+	}
+	if e = s.Finish(ctx, fault, "completed"); e == nil {
+		t.Fatal("fault did not reject terminal write")
+	}
+	var state string
+	s.DB.QueryRow(ctx, "SELECT status FROM tasks WHERE id=$1", fault.ID).Scan(&state)
+	if state != "running" {
+		t.Fatal("false completion after rolled-back event", state)
+	}
+	_, e = s.DB.Exec(ctx, "ALTER TABLE events DROP CONSTRAINT reject_completed")
+	if e != nil {
+		t.Fatal(e)
+	}
+	if e = s.Finish(ctx, fault, "completed"); e != nil {
+		t.Fatal(e)
+	}
+
 }

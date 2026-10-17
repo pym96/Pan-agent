@@ -144,3 +144,5 @@ Raw artifacts remain at their stable source, Git, Trace, Test, evaluator, or ext
 - [#122 Web real Kimi analysis candidate evidence](web122/README.md).
 
 - [#115 Stage A budget adaptation](demo-video-115.md) / [summary](demo-video-115-summary.json): offline56GiB profile, unchanged old54GiB modes; pending independent review, no real demo run.
+
+- [Pi service #142](pi-service/README.md): separate Go/PostgreSQL/upstream Pi concurrency experiment; candidate evidence and measured limits.

@@ -1,7 +1,9 @@
 #!/bin/sh
 set -eu
 cd "$(dirname "$0")/.."
-: "${NODE_ROOT:?}" "${EVIDENCE_ROOT:?}"
+: "${NODE_ROOT:?}" "${EVIDENCE_ROOT:?}" "${SOURCE_SHA:?set exact source commit}"
+exec 9>"$EVIDENCE_ROOT/load.lock"
+flock -n 9 || { echo "another owned load is running"; exit 4; }
 level=${1:-100}
 repeat=${2:-1}
 shards=${3:-1}
@@ -15,11 +17,15 @@ sha256sum bin/service bin/load pi/server.mjs pi/model.mjs pi/package-lock.json c
 curl --noproxy '*' -fsS http://127.0.0.1:18142/metrics > "$EVIDENCE_ROOT/$name-before.json"
 docker compose run --rm --name "pan-pi-142-$name" load -connections "$level" -session-shards "$shards" -hold 120s -session "$name" -out "/evidence/$name.json" > "$EVIDENCE_ROOT/$name.log" 2>&1 &
 load_pid=$!
+started=$(date +%s)
 trap 'kill "$load_pid" 2>/dev/null || true; docker stop "pan-pi-142-$name" >/dev/null 2>&1 || true' INT TERM
 while kill -0 "$load_pid" 2>/dev/null; do
  date -u +%FT%TZ >> "$EVIDENCE_ROOT/$name-resources.jsonl"
  docker stats --no-stream --format '{{json .}}' pan-pi-142-api-1 pan-pi-142-pi-1 pan-pi-142-pg-1 "pan-pi-142-$name" >> "$EVIDENCE_ROOT/$name-resources.jsonl" 2>/dev/null || true
  docker exec pan-pi-142-api-1 sh -c 'echo fds=$(ls /proc/1/fd | wc -l); grep -E "VmRSS|Threads" /proc/1/status' >> "$EVIDENCE_ROOT/$name-process.txt"
+ elapsed=$(( $(date +%s) - started ))
+ if [ "$elapsed" -gt 240 ]; then echo "load watchdog240s" >> "$EVIDENCE_ROOT/$name.log"; docker stop "pan-pi-142-$name"; break; fi
+ if docker inspect --format '{{.State.OOMKilled}}' pan-pi-142-api-1 pan-pi-142-pi-1 pan-pi-142-pg-1 | grep -q true; then echo "owned OOM" >> "$EVIDENCE_ROOT/$name.log"; docker stop "pan-pi-142-$name"; break; fi
  free_kb=$(df -Pk "$EVIDENCE_ROOT" | awk 'NR==2 {print $4}')
  if [ "$free_kb" -lt 20971520 ]; then docker stop "pan-pi-142-$name"; break; fi
  sleep 5

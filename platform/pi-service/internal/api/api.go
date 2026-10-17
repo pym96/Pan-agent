@@ -213,9 +213,10 @@ func (a *API) metrics(w http.ResponseWriter, r *http.Request) {
 	var mem runtime.MemStats
 	runtime.ReadMemStats(&mem)
 	st := a.Store.DB.Stat()
+	reads := a.Store.Reads.Stat()
 	cacheHits := int64(0)
 	if a.Tail != nil {
 		cacheHits = a.Tail.Hits.Load()
 	}
-	writeJSON(w, 200, map[string]any{"tailCache": a.Tail != nil, "tailCacheHits": cacheHits, "timestamp": time.Now().UTC(), "connections": a.Connections.Load(), "eventsDelivered": a.Delivered.Load(), "heartbeats": a.Heartbeats.Load(), "writeFailures": a.Slow.Load(), "goroutines": runtime.NumGoroutine(), "heapBytes": mem.HeapAlloc, "pgAcquired": st.AcquiredConns(), "pgTotal": st.TotalConns(), "eventQueries": a.Store.EventQueries.Load(), "eventQueryNs": a.Store.EventQueryNS.Load(), "pgAcquireCount": st.AcquireCount(), "pgAcquireDurationNs": st.AcquireDuration().Nanoseconds()})
+	writeJSON(w, 200, map[string]any{"readPoolAcquired": reads.AcquiredConns(), "readPoolTotal": reads.TotalConns(), "readPoolAcquireCount": reads.AcquireCount(), "readPoolAcquireDurationNs": reads.AcquireDuration().Nanoseconds(), "tailCache": a.Tail != nil, "tailCacheHits": cacheHits, "timestamp": time.Now().UTC(), "connections": a.Connections.Load(), "eventsDelivered": a.Delivered.Load(), "heartbeats": a.Heartbeats.Load(), "writeFailures": a.Slow.Load(), "goroutines": runtime.NumGoroutine(), "heapBytes": mem.HeapAlloc, "pgAcquired": st.AcquiredConns(), "pgTotal": st.TotalConns(), "eventQueries": a.Store.EventQueries.Load(), "eventQueryNs": a.Store.EventQueryNS.Load(), "pgAcquireCount": st.AcquireCount(), "pgAcquireDurationNs": st.AcquireDuration().Nanoseconds()})
 }

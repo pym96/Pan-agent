@@ -19,6 +19,7 @@ type Pool struct {
 	Store  *store.Store
 	URL    string
 	Notify func(string)
+	Fatal  func(error)
 }
 
 func (p *Pool) Run(ctx context.Context) {
@@ -79,11 +80,24 @@ func (p *Pool) Run(ctx context.Context) {
 			resp.Body.Close()
 		}
 		cancel()
-		finishCtx, finishCancel := context.WithTimeout(context.Background(), 5*time.Second)
-		if e = p.Store.Finish(finishCtx, t, status); e != nil {
-			log.Printf("finish failed task=%s: %v", t.ID, e)
+		// Retry only an idempotent state transaction, never the model request.
+		var finishErr error
+		for attempt := 0; attempt < 3; attempt++ {
+			finishCtx, finishCancel := context.WithTimeout(context.Background(), 5*time.Second)
+			finishErr = p.Store.Finish(finishCtx, t, status)
+			finishCancel()
+			if finishErr == nil {
+				break
+			}
+			time.Sleep(time.Duration(attempt+1) * 100 * time.Millisecond)
 		}
-		finishCancel()
+		if finishErr != nil {
+			log.Printf("terminal persistence unresolved task=%s; stopping", t.ID)
+			if p.Fatal != nil {
+				p.Fatal(finishErr)
+			}
+			return
+		}
 		p.Notify(t.Session)
 	}
 }
