@@ -1,0 +1,59 @@
+name: pan-pi-142
+services:
+  pg:
+    image: postgres@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24
+    environment:
+      POSTGRES_USER: pan
+      POSTGRES_PASSWORD: local-experiment-only
+      POSTGRES_DB: pan
+    volumes: [pg-data:/var/lib/postgresql/data]
+    cpus: 1
+    mem_limit: 1g
+    healthcheck:
+      test: [CMD-SHELL, "pg_isready -h 127.0.0.1 -U pan"]
+      interval: 2s
+      timeout: 2s
+      retries: 30
+  pi:
+    image: python@sha256:a6e34c598f2467ed0e9a8d349809fcd8b5c603269512df273a0bb1784edc11b1
+    working_dir: /source/pi
+    entrypoint: ["/bin/sh", "-c", "/node/bin/node model.mjs & model=$$!; trap 'kill $$model' EXIT; /node/bin/node server.mjs"]
+    environment:
+      PI_DATA: /data
+      HOME: /data/home
+      MODEL_URL: http://127.0.0.1:8082/v1
+    volumes:
+      - .:/source:ro
+      - ${NODE_ROOT:?set NODE_ROOT}:/node:ro
+      - pi-data:/data
+    ports: ["127.0.0.1:18143:8081"]
+    cpus: 1
+    mem_limit: 4g
+    ulimits:
+      nofile: {soft: 32768, hard: 32768}
+  api:
+    image: python@sha256:a6e34c598f2467ed0e9a8d349809fcd8b5c603269512df273a0bb1784edc11b1
+    entrypoint: [/source/bin/service]
+    environment:
+      DATABASE_URL: postgres://pan:local-experiment-only@pg:5432/pan?sslmode=disable
+      PI_URL: http://pi:8081
+    volumes: [".:/source:ro"]
+    ports: ["127.0.0.1:18142:8080"]
+    depends_on:
+      pg: {condition: service_healthy}
+    cpus: 1
+    mem_limit: 2g
+    ulimits:
+      nofile: {soft: 32768, hard: 32768}
+  load:
+    profiles: [load]
+    image: python@sha256:a6e34c598f2467ed0e9a8d349809fcd8b5c603269512df273a0bb1784edc11b1
+    entrypoint: [/source/bin/load]
+    volumes: [".:/source:ro", "${EVIDENCE_ROOT:?set EVIDENCE_ROOT}:/evidence"]
+    cpus: 1
+    mem_limit: 1g
+    ulimits:
+      nofile: {soft: 32768, hard: 32768}
+volumes:
+  pg-data:
+  pi-data:

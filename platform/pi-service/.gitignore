@@ -1,0 +1,4 @@
+pi/node_modules/
+bin/
+.env
+scratch/
