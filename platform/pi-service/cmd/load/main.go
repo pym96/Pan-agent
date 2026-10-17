@@ -21,6 +21,7 @@ import (
 )
 
 type Receipt struct {
+	Bytes       int64     `json:"bytes"`
 	Session     string    `json:"session"`
 	Index       int       `json:"index"`
 	Established bool      `json:"established"`
@@ -88,14 +89,22 @@ func main() {
 				scan := bufio.NewScanner(resp.Body)
 				scan.Buffer(make([]byte, 4096), 65536)
 				reconnect := false
+				parser := frame{}
 				for scan.Scan() {
 					line := scan.Text()
 					if strings.HasPrefix(line, ": heartbeat") {
 						v.Heartbeats++
 						v.LastSeen = time.Now()
 					}
-					if strings.HasPrefix(line, "id: ") {
-						id, _ := strconv.ParseInt(strings.TrimPrefix(line, "id: "), 10, 64)
+					v.Bytes += int64(len(line) + 1)
+					event, parseErr := parser.Feed(line)
+					if parseErr != nil {
+						v.Error = parseErr.Error()
+						resp.Body.Close()
+						return
+					}
+					if event != nil {
+						id := event.ID
 						if id == cursor {
 							v.Duplicates++
 						}
