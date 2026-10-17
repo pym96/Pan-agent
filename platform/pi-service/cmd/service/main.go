@@ -39,7 +39,16 @@ func main() {
 	}
 	hub := api.NewHub()
 	a := &api.API{Store: s, Hub: hub}
-	p := &executor.Pool{Store: s, URL: os.Getenv("PI_URL"), Notify: hub.Notify}
+	if os.Getenv("SSE_TAIL_CACHE") != "0" {
+		a.Tail = api.NewTail(s.Events)
+	}
+	notify := func(session string) {
+		if a.Tail != nil {
+			a.Tail.Dirty(session)
+		}
+		hub.Notify(session)
+	}
+	p := &executor.Pool{Store: s, URL: os.Getenv("PI_URL"), Notify: notify}
 	var workers sync.WaitGroup
 	for i := 0; i < 2; i++ {
 		workers.Add(1)
@@ -64,7 +73,7 @@ func main() {
 			}
 		}
 	}()
-	server := &http.Server{Addr: ":8080", Handler: a.Handler(), ReadHeaderTimeout: 5 * time.Second, IdleTimeout: 30 * time.Second, MaxHeaderBytes: 8192}
+	server := &http.Server{Addr: ":8080", Handler: a.Handler(), ReadHeaderTimeout: 5 * time.Second, ReadTimeout: 10 * time.Second, IdleTimeout: 30 * time.Second, MaxHeaderBytes: 8192}
 	go func() {
 		<-ctx.Done()
 		shutdown, cancel := context.WithTimeout(context.Background(), 7*time.Second)

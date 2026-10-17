@@ -7,9 +7,15 @@ import (
 	"errors"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"sync/atomic"
+	"time"
 )
 
-type Store struct{ DB *pgxpool.Pool }
+type Store struct {
+	DB           *pgxpool.Pool
+	EventQueries atomic.Int64
+	EventQueryNS atomic.Int64
+}
 type Task struct {
 	ID      string `json:"id"`
 	Session string `json:"session"`
@@ -37,7 +43,7 @@ func Open(ctx context.Context, url string) (*Store, error) {
 	if e != nil {
 		return nil, e
 	}
-	return &Store{p}, nil
+	return &Store{DB: p}, nil
 }
 func (s *Store) Init(ctx context.Context) error {
 	_, e := s.DB.Exec(ctx, `CREATE TABLE IF NOT EXISTS sessions(id text PRIMARY KEY, blocked boolean NOT NULL DEFAULT false);
@@ -192,6 +198,9 @@ func (s *Store) Finish(ctx context.Context, t Task, status string) error {
 	return tx.Commit(ctx)
 }
 func (s *Store) Events(ctx context.Context, session string, cursor int64) ([]Event, error) {
+	start := time.Now()
+	s.EventQueries.Add(1)
+	defer func() { s.EventQueryNS.Add(time.Since(start).Nanoseconds()) }()
 	rows, e := s.DB.Query(ctx, "SELECT id,task,kind,data FROM events WHERE session=$1 AND id>$2 ORDER BY id LIMIT 256", session, cursor)
 	if e != nil {
 		return nil, e

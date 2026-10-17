@@ -1,3 +1,7 @@
+# Current lane — #142 Pi service experiment
+
+[WorkOrder #142](https://github.com/pym96/Pan-agent/issues/142), Criteria1.0, authorizes the separate Product experimental `platform/pi-service/` lane from b331feaf6ce67fed7ec3da457999ad4ca5ccff4f. Released Pan Runtime/TUI remain Frozen Reference. This pointer supersedes the historical mission snapshots below without rewriting them.
+
 ## Current #47 additive repair navigation
 
 [Criteria-Version 1.2](https://github.com/pym96/Pan-agent/issues/47#issuecomment-5601235744) and [activation](https://github.com/pym96/Pan-agent/issues/47#issuecomment-5601244605) authorize framing and immutable-evidence repair from `f2b6c611a6bf9c5463c4d5dc7beecbb97caaf30c`. Startup y stays; #48/#49 are not executable; #46 remains paused. Handoff #3 must bind the new full SHA; old failed evidence is retained.

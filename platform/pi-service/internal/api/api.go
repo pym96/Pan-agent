@@ -54,6 +54,7 @@ func (h *Hub) Notify(s string) {
 
 type API struct {
 	Store       *store.Store
+	Tail        *Tail
 	Hub         *Hub
 	Connections atomic.Int64
 	Delivered   atomic.Int64
@@ -112,6 +113,9 @@ func (a *API) submit(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, http.StatusText(status), status)
 		return
 	}
+	if a.Tail != nil {
+		a.Tail.Dirty(s)
+	}
 	a.Hub.Notify(s)
 	code := 200
 	if fresh {
@@ -149,6 +153,10 @@ func (a *API) events(w http.ResponseWriter, r *http.Request) {
 	}
 	defer a.Connections.Add(-1)
 	hint, unsub := a.Hub.Subscribe(s)
+	if a.Tail != nil {
+		detach := a.Tail.Attach(s)
+		defer detach()
+	}
 	defer unsub()
 	w.Header().Set("Content-Type", "text/event-stream")
 	w.Header().Set("Cache-Control", "no-cache")
@@ -170,7 +178,11 @@ func (a *API) events(w http.ResponseWriter, r *http.Request) {
 	tick := time.NewTicker(10 * time.Second)
 	defer tick.Stop()
 	for {
-		items, err := a.Store.Events(r.Context(), s, cursor)
+		read := a.Store.Events
+		if a.Tail != nil {
+			read = a.Tail.Events
+		}
+		items, err := read(r.Context(), s, cursor)
 		if err != nil {
 			return
 		}
@@ -201,5 +213,9 @@ func (a *API) metrics(w http.ResponseWriter, r *http.Request) {
 	var mem runtime.MemStats
 	runtime.ReadMemStats(&mem)
 	st := a.Store.DB.Stat()
-	writeJSON(w, 200, map[string]any{"timestamp": time.Now().UTC(), "connections": a.Connections.Load(), "eventsDelivered": a.Delivered.Load(), "heartbeats": a.Heartbeats.Load(), "writeFailures": a.Slow.Load(), "goroutines": runtime.NumGoroutine(), "heapBytes": mem.HeapAlloc, "pgAcquired": st.AcquiredConns(), "pgTotal": st.TotalConns(), "pgAcquireCount": st.AcquireCount(), "pgAcquireDurationNs": st.AcquireDuration().Nanoseconds()})
+	cacheHits := int64(0)
+	if a.Tail != nil {
+		cacheHits = a.Tail.Hits.Load()
+	}
+	writeJSON(w, 200, map[string]any{"tailCache": a.Tail != nil, "tailCacheHits": cacheHits, "timestamp": time.Now().UTC(), "connections": a.Connections.Load(), "eventsDelivered": a.Delivered.Load(), "heartbeats": a.Heartbeats.Load(), "writeFailures": a.Slow.Load(), "goroutines": runtime.NumGoroutine(), "heapBytes": mem.HeapAlloc, "pgAcquired": st.AcquiredConns(), "pgTotal": st.TotalConns(), "eventQueries": a.Store.EventQueries.Load(), "eventQueryNs": a.Store.EventQueryNS.Load(), "pgAcquireCount": st.AcquireCount(), "pgAcquireDurationNs": st.AcquireDuration().Nanoseconds()})
 }

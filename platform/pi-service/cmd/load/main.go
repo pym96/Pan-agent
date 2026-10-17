@@ -21,6 +21,7 @@ import (
 )
 
 type Receipt struct {
+	Session     string    `json:"session"`
 	Index       int       `json:"index"`
 	Established bool      `json:"established"`
 	Heartbeats  int       `json:"heartbeats"`
@@ -38,8 +39,9 @@ func main() {
 	hold := flag.Duration("hold", 120*time.Second, "hold")
 	out := flag.String("out", "/evidence/load.json", "output")
 	name := flag.String("session", "load-142", "session")
+	shards := flag.Int("session-shards", 1, "unique subscribed sessions; <= connections")
 	flag.Parse()
-	if *n < 1 || *n > 10000 || *hold > 120*time.Second {
+	if *n < 1 || *n > 10000 || *hold > 120*time.Second || *shards < 1 || *shards > *n {
 		panic("invalid load bound")
 	}
 	start := time.Now()
@@ -56,12 +58,13 @@ func main() {
 		wg.Add(1)
 		go func(i int) {
 			defer wg.Done()
-			v := Receipt{Index: i, IDs: []int64{}}
+			sessionName := fmt.Sprintf("%s-s%d", *name, i%*shards)
+			v := Receipt{Index: i, IDs: []int64{}, Session: sessionName}
 			defer func() { mu.Lock(); receipts[i] = v; mu.Unlock() }()
 			cursor := int64(0)
 			first := true
 			for {
-				req, _ := http.NewRequestWithContext(ctx, "GET", *base+"/sessions/"+*name+"/events", nil)
+				req, _ := http.NewRequestWithContext(ctx, "GET", *base+"/sessions/"+sessionName+"/events", nil)
 				if cursor > 0 {
 					req.Header.Set("Last-Event-ID", strconv.FormatInt(cursor, 10))
 				}
@@ -141,10 +144,11 @@ func main() {
 				metrics = append(metrics, b)
 			}
 		}
+		sessionName := fmt.Sprintf("%s-s%d", *name, taskCount%*shards)
 		key := fmt.Sprintf("fixed-seed-142-%d", taskCount)
 		body, _ := json.Marshal(map[string]string{"key": key, "prompt": "Reply with a brief synthetic baseline greeting."})
 		ts := time.Now()
-		req, _ = http.NewRequestWithContext(ctx, "POST", *base+"/sessions/"+*name+"/tasks", bytes.NewReader(body))
+		req, _ = http.NewRequestWithContext(ctx, "POST", *base+"/sessions/"+sessionName+"/tasks", bytes.NewReader(body))
 		req.Header.Set("Content-Type", "application/json")
 		resp, e := control.Do(req)
 		if e != nil {
@@ -187,7 +191,10 @@ func main() {
 			}
 		}
 		taskCount++
-		time.Sleep(5 * time.Second)
+		select {
+		case <-ctx.Done():
+		case <-time.After(5 * time.Second):
+		}
 	}
 	<-ctx.Done()
 	end := time.Now()
@@ -210,7 +217,7 @@ func main() {
 		}
 		return latencies[int(math.Ceil(q*float64(len(latencies))))-1]
 	}
-	report := map[string]any{"seed": 142, "uniqueSubscribedSessions": 1, "executorConcurrencyLimit": 2, "model": "deterministic local HTTP through actual Pi1.3.0", "started": start, "rampEnd": rampEnd, "ended": end, "requested": *n, "established": established.Load(), "healthyAtEnd": healthy, "holdSeconds": end.Sub(rampEnd).Seconds(), "duplicates": duplicates, "regressions": regressions, "taskAttempts": taskCount, "taskErrors": taskErrors, "taskCompletionPollLatencyMs": latencies, "quantileAlgorithm": "nearest rank, ceil(q*n)-1; 50ms HTTP completion polling included", "p50": quantile(.5), "p95": quantile(.95), "p99": quantile(.99), "metrics": metrics, "connections": receipts}
+	report := map[string]any{"seed": 142, "uniqueSubscribedSessions": *shards, "executorConcurrencyLimit": 2, "model": "deterministic local HTTP through actual Pi1.3.0", "started": start, "rampEnd": rampEnd, "ended": end, "requested": *n, "established": established.Load(), "healthyAtEnd": healthy, "holdSeconds": end.Sub(rampEnd).Seconds(), "duplicates": duplicates, "regressions": regressions, "taskAttempts": taskCount, "taskErrors": taskErrors, "taskCompletionPollLatencyMs": latencies, "quantileAlgorithm": "nearest rank, ceil(q*n)-1; 50ms HTTP completion polling included", "p50": quantile(.5), "p95": quantile(.95), "p99": quantile(.99), "metrics": metrics, "connections": receipts}
 	f, e := os.Create(*out)
 	if e != nil {
 		panic(e)

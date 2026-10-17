@@ -37,6 +37,7 @@ services:
     environment:
       DATABASE_URL: postgres://pan:local-experiment-only@pg:5432/pan?sslmode=disable
       PI_URL: http://pi:8081
+      SSE_TAIL_CACHE: ${SSE_TAIL_CACHE:-1}
     volumes: [".:/source:ro"]
     ports: ["127.0.0.1:18142:8080"]
     depends_on:

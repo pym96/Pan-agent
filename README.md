@@ -138,3 +138,7 @@ This is a small display subset, not full CommonMark: nested inline formatting, e
 ## Missing credential
 
 If an environment credential is missing when you submit a task, the TUI keeps the failed status and shows the expected variable (`KIMI_API_KEY` or `DEEPSEEK_API_KEY`). Exit with `:exit`, set the key in your terminal using your secret manager, then restart Pan. To change the credential source, run `pan-agent configure`. Never paste an API key into a task. Keychain configuration uses its own entry; environment keys do not override a selected Keychain source. Unknown provider errors remain generic rather than exposing raw responses.
+
+## Separate platform experiment
+
+[Pi service](platform/pi-service/README.md) explores durable server tasks and SSE concurrency using upstream Pi. It is separate from this released TUI.
