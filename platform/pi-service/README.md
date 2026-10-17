@@ -2,9 +2,20 @@
 
 A server-only Go API and PostgreSQL control plane around **actual upstream Pi 1.3.0**. The default model is a deterministic local HTTP fixture, not an LLM. No tools, GPU, Redis, frontend or paid API call is needed. This is an isolated single-owner development service, not a public multi-user platform.
 
+```mermaid
+flowchart LR
+  Client -->|submit / history / SSE cursor| Go[Go API]
+  Go -->|durable task and event transactions| PG[(PostgreSQL)]
+  Go -->|two bounded workers| Pi[Pi AgentSession]
+  Pi --> Model[Local streaming model fixture]
+  Pi --> Context[(Pi session context volume)]
+  PG --> Tail[Bounded disposable event tail]
+  Tail -->|committed events| Client
+```
+
 ## Run
 
-Requires Docker Engine/Compose, Go 1.24+, Node 22.19+ and npm. On the measured server, `scripts/build-owned.sh` also supports a network-disabled1CPU/1GiB build container using existing `GO_ROOT` and `GO_CACHE_ROOT`. Use an existing user-space toolchain on PATH; no global installation or server coding-agent login is needed.
+Run these commands on a **Linux server** with Docker Engine/Compose, Go 1.24+, Node 22.19+ and npm (measured on Linux amd64). The host-built Go executables and mounted Node distribution must match the Linux container architecture; native macOS binaries cannot be mounted as substitutes. On the measured server, `scripts/build-owned.sh` also supports a network-disabled 1 CPU/1 GiB build container using existing `GO_ROOT` and `GO_CACHE_ROOT`. Use an existing user-space toolchain on PATH; no global installation or server coding-agent login is needed.
 
 ```sh
 cd platform/pi-service

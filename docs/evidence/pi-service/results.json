@@ -1,0 +1,1058 @@
+{
+  "executedSourceSHA": "aa1d1afcfb4c822e9082da4b4372f4ea824d8906",
+  "definitions": {
+    "quantiles": "nearest rank ceil(q*n)-1; samples never padded; pool wait cumulative across callers, not wall time",
+    "delivery": "internal gaps only compare committed IDs <= each observed high-water mark; tail at postrun snapshot may include commits after disconnect, not automatically loss"
+  },
+  "finalMatrix": [
+    {
+      "file": "load-cache0-10000-1-shards1-20261017T021952.json",
+      "requested": 10000,
+      "established": 10000,
+      "healthy": 10000,
+      "subscribedSessions": 1,
+      "holdSeconds": 120.014840722,
+      "offered": 24,
+      "httpAcknowledged": 24,
+      "clientObservedCompleted": 24,
+      "dbAdmittedAtSnapshot": 24,
+      "dbCompletedAtSnapshot": 24,
+      "dbStatusesAtSnapshot": {
+        "completed": 24
+      },
+      "taskErrors": [],
+      "latencySampleCount": 24,
+      "pollP50Ms": 420.76313,
+      "pollP95Ms": 611.905886,
+      "pollP99Ms": 673.4774110000001,
+      "dbQueueP95Ms": 94.93,
+      "dbFirstTextP95Ms": 263.91,
+      "dbTotalP95Ms": 474.11,
+      "clientsWithEvents": 10000,
+      "internalCommittedEventGaps": 0,
+      "unobservedTailAtPostRunSnapshot": 34044,
+      "duplicateIDs": 0,
+      "regressions": 0,
+      "reconnects": 1000,
+      "readPoolAcquisitionsSampleDelta": 166423,
+      "readPoolWaitNsSampleDelta": 1115163556205551,
+      "poolAcquisitionsSampleDelta": 2233,
+      "poolWaitNsSampleDelta": 21847345,
+      "eventQueriesSampleDelta": 176705,
+      "eventQueryNsSampleDelta": 1115970610455951,
+      "tailCache": false
+    },
+    {
+      "file": "load-cache0-10000-2-shards1-20261017T022218.json",
+      "requested": 10000,
+      "established": 10000,
+      "healthy": 10000,
+      "subscribedSessions": 1,
+      "holdSeconds": 120.017954001,
+      "offered": 24,
+      "httpAcknowledged": 24,
+      "clientObservedCompleted": 24,
+      "dbAdmittedAtSnapshot": 24,
+      "dbCompletedAtSnapshot": 24,
+      "dbStatusesAtSnapshot": {
+        "completed": 24
+      },
+      "taskErrors": [],
+      "latencySampleCount": 24,
+      "pollP50Ms": 398.709568,
+      "pollP95Ms": 578.664271,
+      "pollP99Ms": 579.0141530000001,
+      "dbQueueP95Ms": 81.461,
+      "dbFirstTextP95Ms": 174.355,
+      "dbTotalP95Ms": 498.769,
+      "clientsWithEvents": 10000,
+      "internalCommittedEventGaps": 0,
+      "unobservedTailAtPostRunSnapshot": 41830,
+      "duplicateIDs": 0,
+      "regressions": 0,
+      "reconnects": 1000,
+      "readPoolAcquisitionsSampleDelta": 196268,
+      "readPoolWaitNsSampleDelta": 1111985205228762,
+      "poolAcquisitionsSampleDelta": 2263,
+      "poolWaitNsSampleDelta": 1407410,
+      "eventQueriesSampleDelta": 206708,
+      "eventQueryNsSampleDelta": 1112787637340228,
+      "tailCache": false
+    },
+    {
+      "file": "load-cache0-10000-3-shards1-20261017T022443.json",
+      "requested": 10000,
+      "established": 10000,
+      "healthy": 10000,
+      "subscribedSessions": 1,
+      "holdSeconds": 120.014863867,
+      "offered": 24,
+      "httpAcknowledged": 24,
+      "clientObservedCompleted": 24,
+      "dbAdmittedAtSnapshot": 24,
+      "dbCompletedAtSnapshot": 24,
+      "dbStatusesAtSnapshot": {
+        "completed": 24
+      },
+      "taskErrors": [],
+      "latencySampleCount": 24,
+      "pollP50Ms": 399.789422,
+      "pollP95Ms": 503.41751,
+      "pollP99Ms": 508.51631799999996,
+      "dbQueueP95Ms": 98.139,
+      "dbFirstTextP95Ms": 195.015,
+      "dbTotalP95Ms": 373.863,
+      "clientsWithEvents": 10000,
+      "internalCommittedEventGaps": 0,
+      "unobservedTailAtPostRunSnapshot": 37235,
+      "duplicateIDs": 0,
+      "regressions": 0,
+      "reconnects": 1000,
+      "readPoolAcquisitionsSampleDelta": 166995,
+      "readPoolWaitNsSampleDelta": 1113108123443140,
+      "poolAcquisitionsSampleDelta": 2229,
+      "poolWaitNsSampleDelta": 1220027,
+      "eventQueriesSampleDelta": 177357,
+      "eventQueryNsSampleDelta": 1113913153406270,
+      "tailCache": false
+    },
+    {
+      "file": "load-cache1-100-1-shards1-20261017T022752.json",
+      "requested": 100,
+      "established": 100,
+      "healthy": 100,
+      "subscribedSessions": 1,
+      "holdSeconds": 120.000969527,
+      "offered": 24,
+      "httpAcknowledged": 24,
+      "clientObservedCompleted": 24,
+      "dbAdmittedAtSnapshot": 24,
+      "dbCompletedAtSnapshot": 24,
+      "dbStatusesAtSnapshot": {
+        "completed": 24
+      },
+      "taskErrors": [],
+      "latencySampleCount": 24,
+      "pollP50Ms": 214.559847,
+      "pollP95Ms": 314.829803,
+      "pollP99Ms": 330.312274,
+      "dbQueueP95Ms": 80.615,
+      "dbFirstTextP95Ms": 119.019,
+      "dbTotalP95Ms": 235.038,
+      "clientsWithEvents": 100,
+      "internalCommittedEventGaps": 0,
+      "unobservedTailAtPostRunSnapshot": 0,
+      "duplicateIDs": 0,
+      "regressions": 0,
+      "reconnects": 10,
+      "readPoolAcquisitionsSampleDelta": 253,
+      "readPoolWaitNsSampleDelta": 170319,
+      "poolAcquisitionsSampleDelta": 2527,
+      "poolWaitNsSampleDelta": 20174464,
+      "eventQueriesSampleDelta": 253,
+      "eventQueryNsSampleDelta": 218239477,
+      "tailCache": true
+    },
+    {
+      "file": "load-cache1-100-2-shards1-20261017T022954.json",
+      "requested": 100,
+      "established": 100,
+      "healthy": 100,
+      "subscribedSessions": 1,
+      "holdSeconds": 120.000705971,
+      "offered": 24,
+      "httpAcknowledged": 24,
+      "clientObservedCompleted": 24,
+      "dbAdmittedAtSnapshot": 24,
+      "dbCompletedAtSnapshot": 24,
+      "dbStatusesAtSnapshot": {
+        "completed": 24
+      },
+      "taskErrors": [],
+      "latencySampleCount": 24,
+      "pollP50Ms": 218.281252,
+      "pollP95Ms": 318.748474,
+      "pollP99Ms": 322.182046,
+      "dbQueueP95Ms": 88.17,
+      "dbFirstTextP95Ms": 129.13,
+      "dbTotalP95Ms": 245.396,
+      "clientsWithEvents": 100,
+      "internalCommittedEventGaps": 0,
+      "unobservedTailAtPostRunSnapshot": 0,
+      "duplicateIDs": 0,
+      "regressions": 0,
+      "reconnects": 10,
+      "readPoolAcquisitionsSampleDelta": 253,
+      "readPoolWaitNsSampleDelta": 179575,
+      "poolAcquisitionsSampleDelta": 2526,
+      "poolWaitNsSampleDelta": 3571302,
+      "eventQueriesSampleDelta": 253,
+      "eventQueryNsSampleDelta": 214399876,
+      "tailCache": true
+    },
+    {
+      "file": "load-cache1-100-3-shards1-20261017T023157.json",
+      "requested": 100,
+      "established": 100,
+      "healthy": 100,
+      "subscribedSessions": 1,
+      "holdSeconds": 120.000888565,
+      "offered": 24,
+      "httpAcknowledged": 24,
+      "clientObservedCompleted": 24,
+      "dbAdmittedAtSnapshot": 24,
+      "dbCompletedAtSnapshot": 24,
+      "dbStatusesAtSnapshot": {
+        "completed": 24
+      },
+      "taskErrors": [],
+      "latencySampleCount": 24,
+      "pollP50Ms": 218.893426,
+      "pollP95Ms": 322.830471,
+      "pollP99Ms": 326.819947,
+      "dbQueueP95Ms": 55.474,
+      "dbFirstTextP95Ms": 96.214,
+      "dbTotalP95Ms": 271.031,
+      "clientsWithEvents": 100,
+      "internalCommittedEventGaps": 0,
+      "unobservedTailAtPostRunSnapshot": 0,
+      "duplicateIDs": 0,
+      "regressions": 0,
+      "reconnects": 10,
+      "readPoolAcquisitionsSampleDelta": 253,
+      "readPoolWaitNsSampleDelta": 188332,
+      "poolAcquisitionsSampleDelta": 2520,
+      "poolWaitNsSampleDelta": 3229074,
+      "eventQueriesSampleDelta": 253,
+      "eventQueryNsSampleDelta": 242326173,
+      "tailCache": true
+    },
+    {
+      "file": "load-cache1-1000-1-shards1-20261017T023359.json",
+      "requested": 1000,
+      "established": 1000,
+      "healthy": 1000,
+      "subscribedSessions": 1,
+      "holdSeconds": 120.003213219,
+      "offered": 24,
+      "httpAcknowledged": 24,
+      "clientObservedCompleted": 24,
+      "dbAdmittedAtSnapshot": 24,
+      "dbCompletedAtSnapshot": 24,
+      "dbStatusesAtSnapshot": {
+        "completed": 24
+      },
+      "taskErrors": [],
+      "latencySampleCount": 24,
+      "pollP50Ms": 748.7807859999999,
+      "pollP95Ms": 822.952038,
+      "pollP99Ms": 824.836324,
+      "dbQueueP95Ms": 97.388,
+      "dbFirstTextP95Ms": 187.919,
+      "dbTotalP95Ms": 648.73,
+      "clientsWithEvents": 1000,
+      "internalCommittedEventGaps": 0,
+      "unobservedTailAtPostRunSnapshot": 0,
+      "duplicateIDs": 0,
+      "regressions": 0,
+      "reconnects": 100,
+      "readPoolAcquisitionsSampleDelta": 253,
+      "readPoolWaitNsSampleDelta": 144518,
+      "poolAcquisitionsSampleDelta": 2436,
+      "poolWaitNsSampleDelta": 2998465,
+      "eventQueriesSampleDelta": 253,
+      "eventQueryNsSampleDelta": 582456921,
+      "tailCache": true
+    },
+    {
+      "file": "load-cache1-1000-2-shards1-20261017T023610.json",
+      "requested": 1000,
+      "established": 1000,
+      "healthy": 1000,
+      "subscribedSessions": 1,
+      "holdSeconds": 120.009938391,
+      "offered": 24,
+      "httpAcknowledged": 24,
+      "clientObservedCompleted": 24,
+      "dbAdmittedAtSnapshot": 24,
+      "dbCompletedAtSnapshot": 24,
+      "dbStatusesAtSnapshot": {
+        "completed": 24
+      },
+      "taskErrors": [],
+      "latencySampleCount": 24,
+      "pollP50Ms": 726.480055,
+      "pollP95Ms": 831.1678909999999,
+      "pollP99Ms": 860.6912960000001,
+      "dbQueueP95Ms": 92.785,
+      "dbFirstTextP95Ms": 166.602,
+      "dbTotalP95Ms": 659.824,
+      "clientsWithEvents": 1000,
+      "internalCommittedEventGaps": 0,
+      "unobservedTailAtPostRunSnapshot": 0,
+      "duplicateIDs": 0,
+      "regressions": 0,
+      "reconnects": 100,
+      "readPoolAcquisitionsSampleDelta": 253,
+      "readPoolWaitNsSampleDelta": 147720,
+      "poolAcquisitionsSampleDelta": 2440,
+      "poolWaitNsSampleDelta": 2752178,
+      "eventQueriesSampleDelta": 253,
+      "eventQueryNsSampleDelta": 567626764,
+      "tailCache": true
+    },
+    {
+      "file": "load-cache1-1000-3-shards1-20261017T023819.json",
+      "requested": 1000,
+      "established": 1000,
+      "healthy": 1000,
+      "subscribedSessions": 1,
+      "holdSeconds": 120.004766421,
+      "offered": 24,
+      "httpAcknowledged": 24,
+      "clientObservedCompleted": 24,
+      "dbAdmittedAtSnapshot": 24,
+      "dbCompletedAtSnapshot": 24,
+      "dbStatusesAtSnapshot": {
+        "completed": 24
+      },
+      "taskErrors": [],
+      "latencySampleCount": 24,
+      "pollP50Ms": 735.428406,
+      "pollP95Ms": 825.53146,
+      "pollP99Ms": 835.050786,
+      "dbQueueP95Ms": 99.56,
+      "dbFirstTextP95Ms": 175.585,
+      "dbTotalP95Ms": 662.138,
+      "clientsWithEvents": 1000,
+      "internalCommittedEventGaps": 0,
+      "unobservedTailAtPostRunSnapshot": 0,
+      "duplicateIDs": 0,
+      "regressions": 0,
+      "reconnects": 100,
+      "readPoolAcquisitionsSampleDelta": 253,
+      "readPoolWaitNsSampleDelta": 153080,
+      "poolAcquisitionsSampleDelta": 2447,
+      "poolWaitNsSampleDelta": 2962167,
+      "eventQueriesSampleDelta": 253,
+      "eventQueryNsSampleDelta": 637301789,
+      "tailCache": true
+    },
+    {
+      "file": "load-cache1-10000-1-shards1-20261017T024030.json",
+      "requested": 10000,
+      "established": 10000,
+      "healthy": 10000,
+      "subscribedSessions": 1,
+      "holdSeconds": 120.018934761,
+      "offered": 24,
+      "httpAcknowledged": 24,
+      "clientObservedCompleted": 24,
+      "dbAdmittedAtSnapshot": 24,
+      "dbCompletedAtSnapshot": 24,
+      "dbStatusesAtSnapshot": {
+        "completed": 24
+      },
+      "taskErrors": [],
+      "latencySampleCount": 24,
+      "pollP50Ms": 3452.292453,
+      "pollP95Ms": 4503.399193,
+      "pollP99Ms": 4992.197642,
+      "dbQueueP95Ms": 93.871,
+      "dbFirstTextP95Ms": 1311.215,
+      "dbTotalP95Ms": 4187.508,
+      "clientsWithEvents": 10000,
+      "internalCommittedEventGaps": 0,
+      "unobservedTailAtPostRunSnapshot": 0,
+      "duplicateIDs": 0,
+      "regressions": 0,
+      "reconnects": 1000,
+      "readPoolAcquisitionsSampleDelta": 253,
+      "readPoolWaitNsSampleDelta": 196166,
+      "poolAcquisitionsSampleDelta": 1479,
+      "poolWaitNsSampleDelta": 1555138,
+      "eventQueriesSampleDelta": 253,
+      "eventQueryNsSampleDelta": 5558526203,
+      "tailCache": true
+    },
+    {
+      "file": "load-cache1-10000-1-shards100-20261017T024748.json",
+      "requested": 10000,
+      "established": 10000,
+      "healthy": 10000,
+      "subscribedSessions": 100,
+      "holdSeconds": 120.015245954,
+      "offered": 24,
+      "httpAcknowledged": 24,
+      "clientObservedCompleted": 24,
+      "dbAdmittedAtSnapshot": 24,
+      "dbCompletedAtSnapshot": 24,
+      "dbStatusesAtSnapshot": {
+        "completed": 24
+      },
+      "taskErrors": [],
+      "latencySampleCount": 24,
+      "pollP50Ms": 214.97458699999999,
+      "pollP95Ms": 317.91720200000003,
+      "pollP99Ms": 318.48526799999996,
+      "dbQueueP95Ms": 84.124,
+      "dbFirstTextP95Ms": 118.822,
+      "dbTotalP95Ms": 245.959,
+      "clientsWithEvents": 2400,
+      "internalCommittedEventGaps": 0,
+      "unobservedTailAtPostRunSnapshot": 0,
+      "duplicateIDs": 0,
+      "regressions": 0,
+      "reconnects": 1000,
+      "readPoolAcquisitionsSampleDelta": 253,
+      "readPoolWaitNsSampleDelta": 221292,
+      "poolAcquisitionsSampleDelta": 2531,
+      "poolWaitNsSampleDelta": 2921730,
+      "eventQueriesSampleDelta": 253,
+      "eventQueryNsSampleDelta": 242095111,
+      "tailCache": true
+    },
+    {
+      "file": "load-cache1-10000-2-shards1-20261017T024256.json",
+      "requested": 10000,
+      "established": 10000,
+      "healthy": 10000,
+      "subscribedSessions": 1,
+      "holdSeconds": 120.021377137,
+      "offered": 24,
+      "httpAcknowledged": 24,
+      "clientObservedCompleted": 24,
+      "dbAdmittedAtSnapshot": 24,
+      "dbCompletedAtSnapshot": 24,
+      "dbStatusesAtSnapshot": {
+        "completed": 24
+      },
+      "taskErrors": [],
+      "latencySampleCount": 24,
+      "pollP50Ms": 3481.9920359999996,
+      "pollP95Ms": 4450.154871,
+      "pollP99Ms": 4653.134903,
+      "dbQueueP95Ms": 61.522,
+      "dbFirstTextP95Ms": 1028.382,
+      "dbTotalP95Ms": 3679.81,
+      "clientsWithEvents": 10000,
+      "internalCommittedEventGaps": 0,
+      "unobservedTailAtPostRunSnapshot": 0,
+      "duplicateIDs": 0,
+      "regressions": 0,
+      "reconnects": 1000,
+      "readPoolAcquisitionsSampleDelta": 253,
+      "readPoolWaitNsSampleDelta": 179849,
+      "poolAcquisitionsSampleDelta": 1513,
+      "poolWaitNsSampleDelta": 1394266,
+      "eventQueriesSampleDelta": 253,
+      "eventQueryNsSampleDelta": 5809197188,
+      "tailCache": true
+    },
+    {
+      "file": "load-cache1-10000-3-shards1-20261017T024522.json",
+      "requested": 10000,
+      "established": 10000,
+      "healthy": 10000,
+      "subscribedSessions": 1,
+      "holdSeconds": 120.012808914,
+      "offered": 24,
+      "httpAcknowledged": 24,
+      "clientObservedCompleted": 24,
+      "dbAdmittedAtSnapshot": 24,
+      "dbCompletedAtSnapshot": 24,
+      "dbStatusesAtSnapshot": {
+        "completed": 24
+      },
+      "taskErrors": [],
+      "latencySampleCount": 24,
+      "pollP50Ms": 3383.6998559999997,
+      "pollP95Ms": 4343.843345,
+      "pollP99Ms": 4849.317465,
+      "dbQueueP95Ms": 94.171,
+      "dbFirstTextP95Ms": 979.48,
+      "dbTotalP95Ms": 3611.687,
+      "clientsWithEvents": 10000,
+      "internalCommittedEventGaps": 0,
+      "unobservedTailAtPostRunSnapshot": 0,
+      "duplicateIDs": 0,
+      "regressions": 0,
+      "reconnects": 1000,
+      "readPoolAcquisitionsSampleDelta": 253,
+      "readPoolWaitNsSampleDelta": 249450,
+      "poolAcquisitionsSampleDelta": 1558,
+      "poolWaitNsSampleDelta": 55395917,
+      "eventQueriesSampleDelta": 253,
+      "eventQueryNsSampleDelta": 5123994997,
+      "tailCache": true
+    }
+  ],
+  "resourceMeasurements": [
+    {
+      "file": "load-cache0-10000-1-shards1-20261017T021952.json",
+      "resources": {
+        "api": {
+          "samples": 18,
+          "cpuPercentMax": 71.64,
+          "containerMemoryBytesMax": 535717478.4
+        },
+        "pi": {
+          "samples": 18,
+          "cpuPercentMax": 2.22,
+          "containerMemoryBytesMax": 88709529.6
+        },
+        "pg": {
+          "samples": 18,
+          "cpuPercentMax": 103.06,
+          "containerMemoryBytesMax": 65577943.04
+        },
+        "load": {
+          "samples": 18,
+          "cpuPercentMax": 63.98,
+          "containerMemoryBytesMax": 681679257.6
+        }
+      },
+      "apiFdMax": 10021,
+      "apiProcessRSSKiBMax": 506200,
+      "apiOSThreadsMax": 7,
+      "apiGoroutinesMax": 20031,
+      "apiHeapBytesMax": 348470968,
+      "receivedBytes": 422358347,
+      "receivedCompleteUniqueEvents": 2605956,
+      "receivedHeartbeats": 75236,
+      "connectionErrors": {},
+      "actualOfferScheduleLagMaxMs": 3.069
+    },
+    {
+      "file": "load-cache0-10000-2-shards1-20261017T022218.json",
+      "resources": {
+        "api": {
+          "samples": 18,
+          "cpuPercentMax": 79.32,
+          "containerMemoryBytesMax": 562456166.4
+        },
+        "pi": {
+          "samples": 18,
+          "cpuPercentMax": 2.67,
+          "containerMemoryBytesMax": 92190801.92
+        },
+        "pg": {
+          "samples": 18,
+          "cpuPercentMax": 104.57,
+          "containerMemoryBytesMax": 66280488.96
+        },
+        "load": {
+          "samples": 18,
+          "cpuPercentMax": 65.93,
+          "containerMemoryBytesMax": 694576742.4
+        }
+      },
+      "apiFdMax": 10021,
+      "apiProcessRSSKiBMax": 532044,
+      "apiOSThreadsMax": 9,
+      "apiGoroutinesMax": 20031,
+      "apiHeapBytesMax": 342070432,
+      "receivedBytes": 421919115,
+      "receivedCompleteUniqueEvents": 2598170,
+      "receivedHeartbeats": 81667,
+      "connectionErrors": {},
+      "actualOfferScheduleLagMaxMs": 1.072
+    },
+    {
+      "file": "load-cache0-10000-3-shards1-20261017T022443.json",
+      "resources": {
+        "api": {
+          "samples": 18,
+          "cpuPercentMax": 66.97,
+          "containerMemoryBytesMax": 545574092.8
+        },
+        "pi": {
+          "samples": 18,
+          "cpuPercentMax": 2.3,
+          "containerMemoryBytesMax": 92085944.32
+        },
+        "pg": {
+          "samples": 18,
+          "cpuPercentMax": 101.54,
+          "containerMemoryBytesMax": 66437775.36
+        },
+        "load": {
+          "samples": 18,
+          "cpuPercentMax": 58.65,
+          "containerMemoryBytesMax": 690487296.0
+        }
+      },
+      "apiFdMax": 10021,
+      "apiProcessRSSKiBMax": 532060,
+      "apiOSThreadsMax": 9,
+      "apiGoroutinesMax": 20032,
+      "apiHeapBytesMax": 348999696,
+      "receivedBytes": 422589941,
+      "receivedCompleteUniqueEvents": 2602765,
+      "receivedHeartbeats": 75315,
+      "connectionErrors": {},
+      "actualOfferScheduleLagMaxMs": 0.708
+    },
+    {
+      "file": "load-cache1-100-1-shards1-20261017T022752.json",
+      "resources": {
+        "api": {
+          "samples": 15,
+          "cpuPercentMax": 11.54,
+          "containerMemoryBytesMax": 10256121.856
+        },
+        "pi": {
+          "samples": 15,
+          "cpuPercentMax": 3.32,
+          "containerMemoryBytesMax": 91918172.16
+        },
+        "pg": {
+          "samples": 15,
+          "cpuPercentMax": 8.19,
+          "containerMemoryBytesMax": 51055165.44
+        },
+        "load": {
+          "samples": 15,
+          "cpuPercentMax": 6.06,
+          "containerMemoryBytesMax": 10346299.392
+        }
+      },
+      "apiFdMax": 114,
+      "apiProcessRSSKiBMax": 17576,
+      "apiOSThreadsMax": 7,
+      "apiGoroutinesMax": 216,
+      "apiHeapBytesMax": 4323032,
+      "receivedBytes": 4287220,
+      "receivedCompleteUniqueEvents": 26400,
+      "receivedHeartbeats": 1200,
+      "connectionErrors": {},
+      "actualOfferScheduleLagMaxMs": 5.101999999999999
+    },
+    {
+      "file": "load-cache1-100-2-shards1-20261017T022954.json",
+      "resources": {
+        "api": {
+          "samples": 15,
+          "cpuPercentMax": 11.02,
+          "containerMemoryBytesMax": 10367270.912
+        },
+        "pi": {
+          "samples": 15,
+          "cpuPercentMax": 2.98,
+          "containerMemoryBytesMax": 91855257.6
+        },
+        "pg": {
+          "samples": 15,
+          "cpuPercentMax": 5.27,
+          "containerMemoryBytesMax": 51621396.48
+        },
+        "load": {
+          "samples": 15,
+          "cpuPercentMax": 5.27,
+          "containerMemoryBytesMax": 10330570.752
+        }
+      },
+      "apiFdMax": 114,
+      "apiProcessRSSKiBMax": 17596,
+      "apiOSThreadsMax": 7,
+      "apiGoroutinesMax": 216,
+      "apiHeapBytesMax": 4439504,
+      "receivedBytes": 4287220,
+      "receivedCompleteUniqueEvents": 26400,
+      "receivedHeartbeats": 1200,
+      "connectionErrors": {},
+      "actualOfferScheduleLagMaxMs": 4.976999999999999
+    },
+    {
+      "file": "load-cache1-100-3-shards1-20261017T023157.json",
+      "resources": {
+        "api": {
+          "samples": 15,
+          "cpuPercentMax": 10.79,
+          "containerMemoryBytesMax": 10251927.552
+        },
+        "pi": {
+          "samples": 15,
+          "cpuPercentMax": 2.4,
+          "containerMemoryBytesMax": 92945776.64
+        },
+        "pg": {
+          "samples": 15,
+          "cpuPercentMax": 6.1,
+          "containerMemoryBytesMax": 52114227.2
+        },
+        "load": {
+          "samples": 15,
+          "cpuPercentMax": 5.03,
+          "containerMemoryBytesMax": 10071572.48
+        }
+      },
+      "apiFdMax": 114,
+      "apiProcessRSSKiBMax": 17612,
+      "apiOSThreadsMax": 7,
+      "apiGoroutinesMax": 216,
+      "apiHeapBytesMax": 4478104,
+      "receivedBytes": 4287220,
+      "receivedCompleteUniqueEvents": 26400,
+      "receivedHeartbeats": 1200,
+      "connectionErrors": {},
+      "actualOfferScheduleLagMaxMs": 4.98
+    },
+    {
+      "file": "load-cache1-1000-1-shards1-20261017T023359.json",
+      "resources": {
+        "api": {
+          "samples": 16,
+          "cpuPercentMax": 72.63,
+          "containerMemoryBytesMax": 55826186.24
+        },
+        "pi": {
+          "samples": 16,
+          "cpuPercentMax": 3.91,
+          "containerMemoryBytesMax": 94864670.72
+        },
+        "pg": {
+          "samples": 16,
+          "cpuPercentMax": 7.56,
+          "containerMemoryBytesMax": 51904512.0
+        },
+        "load": {
+          "samples": 16,
+          "cpuPercentMax": 43.52,
+          "containerMemoryBytesMax": 69940019.2
+        }
+      },
+      "apiFdMax": 1014,
+      "apiProcessRSSKiBMax": 59588,
+      "apiOSThreadsMax": 9,
+      "apiGoroutinesMax": 2016,
+      "apiHeapBytesMax": 33600520,
+      "receivedBytes": 42896200,
+      "receivedCompleteUniqueEvents": 264000,
+      "receivedHeartbeats": 12000,
+      "connectionErrors": {},
+      "actualOfferScheduleLagMaxMs": 4.492999999999999
+    },
+    {
+      "file": "load-cache1-1000-2-shards1-20261017T023610.json",
+      "resources": {
+        "api": {
+          "samples": 16,
+          "cpuPercentMax": 63.25,
+          "containerMemoryBytesMax": 59255029.76
+        },
+        "pi": {
+          "samples": 16,
+          "cpuPercentMax": 1.95,
+          "containerMemoryBytesMax": 94633984.0
+        },
+        "pg": {
+          "samples": 16,
+          "cpuPercentMax": 6.28,
+          "containerMemoryBytesMax": 51810140.16
+        },
+        "load": {
+          "samples": 16,
+          "cpuPercentMax": 19.07,
+          "containerMemoryBytesMax": 69415731.2
+        }
+      },
+      "apiFdMax": 1014,
+      "apiProcessRSSKiBMax": 62872,
+      "apiOSThreadsMax": 9,
+      "apiGoroutinesMax": 2016,
+      "apiHeapBytesMax": 34176480,
+      "receivedBytes": 42896200,
+      "receivedCompleteUniqueEvents": 264000,
+      "receivedHeartbeats": 12000,
+      "connectionErrors": {},
+      "actualOfferScheduleLagMaxMs": 4.465
+    },
+    {
+      "file": "load-cache1-1000-3-shards1-20261017T023819.json",
+      "resources": {
+        "api": {
+          "samples": 15,
+          "cpuPercentMax": 71.18,
+          "containerMemoryBytesMax": 59307458.56
+        },
+        "pi": {
+          "samples": 15,
+          "cpuPercentMax": 2.08,
+          "containerMemoryBytesMax": 94665441.28
+        },
+        "pg": {
+          "samples": 15,
+          "cpuPercentMax": 4.9,
+          "containerMemoryBytesMax": 52334428.16
+        },
+        "load": {
+          "samples": 15,
+          "cpuPercentMax": 49.09,
+          "containerMemoryBytesMax": 69373788.16
+        }
+      },
+      "apiFdMax": 1014,
+      "apiProcessRSSKiBMax": 62888,
+      "apiOSThreadsMax": 9,
+      "apiGoroutinesMax": 2016,
+      "apiHeapBytesMax": 34916168,
+      "receivedBytes": 42896200,
+      "receivedCompleteUniqueEvents": 264000,
+      "receivedHeartbeats": 12000,
+      "connectionErrors": {},
+      "actualOfferScheduleLagMaxMs": 4.308
+    },
+    {
+      "file": "load-cache1-10000-1-shards1-20261017T024030.json",
+      "resources": {
+        "api": {
+          "samples": 18,
+          "cpuPercentMax": 100.6,
+          "containerMemoryBytesMax": 504994201.6
+        },
+        "pi": {
+          "samples": 18,
+          "cpuPercentMax": 8.79,
+          "containerMemoryBytesMax": 95294586.88
+        },
+        "pg": {
+          "samples": 18,
+          "cpuPercentMax": 5.56,
+          "containerMemoryBytesMax": 52103741.44
+        },
+        "load": {
+          "samples": 18,
+          "cpuPercentMax": 86.5,
+          "containerMemoryBytesMax": 675073228.8
+        }
+      },
+      "apiFdMax": 10014,
+      "apiProcessRSSKiBMax": 475624,
+      "apiOSThreadsMax": 9,
+      "apiGoroutinesMax": 20017,
+      "apiHeapBytesMax": 336280408,
+      "receivedBytes": 429273115,
+      "receivedCompleteUniqueEvents": 2640000,
+      "receivedHeartbeats": 124755,
+      "connectionErrors": {},
+      "actualOfferScheduleLagMaxMs": 1.411
+    },
+    {
+      "file": "load-cache1-10000-1-shards100-20261017T024748.json",
+      "resources": {
+        "api": {
+          "samples": 18,
+          "cpuPercentMax": 17.51,
+          "containerMemoryBytesMax": 539597209.6
+        },
+        "pi": {
+          "samples": 18,
+          "cpuPercentMax": 1.85,
+          "containerMemoryBytesMax": 95011471.36
+        },
+        "pg": {
+          "samples": 18,
+          "cpuPercentMax": 7.5,
+          "containerMemoryBytesMax": 66049802.24
+        },
+        "load": {
+          "samples": 18,
+          "cpuPercentMax": 24.99,
+          "containerMemoryBytesMax": 459800576.0
+        }
+      },
+      "apiFdMax": 10021,
+      "apiProcessRSSKiBMax": 509068,
+      "apiOSThreadsMax": 11,
+      "apiGoroutinesMax": 20017,
+      "apiHeapBytesMax": 255908568,
+      "receivedBytes": 6051479,
+      "receivedCompleteUniqueEvents": 26400,
+      "receivedHeartbeats": 125483,
+      "connectionErrors": {},
+      "actualOfferScheduleLagMaxMs": 1.479
+    },
+    {
+      "file": "load-cache1-10000-2-shards1-20261017T024256.json",
+      "resources": {
+        "api": {
+          "samples": 18,
+          "cpuPercentMax": 100.52,
+          "containerMemoryBytesMax": 525022003.2
+        },
+        "pi": {
+          "samples": 18,
+          "cpuPercentMax": 1.55,
+          "containerMemoryBytesMax": 94791270.4
+        },
+        "pg": {
+          "samples": 18,
+          "cpuPercentMax": 5.03,
+          "containerMemoryBytesMax": 52093255.68
+        },
+        "load": {
+          "samples": 18,
+          "cpuPercentMax": 81.3,
+          "containerMemoryBytesMax": 655464857.6
+        }
+      },
+      "apiFdMax": 10014,
+      "apiProcessRSSKiBMax": 494892,
+      "apiOSThreadsMax": 10,
+      "apiGoroutinesMax": 20016,
+      "apiHeapBytesMax": 336963104,
+      "receivedBytes": 429271854,
+      "receivedCompleteUniqueEvents": 2640000,
+      "receivedHeartbeats": 124648,
+      "connectionErrors": {},
+      "actualOfferScheduleLagMaxMs": 1.4020000000000001
+    },
+    {
+      "file": "load-cache1-10000-3-shards1-20261017T024522.json",
+      "resources": {
+        "api": {
+          "samples": 18,
+          "cpuPercentMax": 100.35,
+          "containerMemoryBytesMax": 539387494.4
+        },
+        "pi": {
+          "samples": 18,
+          "cpuPercentMax": 2.93,
+          "containerMemoryBytesMax": 94560583.68
+        },
+        "pg": {
+          "samples": 18,
+          "cpuPercentMax": 5.54,
+          "containerMemoryBytesMax": 51757711.36
+        },
+        "load": {
+          "samples": 18,
+          "cpuPercentMax": 82.48,
+          "containerMemoryBytesMax": 666579763.2
+        }
+      },
+      "apiFdMax": 10014,
+      "apiProcessRSSKiBMax": 509048,
+      "apiOSThreadsMax": 11,
+      "apiGoroutinesMax": 20017,
+      "apiHeapBytesMax": 331945680,
+      "receivedBytes": 429271001,
+      "receivedCompleteUniqueEvents": 2640000,
+      "receivedHeartbeats": 124577,
+      "connectionErrors": {},
+      "actualOfferScheduleLagMaxMs": 1.227
+    }
+  ],
+  "runtimeReconciliation": {
+    "tasks": 312,
+    "runtimeEvents": 312,
+    "completedEvents": 312,
+    "treatmentPiRequestsDelta": 240,
+    "allPiRequestsAtMatrixEnd": 379,
+    "allSyntheticEndpointRequestsAtMatrixEnd": 379,
+    "counterBoundary": "Pi and synthetic-endpoint counters belong to their current process lifetime, not the entire WorkOrder. Final matrix per-task runtime/terminal events reconcile separately."
+  },
+  "diagnosticRuns": [
+    {
+      "file": "load-cache0-10000-1-shards1-20261017T020518.json",
+      "requested": 10000,
+      "established": 10000,
+      "healthy": 10000,
+      "subscribedSessions": 1,
+      "holdSeconds": 120.0002743,
+      "offered": 24,
+      "httpAcknowledged": 18,
+      "clientObservedCompleted": 0,
+      "dbAdmittedAtSnapshot": 19,
+      "dbCompletedAtSnapshot": 0,
+      "dbStatusesAtSnapshot": {
+        "running": 1,
+        "queued": 18
+      },
+      "taskErrors": [
+        "fixed-seed-142-3: Post \"http://api:8080/sessions/load-cache0-10000-1-shards1-20261017T020518-s0/tasks\": context deadline exceeded (Client.Timeout exceeded while awaiting headers)",
+        "fixed-seed-142-8: Post \"http://api:8080/sessions/load-cache0-10000-1-shards1-20261017T020518-s0/tasks\": context deadline exceeded (Client.Timeout exceeded while awaiting headers)",
+        "fixed-seed-142-11: Post \"http://api:8080/sessions/load-cache0-10000-1-shards1-20261017T020518-s0/tasks\": context deadline exceeded (Client.Timeout exceeded while awaiting headers)",
+        "fixed-seed-142-20: Post \"http://api:8080/sessions/load-cache0-10000-1-shards1-20261017T020518-s0/tasks\": context deadline exceeded (Client.Timeout exceeded while awaiting headers)",
+        "fixed-seed-142-22: Post \"http://api:8080/sessions/load-cache0-10000-1-shards1-20261017T020518-s0/tasks\": context deadline exceeded (Client.Timeout exceeded while awaiting headers)",
+        "fixed-seed-142-23: Post \"http://api:8080/sessions/load-cache0-10000-1-shards1-20261017T020518-s0/tasks\": context deadline exceeded (Client.Timeout exceeded while awaiting headers)",
+        "fixed-seed-142-4: terminal outcome not observed before hold deadline",
+        "fixed-seed-142-7: terminal outcome not observed before hold deadline",
+        "fixed-seed-142-21: terminal outcome not observed before hold deadline",
+        "fixed-seed-142-6: terminal outcome not observed before hold deadline",
+        "fixed-seed-142-1: terminal outcome not observed before hold deadline",
+        "fixed-seed-142-2: terminal outcome not observed before hold deadline",
+        "fixed-seed-142-17: terminal outcome not observed before hold deadline",
+        "fixed-seed-142-0: terminal outcome not observed before hold deadline",
+        "fixed-seed-142-16: terminal outcome not observed before hold deadline",
+        "fixed-seed-142-14: terminal outcome not observed before hold deadline",
+        "fixed-seed-142-19: terminal outcome not observed before hold deadline",
+        "fixed-seed-142-15: terminal outcome not observed before hold deadline",
+        "fixed-seed-142-9: terminal outcome not observed before hold deadline",
+        "fixed-seed-142-5: terminal outcome not observed before hold deadline",
+        "fixed-seed-142-13: terminal outcome not observed before hold deadline",
+        "fixed-seed-142-18: terminal outcome not observed before hold deadline",
+        "fixed-seed-142-12: terminal outcome not observed before hold deadline",
+        "fixed-seed-142-10: terminal outcome not observed before hold deadline"
+      ],
+      "latencySampleCount": 0,
+      "pollP50Ms": null,
+      "pollP95Ms": null,
+      "pollP99Ms": null,
+      "dbQueueP95Ms": 3380.713,
+      "dbFirstTextP95Ms": 12181.963,
+      "dbTotalP95Ms": null,
+      "clientsWithEvents": 10000,
+      "internalCommittedEventGaps": 0,
+      "unobservedTailAtPostRunSnapshot": 4342,
+      "duplicateIDs": 0,
+      "regressions": 0,
+      "reconnects": 1000,
+      "readPoolAcquisitionsSampleDelta": null,
+      "readPoolWaitNsSampleDelta": null,
+      "poolAcquisitionsSampleDelta": 235250,
+      "poolWaitNsSampleDelta": 1090676800973283,
+      "eventQueriesSampleDelta": 245778,
+      "eventQueryNsSampleDelta": 1090759511294712,
+      "tailCache": false
+    },
+    {
+      "file": "load-cache0-10000-1-shards1-20261017T021420.json",
+      "requested": 10000,
+      "established": 10000,
+      "healthy": 2380,
+      "subscribedSessions": 1,
+      "holdSeconds": 120.000671415,
+      "offered": 24,
+      "httpAcknowledged": 24,
+      "clientObservedCompleted": 24,
+      "dbAdmittedAtSnapshot": 24,
+      "dbCompletedAtSnapshot": 24,
+      "dbStatusesAtSnapshot": {
+        "completed": 24
+      },
+      "taskErrors": [],
+      "latencySampleCount": 24,
+      "pollP50Ms": 1693.569566,
+      "pollP95Ms": 3487.044333,
+      "pollP99Ms": 3693.605447,
+      "dbQueueP95Ms": 300.059,
+      "dbFirstTextP95Ms": 1300.888,
+      "dbTotalP95Ms": 2699.88,
+      "clientsWithEvents": 10000,
+      "internalCommittedEventGaps": 0,
+      "unobservedTailAtPostRunSnapshot": 753091,
+      "duplicateIDs": 0,
+      "regressions": 0,
+      "reconnects": 1000,
+      "readPoolAcquisitionsSampleDelta": 29947,
+      "readPoolWaitNsSampleDelta": 798562013700203,
+      "poolAcquisitionsSampleDelta": 1650,
+      "poolWaitNsSampleDelta": 197220889,
+      "eventQueriesSampleDelta": 40075,
+      "eventQueryNsSampleDelta": 799010059720570,
+      "tailCache": false
+    }
+  ]
+}
