@@ -128,46 +128,97 @@ func main() {
 		}
 	}
 	rampEnd := time.Now()
+	timer := time.AfterFunc(*hold, cancel)
+	defer timer.Stop()
 	metrics := []json.RawMessage{}
 	latencies := []float64{}
 	taskErrors := []string{}
+	taskRecords := []map[string]any{}
 	taskCount := 0
-	deadline := time.Now().Add(*hold)
-	timer := time.AfterFunc(*hold, cancel)
-	defer timer.Stop()
-	for time.Until(deadline) > 6*time.Second {
-		req, _ := http.NewRequestWithContext(ctx, "GET", *base+"/metrics", nil)
-		if resp, e := control.Do(req); e == nil {
-			b, _ := io.ReadAll(io.LimitReader(resp.Body, 1<<20))
-			resp.Body.Close()
-			if json.Valid(b) {
-				metrics = append(metrics, b)
+	var measurements sync.Mutex
+	var background sync.WaitGroup
+	// Metrics collection is independent of the fixed open-loop task schedule.
+	background.Add(1)
+	go func() {
+		defer background.Done()
+		ticker := time.NewTicker(5 * time.Second)
+		defer ticker.Stop()
+		for {
+			req, _ := http.NewRequestWithContext(ctx, "GET", *base+"/metrics", nil)
+			if resp, e := control.Do(req); e == nil {
+				raw, _ := io.ReadAll(io.LimitReader(resp.Body, 1<<20))
+				resp.Body.Close()
+				if json.Valid(raw) {
+					measurements.Lock()
+					metrics = append(metrics, raw)
+					measurements.Unlock()
+				}
+			}
+			select {
+			case <-ctx.Done():
+				return
+			case <-ticker.C:
 			}
 		}
-		sessionName := fmt.Sprintf("%s-s%d", *name, taskCount%*shards)
-		key := fmt.Sprintf("fixed-seed-142-%d", taskCount)
-		body, _ := json.Marshal(map[string]string{"key": key, "prompt": "Reply with a brief synthetic baseline greeting."})
-		ts := time.Now()
-		req, _ = http.NewRequestWithContext(ctx, "POST", *base+"/sessions/"+sessionName+"/tasks", bytes.NewReader(body))
-		req.Header.Set("Content-Type", "application/json")
-		resp, e := control.Do(req)
-		if e != nil {
-			taskErrors = append(taskErrors, e.Error())
-		} else {
-			var t struct {
+	}()
+	for i := 0; time.Duration(i)*5*time.Second < *hold; i++ {
+		target := rampEnd.Add(time.Duration(i) * 5 * time.Second)
+		select {
+		case <-ctx.Done():
+			break
+		case <-time.After(time.Until(target)):
+		}
+		if ctx.Err() != nil {
+			break
+		}
+		taskCount++
+		background.Add(1)
+		go func(index int) {
+			defer background.Done()
+			sessionName := fmt.Sprintf("%s-s%d", *name, index%*shards)
+			key := fmt.Sprintf("fixed-seed-142-%d", index)
+			ts := time.Now()
+			record := map[string]any{"key": key, "session": sessionName, "offeredAt": ts, "scheduledAt": rampEnd.Add(time.Duration(index) * 5 * time.Second), "outcome": "unknown"}
+			latency := float64(-1)
+			errText := ""
+			defer func() {
+				measurements.Lock()
+				defer measurements.Unlock()
+				taskRecords = append(taskRecords, record)
+				if latency >= 0 {
+					latencies = append(latencies, latency)
+				}
+				if errText != "" {
+					taskErrors = append(taskErrors, key+": "+errText)
+				}
+			}()
+			body, _ := json.Marshal(map[string]string{"key": key, "prompt": "Reply with a brief synthetic baseline greeting."})
+			req, _ := http.NewRequestWithContext(ctx, "POST", *base+"/sessions/"+sessionName+"/tasks", bytes.NewReader(body))
+			req.Header.Set("Content-Type", "application/json")
+			resp, e := control.Do(req)
+			if e != nil {
+				errText = e.Error()
+				record["error"] = errText
+				return
+			}
+			record["httpStatus"] = resp.StatusCode
+			var task struct {
 				ID string `json:"id"`
 			}
-			json.NewDecoder(resp.Body).Decode(&t)
+			json.NewDecoder(resp.Body).Decode(&task)
 			resp.Body.Close()
+			record["task"] = task.ID
 			if resp.StatusCode != 202 {
-				taskErrors = append(taskErrors, resp.Status)
-			} else {
-				done := false
-				for j := 0; j < 100; j++ {
-					r, e := control.Get(*base + "/sessions/" + *name + "/tasks")
-					if e != nil {
-						break
-					}
+				record["outcome"] = "not_acknowledged"
+				errText = resp.Status
+				return
+			}
+			record["acknowledgedAt"] = time.Now()
+			record["outcome"] = "acknowledged_unobserved"
+			for ctx.Err() == nil {
+				req, _ := http.NewRequestWithContext(ctx, "GET", *base+"/sessions/"+sessionName+"/tasks", nil)
+				r, e := control.Do(req)
+				if e == nil {
 					var tasks []struct {
 						ID     string `json:"id"`
 						Status string `json:"status"`
@@ -175,31 +226,32 @@ func main() {
 					json.NewDecoder(r.Body).Decode(&tasks)
 					r.Body.Close()
 					for _, v := range tasks {
-						if v.ID == t.ID && v.Status == "completed" {
-							done = true
+						if v.ID == task.ID && (v.Status == "completed" || v.Status == "interrupted" || v.Status == "cancelled") {
+							record["outcome"] = v.Status
+							record["observedAt"] = time.Now()
+							if v.Status == "completed" {
+								latency = time.Since(ts).Seconds() * 1000
+								record["latencyMs"] = latency
+							} else {
+								errText = v.Status
+							}
+							return
 						}
 					}
-					if done {
-						latencies = append(latencies, time.Since(ts).Seconds()*1000)
-						break
-					}
-					time.Sleep(50 * time.Millisecond)
 				}
-				if !done {
-					taskErrors = append(taskErrors, "completion not observed within 5s")
+				select {
+				case <-ctx.Done():
+				case <-time.After(100 * time.Millisecond):
 				}
 			}
-		}
-		taskCount++
-		select {
-		case <-ctx.Done():
-		case <-time.After(5 * time.Second):
-		}
+			errText = "terminal outcome not observed before hold deadline"
+			record["error"] = errText
+		}(i)
 	}
 	<-ctx.Done()
 	end := time.Now()
-	cancel()
 	wg.Wait()
+	background.Wait()
 	healthy := 0
 	duplicates := 0
 	regressions := 0
@@ -217,7 +269,7 @@ func main() {
 		}
 		return latencies[int(math.Ceil(q*float64(len(latencies))))-1]
 	}
-	report := map[string]any{"seed": 142, "uniqueSubscribedSessions": *shards, "executorConcurrencyLimit": 2, "model": "deterministic local HTTP through actual Pi1.3.0", "started": start, "rampEnd": rampEnd, "ended": end, "requested": *n, "established": established.Load(), "healthyAtEnd": healthy, "holdSeconds": end.Sub(rampEnd).Seconds(), "duplicates": duplicates, "regressions": regressions, "taskAttempts": taskCount, "taskErrors": taskErrors, "taskCompletionPollLatencyMs": latencies, "quantileAlgorithm": "nearest rank, ceil(q*n)-1; 50ms HTTP completion polling included", "p50": quantile(.5), "p95": quantile(.95), "p99": quantile(.99), "metrics": metrics, "connections": receipts}
+	report := map[string]any{"seed": 142, "uniqueSubscribedSessions": *shards, "executorConcurrencyLimit": 2, "model": "deterministic local HTTP through actual Pi1.3.0", "started": start, "rampEnd": rampEnd, "ended": end, "requested": *n, "established": established.Load(), "healthyAtEnd": healthy, "holdSeconds": end.Sub(rampEnd).Seconds(), "duplicates": duplicates, "regressions": regressions, "taskArrival": "open-loop one offer every 5s from ramp end; fixed 0.2/s", "taskRecords": taskRecords, "taskAttempts": taskCount, "taskErrors": taskErrors, "taskCompletionPollLatencyMs": latencies, "quantileAlgorithm": "nearest rank, ceil(q*n)-1; 100ms HTTP completion polling included", "p50": quantile(.5), "p95": quantile(.95), "p99": quantile(.99), "metrics": metrics, "connections": receipts}
 	f, e := os.Create(*out)
 	if e != nil {
 		panic(e)
