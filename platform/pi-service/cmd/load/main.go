@@ -210,7 +210,7 @@ func main() {
 		}
 		return latencies[int(math.Ceil(q*float64(len(latencies))))-1]
 	}
-	report := map[string]any{"seed": 142, "model": "deterministic local HTTP through actual Pi1.3.0", "started": start, "rampEnd": rampEnd, "ended": end, "requested": *n, "established": established.Load(), "healthyAtEnd": healthy, "holdSeconds": end.Sub(rampEnd).Seconds(), "duplicates": duplicates, "regressions": regressions, "taskAttempts": taskCount, "taskErrors": taskErrors, "taskCompletionPollLatencyMs": latencies, "quantileAlgorithm": "nearest rank, ceil(q*n)-1; 50ms HTTP completion polling included", "p50": quantile(.5), "p95": quantile(.95), "p99": quantile(.99), "metrics": metrics, "connections": receipts}
+	report := map[string]any{"seed": 142, "uniqueSubscribedSessions": 1, "executorConcurrencyLimit": 2, "model": "deterministic local HTTP through actual Pi1.3.0", "started": start, "rampEnd": rampEnd, "ended": end, "requested": *n, "established": established.Load(), "healthyAtEnd": healthy, "holdSeconds": end.Sub(rampEnd).Seconds(), "duplicates": duplicates, "regressions": regressions, "taskAttempts": taskCount, "taskErrors": taskErrors, "taskCompletionPollLatencyMs": latencies, "quantileAlgorithm": "nearest rank, ceil(q*n)-1; 50ms HTTP completion polling included", "p50": quantile(.5), "p95": quantile(.95), "p99": quantile(.99), "metrics": metrics, "connections": receipts}
 	f, e := os.Create(*out)
 	if e != nil {
 		panic(e)
