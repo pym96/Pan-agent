@@ -42,3 +42,45 @@ test('entry/file/result bounds expose incompleteness and mid-scan cancellation t
 test('ledger corruption, cyclic or foreign references cannot produce decision evidence',async()=>{const f=await fixture(),path=join(f.history,'retrospective-ledger.jsonl'),original=await readFile(path,'utf8'),rows=original.trim().split('\n').map(x=>JSON.parse(x));for(const mutation of [(x:any[])=>{x[0].sequence=99;},(x:any[])=>{x[1].supersedes=x[1].entry_id;},(x:any[])=>{x[1].archive_head_hash='sha256:wrong';},(x:any[])=>{x[0].body=12;}]){const changed=structuredClone(rows);mutation(changed);await writeFile(path,changed.map(x=>JSON.stringify(x)).join('\n')+'\n');const result=await search(f.workspace,'retry policy');assert.deepEqual(result.data!.results,[]);assert.ok(result.data!.diagnostics.some(x=>x.reason==='ledger_invalid_or_unverified_reference'));}await writeFile(path,original);assert.equal((await search(f.workspace,'old retry policy')).data!.results[0]!.status,'superseded');});
 test('configured history protection and own-memory symlink reject before revealing messages',async()=>{const f=await fixture();assert.deepEqual((await search(f.workspace,'violet lighthouse',{protectedPaths:[f.history]})).data!.results,[]);const path=join(f.history,'runs',f.runId,'events.jsonl'),other=join(f.root,'outside-events');await rename(path,other);await symlink(other,path);const result=await search(f.workspace,'violet lighthouse');assert.deepEqual(result.data!.results,[]);assert.equal(result.data!.complete,false);});
 test('BOM bytes retain original hash and unreadable source is diagnosed without mutation',async()=>{const f=await fixture();const p=join(f.workspace,'docs','bom.txt'),body='\uFEFFBOM_MARKER';await writeFile(p,body);const result=await search(f.workspace,'BOM_MARKER');assert.equal(result.data!.results[0]!.revision,hash(body));assert.equal(result.data!.results[0]!.snippet,body);const {chmod}=await import('node:fs/promises');await chmod(p,0);try{const inaccessible=await search(f.workspace,'BOM_MARKER');if(process.getuid?.()!==0){assert.deepEqual(inaccessible.data!.results,[]);assert.ok(inaccessible.data!.diagnostics.some(x=>x.reason==='EACCES'));}}finally{await chmod(p,0o600);}assert.equal(await readFile(p,'utf8'),body);});
+
+test('sealed history requires one final settlement agreeing with manifest before history or ledger admission',async()=>{
+ const f=await fixture(),eventsPath=join(f.history,'runs',f.runId,'events.jsonl'),manifestPath=join(f.history,'runs',f.runId,'manifest.json'),ledgerPath=join(f.history,'retrospective-ledger.jsonl');
+ const originals=await Promise.all([eventsPath,manifestPath,ledgerPath].map(p=>readFile(p,'utf8'))),baseRows=originals[0]!.trim().split('\n').map(line=>JSON.parse(line)),baseManifest=JSON.parse(originals[1]!),baseLedger=originals[2]!.trim().split('\n').map(line=>JSON.parse(line));
+ const cases:{name:string;mutate:(rows:any[],manifest:any)=>void}[]=[
+  {name:'manifest state only (independent counterexample)',mutate:(_r,m)=>{m.settled_state='cancelled';}},
+  {name:'manifest reason only',mutate:(_r,m)=>{m.settled_reason='operator_cancelled';}},
+  {name:'missing settlement',mutate:r=>{r.pop();}},
+  {name:'nonfinal settlement',mutate:r=>{r.push({...r[0],record:{type:'after.settlement'}});}},
+  {name:'duplicate settlement',mutate:r=>{r.splice(r.length-1,0,structuredClone(r.at(-1)));}},
+  {name:'missing reason',mutate:r=>{delete r.at(-1).record.reason;}},
+  {name:'nonstring reason',mutate:r=>{r.at(-1).record.reason=12;}},
+  {name:'invalid state',mutate:(r,m)=>{r.at(-1).record.settled_state=m.settled_state='active';}},
+  {name:'missing state',mutate:r=>{delete r.at(-1).record.settled_state;}},
+  {name:'array record',mutate:r=>{r.at(-1).record=[];}},
+ ];
+ for(const {name,mutate} of cases){
+  const rows=structuredClone(baseRows),manifest=structuredClone(baseManifest);mutate(rows,manifest);
+  let previous:string|null=null;const lines=rows.map((row,index)=>{row.sequence=index;row.previous_hash=previous;const line=JSON.stringify(row);previous=hash(line);return line;});
+  const body=lines.join('\n')+'\n';manifest.record_count=rows.length;manifest.head_hash=previous;manifest.events_sha256=hash(body).slice(7);
+  const ledger=structuredClone(baseLedger);for(const row of ledger)row.archive_head_hash=previous;
+  const changed=[body,JSON.stringify(manifest)+'\n',ledger.map(row=>JSON.stringify(row)).join('\n')+'\n'];
+  await Promise.all([eventsPath,manifestPath,ledgerPath].map((p,i)=>writeFile(p,changed[i]!)));
+  for(const query of ['violet lighthouse','retry policy']){const result=await search(f.workspace,query);assert.equal(result.data!.complete,false,name);assert.deepEqual(result.data!.results,[],name);assert.ok(result.data!.diagnostics.length>0,name);}
+  assert.deepEqual(await Promise.all([eventsPath,manifestPath,ledgerPath].map(p=>readFile(p,'utf8'))),changed,name+' remains read-only');
+ }
+ await Promise.all([eventsPath,manifestPath,ledgerPath].map((p,i)=>writeFile(p,originals[i]!)));
+ assert.equal((await search(f.workspace,'violet lighthouse')).data!.complete,true);
+ assert.equal((await search(f.workspace,'old retry policy')).data!.results[0]!.status,'superseded');
+ console.log('SETTLEMENT_NEGATIVES '+JSON.stringify(cases.map(x=>x.name)));
+});
+
+test('writer-produced cancelled, failed and recovered-style interrupted seals remain retrievable',async()=>{
+ const f=await fixture(),store=await RunArchiveStore.open(f.history);
+ for(const state of ['cancelled','failed','interrupted'] as const){
+  const writer=await store.beginRun();
+  await writer.append({type:'run.started',runId:writer.runId,task:`legacy-seal-${state}`});
+  await writer.settle(state,state==='interrupted'?'recovered_unsealed_run torn_tail_bytes=0':`legacy ${state} reason`);
+  const result=await search(f.workspace,`legacy-seal-${state}`);
+  assert.equal(result.data!.complete,true);assert.equal(result.data!.results[0]!.status,'historical_'+state);
+ }
+});
