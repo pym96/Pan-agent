@@ -1,0 +1,17 @@
+{
+  "schema": "retrieval-query-fixture/v1",
+  "declaredBeforeMeasurement": true,
+  "limit": 8,
+  "queries": [
+    {"query":"recoveryBudget","kind":"document","source":"src/service.ts"},
+    {"query":"durable queue","kind":"document","source":"docs/guide.md"},
+    {"query":"恢复策略","kind":"document","source":"docs/chinese.md"},
+    {"query":"violet lighthouse","kind":"history","field":"record.task"},
+    {"query":"review before deployment","kind":"runbook","status":"current_guidance"},
+    {"query":"old retry policy","kind":"decision","status":"superseded"},
+    {"query":"new retry policy","kind":"decision","status":"retrospective_not_current_guidance"},
+    {"query":"shared exact phrase","kind":"document","sources":["docs/duplicate-a.md","docs/duplicate-b.md"]},
+    {"query":"nonexistent banana constellation","empty":true}
+  ],
+  "interpretation":"Synthetic lexical source coverage only. No semantic or real-model quality claim. UTF-16 offsets reconstruct snippets from UTF-8 decoded source text or the declared JSON field; source revision hashes complete original file bytes."
+}
