@@ -172,3 +172,5 @@ Each call refreshes from source; there is no persistent search cache. Reconfigur
 ```
 
 Settings persist in `workspace/.pan-agent/retrieval.json` across restarts. Replacement of a selected root or directly selected memory file requires reconfiguration. Ordinary source content updates/deletes appear on the next call. Originals are never edited by retrieval. Protected files and unsupported links are skipped with diagnostics; corrupt/unsealed history is not trusted. Large corpora return explicit partial/truncated results. Default matching is lexical: all query terms must occur in one800-character chunk; it does not promise paraphrase or semantic recall. [Full limits and authority design](docs/design/retrieval-tool.md).
+
+Offline review tooling: [executable verification](scripts/verification/README.md) (`node scripts/verification/cli.mjs --help`); machine evidence does not replace independent acceptance.

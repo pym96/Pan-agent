@@ -152,3 +152,7 @@ Human acceptance makes a decision authoritative. It does not prove that the repo
 ## Optional host integrations
 
 An external career, portfolio, or private-workspace process may consume an accepted project Claim only when a Human-authorized WorkOrder explicitly names that integration. External files and checks are optional task inputs, not repository startup or Acceptance-Gate dependencies; when absent, repository-local work and verification remain fully defined by the sources above.
+
+## Optional executable evidence v1 (#146)
+
+The [offline verification command](../../scripts/verification/README.md) prospectively supports versioned manifest/report/receipt checks. Reviewer-selected external runner and manifest pins are required; candidate prose and self-selected hashes cannot authorize acceptance. Machine PASS supplies evidence only; independent Regulator and applicable Human gates remain mandatory. This does not turn the manual Criteria Lint v1 above into an automated policy gate. See [protocol and trust limits](../design/executable-verification.md).

@@ -1,0 +1,16 @@
+/** Offline public-command demonstration; source checkout is never modified. */
+import {mkdirSync,cpSync,writeFileSync,readFileSync,realpathSync} from 'node:fs';
+import {join,dirname,resolve,basename} from 'node:path';
+import {fileURLToPath} from 'node:url';
+import {spawnSync} from 'node:child_process';
+import {fileMap,sha} from './engine.mjs';
+export async function demo(options){if(!options.out)throw Error('missing_out');const out=join(realpathSync(dirname(resolve(options.out))),basename(options.out));mkdirSync(out);const trusted=join(out,'trusted'),candidate=join(out,'candidate');cpSync(dirname(fileURLToPath(import.meta.url)),trusted,{recursive:true});mkdirSync(candidate);
+ const git=(...args)=>{const r=spawnSync('git',['-C',candidate,...args],{encoding:'utf8'});if(r.status!==0)throw Error('demo_git_failure');return r.stdout.trim();};git('init','-q');git('config','user.name','Offline Demo');git('config','user.email','offline@example.invalid');
+ const commit=value=>{writeFileSync(join(candidate,'answer.json'),JSON.stringify({answer:value})+'\n');git('add','.');git('commit','-qm','fixture '+value);};commit(42);
+ const map=fileMap(trusted),identity=sha(JSON.stringify(map)),runs=[];
+ for(const [stage,expected]of [['good','PASS'],['defect','FAIL'],['omitted','NOT_EVALUABLE'],['wrong-sha','NOT_EVALUABLE'],['restored','PASS']]){
+  if(stage==='defect')commit(41);if(stage==='restored')commit(42);
+  const manifest={schema:'pan-verification-manifest/v1',workorder:'146-demo',criteriaVersion:'1.0',candidateSHA:stage==='wrong-sha'?'a'.repeat(40):git('rev-parse','HEAD'),verifierFiles:map,required:[{id:'answer',criterion:'C-DEMO',command:'assert'}],humanCriteria:['H-INDEPENDENT-REVIEW'],commands:[{id:'assert',argv:[process.execPath,...(stage==='omitted'?['fixtures/protocol.mjs','MISSING_REQUIRED']:['--test','fixtures/assertions.mjs'])],cwd:'.',timeoutMs:3000}]};
+  const mp=join(out,stage+'.manifest.json');writeFileSync(mp,JSON.stringify(manifest,null,2)+'\n');const args=[join(trusted,'cli.mjs'),'run','--manifest',mp,'--manifest-sha256',sha(readFileSync(mp)),'--candidate',candidate,'--trusted',trusted,'--verifier-sha256',identity,'--out',join(out,stage)];const r=spawnSync(process.execPath,args,{encoding:'utf8',timeout:10000});writeFileSync(join(out,stage+'.stdout'),r.stdout??'');writeFileSync(join(out,stage+'.stderr'),r.stderr??'');const result=JSON.parse(r.stdout);runs.push({stage,expected,actual:result.machineCheck,exitCode:r.status,runId:result.runId??null,receipt:result.receipt??null,candidateSHA:manifest.candidateSHA});if(result.machineCheck!==expected)throw Error('demo_unexpected_'+stage);
+ }
+ writeFileSync(join(out,'demo-results.json'),JSON.stringify({schema:'pan-verification-demo/v1',runs,networkCalls:'none: local Git/Node fixtures only',trustedIdentity:identity},null,2)+'\n');return{machineCheck:'PASS',demoExpectationsMet:true,humanPending:['H-INDEPENDENT-REVIEW'],out,runs};}

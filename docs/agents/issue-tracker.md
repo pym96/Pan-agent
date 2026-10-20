@@ -38,3 +38,5 @@ Infer the repository from `git remote -v`; `gh` does this automatically inside t
 
 - When a skill says **publish to the issue tracker**, create a GitHub issue.
 - When a skill says **fetch the relevant ticket**, run `gh issue view <number> --comments`.
+
+For WorkOrders explicitly using executable verification v1, link the reviewer-selected manifest/verifier identities and external receipt/raw evidence in Handoff/Verdict. Use the [offline command](../../scripts/verification/README.md) with a trusted external copy, not candidate-selected verifier bytes. Machine PASS is evidence, never acceptance; preserve independent and Human review. Existing WorkOrders are not retroactively subject to this optional protocol.
