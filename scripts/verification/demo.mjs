@@ -1,10 +1,10 @@
 /** Offline public-command demonstration; source checkout is never modified. */
 import {mkdirSync,cpSync,writeFileSync,readFileSync,realpathSync} from 'node:fs';
-import {join,dirname,resolve,basename} from 'node:path';
+import {join,dirname,resolve,basename,relative,isAbsolute} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {spawnSync} from 'node:child_process';
 import {fileMap,sha} from './engine.mjs';
-export async function demo(options){if(!options.out)throw Error('missing_out');const out=join(realpathSync(dirname(resolve(options.out))),basename(options.out));mkdirSync(out);const trusted=join(out,'trusted'),candidate=join(out,'candidate');cpSync(dirname(fileURLToPath(import.meta.url)),trusted,{recursive:true});mkdirSync(candidate);
+export async function demo(options){if(!options.out)throw Error('missing_out');const out=join(realpathSync(dirname(resolve(options.out))),basename(options.out));const source=dirname(fileURLToPath(import.meta.url)),repo=spawnSync('git',['-C',source,'rev-parse','--show-toplevel'],{encoding:'utf8'});for(const scope of [source,...(repo.status===0?[repo.stdout.trim()]:[])]){const rel=relative(realpathSync(scope),out);if(rel===''||(!rel.startsWith('../')&&rel!=='..'&&!isAbsolute(rel)))throw Error('demo_output_must_be_external');}mkdirSync(out);const trusted=join(out,'trusted'),candidate=join(out,'candidate');cpSync(dirname(fileURLToPath(import.meta.url)),trusted,{recursive:true});mkdirSync(candidate);
  const git=(...args)=>{const r=spawnSync('git',['-C',candidate,...args],{encoding:'utf8'});if(r.status!==0)throw Error('demo_git_failure');return r.stdout.trim();};git('init','-q');git('config','user.name','Offline Demo');git('config','user.email','offline@example.invalid');
  const commit=value=>{writeFileSync(join(candidate,'answer.json'),JSON.stringify({answer:value})+'\n');git('add','.');git('commit','-qm','fixture '+value);};commit(42);
  const map=fileMap(trusted),identity=sha(JSON.stringify(map)),runs=[];
