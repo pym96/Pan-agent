@@ -1,0 +1,208 @@
+{
+  "schema": "pan-retrieval-evidence/v1",
+  "criteria": "1.0",
+  "sourceSHA": "c81d8a8c499960e3aba17f49cddba4922e69ac28",
+  "fixtureCommit": "cc25f87",
+  "packageVersion": "0.1.7",
+  "artifactLocator": "$HOME/.local/state/pan-agent/retrieval144-20261020",
+  "copiedFixtureMapping": {
+    "originalRoot": "/private/tmp/pan144-demo017",
+    "artifactSubdirectory": "demo"
+  },
+  "checks": {
+    "fullProduct": {
+      "passed": 228,
+      "failed": 0,
+      "skipped": 0
+    },
+    "focused": {
+      "passed": 11,
+      "failed": 0
+    },
+    "typecheck": "passed",
+    "cleanProductionOnlyInstall": "passed",
+    "networkCalls": 0,
+    "installedApprovalCount": 2,
+    "scriptedModelExchanges": 3,
+    "historyRun": "bd895e34-8771-44ae-a107-04a09343aafc",
+    "retrievalRun": "1e579555-4c6f-4210-ad2d-7068192d994c",
+    "queryCoverage": [
+      {
+        "query": "recoveryBudget",
+        "ranks": [
+          1
+        ],
+        "count": 1
+      },
+      {
+        "query": "durable queue",
+        "ranks": [
+          1
+        ],
+        "count": 1
+      },
+      {
+        "query": "恢复策略",
+        "ranks": [
+          1
+        ],
+        "count": 1
+      },
+      {
+        "query": "violet lighthouse",
+        "ranks": [
+          1
+        ],
+        "count": 1
+      },
+      {
+        "query": "review before deployment",
+        "ranks": [
+          1
+        ],
+        "count": 1
+      },
+      {
+        "query": "old retry policy",
+        "ranks": [
+          1
+        ],
+        "count": 1
+      },
+      {
+        "query": "new retry policy",
+        "ranks": [
+          1
+        ],
+        "count": 1
+      },
+      {
+        "query": "shared exact phrase",
+        "ranks": [
+          1,
+          2
+        ],
+        "count": 2
+      }
+    ],
+    "nonexistentQuery": "empty"
+  },
+  "acceptance": "pending independent + additional authority review",
+  "artifacts": [
+    {
+      "path": "demo/memory/runs/1e579555-4c6f-4210-ad2d-7068192d994c/events.jsonl",
+      "bytes": 11963,
+      "sha256": "f135c288552bae134bd8d622cd56afcacd990443c18f7577f1939954365a8139"
+    },
+    {
+      "path": "demo/memory/runs/1e579555-4c6f-4210-ad2d-7068192d994c/manifest.json",
+      "bytes": 338,
+      "sha256": "a8d5055baeb172f50b0fec04cd5ba21932b331afa17cea6c481b367d8c45e66b"
+    },
+    {
+      "path": "demo/memory/runs/bd895e34-8771-44ae-a107-04a09343aafc/events.jsonl",
+      "bytes": 1763,
+      "sha256": "e8f2370cb9eef780579d0dfc0579abee6053edf67e1de3d3767cdba703e480e4"
+    },
+    {
+      "path": "demo/memory/runs/bd895e34-8771-44ae-a107-04a09343aafc/manifest.json",
+      "bytes": 337,
+      "sha256": "b1a47fe3f33bc250c1c21ff435005b62926677da826d2846bf1f0c26c382af68"
+    },
+    {
+      "path": "demo/result.json",
+      "bytes": 3839,
+      "sha256": "d287cb2d068d577d18cf0b6108422c59e4ff8cda9c9ce05579bb9b06e1e67ba3"
+    },
+    {
+      "path": "demo/selection.json",
+      "bytes": 69,
+      "sha256": "885620394bc0959160a0339e3a809b81da8f6a8862d27ca9c8404f22d7ac47f1"
+    },
+    {
+      "path": "demo/tui.txt",
+      "bytes": 154045,
+      "sha256": "5172cd6598458a75029c0060248071a9ab30b0dc9530a39c415882ad879d2bd2"
+    },
+    {
+      "path": "demo/workspace/.pan-agent/retrieval.json",
+      "bytes": 185,
+      "sha256": "75fda8d0f8ec2d499ce34a7840ff5c42ab1287feb7fc7d2fcd35c7b22aa54904"
+    },
+    {
+      "path": "demo/workspace/docs/service.ts",
+      "bytes": 34,
+      "sha256": "166ae4026ad6cbd050f6a565433f2b6d6141c59afddc407a5ec36b1f3f631779"
+    },
+    {
+      "path": "environment.json",
+      "bytes": 539,
+      "sha256": "8096a3e7a9f96cf48ee6df603bf347fe38272e8c7883309d3a21e81cd7ff89f7"
+    },
+    {
+      "path": "pan-agent-0.1.7.tgz",
+      "bytes": 112507,
+      "sha256": "2663d244f21ca2149e51d460eb80bef664f07455bf435365ca653700d154a5dd"
+    },
+    {
+      "path": "pan144-demo.log",
+      "bytes": 96,
+      "sha256": "092aa87d227819d8b3945f98b218849a5842b63931b1bbbb17afb12e3249bbae"
+    },
+    {
+      "path": "pan144-demo017.log",
+      "bytes": 96,
+      "sha256": "4408612e95d5aab98751493f7e4517f2dcca01ed03b660d8e7aa7fa4ee6e72d0"
+    },
+    {
+      "path": "pan144-install017.log",
+      "bytes": 26,
+      "sha256": "cb850e51dd97c1c382a5089e3d30e2efc5dc970867f9f2595b64bb3ec63d88f9"
+    },
+    {
+      "path": "pan144-measurement-final.log",
+      "bytes": 1600,
+      "sha256": "82c127fb9d29f5cae2c3784096c59ad16a5f08ffed5c04c7efab2cdb31d7a146"
+    },
+    {
+      "path": "pan144-npm.log",
+      "bytes": 73,
+      "sha256": "5e8ce5036b408eba4ca08fb4ad2c3ee9086d03546d02257ee2c1c91be25b2c6f"
+    },
+    {
+      "path": "pan144-pack-017.log",
+      "bytes": 5053,
+      "sha256": "8c47e676dbb151002966adb1fcc686814f3985561f2be69ba088e8d298119371"
+    },
+    {
+      "path": "pan144-retrieval.log",
+      "bytes": 1192,
+      "sha256": "1beb9dc1767c0ea7ad1d1cbcdb0bbcdb653e11141eb4fb1dd41539efd84c0d31"
+    },
+    {
+      "path": "pan144-retrieval2.log",
+      "bytes": 1495,
+      "sha256": "8d290f6546601590ee21447de03c8c92e68e80180ba4ae2023f8183328f281f9"
+    },
+    {
+      "path": "pan144-tests-final.log",
+      "bytes": 27704,
+      "sha256": "2d8411f9e1745d8f7d6679237bdba836da026d0f869cc0cc98ecb3796fa2c865"
+    },
+    {
+      "path": "pan144-typecheck-final.log",
+      "bytes": 45,
+      "sha256": "d25b929f3189189e033598cb6b301ad464a89eff2a1b520cd6d26788548f10fb"
+    },
+    {
+      "path": "source-files.json",
+      "bytes": 2675,
+      "sha256": "2f9cae622af3d07c137899578a37b168d9f89c1e399abe7b30f6588c7a6bb7b1"
+    }
+  ],
+  "limitations": [
+    "Node26.7.0 macOS arm64 measured; supported-minimum Node22.19 and Linux/Windows not exercised in this candidate. Local stale Node22 binary could not load its shared library.",
+    "Synthetic lexical corpus and scripted adapter only; no live model effectiveness.",
+    "Additional authority review pending."
+  ]
+}
