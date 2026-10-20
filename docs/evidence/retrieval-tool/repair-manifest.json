@@ -1,0 +1,154 @@
+{
+  "schema": "pan-retrieval-evidence/v1",
+  "criteria": "1.0",
+  "repair": 1,
+  "sourceSHA": "d8fe0c10cd2d655cab457deec3d4af99aca6de61",
+  "rejectedSHA": "acd0caf68582a7ab5601a0853fc9e2cfbfb012a7",
+  "priorManifest": "manifest.json",
+  "priorVerdict": "https://github.com/pym96/Pan-agent/issues/144#issuecomment-6288374318",
+  "artifactLocator": "$HOME/.local/state/pan-agent/retrieval144-repair1-20261020",
+  "copiedFixtureMapping": {
+    "originalRoot": "/private/tmp/pan144-repair1/demo",
+    "artifactSubdirectory": "demo"
+  },
+  "checks": {
+    "red": "manifest-only contradiction reproduced before repair",
+    "fullProduct": {
+      "passed": 230,
+      "failed": 0,
+      "skipped": 0
+    },
+    "focusedBeforeCompatibilityAddition": {
+      "passed": 12,
+      "failed": 0
+    },
+    "focusedIncludedInFull": 13,
+    "typecheck": "passed",
+    "cleanProductionOnlyInstall": "passed",
+    "installedApprovalCount": 2,
+    "scriptedModelExchanges": 3,
+    "networkCalls": 0,
+    "historyRun": "57e635ae-0b22-4121-baf7-5fb3643c74ed",
+    "retrievalRun": "e96a37c8-8f4f-4978-acd2-fd4ad54ecc6e",
+    "regulatorProbeReuse": "unmodified copy run by Builder against repaired installed package; not independent acceptance",
+    "contradictorySeal": "partial; zero results; archive and ledger diagnostics"
+  },
+  "acceptance": "pending independent and additional authority review",
+  "artifacts": [
+    {
+      "path": "contradictory-seal.json",
+      "bytes": 6660,
+      "sha256": "cd313d9d3b5f5e4d1728ef06b9957165b0edc285a800562c1bddf771825243e5"
+    },
+    {
+      "path": "demo/memory/runs/57e635ae-0b22-4121-baf7-5fb3643c74ed/events.jsonl",
+      "bytes": 1763,
+      "sha256": "c98c147afbe23cc0c5d6874a1d858e16e2caf8032001d8d65d6b78bbcc7a047c"
+    },
+    {
+      "path": "demo/memory/runs/57e635ae-0b22-4121-baf7-5fb3643c74ed/manifest.json",
+      "bytes": 337,
+      "sha256": "0c1ef238b08a954ff1e14850191f6338ee43389071a156dad944cfbac00cd6b5"
+    },
+    {
+      "path": "demo/memory/runs/e96a37c8-8f4f-4978-acd2-fd4ad54ecc6e/events.jsonl",
+      "bytes": 12033,
+      "sha256": "430ca05bb019bb239c642d981f96d744c25b2cea22eb7e4981f2a19f6fb93502"
+    },
+    {
+      "path": "demo/memory/runs/e96a37c8-8f4f-4978-acd2-fd4ad54ecc6e/manifest.json",
+      "bytes": 338,
+      "sha256": "35608911f58db53af4bdd28a48b58186dc9fa1a0f5b6491553bba9050e0036e1"
+    },
+    {
+      "path": "demo/result.json",
+      "bytes": 3859,
+      "sha256": "2f535bce6ca4c39f3bbb23c729806e6b06dc050501738024f5e04034a0d6ddc6"
+    },
+    {
+      "path": "demo/selection.json",
+      "bytes": 74,
+      "sha256": "0d2272d93e6c2beeea9b985c677f7b5738700b3ff46e31effc1878ed37c4d6af"
+    },
+    {
+      "path": "demo/tui.txt",
+      "bytes": 154390,
+      "sha256": "951dc2ad11ebd670048ec082115118f4448fe5b4849153f2acdcc7984b35094c"
+    },
+    {
+      "path": "demo/workspace/.pan-agent/retrieval.json",
+      "bytes": 190,
+      "sha256": "9f9ee5ad44aba37bce9e81d893b1ccebda368e74ca22ede590b25a5b1e00c23e"
+    },
+    {
+      "path": "demo/workspace/docs/service.ts",
+      "bytes": 34,
+      "sha256": "166ae4026ad6cbd050f6a565433f2b6d6141c59afddc407a5ec36b1f3f631779"
+    },
+    {
+      "path": "demo.log",
+      "bytes": 96,
+      "sha256": "efe6524edafeacda76de3e902ef2646052a3c6181440a65e1e8e141d47ca6f1f"
+    },
+    {
+      "path": "environment.json",
+      "bytes": 112,
+      "sha256": "a1c6c746c08a9fc7a2143078602e44a7b22456f24c0150dcd392bad7157ed1c9"
+    },
+    {
+      "path": "focused.log",
+      "bytes": 1968,
+      "sha256": "e56f42134401312f03857a63dc63b2a12d46a8986a7f42e982c4ab6682eec090"
+    },
+    {
+      "path": "full.log",
+      "bytes": 28224,
+      "sha256": "c8e1a4048229fea1bd22ab9c00baeec3075478f8dbb0db487e07a5a248aeec91"
+    },
+    {
+      "path": "install.log",
+      "bytes": 26,
+      "sha256": "52e1d5c1fcabd809b79daa4cbf393867b91a3e149cfdfff9cc04c2fbac5705c1"
+    },
+    {
+      "path": "pack.log",
+      "bytes": 5053,
+      "sha256": "2be09ae9894ef04563111e501d9e1fddffe5993faaa2abb4a773873740dea1a3"
+    },
+    {
+      "path": "pan-agent-0.1.7.tgz",
+      "bytes": 112827,
+      "sha256": "db7e28b62aa8b9f79843a9a0e529ccd3a835f4f64f134d978436407f478d6ebf"
+    },
+    {
+      "path": "probe-results.json",
+      "bytes": 8381,
+      "sha256": "af83ec00b5df4f55cea96c60424d85359d9c202bb5e2a79cfeaf8c28f4ca99ae"
+    },
+    {
+      "path": "probes.mjs",
+      "bytes": 7325,
+      "sha256": "3069bcb14507a969f5e29611c8c0ead8252c4e4ec4de577af00590bfa6f131ab"
+    },
+    {
+      "path": "red.log",
+      "bytes": 941,
+      "sha256": "ecbea28c5f0bb4673535c4c52d47d17820d6ef5a217b38029f05b6c12c62d67e"
+    },
+    {
+      "path": "regprobe.log",
+      "bytes": 61,
+      "sha256": "7b1c7f679a0024f2f68bcf5c2d7b4b1c1d4b102e0d4c102caabdde7cc6f44d11"
+    },
+    {
+      "path": "source-files.json",
+      "bytes": 6931,
+      "sha256": "c2f430d27273c3cd0dcd0bfd517f4ef88c0b8ddeffe69feaa2cb5e1f5f36a4b5"
+    },
+    {
+      "path": "typecheck.log",
+      "bytes": 45,
+      "sha256": "d25b929f3189189e033598cb6b301ad464a89eff2a1b520cd6d26788548f10fb"
+    }
+  ]
+}
