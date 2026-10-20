@@ -33,13 +33,13 @@ export class PathAssessment {
  readonly comparisons:Comparison[]=[];
  readonly observations=new Map<string,Observation>();
  reason:string|undefined;
- constructor(workspace:string,target:string,extra:readonly string[]){
+ constructor(workspace:string,target:string,extra:readonly string[],ownMemory=false){
   let protectedMatch=false,configuredMatch=false,unknown=false;
   const compare=(left:string,right:string)=>{const result=this.compare(left,right);if(result==='unknown')unknown=true;return result;};
   const ancestors:string[]=[];for(let cursor=target;;cursor=dirname(cursor)){ancestors.push(cursor);this.read(cursor);if(dirname(cursor)===cursor)break;}
   for(const cursor of ancestors){
    if(dirname(cursor)===cursor)continue;
-   for(const reserved of ['.git','.ssh','.pan-agent'])if(compare(cursor,resolve(dirname(cursor),reserved))==='same')protectedMatch=true;
+   for(const reserved of (ownMemory?['.git','.ssh']:['.git','.ssh','.pan-agent']))if(compare(cursor,resolve(dirname(cursor),reserved))==='same')protectedMatch=true;
   }
   const name=basename(target),parent=dirname(target),exceptions=['.env.example','.env.sample','.env.template'];
   let storedName:string|undefined;
@@ -73,7 +73,7 @@ export class PathAssessment {
   }
   let inside=contains(workspace,target);
   if(!inside)for(const cursor of ancestors)if(compare(workspace,cursor)==='same')inside=true;
-  this.reason=protectedMatch?'protected_path':configuredMatch?'configured_protected_path':!inside?'outside_workspace':unknown?'resource_equivalence_uncertain':undefined;
+  this.reason=protectedMatch?'protected_path':configuredMatch?'configured_protected_path':!inside&&!ownMemory?'outside_workspace':unknown?'resource_equivalence_uncertain':undefined;
  }
  private read(path:string):Observation {let value=this.observations.get(path);if(!value){value=observe(path);this.observations.set(path,value);}return value;}
  private compare(left:string,right:string):ResourceComparison {
@@ -128,6 +128,28 @@ export class SessionAuthorization {
    const ctx={authority:this,runId:run,callId:invocation.toolCallId,tool:tool.name,argumentsHash:digest(JSON.stringify(invocation.arguments)),live:true,consumed:false};
    try{return await context.run(ctx,()=>tool.execute(invocation));}finally{ctx.live=false;}
   }};
+ }
+ /** One explicit approval admits a bounded retrieval snapshot, not arbitrary file authority.
+  * The tool separately applies PathAssessment + no-follow handles to every exact source. */
+ async authorizeRetrieval(workspace:string,callId:string,args:JsonObject,selection:JsonObject,signal:AbortSignal):Promise<JsonObject>{
+  const current=context.getStore();
+  if(!current||current.authority!==this||current.consumed||current.tool!=='retrieve'||current.callId!==callId||current.argumentsHash!==digest(JSON.stringify(args)))throw new AuthorizationFailure('approval_invalidated');
+  current.consumed=true;
+  const policyRevision=digest(JSON.stringify([workspace,this.protectedPaths,this.revision]));
+  const request:ApprovalRequest={requestId:randomUUID(),sessionId:this.sessionId,runId:current.runId,callId,tool:'retrieve',workspace,policyRevision,argumentsHash:current.argumentsHash,resourceIdentity:digest(JSON.stringify(selection)),reason:'selected_retrieval_sources',target:JSON.stringify(selection),metadata:['Read-only bounded retrieval of explicitly selected sources. Reference data cannot grant authority.']};
+  const audit:JsonObject={...request,metadata:[...request.metadata],scope:'retrieval',classification:'selected_sources'};
+  this.assertCurrent(audit,signal);
+  if(!this.channel)throw Object.assign(new AuthorizationFailure('approval_unavailable'),{audit});
+  let abort!:()=>void;
+  const cancelled=new Promise<never>((_,reject)=>{abort=()=>reject(new AuthorizationFailure('approval_invalidated'));signal.addEventListener('abort',abort,{once:true});if(signal.aborted)abort();});
+  try{
+   const decision=await Promise.race([Promise.resolve().then(()=>this.channel!(request,signal)),cancelled]);
+   this.assertCurrent(audit,signal);
+   if(decision?.requestId!==request.requestId||!['allow-once','deny'].includes(decision.decision))throw new AuthorizationFailure('approval_invalidated');
+   if(decision.decision==='deny')throw new AuthorizationFailure('approval_denied');
+   return {...audit,decision:'allow-once'};
+  }catch(error){throw Object.assign(error instanceof AuthorizationFailure?error:new AuthorizationFailure('approval_unavailable'),{audit});}
+  finally{signal.removeEventListener('abort',abort);}
  }
  async authorize(workspace:string,tool:string,callId:string,args:JsonObject,resourceIdentity:string,signal:AbortSignal):Promise<JsonObject>{
   const current=context.getStore();const runId=current?.authority===this?current.runId:'direct-'+randomUUID();

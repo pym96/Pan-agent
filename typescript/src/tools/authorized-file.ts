@@ -57,6 +57,18 @@ export class AuthorizedFile {
   }
   this.verifyHandle();
  }
+ readBounded(maxBytes:number):string {
+  this.open(false,false);this.verifyHandle();
+  const before=fs.fstatSync(this.fd!);
+  if(before.size>maxBytes)throw new AuthorizationFailure('source_too_large');
+  const data=Buffer.alloc(maxBytes+1);let count=0;
+  while(count<data.length){this.verifyHandle();const n=fs.readSync(this.fd!,data,count,data.length-count,count);if(!n)break;count+=n;}
+  if(count>maxBytes)throw new AuthorizationFailure('source_too_large');
+  this.verifyHandle();const after=fs.fstatSync(this.fd!);if(before.size!==after.size||before.mtimeMs!==after.mtimeMs||before.ctimeMs!==after.ctimeMs)throw new AuthorizationFailure('source_changed_during_read');
+  const text=new TextDecoder('utf-8',{fatal:true,ignoreBOM:true}).decode(data.subarray(0,count));
+  if(text.includes('\0'))throw new AuthorizationFailure('binary_source');
+  return text;
+ }
  read(forEdit=false):string {this.open(forEdit,false);this.verifyHandle();return fs.readFileSync(this.fd!,{encoding:'utf8'});}
  write(text:string):void {
   this.open(true,true);this.verifyHandle();

@@ -1,3 +1,5 @@
+import { createRetrievalTool } from './retrieval/tool.ts';
+import { retrievalCommand } from './retrieval/config.ts';
 import { stat } from "node:fs/promises";
 import { pathToFileURL, fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
@@ -44,6 +46,7 @@ Every admitted run is durably archived under --memory-root (must be disjoint fro
 Attachments use selection-time UTF-8 snapshots; default aggregate maxAttachmentBytes=1048576 (1 MiB local byte policy, not a model token limit). Override with --max-attachment-bytes; never truncates.
 Ordinary settings persist at ~/.pan-agent/settings.json (mode 0600; schema version, provider/model/thinking and the literal credential source kind only — never a secret). Run 'configure' to create or replace them; on a TTY first run without settings the same flow is offered. Explicit --model/--thinking flags override persisted values for that run.
 Credential source: environment reads DEEPSEEK_API_KEY (deepseek) or KIMI_API_KEY (kimi-code) only when a Provider call is made; keychain retrieves the macOS Keychain item named by the Pan service/account convention only when a Provider call is made. kimi-code selects the official OpenAI-compatible Kimi Code endpoint with explicit kimi-for-coding or k3-256k selection in configure (kimi-code:k3-256k); Kimi --model/--thinking overrides are unsupported; arbitrary endpoints and unknown models are rejected.
+Retrieval (default off): pan-agent retrieval configure --workspace DIR --from selection.json; retrieval show|disable --workspace DIR. Each approved call refreshes selected sources.
 No Provider call occurs for --help, configure, startup, idle cancellation, or TUI commands. Startup has no y; protected/outside/uncertain file operations and Shell require operation-scoped approval.`;
 
 const RUNBOOK_PATH = resolve(dirname(fileURLToPath(import.meta.url)), "..", "RUNBOOK.md");
@@ -133,6 +136,7 @@ export async function runCli(args: readonly string[], dependencies: CliDependenc
 	const writeLine = (line: string): void => {
 		output.write(`${line}\n`);
 	};
+	if(args[0]==='retrieval') {try{writeLine(retrievalCommand(args.slice(1)));return 0;}catch(error){writeLine(`Retrieval configuration failed: ${terminalText(error instanceof Error?error.message:'unknown')}`);return 2;}}
 	let configuration: CliConfiguration;
 	try {
 		configuration = parseCliArgs(args);
@@ -264,7 +268,7 @@ export async function runCli(args: readonly string[], dependencies: CliDependenc
 			...shared,
 			kernel: "native",
 			adapter,
-			tools: trustedLocal.tools,
+			tools: [...trustedLocal.tools, createRetrievalTool(workspace)],
 			authorization: { protectedPaths: settings?.protectedPaths },
 			...(adapter instanceof PanKimiModelAdapter ? { cleanup: () => adapter.dispose() } : {}),
 		});

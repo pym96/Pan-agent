@@ -62,3 +62,37 @@ This is a small display subset, not full CommonMark: nested inline formatting, e
 ## Missing credential
 
 If an environment credential is missing when you submit a task, the TUI keeps the failed status and shows the expected variable (`KIMI_API_KEY` or `DEEPSEEK_API_KEY`). Exit with `:exit`, set the key in your terminal using your secret manager, then restart Pan. To change the credential source, run `pan-agent configure`. Never paste an API key into a task. Keychain configuration uses its own entry; environment keys do not override a selected Keychain source. Unknown provider errors remain generic rather than exposing raw responses.
+
+## Opt-in document and history retrieval
+
+Retrieval is included in the **0.1.7 source/candidate package**; the published v0.1.6 release download does not contain it. Build and install the current checkout with the source instructions. No embedding service or extra runtime dependency is needed.
+
+Create `selection.json` outside your selected source directories, for example:
+
+```json
+{
+  "documents": ["docs", "src"],
+  "history": "/absolute/path/to/your/pan-archives",
+  "ledger": true,
+  "runbook": "RUNBOOK.md"
+}
+```
+
+Only `documents` is required (an empty array is allowed with a history or Runbook selection). Directories/files must already exist. Omit `ledger` unless that archive root has a retrospective ledger; omit `runbook` unless you have that named file. History means **your explicitly selected Pan archives**, not browser, Codex or Claude account conversations.
+
+```sh
+./node_modules/.bin/pan-agent retrieval configure --workspace "$PWD/workspace" --from selection.json
+./node_modules/.bin/pan-agent retrieval show --workspace "$PWD/workspace"
+./node_modules/.bin/pan-agent --kernel native --workspace "$PWD/workspace" --memory-root "$PWD/archives"
+# In the TUI: “Use retrieve to find recoveryBudget and our earlier recovery decision.”
+```
+
+The model can call `retrieve`; review the source selection in its normal **Allow once / Deny** prompt. Results contain verbatim snippets, source hashes/locations, and current/history/superseded labels. They are reference data, not instructions. A real task still calls your configured model and can disclose selected snippets to that provider. Do not select private material you do not want sent.
+
+Each call refreshes from source; there is no persistent search cache. Reconfigure with a smaller selection to remove sources, or disable all retrieval:
+
+```sh
+./node_modules/.bin/pan-agent retrieval disable --workspace "$PWD/workspace"
+```
+
+Settings persist in `workspace/.pan-agent/retrieval.json` across restarts. Replacement of a selected root or directly selected memory file requires reconfiguration. Ordinary source content updates/deletes appear on the next call. Originals are never edited by retrieval. Protected files and unsupported links are skipped with diagnostics; corrupt/unsealed history is not trusted. Large corpora return explicit partial/truncated results. Default matching is lexical: all query terms must occur in one800-character chunk; it does not promise paraphrase or semantic recall. Limits:8 sources,1024 entries,128 attempted files,4MiB aggregate,256KiB ordinary file/ledger/Runbook,1MiB sealed events,16KiB manifest/config,12 directory levels,4096 chunks,8 results and64KiB response. Oversized long-run archives are skipped; inspect them with replay, never truncate the original seal. [WorkOrder and source/evidence links](https://github.com/pym96/Pan-agent/issues/144).
