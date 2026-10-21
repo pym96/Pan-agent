@@ -1,0 +1,28 @@
+{
+  "schema": "pan-executable-verification-evidence/v1",
+  "workorder": 146,
+  "criteriaVersion": "1.0",
+  "repair": 1,
+  "sourceSHA": "75cf752e2948b2ce83dc9840e9b6a3bd7aaa44bf",
+  "rejectedSHA": "c62a6c8700b363718201c432296b3215dd279872",
+  "originalVerdict": "https://github.com/pym96/Pan-agent/issues/146#issuecomment-6292297147",
+  "priorManifest": "manifest.json",
+  "artifactLocator": "$HOME/.local/state/pan-agent/verification146-repair1-20261021",
+  "artifactCount": 1676,
+  "inventorySHA256": "e5cb4fac6c9b1efb00800f507e57391c12d446a549a69ae1b9bd131f2f5e2a7e",
+  "checks": {
+    "publicCLI": {
+      "pass": 35,
+      "fail": 0,
+      "skip": 0
+    },
+    "newCases": "three missing mandatory pins; original forged evaluator; three mismatched executing module bytes",
+    "red": "all four missing/forged regressions failed before repair; raw log retained",
+    "originalIndependentProbeReplay": "Builder rerun on copied fixtures, source path and expected rejection adapted; original bytes/hashes retained; not independent acceptance",
+    "missingPins": "NOT_EVALUABLE: mandatory_verifier_pin_missing",
+    "forgedEvaluator": "NOT_EVALUABLE: mandatory_verifier_pin_missing",
+    "freshDemo": "PASS / FAIL / NOT_EVALUABLE / NOT_EVALUABLE / PASS",
+    "networkModelCalls": 0
+  },
+  "status": "pending independent review"
+}

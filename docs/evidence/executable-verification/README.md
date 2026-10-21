@@ -1,6 +1,6 @@
 # #146 executable verification evidence
 
-Candidate implementation; independent acceptance pending. [Protocol](../../design/executable-verification.md), [public commands](../../../scripts/verification/README.md), [CLI tests](../../../scripts/verification/cli.test.mjs). [Evidence manifest](manifest.json) binds the executed source, raw inventory and all retained fixtures; no model calls or release.
+First candidate was independently rejected; the repaired candidate is pending independent review. [Protocol](../../design/executable-verification.md), [public commands](../../../scripts/verification/README.md), [CLI tests](../../../scripts/verification/cli.test.mjs). [Evidence manifest](manifest.json) binds the executed source, raw inventory and all retained fixtures; no model calls or release.
 
 ## Article17 — executable checks supplement review
 
@@ -11,3 +11,11 @@ The first public CLI test failed before implementation. A later genuine failure 
 Machine PASS and Human pending are intentionally distinct. Check never executes commands from receipts, and rechecking is not a new run. Original incomplete/refused cases remain NOT_EVALUABLE. Only cooperative POSIX process groups are supported; arbitrary malicious processes and network isolation are outside this local trust contract.
 
 Builder validation: 28 public CLI tests passed on Node26.7/macOS arm64. The standalone demo retained good PASS, defect FAIL, omitted NOT_EVALUABLE, wrong-SHA refusal and restored PASS. Test fixtures and receipts are retained externally, including infrastructure and identity failures. Executed source is `fa4b61f4942d3ddab1767921c08c5cbfd79ef128`; final evidence-only commit is bound in Handoff. Runtime/package files were not modified and unrelated Product tests were not rerun. Independent Regulator must introduce its own counterexample and verify the trust assumptions before acceptance.
+
+## Repair1 — pin the evaluator, not only its tests
+
+The [independent rejected Verdict](https://github.com/pym96/Pan-agent/issues/146#issuecomment-6292297147) proved that a test-only verifier map could omit the executing runner. A modified unpinned evaluator then returned machine PASS while its own raw case was FAIL. The initial implementation incorrectly treated absence of runner pins as permission to skip comparison. The existing green suite had tested changed verifier files, but not a deliberately incomplete trusted map.
+
+The fix requires `cli.mjs`, `engine.mjs` and `demo.mjs` unconditionally, then compares each against the actual executing copy. Four new tests first reproduced the three omissions and false-PASS mutation; three further tests alter each present module pin. The complete public CLI suite passes35/35, with original19 classes retained. A fresh seeded demo and a Builder rerun of copied independent probes confirm explicit rejection. Probe adaptations only redirect the implementation path and replace the old false-PASS expectation with rejection; original scripts/hashes are retained. Independent acceptance remains a separate step.
+
+[Repair manifest](repair1-manifest.json) binds the new executed source and durable inventory; the old [manifest](manifest.json) and rejected evidence remain unchanged. The source commit is `75cf752e2948b2ce83dc9840e9b6a3bd7aaa44bf`; final Handoff adds evidence docs only. No Runtime, dependency, host or server changes. This fixes one demonstrated identity gap under the same trusted-local/cooperative-process assumptions; it does not establish adversarial attestation. A repair probe launch initially named a not-yet-created working directory and failed before any process or write; preparation was separated from execution and rerun successfully.
