@@ -26,7 +26,11 @@ export function context(options){
  if(!object(m.verifierFiles)||!hex(options['verifier-sha256']))fail('verifier_identity_invalid');
  const actual=fileMap(trusted);if(JSON.stringify(actual)!==JSON.stringify(m.verifierFiles)||sha(JSON.stringify(actual))!==options['verifier-sha256'])fail('verifier_identity_mismatch');
  // Even invoking this entry from another checkout must use exactly the pinned engine/CLI bytes.
- const here=dirname(fileURLToPath(import.meta.url));for(const name of ['cli.mjs','engine.mjs','demo.mjs'])if(actual[name]&&sha(readBounded(join(here,name)))!==actual[name])fail('executing_verifier_mismatch');
+ const here=dirname(fileURLToPath(import.meta.url));
+ for(const name of ['cli.mjs','engine.mjs','demo.mjs']){
+  if(!Object.hasOwn(actual,name)||!hex(actual[name]))fail('mandatory_verifier_pin_missing');
+  if(sha(readBounded(join(here,name)))!==actual[name])fail('executing_verifier_mismatch');
+ }
  if(!Array.isArray(m.commands)||m.commands.length<1||m.commands.length>32||!Array.isArray(m.required)||m.required.length<1||m.required.length>256||!Array.isArray(m.humanCriteria)||m.humanCriteria.some(x=>!id(x)))fail('manifest_sets_invalid');
  const commandIds=new Set(),caseIds=new Set(),criteria=new Set();
  for(const c of m.commands){if(!object(c)||!id(c.id)||commandIds.has(c.id)||!Array.isArray(c.argv)||!c.argv.length||c.argv.some(x=>typeof x!=='string'||x.includes('\0'))||!str(c.argv[0])||!Number.isInteger(c.timeoutMs)||c.timeoutMs<=0||c.timeoutMs>300000)fail('command_invalid');commandIds.add(c.id);if(!lstatSync(safe(trusted,c.cwd)).isDirectory())fail('cwd_invalid');}
