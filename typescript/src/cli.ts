@@ -1,3 +1,5 @@
+import {SandboxSession} from './sandbox/session.ts';
+import {sandboxCommand} from './sandbox/cli.ts';
 import { createRetrievalTool } from './retrieval/tool.ts';
 import { retrievalCommand } from './retrieval/config.ts';
 import { stat } from "node:fs/promises";
@@ -46,6 +48,7 @@ Every admitted run is durably archived under --memory-root (must be disjoint fro
 Attachments use selection-time UTF-8 snapshots; default aggregate maxAttachmentBytes=1048576 (1 MiB local byte policy, not a model token limit). Override with --max-attachment-bytes; never truncates.
 Ordinary settings persist at ~/.pan-agent/settings.json (mode 0600; schema version, provider/model/thinking and the literal credential source kind only — never a secret). Run 'configure' to create or replace them; on a TTY first run without settings the same flow is offered. Explicit --model/--thinking flags override persisted values for that run.
 Credential source: environment reads DEEPSEEK_API_KEY (deepseek) or KIMI_API_KEY (kimi-code) only when a Provider call is made; keychain retrieves the macOS Keychain item named by the Pan service/account convention only when a Provider call is made. kimi-code selects the official OpenAI-compatible Kimi Code endpoint with explicit kimi-for-coding or k3-256k selection in configure (kimi-code:k3-256k); Kimi --model/--thinking overrides are unsupported; arbitrary endpoints and unknown models are rejected.
+Sandbox (opt-in): add --sandbox-root DIR and optional repeated --sandbox-input FILE. One new fixed-profile Docker workspace per task; no retrieval. After exit: pan-agent sandbox list --root DIR; recover|export|verify|cleanup --run RUN_DIRECTORY (see README).
 Retrieval (default off): pan-agent retrieval configure --workspace DIR --from selection.json; retrieval show|disable --workspace DIR. Each approved call refreshes selected sources.
 No Provider call occurs for --help, configure, startup, idle cancellation, or TUI commands. Startup has no y; protected/outside/uncertain file operations and Shell require operation-scoped approval.`;
 
@@ -55,6 +58,8 @@ export interface CliConfiguration {
 	readonly help: boolean;
 	readonly maxAttachmentBytes?: number;
 	readonly workspace?: string;
+ readonly sandboxRoot?:string;
+ readonly sandboxInputs?:readonly string[];
 	readonly memoryRoot?: string;
 	readonly kernel: KernelSelector;
 	readonly profile: DeepSeekProfile;
@@ -65,6 +70,7 @@ export interface CliConfiguration {
 export function parseCliArgs(args: readonly string[]): CliConfiguration {
 	let maxAttachmentBytes = validateAttachmentLimit();
 	let workspace: string | undefined;
+ let sandboxRoot:string|undefined;const sandboxInputs:string[]=[];
 	let memoryRoot: string | undefined;
 	let kernel: string | undefined;
 	let modelId: string = DEFAULT_DEEPSEEK_PROFILE.modelId;
@@ -79,14 +85,16 @@ export function parseCliArgs(args: readonly string[]): CliConfiguration {
 			return { help: false, configure: true, kernel: "native", profile: DEFAULT_DEEPSEEK_PROFILE };
 		}
 		const value = args[index + 1];
-		if (argument === "--workspace" || argument === "--memory-root" || argument === "--kernel" || argument === "--model" || argument === "--thinking" || argument === "--max-attachment-bytes") {
+		if (argument === "--sandbox-root" || argument === "--sandbox-input" || argument === "--workspace" || argument === "--memory-root" || argument === "--kernel" || argument === "--model" || argument === "--thinking" || argument === "--max-attachment-bytes") {
 			if (!value || value.startsWith("--")) throw new Error(`${argument} requires a value`);
 			index += 1;
 			if (argument === "--max-attachment-bytes") {
 				if (!/^[0-9]+$/.test(value)) throw new Error("attachment_limit_invalid");
 				maxAttachmentBytes = validateAttachmentLimit(Number(value));
 			}
-			if (argument === "--workspace") workspace = value;
+			if (argument === "--sandbox-root") sandboxRoot=value;
+   if (argument === "--sandbox-input") sandboxInputs.push(value);
+   if (argument === "--workspace") workspace = value;
 			if (argument === "--memory-root") memoryRoot = value;
 			if (argument === "--kernel") kernel = value;
 			if (argument === "--model") modelId = value;
@@ -105,6 +113,7 @@ export function parseCliArgs(args: readonly string[]): CliConfiguration {
 	return {
 		help: false,
 		maxAttachmentBytes,
+  sandboxRoot,sandboxInputs,
 		workspace,
 		memoryRoot,
 		kernel,
@@ -136,6 +145,7 @@ export async function runCli(args: readonly string[], dependencies: CliDependenc
 	const writeLine = (line: string): void => {
 		output.write(`${line}\n`);
 	};
+	if(args[0]==='sandbox'){try{writeLine(await sandboxCommand(args.slice(1)));return 0;}catch(error){writeLine('Sandbox error: '+terminalText(String(error)));return 2;}}
 	if(args[0]==='retrieval') {try{writeLine(retrievalCommand(args.slice(1)));return 0;}catch(error){writeLine(`Retrieval configuration failed: ${terminalText(error instanceof Error?error.message:'unknown')}`);return 2;}}
 	let configuration: CliConfiguration;
 	try {
@@ -198,14 +208,17 @@ export async function runCli(args: readonly string[], dependencies: CliDependenc
 		return 2;
 	}
 
-	const presentation: CompactPresentation = (dependencies.createPresentation ?? createCompactPresentation)(writeLine);
+	if(configuration.sandboxInputs?.length&&!configuration.sandboxRoot){writeLine("Validation failed: sandbox inputs require --sandbox-root");return 2;}
+ const sandbox=configuration.sandboxRoot?new SandboxSession({stateRoot:resolve(configuration.sandboxRoot),inputs:configuration.sandboxInputs},writeLine):undefined;
+ const presentation: CompactPresentation = (dependencies.createPresentation ?? createCompactPresentation)(writeLine);
 	const shared = {
 		onProgress: (progress: import("./runtime/agent-kernel.ts").SessionProgress) => presentation.progress?.(progress),
 		onProgressError: () => {
 			if (presentation.progressError) presentation.progressError();
 			else writeLine("Display error: progress observer failed; execution continues.");
 		},
-		systemPrompt: GENERAL_AGENT_SYSTEM_PROMPT,
+		systemPrompt: GENERAL_AGENT_SYSTEM_PROMPT+(sandbox?"\nTools run ONLY in an isolated Docker workspace /workspace/task. Selected inputs are /inputs, read-only. No retrieval or host tool access. Each new task gets a new workspace.":""),
+  ...(sandbox?{executionBoundary:sandbox}:{}),
 		memory: { archiveStore, runbook: () => loadRunbook(RUNBOOK_PATH) },
 		onObservation(observation: SessionObservation) {
 			observeSafely(presentation, observation, writeLine);
@@ -263,12 +276,12 @@ export async function runCli(args: readonly string[], dependencies: CliDependenc
 				: {}));
 			adapter = adapterFactory(profile);
 		}
-		const trustedLocal = dependencies.createTools ? dependencies.createTools(workspace) : createPanTrustedLocalTools(workspace);
+		const trustedLocal = sandbox??(dependencies.createTools ? dependencies.createTools(workspace) : createPanTrustedLocalTools(workspace));
 		session = new GeneralAgentSession({
 			...shared,
 			kernel: "native",
 			adapter,
-			tools: [...trustedLocal.tools, createRetrievalTool(workspace)],
+			tools: sandbox?trustedLocal.tools:[...trustedLocal.tools, createRetrievalTool(workspace)],
 			authorization: { protectedPaths: settings?.protectedPaths },
 			...(adapter instanceof PanKimiModelAdapter ? { cleanup: () => adapter.dispose() } : {}),
 		});
@@ -283,6 +296,7 @@ export async function runCli(args: readonly string[], dependencies: CliDependenc
 		? `CREDENTIAL keychain (macOS Keychain service ${keychainReference.service} account ${keychainReference.account}; retrieved only when a Provider call is made)`
 		: `CREDENTIAL environment ${credentialEnv} (required at task time; never saved)`);
 	return (dependencies.startTui ?? runTui)({
+  ...(sandbox?{executionMode:"sandbox" as const}:{}),
 		credentialSource,
 		session,
 		presentation,

@@ -151,6 +151,23 @@ export class SessionAuthorization {
   }catch(error){throw Object.assign(error instanceof AuthorizationFailure?error:new AuthorizationFailure('approval_unavailable'),{audit});}
   finally{signal.removeEventListener('abort',abort);}
  }
+ /** Container admission is a separate policy: approval never changes its fixed execution profile. */
+ async authorizeSandbox(workspace:string,tool:string,callId:string,args:JsonObject,resourceIdentity:string,signal:AbortSignal):Promise<JsonObject>{
+  const current=context.getStore();
+  if(!current||current.authority!==this||current.consumed||current.tool!==tool||current.callId!==callId||current.argumentsHash!==digest(JSON.stringify(args)))throw new AuthorizationFailure('approval_invalidated');
+  current.consumed=true;
+  const policyRevision=digest(JSON.stringify([workspace,this.protectedPaths,this.revision]));
+  const request:ApprovalRequest={requestId:randomUUID(),sessionId:this.sessionId,runId:current.runId,callId,tool,workspace,policyRevision,argumentsHash:current.argumentsHash,resourceIdentity,reason:'sandbox_fixed_container',target:JSON.stringify(args),metadata:['Docker sandbox only: approval cannot add mounts, network, devices or host access.']};
+  const audit:JsonObject={...request,metadata:[...request.metadata],scope:'sandbox',classification:'container'};
+  this.assertCurrent(audit,signal);
+  if(!this.channel)throw Object.assign(new AuthorizationFailure('approval_unavailable'),{audit});
+  let abort!:()=>void;
+  const cancelled=new Promise<never>((_,reject)=>{abort=()=>reject(new AuthorizationFailure('approval_invalidated'));signal.addEventListener('abort',abort,{once:true});if(signal.aborted)abort();});
+  try{const decision=await Promise.race([Promise.resolve().then(()=>this.channel!(request,signal)),cancelled]);this.assertCurrent(audit,signal);
+   if(decision?.requestId!==request.requestId||!['allow-once','deny'].includes(decision.decision))throw new AuthorizationFailure('approval_invalidated');
+   if(decision.decision==='deny')throw new AuthorizationFailure('approval_denied');return {...audit,decision:'allow-once'};
+  }finally{signal.removeEventListener('abort',abort);}
+ }
  async authorize(workspace:string,tool:string,callId:string,args:JsonObject,resourceIdentity:string,signal:AbortSignal):Promise<JsonObject>{
   const current=context.getStore();const runId=current?.authority===this?current.runId:'direct-'+randomUUID();
   if(current){if(current.consumed||current.callId!==callId||current.tool!==tool||current.argumentsHash!==digest(JSON.stringify(args)))throw new AuthorizationFailure('approval_invalidated');current.consumed=true;}

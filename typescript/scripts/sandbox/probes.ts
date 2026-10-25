@@ -1,0 +1,15 @@
+import assert from 'node:assert/strict';
+import {mkdir,writeFile,readFile} from 'node:fs/promises';
+import {DockerSandbox,docker} from '../../src/sandbox/docker.ts';
+const root=process.argv[2]!;await mkdir(root+'/states');await writeFile(root+'/input.txt','READ_ONLY');process.env.SANDBOX_CREDENTIAL_SENTINEL='NEVER_IN_CONTAINER';
+const box=await DockerSandbox.prepare({stateRoot:root+'/states',inputs:[root+'/input.txt']});const records:any[]=[];const signal=new AbortController().signal;
+const call=async(command:string,timeout=5)=>{const r=await box.call('bash',{command,timeout},signal);records.push({command,result:r});await writeFile(root+'/results.json',JSON.stringify(records,null,2));return r;};
+assert.equal((await call('test -z "$SANDBOX_CREDENTIAL_SENTINEL"; test ! -S /var/run/docker.sock; test ! -e /dev/nvidia0; test ! -e /dev/sda')).code,0);
+assert.notEqual((await call('echo changed > /inputs/input.txt')).code,0);assert.equal(await readFile(root+'/input.txt','utf8'),'READ_ONLY');
+assert.notEqual((await call("python -c \"import socket;socket.create_connection(('1.1.1.1',80),.2)\"")).code,0);
+await assert.rejects(()=>box.call('read',{path:'../outside'},signal),/sandbox_path_denied/);
+const other=await DockerSandbox.prepare({stateRoot:root+'/states'});await other.call('write',{path:'private.txt',content:'OTHER_TASK'},signal);assert.notEqual((await call('cat /workspace/task/private.txt')).code,0);
+const sentinelId=other.identity.containerId;await box.stop('test_stop');await assert.rejects(()=>box.call('write',{path:'late',content:'BAD'},signal));
+assert.equal((await box.verify('test ! -e late',5)).code,0);assert.notEqual((await box.verify('exit 7',5)).code,0);assert.equal((await box.verify('sleep 10',1)).code,124);
+await box.export(root+'/export');await box.cleanup();await box.cleanup();assert.equal(JSON.parse((await docker(['inspect',sentinelId])).toString())[0].State.Running,true);await other.stop();await other.export(root+'/other-export');await other.cleanup();
+await writeFile(root+'/results.json',JSON.stringify(records,null,2));console.log('BOUNDARY_LIFECYCLE_PASS');

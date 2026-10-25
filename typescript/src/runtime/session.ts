@@ -55,6 +55,7 @@ export interface SessionMemory {
 
 interface GeneralAgentSessionOptionsBase {
 	readonly authorization?: AuthorizationOptions;
+	readonly executionBoundary?: {start(runId:string):Promise<void>;stop(reason:string):Promise<void>;cancel():void};
 	readonly systemPrompt: string;
 	readonly memory: SessionMemory;
 	readonly limits?: Partial<KernelLimits>;
@@ -83,6 +84,7 @@ export type GeneralAgentSessionOptions = InjectedGeneralAgentSessionOptions | Na
 /** Product boundary for admission, Runbook binding and durable Run Archive settlement. */
 export class GeneralAgentSession {
 	private readonly authorization: SessionAuthorization;
+	private readonly executionBoundary?: GeneralAgentSessionOptionsBase["executionBoundary"];
 	private readonly kernel: AgentKernel;
 	private readonly onObservation: ObservationSink;
 	private readonly onProgress?: ProgressSink;
@@ -130,6 +132,7 @@ export class GeneralAgentSession {
 			catch { try { options.onProgressError?.(); } catch { /* Diagnostics are observational too. */ } }
 		} : undefined;
 		this.cleanup = options.cleanup;
+		this.executionBoundary = options.executionBoundary;
 		this.memory = options.memory;
 		this.baseSystemPrompt = options.systemPrompt;
 		this.adapterIdentity = selector === "native"
@@ -177,6 +180,7 @@ export class GeneralAgentSession {
 
 		let outcome;
 		try {
+			if(!this.admissionCancelled)await this.executionBoundary?.start(writer.runId);
 			outcome = this.admissionCancelled ? {status:'cancelled' as const,reason:'operator_cancelled',finalText:'',modelCalls:0,toolCalls:0,usage:EMPTY_USAGE} : await (checkpoint
                 ? (request: import("./agent-kernel.ts").KernelRunRequest) => (this.kernel as NativeKernel).resumeTask(request, checkpoint)
                 : (request: import("./agent-kernel.ts").KernelRunRequest) => this.kernel.runTask(request))({
@@ -187,10 +191,12 @@ export class GeneralAgentSession {
 				...(this.onProgress ? {onProgress:this.onProgress} : {}),
 			});
 		} catch (error) {
+			await this.executionBoundary?.stop("task_failed");
 			await this.settleArchive("failed", `kernel_error: ${error instanceof Error ? error.message : String(error)}`);
 			this.activeWriter = undefined;
 			throw error;
 		}
+		await this.executionBoundary?.stop("task_settled");
 		if (this.archiveError) {
 			await this.settleArchive("failed", "archive_append_error");
 			this.activeWriter = undefined;
@@ -204,7 +210,7 @@ export class GeneralAgentSession {
 		} finally { this.admitting = false; this.finishAdmission?.(); this.finishAdmission = undefined; }
 	}
 
-	cancel(): void { if(this.admitting)this.admissionCancelled = true; this.kernel.cancel(); }
+	cancel(): void { if(this.admitting)this.admissionCancelled = true; this.kernel.cancel(); this.executionBoundary?.cancel(); }
 	/** Trusted application-side UI seam; never obtained from model messages or replay. */
 	setApprovalChannel(channel: ApprovalChannel | undefined): void { this.authorization.setChannel(channel); }
 	revokeShellTrust(): void { this.authorization.revoke(); }

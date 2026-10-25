@@ -7,6 +7,7 @@ import type { RunArchiveStore } from "../memory/run-archive.ts";
 import type { GeneralAgentSession, SessionObservation, TaskRunResult } from "../runtime/session.ts";
 
 export interface TuiOptions {
+ readonly executionMode?:"sandbox";
 	/** Nonsecret configuration context for safe failure guidance only. */
 	readonly credentialSource?: 'environment' | 'keychain';
 	readonly maxAttachmentBytes?: number;
@@ -113,7 +114,7 @@ export async function runTui(options: TuiOptions): Promise<number> {
 	writeLine(`THINKING ${options.thinking}`);
 	writeLine(`KERNEL ${options.session.kernelKind}`);
 	writeLine(`WORKSPACE ${options.workspace}`);
-	writeLine("SHELL trusted-local: host-user authority; workspace is cwd, not containment or an OS sandbox.");
+	writeLine(options.executionMode==="sandbox"?"DOCKER SANDBOX: fixed offline container; retrieval disabled; one workspace per task.":"SHELL trusted-local: host-user authority; workspace is cwd, not containment or an OS sandbox.");
 
 	try {
 		// Frozen Reference retains its historical acknowledgement; Product CLI cannot select Pi.

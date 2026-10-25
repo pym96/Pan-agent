@@ -63,8 +63,8 @@ export class DailyWorkspace {
  private requestApproval(request:ApprovalRequest,signal:AbortSignal):Promise<ApprovalDecision>{
   if(signal.aborted)return Promise.resolve({requestId:request.requestId,decision:'deny'});
   const previous=this.overlay,focus=this.focus;this.clearDrag();
-  const choices:ApprovalChoice[]=request.tool==='bash'?['deny','allow-once','trust-shell']:['deny','allow-once'];
-  this.overlay={title:'Approval required',lines:['Choices: Deny / Allow once',...(request.tool==='bash'?['Or: Trust shell for this session']:[]),`Tool: ${terminalText(request.tool)}`,`Workspace: ${terminalText(request.workspace)}`,`Reason: ${request.reason}`,'Operation / target (scroll to inspect all):',terminalText(request.target),...request.metadata,`Request: ${request.requestId}`,...(request.tool==='bash'?['Shell has host-user file/process/network authority, including protected and outside-workspace resources. Session trust applies ONLY to Shell; :trust off revokes it.']:[]),'End of operation details'],offset:0,focus};
+  const choices:ApprovalChoice[]=request.tool==='bash'&&request.reason!=='sandbox_fixed_container'?['deny','allow-once','trust-shell']:['deny','allow-once'];
+  this.overlay={title:'Approval required',lines:['Choices: Deny / Allow once',...(request.tool==='bash'&&request.reason!=='sandbox_fixed_container'?['Or: Trust shell for this session']:[]),`Tool: ${terminalText(request.tool)}`,`Workspace: ${terminalText(request.workspace)}`,`Reason: ${request.reason}`,'Operation / target (scroll to inspect all):',terminalText(request.target),...request.metadata,`Request: ${request.requestId}`,...(request.tool==='bash'&&request.reason!=='sandbox_fixed_container'?['Shell has host-user file/process/network authority, including protected and outside-workspace resources. Session trust applies ONLY to Shell; :trust off revokes it.']:[]),'End of operation details'],offset:0,focus};
   return new Promise(resolve=>{
    let settled=false;
    const settle=(decision:ApprovalChoice)=>{if(settled)return;settled=true;signal.removeEventListener('abort',abort);this.approval=undefined;this.overlay=previous;this.focus=focus;this.barrier=true;resolve({requestId:request.requestId,decision});this.draw();};
@@ -302,7 +302,7 @@ export class DailyWorkspace {
     this.ensureLayout(w-3);
     const all=this.contentRows;
     const toolMarkerRow=selectedTool?this.layoutStarts[this.entries.indexOf(selectedTool)]!:-1;
-    if(!all.length){const intro=['Write a task. @ opens files; Tab attaches; Enter sends.','Provider: '+terminalText(this.options.provider),'Workspace: '+terminalText(this.options.workspace),'Host-user tools; cwd is not an OS sandbox.','Protected/outside/uncertain files and Shell ask before execution.'];body=intro.flatMap(s=>wrap(s,w-3).map(text=>({text,kind:'Pan'})));}
+    if(!all.length){const intro=['Write a task. @ opens files; Tab attaches; Enter sends.','Provider: '+terminalText(this.options.provider),'Workspace: '+terminalText(this.options.workspace),this.options.executionMode==='sandbox'?'DOCKER SANDBOX · offline container · retrieval disabled':'Host-user tools; cwd is not an OS sandbox.','Protected/outside/uncertain files and Shell ask before execution.'];body=intro.flatMap(s=>wrap(s,w-3).map(text=>({text,kind:'Pan'})));}
     else {
      if(this.revealTool&&selectedTool){this.follow=false;this.top=Math.max(0,(toolMarkerRow>=0?toolMarkerRow:0)-Math.floor(bodyRows/2));this.anchor=all[this.top]?.anchor;}
      this.revealTool=false;

@@ -421,3 +421,8 @@ export function createPanTrustedLocalTools(
 		].map(tool => enforce(tool as AgentTool)),
 	};
 }
+
+/** Pure schema/validation reuse; deliberately returns no host execution method or anchor. */
+export function panToolDefinitions():readonly Pick<AgentTool,'name'|'description'|'parameters'|'validate'>[]{
+ return ([readTool(''),writeTool(''),editTool(''),bashTool('',{})] as AgentTool[]).map(({name,description,parameters,validate})=>({name,description,parameters,validate}));
+}
