@@ -1,0 +1,175 @@
+{
+  "status": "builder-candidate-independent-review-pending",
+  "criteria": "SB1.0",
+  "baseline": "6040fcadde20e2628ba18550848f3bb2c725e68e",
+  "executed_product_sha": "056e7f8b35ce410fba1a61d17f3fcd7248ad4bbe",
+  "final_probe_sha": "25378697b20a02f2cc3ffa933fb4f4c55ea7121b",
+  "post_product_changes": "Only 2 probe scripts changed after executed product SHA; final evidence commit changes docs/evidence/sandbox only. All actual final snapshots match every product source hash.",
+  "package": {
+    "file": "pan-agent-0.1.8.tgz",
+    "sha256": "6c75c3b11083c42fa934cf3724a2c666d89e642c954e45466067f33323dbf935",
+    "bytes": 126658,
+    "published": false
+  },
+  "full_check": {
+    "tests": 234,
+    "pass": 234,
+    "fail": 0,
+    "skip": 0,
+    "log": "local-logs/sb148-finalcheck.log"
+  },
+  "real_docker": [
+    {
+      "name": "final-demo",
+      "source_manifest": "server/final-demo/source-manifest.json",
+      "source_manifest_sha256": "7f23b4727dec514dff01a6aaaeb9ebb4e3e37a49129ee355a20f86d6e686b566",
+      "watchdog_seconds": 5.719030857086182,
+      "exit_code": 0,
+      "runtime_hash_mismatches": []
+    },
+    {
+      "name": "final-boundary",
+      "source_manifest": "server/final-boundary/source-manifest.json",
+      "source_manifest_sha256": "7f23b4727dec514dff01a6aaaeb9ebb4e3e37a49129ee355a20f86d6e686b566",
+      "watchdog_seconds": 13.476152658462524,
+      "exit_code": 0,
+      "runtime_hash_mismatches": []
+    },
+    {
+      "name": "final-resources",
+      "source_manifest": "server/final-resources/source-manifest.json",
+      "source_manifest_sha256": "7f23b4727dec514dff01a6aaaeb9ebb4e3e37a49129ee355a20f86d6e686b566",
+      "watchdog_seconds": 9.22141408920288,
+      "exit_code": 0,
+      "runtime_hash_mismatches": []
+    },
+    {
+      "name": "final-export",
+      "source_manifest": "server/final-export/source-manifest.json",
+      "source_manifest_sha256": "7f23b4727dec514dff01a6aaaeb9ebb4e3e37a49129ee355a20f86d6e686b566",
+      "watchdog_seconds": 15.85100793838501,
+      "exit_code": 0,
+      "runtime_hash_mismatches": []
+    },
+    {
+      "name": "final-crash",
+      "source_manifest": "server/final-crash/source-manifest.json",
+      "source_manifest_sha256": "7f23b4727dec514dff01a6aaaeb9ebb4e3e37a49129ee355a20f86d6e686b566",
+      "watchdog_seconds": 16.087058782577515,
+      "exit_code": 0,
+      "runtime_hash_mismatches": []
+    },
+    {
+      "name": "final-gaps",
+      "source_manifest": "server/final-gaps/source-manifest.json",
+      "source_manifest_sha256": "7f23b4727dec514dff01a6aaaeb9ebb4e3e37a49129ee355a20f86d6e686b566",
+      "watchdog_seconds": 8.456083297729492,
+      "exit_code": 0,
+      "runtime_hash_mismatches": []
+    },
+    {
+      "name": "final-reader",
+      "source_manifest": "server/final-reader/source-manifest.json",
+      "source_manifest_sha256": "7f23b4727dec514dff01a6aaaeb9ebb4e3e37a49129ee355a20f86d6e686b566",
+      "watchdog_seconds": 1.7009050846099854,
+      "exit_code": 0,
+      "runtime_hash_mismatches": []
+    },
+    {
+      "name": "final-installed",
+      "source_manifest": "server/final-installed/source-manifest.json",
+      "source_manifest_sha256": "7f23b4727dec514dff01a6aaaeb9ebb4e3e37a49129ee355a20f86d6e686b566",
+      "watchdog_seconds": 5.868234872817993,
+      "exit_code": 0,
+      "runtime_hash_mismatches": []
+    },
+    {
+      "name": "final-boundary-complete",
+      "source_manifest": "server/final-boundary-complete/source-manifest.json",
+      "source_manifest_sha256": "b73144643defdf74e37413242ea784a27f3c4d3c89664d00f8ab2a730735db99",
+      "watchdog_seconds": 14.02674651145935,
+      "exit_code": 0,
+      "runtime_hash_mismatches": []
+    }
+  ],
+  "image": "python@sha256:a6e34c598f2467ed0e9a8d349809fcd8b5c603269512df273a0bb1784edc11b1",
+  "profile": {
+    "cpu": 1,
+    "memory_bytes": 536870912,
+    "pids": 64,
+    "tmpfs_bytes": 67108864,
+    "uid": 65534,
+    "gid": 65534,
+    "network": "none",
+    "max_running_owned": 2,
+    "disk_quota": false
+  },
+  "paid_model_calls": 0,
+  "gpu_calls": 0,
+  "remaining_resources": {
+    "running": 0,
+    "retained_volumes": 13,
+    "inventory": "server/resource-inventory.json",
+    "inventory_sha256": "bb8090c3aa3309d78fa89ddc9dda9e1a01f71714708e962512e9c52f5c1951a1"
+  },
+  "raw_evidence": {
+    "durable_root_alias": "~/.local/state/pan-agent/sandbox148-builder",
+    "manifest": "artifact-manifest.json",
+    "manifest_sha256": "ec5ac22d05a290166d2605092ad56ca985648825e9f358c57144674dae2b3c4a",
+    "files": 2786
+  },
+  "seeded_defect": {
+    "mutation": "Ignore unsafe tar entry type instead of rejecting",
+    "red": "local-logs/sb148-seeded-red.log",
+    "red_pass": 3,
+    "red_fail": 1,
+    "restored": "local-logs/sb148-seeded-control.log",
+    "restored_pass": 4
+  },
+  "install": {
+    "ordinary_tui": "tui-startup/startup.raw",
+    "receipt": "tui-startup/receipt.json",
+    "actual_native_dispatch": "server/final-installed/demo.json",
+    "missing_docker": "local-logs/sb148-unavailable.log",
+    "unsupported_controller_fixture": "local-logs/sb148-unsupported.log"
+  },
+  "criteria_map": {
+    "C-SB01": [
+      "server/final-installed/demo.json",
+      "local-logs/sb148-unavailable.log",
+      "local-logs/sb148-unsupported.log"
+    ],
+    "C-SB02": [
+      "server/final-boundary-complete/results.json",
+      "server/final-installed/demo.json",
+      "effective_profile events in server/final-demo state.json"
+    ],
+    "C-SB03": [
+      "server/final-resources/results.json",
+      "local-logs/sb148-seeded-control.log",
+      "server/final-resources/watchdog-receipt.json"
+    ],
+    "C-SB04": [
+      "server/final-resources",
+      "server/final-boundary-complete"
+    ],
+    "C-SB05": [
+      "server/final-export",
+      "server/final-installed/export",
+      "local-logs/sb148-seeded-red.log"
+    ],
+    "C-SB06": [
+      "server/gaps-red",
+      "server/final-gaps",
+      "server/final-reader",
+      "server/final-crash",
+      "server/final-boundary-complete"
+    ],
+    "C-SB07": [
+      "local-logs/sb148-finalcheck.log",
+      "package",
+      "tui-startup",
+      "server/final-installed"
+    ]
+  }
+}
