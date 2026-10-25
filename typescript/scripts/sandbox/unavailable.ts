@@ -1,0 +1,4 @@
+import assert from 'node:assert/strict';import {mkdir,readFile,writeFile} from 'node:fs/promises';import {runCli} from '../../src/cli.ts';import {FauxModelAdapter} from '../../src/providers/faux/faux-model-adapter.ts';
+const root=process.argv[2]!;await mkdir(root,{recursive:true});await mkdir(root+'/workspace');await writeFile(root+'/workspace/sentinel','UNMODIFIED');const adapter=new FauxModelAdapter([]);process.env.PATH='/definitely-no-docker';
+const status=await runCli(['--workspace',root+'/workspace','--memory-root',root+'/memory','--kernel','native','--sandbox-root',root+'/states'],{home:root+'/home',createNativeAdapter:()=>adapter,startTui:async o=>{await assert.rejects(()=>o.session.runTask('must not reach model'),/ENOENT/);await o.session.close();return 0;}});
+assert.equal(status,0);assert.equal(adapter.state.exchangeCount,0);assert.equal(await readFile(root+'/workspace/sentinel','utf8'),'UNMODIFIED');console.log('UNAVAILABLE_NO_FALLBACK_PASS');

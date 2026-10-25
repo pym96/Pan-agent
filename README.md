@@ -8,7 +8,7 @@ A terminal agent for working with local files and shell commands. Watch tool cal
 - An interactive terminal. Validated on macOS arm64; Linux and Windows are not yet verified for this release.
 - For real tasks: a DeepSeek or Kimi Code API key. The offline demo requires no key.
 
-The installed runtime needs no Python, Go, Docker, PostgreSQL, Redis or TypeScript compiler.
+The default local runtime needs no Python, Go, Docker, PostgreSQL, Redis or TypeScript compiler. Optional Docker sandbox mode requires a compatible Linux Docker daemon and the pinned image described below.
 
 ## Install
 
@@ -37,7 +37,7 @@ mkdir -p artifacts
 (cd typescript && npm pack --pack-destination ../artifacts)
 mkdir -p consumer
 cd consumer
-npm install ../artifacts/pan-agent-0.1.7.tgz --omit=dev --ignore-scripts --no-audit --no-fund
+npm install ../artifacts/pan-agent-0.1.8.tgz --omit=dev --ignore-scripts --no-audit --no-fund
 ```
 
 ## Configure and run real tasks
@@ -174,3 +174,28 @@ Each call refreshes from source; there is no persistent search cache. Reconfigur
 Settings persist in `workspace/.pan-agent/retrieval.json` across restarts. Replacement of a selected root or directly selected memory file requires reconfiguration. Ordinary source content updates/deletes appear on the next call. Originals are never edited by retrieval. Protected files and unsupported links are skipped with diagnostics; corrupt/unsealed history is not trusted. Large corpora return explicit partial/truncated results. Default matching is lexical: all query terms must occur in one800-character chunk; it does not promise paraphrase or semantic recall. [Full limits and authority design](docs/design/retrieval-tool.md).
 
 Offline review tooling: [executable verification](scripts/verification/README.md) (`node scripts/verification/cli.mjs --help`); machine evidence does not replace independent acceptance.
+
+## Optional Docker sandbox (source candidate)
+
+Build/install the source package above, then start the ordinary TUI with:
+
+```sh
+./node_modules/.bin/pan-agent --kernel native --sandbox-root "$PWD/sandbox-state" \
+  --sandbox-input "$PWD/input.txt" --memory-root "$PWD/archives"
+```
+
+Each task gets a separate non-root container and workspace volume. `read`, `write`, `edit` and `bash` run there; selected files appear read-only under `/inputs`, outputs go under `/workspace/task`. Retrieval is disabled in this mode. Tool approval cannot add host mounts or network access. API credentials and the agent loop remain on the host. Omitting `--sandbox-root` preserves trusted-local execution.
+
+This profile uses a pinned Python image, no network, a read-only root filesystem, 1 CPU, 512 MiB RAM and 64 PIDs. It requires Linux Docker with cgroup v2 and working resource controllers; unsupported/rootless configurations fail closed. The volume has **no filesystem quota**: memory/PID bounds are enforced, while disk protection is a preflight threshold and bounded export. Docker access itself is a trusted host privilege.
+
+After a task (or controller interruption), use explicit lifecycle commands:
+
+```sh
+pan-agent sandbox list --root "$PWD/sandbox-state"
+pan-agent sandbox recover --run /absolute/path/to/sandbox-state/RUN_ID
+pan-agent sandbox verify --run /absolute/path/to/sandbox-state/RUN_ID --command 'test -f result.txt' --seconds 10
+pan-agent sandbox export --run /absolute/path/to/sandbox-state/RUN_ID --out "$PWD/task-export"
+pan-agent sandbox cleanup --run /absolute/path/to/sandbox-state/RUN_ID
+```
+
+Recovery stops uncertain execution; it never replays task commands. Verification is explicit and runs separately against a read-only workspace after the agent container stops. Cleanup requires a rechecked export manifest, receipt and file hashes. Keep the state directory until cleanup completes; deleting it loses the recovery record. Exports accept regular files only (at most 1,000 files / 64 MiB); links, special files and unsupported tar extensions fail with the volume retained.

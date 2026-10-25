@@ -1,9 +1,38 @@
-import assert from 'node:assert/strict';import {mkdir,writeFile,readFile,lstat} from 'node:fs/promises';import {DockerSandbox,docker} from '../../src/sandbox/docker.ts';
-const root=process.argv[2]!;await mkdir(root+'/states');const signal=new AbortController().signal;const results:any[]=[];
-let inject=true;const box=await DockerSandbox.prepare({stateRoot:root+'/states',onCheckpoint:async kind=>{if(kind==='archive_directory_committed'&&inject){inject=false;throw Error('injected_receipt_failure');}}});
-await box.call('write',{path:'output.txt',content:'SOLE_COPY'},signal);await box.stop();await assert.rejects(()=>box.export(root+'/export'),/injected_receipt_failure/);assert.equal(box.identity.phase,'stopped');await docker(['volume','inspect',box.identity.volume]);
-const recovered=await DockerSandbox.load(box.directory);await recovered.recover();await recovered.export(root+'/export');assert.equal(await readFile(root+'/export/files/output.txt','utf8'),'SOLE_COPY');await writeFile(root+'/export/files/output.txt','tampered');await assert.rejects(()=>recovered.cleanup(),/archive_file_changed/);await docker(['volume','inspect',box.identity.volume]);await writeFile(root+'/export/files/output.txt','SOLE_COPY');await recovered.cleanup();results.push({receiptRetry:true,changedArchivePreventedCleanup:true});
-for(const [name,command,pattern] of [['link',"ln -s /etc/passwd bad",/unsafe_type/],['fifo','mkfifo bad',/unsafe_type/],['count',"python -c \"from pathlib import Path;[Path(str(i)).touch() for i in range(1001)]\"",/export_limit/],['size',"truncate -s 67108865 huge",/export_limit/]] as const){
- const b=await DockerSandbox.prepare({stateRoot:root+'/states'});assert.equal((await b.call('bash',{command,timeout:10},signal)).code,0);await b.stop();await assert.rejects(()=>b.export(root+'/'+name),pattern);await docker(['volume','inspect',b.identity.volume]);await assert.rejects(()=>lstat(root+'/'+name));results.push({name,identity:b.identity,volumePreserved:true});await writeFile(root+'/results.json',JSON.stringify(results,null,2));
+import assert from 'node:assert/strict';
+import { mkdir, writeFile, readFile, lstat } from 'node:fs/promises';
+import { DockerSandbox, docker } from '../../src/sandbox/docker.ts';
+const root = process.argv[2]!;
+await mkdir(root + '/states');
+const signal = new AbortController().signal;
+const results: any[] = [];
+let inject = true;
+const box = await DockerSandbox.prepare({ stateRoot: root + '/states', onCheckpoint: async (kind) => { if (kind === 'archive_directory_committed' && inject) {
+        inject = false;
+        throw Error('injected_receipt_failure');
+    } } });
+await box.call('write', { path: 'output.txt', content: 'SOLE_COPY' }, signal);
+await box.stop();
+await assert.rejects(() => box.export(root + '/export'), /injected_receipt_failure/);
+assert.equal(box.identity.phase, 'stopped');
+await docker(['volume', 'inspect', box.identity.volume]);
+const recovered = await DockerSandbox.load(box.directory);
+await recovered.recover();
+await recovered.export(root + '/export');
+assert.equal(await readFile(root + '/export/files/output.txt', 'utf8'), 'SOLE_COPY');
+await writeFile(root + '/export/files/output.txt', 'tampered');
+await assert.rejects(() => recovered.cleanup(), /archive_file_changed/);
+await docker(['volume', 'inspect', box.identity.volume]);
+await writeFile(root + '/export/files/output.txt', 'SOLE_COPY');
+await recovered.cleanup();
+results.push({ receiptRetry: true, changedArchivePreventedCleanup: true });
+for (const [name, command, pattern] of [['link', "ln -s /etc/passwd bad", /unsafe_type/], ['fifo', 'mkfifo bad', /unsafe_type/], ['count', "python -c \"from pathlib import Path;[Path(str(i)).touch() for i in range(1001)]\"", /export_limit/], ['size', "truncate -s 67108865 huge", /export_limit/]] as const) {
+    const b = await DockerSandbox.prepare({ stateRoot: root + '/states' });
+    assert.equal((await b.call('bash', { command, timeout: 10 }, signal)).code, 0);
+    await b.stop();
+    await assert.rejects(() => b.export(root + '/' + name), pattern);
+    await docker(['volume', 'inspect', b.identity.volume]);
+    await assert.rejects(() => lstat(root + '/' + name));
+    results.push({ name, identity: b.identity, volumePreserved: true });
+    await writeFile(root + '/results.json', JSON.stringify(results, null, 2));
 }
 console.log('EXPORT_FAILURE_RETRY_PASS');

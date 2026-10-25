@@ -146,3 +146,5 @@ Raw artifacts remain at their stable source, Git, Trace, Test, evaluator, or ext
 - [#115 Stage A budget adaptation](demo-video-115.md) / [summary](demo-video-115-summary.json): offline56GiB profile, unchanged old54GiB modes; pending independent review, no real demo run.
 
 - [Retrieval candidate evidence](retrieval-tool/README.md): #144 Criteria1.0 synthetic query manifest, authorization negatives and installed offline integration; pending independent and additional boundary review.
+
+- [Docker sandbox #148](sandbox/README.md): candidate CPU Docker evidence and retained failures.
