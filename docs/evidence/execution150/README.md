@@ -2,7 +2,7 @@
 
 WorkOrder: https://github.com/pym96/Pan-agent/issues/150 . Accepted parent: ebd093e9d6d18913a334030c3f66e6b11e70bd33. Working Agent implementation; independent review and supplemental high-risk gate remain outstanding.
 
-At this preparation checkpoint, Stage A contains TypeScript policy tests and installed-package pytest results. Stage B actual Docker is not yet authorized/executed. No passing full-delivery claim or PR is made here. The final SHA-bound Handoff will replace this paragraph with exact source, package and external evidence identities after required tests.
+Current delivery is a [partial Handoff](Handoff-partial-20261102.md): CPU gates passed; actual Docker goal passed one case, but server I/O stalls interrupted required lifecycle/regression gates. No full-delivery claim or PR. Exact tested source, package, raw evidence and remaining criteria are bound in that record.
 
 Representative failures retained during implementation:
 
@@ -15,4 +15,4 @@ Representative failures retained during implementation:
 Human set architecture, constraints and criteria. Coding Agent implemented and investigated; independent Regulator has not yet accepted this candidate. No project fact, resume statement or public benchmark is promoted.
 
 6. Pre-Docker self-audit found that a reserved model call with no settlement looked like reported zero usage. The ledger now records unavailable usage for outstanding or usage-missing model calls, including restored nonzero counts; targeted tests preserve this distinction. Stage B authorization for 4fbb559 was retired before any server execution.
-7. The same audit caught export-before-verifier phase mismatch: recovery intentionally retains archived state. Goal verification now accepts a valid archived snapshot only with its owned stopped container, checks archive integrity before and after readonly verification, and never reopens generation. Offline negative gates cover running, missing, wrong-owned container, tampered archive, unknown and cleaned phase. Real Docker remains a separately required gate.
+7. The same audit caught export-before-verifier phase mismatch: recovery intentionally retains archived state. Goal verification now accepts a valid archived snapshot only with its owned stopped container, checks archive integrity before and after readonly verification, and never reopens generation. Offline negative gates cover running, missing, wrong-owned container, tampered archive, unknown and cleaned phase. The later actual Docker goal case passed; the complete Docker gate remains outstanding as recorded in the partial Handoff.
