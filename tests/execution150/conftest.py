@@ -1,4 +1,4 @@
-import json, os, pathlib, subprocess, sys, selectors, time
+import json, os, pathlib, subprocess, sys, selectors, time, tarfile, hashlib
 import pytest
 
 HERE = pathlib.Path(__file__).parent
@@ -7,6 +7,23 @@ HERE = pathlib.Path(__file__).parent
 def installed(tmp_path_factory):
     package = os.environ.get('PAN_PACKAGE')
     assert package and pathlib.Path(package).is_file(), 'PAN_PACKAGE must name the candidate npm pack tarball; no source-CLI substitute'
+    prepared = os.environ.get('PAN_PREINSTALLED_ROOT')
+    if prepared:
+        root = pathlib.Path(prepared).resolve()
+        installed_package = root / 'node_modules' / 'pan-agent'
+        # Reuse is allowed only for exact tarball bytes, not a version/name claim.
+        with tarfile.open(package, 'r:gz') as archive:
+            for member in archive.getmembers():
+                if member.isdir(): continue
+                assert member.isfile() and member.name.startswith('package/')
+                relative = pathlib.PurePosixPath(member.name).relative_to('package')
+                assert '..' not in relative.parts
+                target = installed_package / relative
+                assert target.is_file() and not target.is_symlink()
+                assert hashlib.sha256(target.read_bytes()).digest() == hashlib.sha256(archive.extractfile(member).read()).digest()
+        cli = root / 'node_modules' / '.bin' / 'pan-agent'
+        assert cli.resolve() == (installed_package / 'bin' / 'pan-agent.mjs').resolve()
+        return cli
     root = tmp_path_factory.mktemp('consumer')
     result = subprocess.run(['npm', 'install', '--offline', '--ignore-scripts', '--omit=dev', '--prefix', str(root), package], capture_output=True, text=True, timeout=120)
     assert result.returncode == 0, result.stderr

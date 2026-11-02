@@ -2,7 +2,7 @@
 
 WorkOrder: https://github.com/pym96/Pan-agent/issues/150 . Accepted parent: ebd093e9d6d18913a334030c3f66e6b11e70bd33. Working Agent implementation; independent review and supplemental high-risk gate remain outstanding.
 
-Current delivery is a [partial Handoff](Handoff-partial-20261102.md): CPU gates passed; actual Docker goal passed one case, but server I/O stalls interrupted required lifecycle/regression gates. No full-delivery claim or PR. Exact tested source, package, raw evidence and remaining criteria are bound in that record.
+Current repair is recorded in [R150-01/R150-02 Handoff](Handoff-repair1-20261102.md), pending independent re-review. The preceding delivery is a [partial Handoff](Handoff-partial-20261102.md): CPU gates passed; actual Docker goal passed one case, but server I/O stalls interrupted required lifecycle/regression gates. No full-delivery claim or PR. Exact tested source, package, raw evidence and remaining criteria are bound in that record.
 
 Representative failures retained during implementation:
 
