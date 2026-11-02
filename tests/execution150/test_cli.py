@@ -92,3 +92,57 @@ def test_controller_crash_stops_worker_and_preserves_uncertain_admission(case):
     try: os.kill(identity['workerPid'],0)
     except ProcessLookupError: pass
     else: pytest.fail('worker remained after controller death')
+
+def test_frozen_supervisor_returns_bounded_unknown(case):
+    case['fixture'].write_text(json.dumps([{'kind':'pending'}]))
+    args=case['base'][:];args[args.index('--for')+1]='2s'
+    supervisor=None;frozen=False
+    def freeze(event,proc):
+        nonlocal supervisor,frozen
+        if event.get('type')=='worker_identity': supervisor=event['supervisorPid']
+        if event.get('type')=='budget.reserved' and supervisor and not frozen:
+            os.kill(supervisor,signal.SIGSTOP);frozen=True
+    try:
+        code,events,stderr=case['run'](args,on_event=freeze)
+        assert frozen and code==1,(events,stderr)
+        assert terminal(events)['reason']=='stop_unconfirmed'
+        latency=next(e for e in events if e.get('type')=='execution.stop_latency')
+        assert latency['ms']<=5000 and not latency['workerConfirmed']
+    finally:
+        if supervisor:
+            try:os.kill(supervisor,signal.SIGCONT)
+            except ProcessLookupError:pass
+
+def test_verifier_timeout_survives_cli_death(goal):
+    root=goal['root'];pidfile=root/'verifier.pid';heartbeat=root/'verifier.heartbeat'
+    goal['verifier'].write_text(json.dumps({'version':'R-parent-death','command':f'echo $$ > {pidfile}; trap "" TERM; while :; do echo beat >> {heartbeat}; sleep 0.05; done','seconds':2}))
+    args=goal['args'][:];args[args.index('--for')+1]='10s'
+    # No child-cleaning wrapper: it would mask the product's missing owner.
+    with (root/'death.stdout').open('w') as out,(root/'death.stderr').open('w') as err:
+        proc=subprocess.Popen(args,stdin=subprocess.DEVNULL,stdout=out,stderr=err,start_new_session=True)
+        pid=None
+        try:
+            until=time.monotonic()+4
+            while not pidfile.exists() and time.monotonic()<until:time.sleep(.02)
+            assert pidfile.exists(),'verifier did not start'
+            pid=int(pidfile.read_text());before=heartbeat.stat().st_size
+            inventory=subprocess.check_output(['ps','-axo','pid=,ppid=,pgid=,rss=,lstart=,command='],text=True)
+            rows=[line for line in inventory.splitlines() if len(line.split(None,2))>=3]
+            owned={proc.pid}
+            while True:
+                more={int(line.split(None,2)[0]) for line in rows if int(line.split(None,2)[1]) in owned}
+                if more<=owned:break
+                owned|=more
+            (root/'process-inventory.txt').write_text('\n'.join(line for line in rows if int(line.split(None,2)[0]) in owned))
+            assert len(owned)<=12
+            os.kill(proc.pid,signal.SIGKILL);proc.wait(timeout=3);time.sleep(3)
+            after=heartbeat.stat().st_size
+            current=subprocess.run(['ps','-p',str(pid),'-o','stat='],capture_output=True,text=True).stdout.strip()
+            assert not current or current.startswith('Z'),current
+            assert after-before<40,(before,after)
+            assert not (root/'state'/'result.json').exists()
+        finally:
+            if pid:
+                try:os.killpg(pid,signal.SIGKILL)
+                except ProcessLookupError:pass
+            if proc.poll() is None:proc.kill();proc.wait()

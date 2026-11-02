@@ -7,6 +7,7 @@ One admission implementation is shared by ordinary NativeKernel tasks and schedu
 - [cli.ts](cli.ts): operator plan/verifier validation, exclusive execution identity and existing RunArchive persistence.
 - [process-runner.ts](process-runner.ts): worker IPC, frozen candidates, verifier and bounded maintenance orchestration.
 - [supervisor.ts](supervisor.ts): independent deadline/disconnect observer; owns worker and supervised shell process groups. Shell command release waits for durable ownership acknowledgement.
+- [verifier-executor.ts](verifier-executor.ts): separate local verifier ownership, output bounds, timeout and controller-disconnect cleanup.
 - [worker.ts](worker.ts): normal Session/NativeKernel/tools, retained session context and RPC admission. Worker results are correlated to their active attempt.
 - [maintenance.ts](maintenance.ts): bounded private Docker recovery/export/cleanup helper.
 

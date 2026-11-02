@@ -23,18 +23,19 @@ export async function treeManifest(root:string):Promise<{path:string;bytes:numbe
  await visit('');return files;
 }
 async function copySnapshot(source:string,dest:string){const manifest=await treeManifest(source);await mkdir(dest,{recursive:false});for(const f of manifest){const data=await readFile(join(source,f.path));if(createHash('sha256').update(data).digest('hex')!==f.sha256)throw Error('candidate_changed');const p=join(dest,f.path);await mkdir(dirname(p),{recursive:true});await writeFile(p,data,{flag:'wx',mode:0o400});}if(identity(await treeManifest(dest))!==identity(manifest))throw Error('snapshot_mismatch');return manifest;}
-/** Captured outputs and actual process exit are separate from timer/Abort observations. */
+/** Independent executor owns verifier lifetime, including disappearance of this caller. */
 export function runVerifier(command:string,cwd:string,seconds:number,signal:AbortSignal):Promise<{code:number|null;stdout:string;stderr:string}> {
  return new Promise((resolve,reject)=>{
   if(signal.aborted){reject(Error('verifier_cancelled'));return;}
-  const child=spawn('/bin/sh',['-c',command],{cwd,detached:true,stdio:['ignore','pipe','pipe'],env:{PATH:process.env.PATH,HOME:cwd}});let stdout='',stderr='',problem:string|undefined;
-  const kill=()=>{if(child.pid)try{process.kill(-child.pid,'SIGKILL');}catch{}};
-  const abort=()=>{problem='verifier_cancelled';kill();};signal.addEventListener('abort',abort,{once:true});
-  const timer=setTimeout(()=>{problem='verifier_timeout';kill();},seconds*1000);
-  child.stdout.on('data',b=>{stdout+=b.toString();if(Buffer.byteLength(stdout)>1048576){problem='verifier_output_limit';kill();}});
-  child.stderr.on('data',b=>{stderr+=b.toString();if(Buffer.byteLength(stderr)>1048576){problem='verifier_output_limit';kill();}});
-  child.on('error',error=>{clearTimeout(timer);signal.removeEventListener('abort',abort);reject(error);});
-  child.on('close',code=>{clearTimeout(timer);signal.removeEventListener('abort',abort);kill();problem?reject(Error(problem)):resolve({code,stdout,stderr});});
+  const child=fork(fileURLToPath(new URL(import.meta.url.endsWith('.ts')?'./verifier-executor.ts':'./verifier-executor.js',import.meta.url)),[],{stdio:['ignore','ignore','ignore','ipc'],execArgv:['--max-old-space-size=128']});
+  let settled=false;
+  const finish=(error?:Error,result?:{code:number|null;stdout:string;stderr:string})=>{if(settled)return;settled=true;clearTimeout(timer);signal.removeEventListener('abort',abort);if(child.connected)child.disconnect();error?reject(error):resolve(result!);};
+  const abort=()=>{if(child.connected)child.send({type:'stop'});};
+  const timer=setTimeout(()=>{child.kill('SIGKILL');finish(Error('verifier_stop_unconfirmed'));},seconds*1000+2000);
+  signal.addEventListener('abort',abort,{once:true});
+  child.on('message',(m:any)=>{if(m?.type==='result')finish(m.error?Error(m.error):undefined,m.result);});
+  child.on('error',e=>finish(e));child.on('exit',()=>{if(!settled)finish(Error('verifier_executor_exited'));});
+  child.send({type:'start',command,cwd,seconds});if(signal.aborted)abort();
  });
 }
 export class ProcessTaskRunner implements TaskRunner {
@@ -126,7 +127,14 @@ export class ProcessTaskRunner implements TaskRunner {
    const start=performance.now();if(this.child?.connected)this.child.send({type:'stop'});
    let boxesStopped=true;
    const boxes=this.generationSettled?Promise.resolve():this.maintenance('stop',4500).catch(async error=>{boxesStopped=false;await this.config.record({type:'sandbox.stop_error',detail:String(error)});});
-   const confirmed=this.child?await this.stopped!:true;await boxes;
+   let watchdog:NodeJS.Timeout|undefined;
+   const bounded=this.child?new Promise<boolean>(resolve=>{watchdog=setTimeout(()=>{
+    // The supervisor itself may be frozen. Never wait for its event loop as proof of stopping.
+    this.pending?.reject(Error('supervisor_stop_unconfirmed'));this.pending=undefined;
+    this.failReady?.(Error('supervisor_stop_unconfirmed'));this.child?.kill('SIGKILL');resolve(false);
+   },4500);}):Promise.resolve(true);
+   const confirmed=this.child?await Promise.race([this.stopped!,bounded]):true;
+   clearTimeout(watchdog);await boxes;
    const latency=performance.now()-start;await this.config.record({type:'execution.stop_latency',reason,ms:latency,workerConfirmed:confirmed,boxesStopped});return confirmed&&boxesStopped&&latency<=5000;
   })();return this.stopResult;
  }

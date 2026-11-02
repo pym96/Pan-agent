@@ -39,3 +39,9 @@ Existing execution state cannot be reused. `execution inspect` reads metadata an
 Single-controller local execution, one serial generation worker. No scheduler daemon, recursive agents, distributed coordination, automatic schedule resume, public service, new DB, GPU, or real-model quality claim. A custom embedded TaskRunner must itself enforce termination/preservation; the state-machine interface cannot preempt arbitrary in-process code. Trusted-local host authority is not an adversarial sandbox, including deliberate `setsid` escape. Process supervision and sampled test RSS limits are not a kernel-enforced memory isolation claim. High-risk authority/lifecycle changes require independent and supplemental review before acceptance.
 
 Tests and demos: [execution150](../../tests/execution150/README.md). Source: [execution module](../../typescript/src/execution/README.md).
+
+## Repair R150-01 / R150-02
+
+Supervisor responsiveness is not proof of termination. The caller now has a separate 4.5-second confirmation deadline; a frozen supervisor yields `stop_unconfirmed`, rejects pending work and kills only the caller's own supervisor process. Worker disconnect closes its RPCs. This bounds reporting without pretending every descendant has been confirmed stopped.
+
+Local verifier execution has its own small process owner (`verifier-executor.ts`, 128MiB Node heap). That owner enforces output/elapsed limits and kills its exact shell process group when the CLI disconnects. Keeping the timer only in the CLI was insufficient: SIGKILL removed both the timer and the cleanup handler. The CLI still independently bounds its wait for the executor; disappearance of a controller never manufactures a successful result. These are trusted-local fault-handling boundaries, not isolation from a hostile same-user process or arbitrary session escape.
