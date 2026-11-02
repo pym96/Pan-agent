@@ -1,4 +1,4 @@
-import { fork, spawn, type ChildProcess } from 'node:child_process';
+import { fork, spawn, execFileSync, type ChildProcess } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { constants } from 'node:fs';
 import { mkdir,open,readdir,lstat,writeFile,readFile } from 'node:fs/promises';
@@ -23,18 +23,37 @@ export async function treeManifest(root:string):Promise<{path:string;bytes:numbe
  await visit('');return files;
 }
 async function copySnapshot(source:string,dest:string){const manifest=await treeManifest(source);await mkdir(dest,{recursive:false});for(const f of manifest){const data=await readFile(join(source,f.path));if(createHash('sha256').update(data).digest('hex')!==f.sha256)throw Error('candidate_changed');const p=join(dest,f.path);await mkdir(dirname(p),{recursive:true});await writeFile(p,data,{flag:'wx',mode:0o400});}if(identity(await treeManifest(dest))!==identity(manifest))throw Error('snapshot_mismatch');return manifest;}
-/** Independent executor owns verifier lifetime, including disappearance of this caller. */
-export function runVerifier(command:string,cwd:string,seconds:number,signal:AbortSignal):Promise<{code:number|null;stdout:string;stderr:string}> {
+/** Two existing owners share a pre-effect identity: either healthy event loop can stop the verifier. */
+export function runVerifier(command:string,cwd:string,seconds:number,signal:AbortSignal,record:AccountingSink=async()=>{}):Promise<{code:number|null;stdout:string;stderr:string}> {
  return new Promise((resolve,reject)=>{
   if(signal.aborted){reject(Error('verifier_cancelled'));return;}
   const child=fork(fileURLToPath(new URL(import.meta.url.endsWith('.ts')?'./verifier-executor.ts':'./verifier-executor.js',import.meta.url)),[],{stdio:['ignore','ignore','ignore','ipc'],execArgv:['--max-old-space-size=128']});
-  let settled=false;
+  let settled=false,stopping=false,executorExited=false,owned:{pid:number;birth:string}|undefined;
+  const birth=(pid:number)=>{try{return execFileSync('ps',['-p',String(pid),'-o','lstart='],{encoding:'utf8',timeout:200}).trim();}catch{return '';}};
+  const alive=()=>{if(!owned)return false;try{return execFileSync('ps',['-axo','pgid=,stat='],{encoding:'utf8',timeout:200,maxBuffer:4*1024*1024}).split('\n').some(l=>{const [g,state]=l.trim().split(/\s+/);return Number(g)===owned!.pid&&state&&!state.startsWith('Z');});}catch{return true;}};
   const finish=(error?:Error,result?:{code:number|null;stdout:string;stderr:string})=>{if(settled)return;settled=true;clearTimeout(timer);signal.removeEventListener('abort',abort);if(child.connected)child.disconnect();error?reject(error):resolve(result!);};
-  const abort=()=>{if(child.connected)child.send({type:'stop'});};
-  const timer=setTimeout(()=>{child.kill('SIGKILL');finish(Error('verifier_stop_unconfirmed'));},seconds*1000+2000);
+  const stop=async(reason:string)=>{
+   if(settled||stopping)return;stopping=true;let uncertain=false;
+   if(owned){const current=birth(owned.pid);if(current&&current!==owned.birth)uncertain=true;else try{process.kill(-owned.pid,'SIGKILL');}catch(e){if((e as NodeJS.ErrnoException).code!=='ESRCH')uncertain=true;}}
+   // Continue only our direct executor so it can reap its now-killed child; do not rely on that to kill the group.
+   child.kill('SIGCONT');if(child.connected)child.send({type:'stop'});
+   const until=performance.now()+1000;while((alive()||!executorExited)&&performance.now()<until)await new Promise(r=>setTimeout(r,25));
+   const confirmed=!uncertain&&!!owned&&!alive();child.kill('SIGKILL');
+   try{await record({type:'verifier.stop',reason,confirmed,executorPid:child.pid,owned});}catch{}
+   finish(Error(confirmed?reason:'verifier_stop_unconfirmed'));
+  };
+  const abort=()=>{void stop('verifier_cancelled');};
+  const timer=setTimeout(()=>{void stop('verifier_timeout');},seconds*1000);
   signal.addEventListener('abort',abort,{once:true});
-  child.on('message',(m:any)=>{if(m?.type==='result')finish(m.error?Error(m.error):undefined,m.result);});
-  child.on('error',e=>finish(e));child.on('exit',()=>{if(!settled)finish(Error('verifier_executor_exited'));});
+  child.on('message',(m:any)=>{
+   if(m?.type==='owned'&&!owned&&!stopping){
+    if(!Number.isSafeInteger(m.pid)||m.pid<=1||!m.birth||birth(m.pid)!==m.birth){void stop('verifier_identity_unknown');return;}
+    owned={pid:m.pid,birth:m.birth};
+    void record({type:'verifier.owned',executorPid:child.pid,...owned}).then(()=>{if(!settled&&!stopping&&child.connected)child.send({type:'ownership_ack'});},()=>{void stop('verifier_ownership_record_failed');});return;
+   }
+   if(m?.type==='result'&&!stopping){if(alive()){void stop('verifier_descendants_remaining');return;}finish(m.error?Error(m.error):undefined,m.result);}
+  });
+  child.on('error',()=>{void stop('verifier_executor_error');});child.on('exit',()=>{executorExited=true;if(!settled&&!stopping)void stop('verifier_executor_exited');});
   child.send({type:'start',command,cwd,seconds});if(signal.aborted)abort();
  });
 }
@@ -103,7 +122,7 @@ export class ProcessTaskRunner implements TaskRunner {
  async verify(attempt:Attempt,signal:AbortSignal):Promise<Verdict>{
   const candidate=attempt.candidate;const spec=this.verifier;if(!candidate||!spec)throw Error('verifier_missing');
   const directory=String(candidate.directory);const before=identity(await treeManifest(directory));if(before!==candidate.identity)throw Error('candidate_changed');
-  const result=candidate.sandbox?await (await DockerSandbox.load(String(candidate.sandbox))).verify(spec.command,spec.seconds):await runVerifier(spec.command,directory,spec.seconds,signal);
+  const result=candidate.sandbox?await (await DockerSandbox.load(String(candidate.sandbox))).verify(spec.command,spec.seconds):await runVerifier(spec.command,directory,spec.seconds,signal,this.config.record);
   const after=identity(await treeManifest(directory));if(before!==after)throw Error('candidate_changed');
   if(candidate.sandbox){await (await DockerSandbox.load(String(candidate.sandbox))).checkArchive();}
   await this.config.record({type:'verifier.result',candidateIdentity:before,verifierIdentity:this.verifierIdentity,result});

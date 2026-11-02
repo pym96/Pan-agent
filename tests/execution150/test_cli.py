@@ -146,3 +146,43 @@ def test_verifier_timeout_survives_cli_death(goal):
                 try:os.killpg(pid,signal.SIGKILL)
                 except ProcessLookupError:pass
             if proc.poll() is None:proc.kill();proc.wait()
+
+def test_frozen_verifier_owner_parent_fallback_and_sentinel(goal):
+    root=goal['root'];pidfile=root/'owner-verifier.pid';heartbeat=root/'owner-verifier.heartbeat'
+    goal['verifier'].write_text(json.dumps({'version':'owner-stop','command':f'echo $$ > {pidfile}; trap "" TERM; while :; do echo beat >> {heartbeat}; sleep 0.05; done','seconds':2}))
+    args=goal['args'][:];args[args.index('--for')+1]='10s'
+    sentinel=subprocess.Popen(['sleep','20']);pid=None;owner=None
+    with (root/'owner.stdout').open('w') as out,(root/'owner.stderr').open('w') as err:
+        proc=subprocess.Popen(args,stdin=subprocess.DEVNULL,stdout=out,stderr=err,start_new_session=True)
+        try:
+            until=time.monotonic()+4
+            while not pidfile.exists() and time.monotonic()<until:time.sleep(.02)
+            assert pidfile.exists()
+            pid=int(pidfile.read_text());owner=int(subprocess.check_output(['ps','-p',str(pid),'-o','ppid='],text=True))
+            rows=subprocess.check_output(['ps','-axo','pid=,ppid=,pgid=,rss=,lstart=,command='],text=True).splitlines()
+            owned={proc.pid,sentinel.pid}
+            while True:
+                more={int(line.split(None,2)[0]) for line in rows if int(line.split(None,2)[1]) in owned}
+                if more<=owned:break
+                owned|=more
+            (root/'owner-process-inventory.txt').write_text('\n'.join(line for line in rows if int(line.split(None,2)[0]) in owned))
+            assert len(owned)+2<=12  # pytest and its outer watchdog
+            os.kill(owner,signal.SIGSTOP);time.sleep(5)
+            current=subprocess.run(['ps','-p',str(pid),'-o','stat='],capture_output=True,text=True).stdout.strip()
+            assert not current,current
+            before=heartbeat.read_bytes();time.sleep(.1);assert heartbeat.read_bytes()==before
+            proc.wait(timeout=2);assert proc.returncode==1
+            assert json.loads((root/'state/result.json').read_text())['reason']=='needs_review'
+            events=[json.loads(line) for line in (root/'owner.stdout').read_text().splitlines()]
+            assert any(e.get('type')=='verifier.owned' and e['pid']==pid for e in events)
+            assert any(e.get('type')=='verifier.stop' and e['confirmed'] for e in events)
+            assert sentinel.poll() is None
+        finally:
+            if owner:
+                try:os.kill(owner,signal.SIGCONT)
+                except ProcessLookupError:pass
+            if pid:
+                try:os.killpg(pid,signal.SIGKILL)
+                except ProcessLookupError:pass
+            if proc.poll() is None:proc.kill();proc.wait()
+            sentinel.terminate();sentinel.wait()
