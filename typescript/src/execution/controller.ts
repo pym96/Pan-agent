@@ -42,7 +42,7 @@ export class ExecutionController {
   const deadlineTask=this.clock.sleep(plan.durationMs,deadlineCancel.signal).then(()=>this.requestStop('deadline_exceeded')).catch(()=>{});
   // Stopping the runner happens independently of its cooperation with run()/the worker event loop.
   let stopPromise:Promise<boolean>|undefined;
-  const stop=()=>{stopPromise??=this.record({type:'execution.stop_requested',reason:this.reason,at:this.clock.now()}).then(()=>runner.stop(this.reason??'cancelled'));};
+  const stop=()=>{if(stopPromise)return;const termination=runner.stop(this.reason??'cancelled');stopPromise=(async()=>{try{await this.record({type:'execution.stop_requested',reason:this.reason,at:this.clock.now()});}catch{/* Logging failure cannot prevent revocation/termination. */}return termination;})();};
   this.abort.signal.addEventListener('abort',stop,{once:true});
   const reconcileTask=(async()=>{if(!runner.reconcile)return;while(!this.abort.signal.aborted){try{await this.clock.sleep(plan.everyMs,this.abort.signal);if(!this.abort.signal.aborted)await runner.reconcile();}catch(error){if(!this.abort.signal.aborted){await this.record({type:'execution.reconcile_error',detail:String(error)});this.requestStop('worker_failed');}break;}}})();
   try{

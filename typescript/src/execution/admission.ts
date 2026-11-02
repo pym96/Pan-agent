@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import { resolveKernelLimits, type KernelLimits } from '../runtime/agent-kernel.ts';
-import { addUsage, ZERO_REPORTED_USAGE, type Usage } from '../protocol/canonical-protocol.ts';
+import { addUsage, ZERO_REPORTED_USAGE, UNAVAILABLE, validateUsage, type Usage } from '../protocol/canonical-protocol.ts';
 
 export type Counts = {modelCalls:number;toolCalls:number};
 export type Ticket = {id:string;kind:'model'|'tools';count:number};
@@ -24,14 +24,15 @@ export class BudgetLedger {
  this.outer=outer;this.guard=guard;this.record=record;
   for(const n of Object.values(outer))if(!Number.isSafeInteger(n)||Number(n)<0)throw Error('invalid_outer_budget');
  }
- snapshot(){return {...this.total,usage:structuredClone(this.usage)};}
+ snapshot(){const uncertain=[...this.tickets.values()].some(e=>e.ticket.kind==='model'&&!e.settled);return {...this.total,usage:structuredClone(uncertain?UNAVAILABLE:this.usage)};}
  async begin(runId:string,limits:KernelLimits,restored:Counts={modelCalls:0,toolCalls:0}):Promise<Admission>{
   if(!runId||this.runs.has(runId))throw Error('duplicate_run_identity');
   limits=resolveKernelLimits(limits);
   if(!Number.isSafeInteger(restored.modelCalls)||!Number.isSafeInteger(restored.toolCalls))throw Error('invalid_restored_budget');
   for(const n of Object.values(restored))if(!Number.isSafeInteger(n)||n<0)throw Error('invalid_restored_budget');
   const counts={...restored};this.runs.set(runId,counts);
-  this.total.modelCalls+=counts.modelCalls;this.total.toolCalls+=counts.toolCalls;
+  if(!Number.isSafeInteger(this.total.modelCalls+counts.modelCalls)||!Number.isSafeInteger(this.total.toolCalls+counts.toolCalls))throw Error('restored_budget_overflow');
+  this.total.modelCalls+=counts.modelCalls;this.total.toolCalls+=counts.toolCalls;if(counts.modelCalls>0)this.usage=UNAVAILABLE;
   await this.record({type:'budget.run',runId,limits,restored});
   return {
    snapshot:()=>({...counts}),check:async()=>this.guard(),
@@ -51,8 +52,9 @@ export class BudgetLedger {
     const op=this.queue.then(async()=>{
      const entry=this.tickets.get(ticket.id);if(!entry||entry.runId!==runId||JSON.stringify(entry.ticket)!==JSON.stringify(ticket))throw Error('unknown_reservation');
      if(entry.settled)return;
-     await this.record({type:'budget.settled',runId,ticket,...(usage?{usage}:{})});entry.settled=true;
-     if(usage)this.usage=addUsage(this.usage,usage);
+     const observed=ticket.kind==='model'?(usage??UNAVAILABLE):undefined;if(observed)validateUsage(observed);
+     await this.record({type:'budget.settled',runId,ticket,...(observed?{usage:observed}:{})});entry.settled=true;
+     if(observed)this.usage=addUsage(this.usage,observed);
     });this.queue=op.catch(()=>{});await op;
    },
   };

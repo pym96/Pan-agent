@@ -62,3 +62,26 @@ test('EC03 guard closes admission before effects and budget0 is supported only a
  let closed=false;const ledger=new BudgetLedger({},()=>{if(closed)throw Error('deadline');});const next=await ledger.begin('b',{maxModelTurns:1,maxToolSteps:1});closed=true;await assert.rejects(next.admit('tools',1),/deadline/);assert.deepEqual(next.snapshot(),{modelCalls:0,toolCalls:0});
  await assert.rejects(ledger.begin('c',{maxModelTurns:0,maxToolSteps:1}));
 });
+test('EC03 admitted but unsettled or usage-less model request cannot report zero tokens',async()=>{
+ const ledger=new BudgetLedger();const run=await ledger.begin('a',{maxModelTurns:2,maxToolSteps:1});const ticket=(await run.admit('model',1))!;assert.equal(ledger.snapshot().usage.status,'unavailable');await run.settle(ticket);assert.equal(ledger.snapshot().usage.status,'unavailable');
+});
+test('EC04 archive failure cannot prevent requested worker stop',async()=>{
+ const clock=new FakeClock();let stopped=false;const r=runner(clock,[]);r.stop=async()=>{stopped=true;return true;};await assert.rejects(new ExecutionController(clock,async()=>{throw Error('disk failure');}).execute(plan,r));assert.equal(stopped,true);
+});
+
+// Phase-gate probes are offline; Stage B exercises actual readonly Docker verification.
+import {DockerSandbox} from '../src/sandbox/docker.ts';
+for (const failure of ['running','missing','wrong-owned','archive-tamper','unknown','cleaned']) {
+ test(`archived goal verifier rejects ${failure} before starting a verifier`,async()=>{
+  const box:any=Object.create(DockerSandbox.prototype);
+  box.state={phase:['unknown','cleaned'].includes(failure)?failure:'archived'};
+  box.queue=Promise.resolve();box.stop=async()=>{};
+  let checked=false,volumes=0;
+  box.checkArchive=async()=>{checked=true;if(failure==='archive-tamper')throw Error('archive_manifest_changed');};
+  box.owned=async()=>{if(failure==='missing')throw Error('No such container');if(failure==='wrong-owned')throw Error('sandbox_identity_mismatch');return {State:{Running:failure==='running'}};};
+  box.volumeOwned=async()=>{volumes++;throw Error('unexpected verifier admission');};
+  await assert.rejects(box.verify('true',1));
+  assert.equal(volumes,0);
+  assert.equal(checked,!['unknown','cleaned'].includes(failure));
+ });
+}

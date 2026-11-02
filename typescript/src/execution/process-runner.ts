@@ -89,8 +89,8 @@ export class ProcessTaskRunner implements TaskRunner {
    if(this.currentSandbox){
     // Fix candidate identity while the task volume is stopped; verification uses its readonly mount.
     const box=await DockerSandbox.load(this.currentSandbox);await box.stop('candidate_frozen');
-    // Export before verification is supported; verify requires stopped phase, so recover transitions back without modifying artifacts.
-    await box.export(dest);await box.recover();
+    // Bind the exported candidate before its readonly verification; export closes generation admission.
+    await box.export(dest);
     const manifest=await treeManifest(join(dest,'files'));
     return {...outcome,candidate:{identity:identity(manifest),directory:join(dest,'files'),sandbox:this.currentSandbox,exportDirectory:dest}};
    }

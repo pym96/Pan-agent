@@ -303,8 +303,15 @@ export class DockerSandbox {
     async verify(command: string, seconds = 10): Promise<CommandResult> {
         await this.stop('before_verification');
         return this.serial(async () => {
-            if (this.state.phase !== 'stopped' || !Number.isInteger(seconds) || seconds < 1 || seconds > 100)
+            if (!['stopped', 'archived'].includes(this.state.phase) || !Number.isInteger(seconds) || seconds < 1 || seconds > 100)
                 throw Error('verifier_state_or_timeout');
+            // An exported candidate remains frozen; verification must not reopen execution.
+            const archivedCandidate = this.state.phase === 'archived';
+            if (archivedCandidate) {
+                await this.checkArchive();
+                const frozen = await this.owned();
+                if (frozen.State.Running) throw Error('verifier_candidate_running');
+            }
             await this.volumeOwned();
             await this.stopVerifiers(true);
             const name = this.state.name + '-verify-' + randomUUID();
@@ -335,7 +342,11 @@ export class DockerSandbox {
                 this.state.verifierId = undefined;
                 this.state.verifierName = undefined;
             }
-            await this.record('verify_result', result, 'stopped');
+            if (archivedCandidate) {
+                await this.checkArchive();
+                if ((await this.owned()).State.Running) throw Error('verifier_candidate_running');
+            }
+            await this.record('verify_result', result, archivedCandidate ? 'archived' : 'stopped');
             return result;
         });
     }

@@ -4,15 +4,18 @@ import { fileURLToPath } from 'node:url';
 import { randomUUID } from 'node:crypto';
 import { executeBash } from '../tools/pan-trusted-local-tools.ts';
 const worker=fork(fileURLToPath(new URL(import.meta.url.endsWith('.ts')?'./worker.ts':'./worker.js',import.meta.url)),[],{detached:true,stdio:['ignore','ignore','pipe','ipc'],execArgv:['--max-old-space-size=512']});
-const groups=new Set<number>();if(worker.pid)groups.add(worker.pid);
+const groups=new Map<number,string>();let ownershipUncertain=false;
+const birth=(pid:number)=>{try{return execFileSync('ps',['-p',String(pid),'-o','lstart='],{encoding:'utf8',timeout:500}).trim();}catch{return '';}};
+if(worker.pid)groups.set(worker.pid,birth(worker.pid));
 const ownedRequests=new Map<string,{resolve:()=>void;reject:(e:Error)=>void}>();
 const abort=new AbortController();let stopping=false,closed=false;let expiry:NodeJS.Timeout|undefined;let force:NodeJS.Timeout|undefined;let limit:NodeJS.Timeout|undefined;let poll:NodeJS.Timeout|undefined;
 const send=(m:unknown)=>{if(process.connected)process.send?.(m as any);};
-const signal=(s:NodeJS.Signals)=>{for(const pid of groups)try{process.kill(-pid,s);}catch(error){if((error as NodeJS.ErrnoException).code!=='ESRCH')send({type:'stop_error',error:String(error)});}};
+const signal=(s:NodeJS.Signals)=>{for(const [pid,expected] of groups){const current=birth(pid);if(!expected||(current&&current!==expected)){ownershipUncertain=true;continue;}try{process.kill(-pid,s);}catch(error){if((error as NodeJS.ErrnoException).code!=='ESRCH'){ownershipUncertain=true;send({type:'stop_error',error:String(error)});}}}};
 function liveGroups():boolean {
+ if(ownershipUncertain)return true;
  try{return execFileSync('ps',['-axo','pgid=,stat='],{encoding:'utf8',timeout:500,maxBuffer:4*1024*1024}).split('\n').some(line=>{const [pgid,state]=line.trim().split(/\s+/);return groups.has(Number(pgid))&&state&&!state.startsWith('Z');});}catch{return true;}
 }
-function finish(confirmed:boolean){clearTimeout(expiry);clearTimeout(force);clearTimeout(limit);clearInterval(poll);send({type:'stopped',confirmed,workerPid:worker.pid,groups:[...groups]});process.exit(confirmed?0:1);}
+function finish(confirmed:boolean){clearTimeout(expiry);clearTimeout(force);clearTimeout(limit);clearInterval(poll);send({type:'stopped',confirmed,workerPid:worker.pid,groups:[...groups.keys()]});process.exit(confirmed?0:1);}
 function stop(){
  if(stopping)return;stopping=true;clearTimeout(expiry);abort.abort();for(const p of ownedRequests.values())p.reject(Error('supervisor_stopped'));ownedRequests.clear();
  if(worker.connected)worker.send({type:'stop'});signal('SIGTERM');force=setTimeout(()=>signal('SIGKILL'),2000);
@@ -22,7 +25,7 @@ worker.on('message',(m:any)=>{
  if(m?.type==='rpc'&&m.action==='supervised_shell'){
   if(stopping){if(worker.connected)worker.send({type:'reply',id:m.id,error:'supervisor_stopped'});return;}
   void executeBash(m.payload.workspace,process.env,m.payload.value,abort.signal,async pid=>{
-   groups.add(pid);const id=randomUUID();await new Promise<void>((resolve,reject)=>{ownedRequests.set(id,{resolve,reject});send({type:'rpc',id,action:'process_owned',payload:{pid,group:pid,supervisorPid:process.pid}});});
+   groups.set(pid,birth(pid));const id=randomUUID();await new Promise<void>((resolve,reject)=>{ownedRequests.set(id,{resolve,reject});send({type:'rpc',id,action:'process_owned',payload:{pid,group:pid,supervisorPid:process.pid}});});
   }).then(value=>{if(worker.connected)worker.send({type:'reply',id:m.id,value});},error=>{if(worker.connected)worker.send({type:'reply',id:m.id,error:String(error)});});return;
  }
  send(m);
