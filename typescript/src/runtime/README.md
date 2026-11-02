@@ -12,3 +12,5 @@ Runtime consumes protocol contracts and memory; it does not import concrete Prov
 - [`checkpoint.ts`](checkpoint.ts): private versioned Native state and awaited commit/invalidate barriers. `GeneralAgentSession.resumeTask` uses a new archive and the existing loop, without re-appending the user. Default runTask remains unchanged.
 
 #111: optional pending/settled barriers preserve the single-tool response gap. Version2 recovery accepts only a trusted completed result or not-started resolution; default paths and version1 settled points retain their behavior. [Bounded consumer design](../../../docs/design/pan-web/operations111.md).
+
+#150 candidate: NativeKernel consumes [shared admission](../execution/admission.ts); default local and scheduled IPC paths use one count algorithm. Session still owns ordinary authorization and task archives.

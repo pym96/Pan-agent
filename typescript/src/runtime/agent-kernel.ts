@@ -106,7 +106,7 @@ export function resolveKernelLimits(input: Partial<KernelLimits> = {}): KernelLi
 		maxToolSteps: input.maxToolSteps ?? DEFAULT_KERNEL_LIMITS.maxToolSteps,
 	};
 	for (const [name, value] of Object.entries(limits)) {
-		if (typeof value !== "number" || !Number.isInteger(value) || value <= 0) {
+		if (typeof value !== "number" || !Number.isSafeInteger(value) || value <= 0) {
 			throw new Error(`${name} must be a positive integer`);
 		}
 	}

@@ -1,3 +1,4 @@
+import type { AdmissionFactory } from "../execution/admission.ts";
 import type { NativeCheckpoint, CheckpointSink } from "./checkpoint.ts";
 import type { AgentTool as PanAgentTool } from "../protocol/agent-tool.ts";
 import type { Message as PanMessage, Usage } from "../protocol/canonical-protocol.ts";
@@ -54,7 +55,8 @@ export interface SessionMemory {
 }
 
 interface GeneralAgentSessionOptionsBase {
-	readonly authorization?: AuthorizationOptions;
+	readonly admission?: AdmissionFactory;
+ readonly authorization?: AuthorizationOptions;
 	readonly executionBoundary?: {start(runId:string):Promise<void>;stop(reason:string):Promise<void>;cancel():void};
 	readonly systemPrompt: string;
 	readonly memory: SessionMemory;
@@ -122,6 +124,7 @@ export class GeneralAgentSession {
 				limits,
 				initialMessages: nativeOptions.initialMessages,
 				checkpoint: nativeOptions.checkpoint,
+                admission: nativeOptions.admission,
 			});
 		} else {
 			this.kernel = selector as AgentKernel;

@@ -17,3 +17,7 @@ propose a change here, but never mutates this file implicitly.
    unrelated host paths unless the Human's task explicitly requires it.
 4. Report failures accurately; never fabricate a result or hide an error.
 5. Never print credentials or hidden reasoning into the transcript.
+
+## Execution and goal control
+
+Scheduled tasks inherit operator cadence, the original deadline and cumulative budgets. A model completion claim is not a goal verdict. Do not extend time, raise budgets or edit verifier configuration. Treat verification feedback as evidence for a new attempt, never as authority to replay uncertain side effects.

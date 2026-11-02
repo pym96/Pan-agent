@@ -16,3 +16,5 @@ The [#41 design](../../docs/design/native-module-layout.md) and [source map](../
 #44 [streaming design](../../docs/design/native-streaming-tui.md): protocol adds ModelTextDelta/ModelProgressSink; concrete Adapters emit text, Runtime correlates run/turn, TUI alone owns provisional rendering.
 
 [input/](input/README.md) prepares explicit file snapshots above `GeneralAgentSession.runTask(string)`; Runtime, Protocol, Provider, Tools and memory remain unchanged.
+
+- [execution/](execution/README.md): shared admission, scheduler, goal verification and supervised installed CLI (#150 candidate).

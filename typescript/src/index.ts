@@ -39,3 +39,8 @@ export type { KimiProfile, KimiModelId, KimiReasoningEffort } from "./providers/
 
 export type { NativeCheckpoint, CheckpointSink } from "./runtime/checkpoint.ts";
 export { CheckpointFauxAdapter } from './providers/faux/checkpoint-faux.ts';
+
+export { ExecutionController, GoalController, monotonicClock, parseDuration } from './execution/controller.ts';
+export type { ExecutionPlan, ExecutionResult, Clock, TaskRunner, Attempt, Verdict, Candidate } from './execution/controller.ts';
+export { BudgetLedger } from './execution/admission.ts';
+export type { Admission, AdmissionFactory, Ticket, Counts } from './execution/admission.ts';

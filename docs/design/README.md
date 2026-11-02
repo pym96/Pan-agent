@@ -130,3 +130,5 @@ The Human-accepted architecture history remains indexed in [`../adr/README.md`](
 - [Selected-source retrieval](retrieval-tool.md): installed TUI tool, explicit source scope, sealed-history provenance and fresh bounded lexical search (#144 candidate).
 
 - [Docker sandbox](docker-sandbox.md): #148 SB1.0 isolated tools, lifecycle and recovery.
+
+- [Execution and goal control](execution-controller.md): EC1.1 candidate interfaces, authority, lifecycle and test limits.

@@ -262,7 +262,7 @@ function editTool(workspace: string): AgentTool<EditArguments> {
 	};
 }
 
-function bashTool(workspace: string, sourceEnvironment: Readonly<NodeJS.ProcessEnv>): AgentTool<BashArguments> {
+function bashTool(workspace: string, sourceEnvironment: Readonly<NodeJS.ProcessEnv>, supervised?: SupervisedShell): AgentTool<BashArguments> {
 	return {
 		name: "bash",
 		description: `${PAN_TRUSTED_LOCAL_LABEL}. Execute one Bash command and retain stdout, stderr, exit status, and cancellation settlement.`,
@@ -281,20 +281,22 @@ function bashTool(workspace: string, sourceEnvironment: Readonly<NodeJS.ProcessE
 		},
 		async execute({ arguments: value, signal }) {
 			if (signal.aborted) return failure("bash_cancelled_before_spawn", { status: "cancelled", spawned: false });
-			return executeBash(workspace, sourceEnvironment, value, signal);
+			return supervised ? supervised(workspace, value, signal) : executeBash(workspace, sourceEnvironment, value, signal);
 		},
 	};
 }
 
-async function executeBash(
+export type SupervisedShell = (workspace:string,value:BashArguments,signal:AbortSignal)=>Promise<AgentToolExecutionResult>;
+export async function executeBash(
 	workspace: string,
 	sourceEnvironment: Readonly<NodeJS.ProcessEnv>,
 	value: BashArguments,
 	signal: AbortSignal,
+    register?: (pid:number)=>Promise<void>,
 ): Promise<AgentToolExecutionResult> {
 	let child: ChildProcessWithoutNullStreams;
 	try {
-		child = spawn("/bin/bash", ["-c", value.command], {
+		child = spawn("/bin/bash", register ? ["-c", 'IFS= read -r gate; [ "$gate" = pan-owned ] || exit 125; exec /bin/bash -c "$1"', 'pan-shell-gate', value.command] : ["-c", value.command], {
 			cwd: workspace,
 			env: safeShellEnvironment(sourceEnvironment),
 			detached: process.platform !== "win32",
@@ -307,7 +309,11 @@ async function executeBash(
 			spawned: false,
 		});
 	}
-	child.stdin.end();
+	child.stdin.on('error',()=>{});
+    if(register){
+        try { if(!child.pid)throw Error('shell_pid_missing'); await register(child.pid);if(signal.aborted)throw Error('shell_cancelled_before_release');child.stdin.end('pan-owned\n'); }
+        catch(error){terminateProcessGroup(child,'SIGKILL');child.stdin.end();throw error;}
+    } else child.stdin.end();
 	let stdout = "";
 	let stderr = "";
 	let cancelled = false;
@@ -386,6 +392,7 @@ async function executeBash(
 export function createPanTrustedLocalTools(
 	workspace: string,
 	sourceEnvironment: Readonly<NodeJS.ProcessEnv> = process.env,
+ supervised?: SupervisedShell,
 ): PanTrustedLocalTools {
 	const resolvedWorkspace = workspaceAnchor(workspace);
 	const enforce = (tool: AgentTool): AgentTool => ({ ...tool, async execute(invocation) {
@@ -417,7 +424,7 @@ export function createPanTrustedLocalTools(
 			readTool(resolvedWorkspace),
 			writeTool(resolvedWorkspace),
 			editTool(resolvedWorkspace),
-			bashTool(resolvedWorkspace, sourceEnvironment),
+			bashTool(resolvedWorkspace, sourceEnvironment, supervised),
 		].map(tool => enforce(tool as AgentTool)),
 	};
 }

@@ -199,3 +199,7 @@ pan-agent sandbox cleanup --run /absolute/path/to/sandbox-state/RUN_ID
 ```
 
 Recovery stops uncertain execution; it never replays task commands. Verification is explicit and runs separately against a read-only workspace after the agent container stops. Cleanup requires a rechecked export manifest, receipt and file hashes. Keep the state directory until cleanup completes; deleting it loses the recovery record. Exports accept regular files only (at most 1,000 files / 64 MiB); links, special files and unsupported tar extensions fail with the volume retained.
+
+### Bounded loop and executable goals (#150 candidate)
+
+`pan-agent loop --help` and `pan-agent goal --help` describe the noninteractive scheduled entry. Both use the native runtime and existing operation-scoped approvals. Goal completion requires an operator-owned executable verifier, never the model’s completion text. Use a new `--state` directory; `pan-agent execution inspect --state DIR` reads evidence without restarting work. See [design](docs/design/execution-controller.md). Python is required only for development tests.

@@ -148,3 +148,5 @@ Raw artifacts remain at their stable source, Git, Trace, Test, evaluator, or ext
 - [Retrieval candidate evidence](retrieval-tool/README.md): #144 Criteria1.0 synthetic query manifest, authorization negatives and installed offline integration; pending independent and additional boundary review.
 
 - [Docker sandbox #148](sandbox/README.md): candidate CPU Docker evidence and retained failures.
+
+- [#150 candidate evidence](execution150/README.md): execution/goal controller verification records; not an accepted fact.

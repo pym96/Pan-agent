@@ -1,3 +1,4 @@
+import { BudgetLedger, type AdmissionFactory } from "../execution/admission.ts";
 import type { NativeCheckpoint, CheckpointSink } from "./checkpoint.ts";
 import { randomUUID } from "node:crypto";
 import {
@@ -55,6 +56,7 @@ export interface NativeKernelOptions {
 	readonly limits: KernelLimits;
 	readonly initialMessages?: readonly Message[];
 	readonly checkpoint?: CheckpointSink;
+ readonly admission?: AdmissionFactory;
 }
 
 /** Repository-owned loop. Its only model/tool dependencies are Pan-owned semantic contracts. */
@@ -62,6 +64,7 @@ export class NativeKernel implements AgentKernel {
 	readonly kind = "native" as const;
 	private readonly adapter: ModelAdapter;
 	private readonly checkpoint?: CheckpointSink;
+ private readonly admission?: AdmissionFactory;
 	private readonly tools: AgentTool[];
 	private readonly limits: KernelLimits;
 	private readonly messages: Message[];
@@ -82,6 +85,7 @@ export class NativeKernel implements AgentKernel {
 			this.seededContextError = errorText(error);
 		}
 		this.adapter = options.adapter;
+ this.admission = options.admission;
 		this.checkpoint = options.checkpoint;
 		if (this.checkpoint && !this.adapter.checkpoint) throw new Error("checkpoint_provider_unsupported");
 		this.tools = [...options.tools];
@@ -133,12 +137,15 @@ export class NativeKernel implements AgentKernel {
 		this.idle = new Promise<void>((resolve) => { this.settleIdle = resolve; });
 		const controller = new AbortController();
 		this.activeController = controller;
-		let modelCalls = restored?.modelCalls ?? 0;
-		let admittedToolCalls = restored?.toolCalls ?? 0;
+		const restoredCounts = {modelCalls:restored?.modelCalls ?? 0,toolCalls:restored?.toolCalls ?? 0};
+        let admission;
+        try { admission = await (this.admission ?? ((id, limits, counts) => new BudgetLedger().begin(id, limits, counts)))(request.runId,this.limits,restoredCounts); }
+        catch(error){this.running=false;this.activeController=undefined;this.settleIdle?.();throw error;}
+        const counts = () => admission.snapshot();
 		let usage = restored?.usage ?? EMPTY_USAGE;
 		let finalText = "";
 		const terminal = (status: KernelRunResult["status"], reason: string): KernelRunResult => ({
-			status, reason, finalText, modelCalls, toolCalls: admittedToolCalls, usage,
+			status, reason, finalText, ...counts(), usage,
 		});
 
         const snapshot = async (next: "model_exchange" | "pending_tool"): Promise<NativeCheckpoint> => ({
@@ -146,13 +153,14 @@ export class NativeKernel implements AgentKernel {
             systemPrompt: request.systemPrompt, toolsJSON: JSON.stringify(this.tools.map(describeAgentTool)),
             provider: this.adapter.providerId, model: this.adapter.modelId, reasoning: this.adapter.reasoningLevel,
             providerFormat: this.adapter.checkpoint!.format, providerState: await this.adapter.checkpoint!.exportState(),
-            messages: structuredClone(this.messages), modelCalls, toolCalls: admittedToolCalls, usage: structuredClone(usage), next,
+            messages: structuredClone(this.messages), ...counts(), usage: structuredClone(usage), next,
         });
         const settle = async (call: ToolCall, reused?: ToolResultMessage) => {
             if (!reused) {
                 await request.onObservation({type:"tool.started",runId:request.runId,toolCallId:call.id,toolName:call.name,arguments:call.arguments});
                 if (controller.signal.aborted) throw new Error("operator_cancelled");
             }
+            await admission.check();
             const result = reused ?? await this.executeTool(call, controller.signal);
             await this.checkpoint?.settled?.(result);
             this.messages.push(result);
@@ -172,14 +180,16 @@ export class NativeKernel implements AgentKernel {
             }
 			while (true) {
 				if (controller.signal.aborted) return terminal("cancelled", "operator_cancelled");
-				if (this.limits.maxModelTurns !== null && modelCalls >= this.limits.maxModelTurns) return terminal("incomplete", "turn_limit");
+				await admission.check();
 				validateCanonicalContext(this.messages);
 
 				await this.checkpoint?.invalidate();
-				const turn = modelCalls + 1;
+				const turn = counts().modelCalls + 1;
+                const ticket = await admission.admit("model",1);
+                if(!ticket)return terminal("incomplete","turn_limit");
 				await request.onObservation({ type: "model.turn_started", runId: request.runId, turn });
 				if (controller.signal.aborted) return terminal("cancelled", "operator_cancelled");
-				modelCalls += 1;
+				await admission.check();
 				let outcome: ModelOutcome;
 				let progressOpen = true;
 				try {
@@ -211,12 +221,14 @@ export class NativeKernel implements AgentKernel {
 							responseId: UNAVAILABLE,
 						},
 					};
-					usage = addUsage(usage, failure.usage);
+					await admission.settle(ticket, failure.usage);
+                    usage = addUsage(usage, failure.usage);
 					await this.observeModelSettlement(request, turn, failure, cancelled ? "aborted" : "error", "");
 					return terminal(cancelled ? "cancelled" : "model_error", failure.detail);
 				}
 				finally { progressOpen = false; }
-				usage = addUsage(usage, outcome.usage);
+				await admission.settle(ticket, outcome.usage);
+                usage = addUsage(usage, outcome.usage);
 
 				try {
 					validateModelOutcome(outcome, this.messages);
@@ -248,18 +260,21 @@ export class NativeKernel implements AgentKernel {
 
 				const calls = toolCalls(outcome.message);
 				if (calls.length === 0) return terminal("completed", "assistant_completed");
-				if (this.limits.maxToolSteps !== null && admittedToolCalls + calls.length > this.limits.maxToolSteps) {
+				const toolTicket = await admission.admit("tools",calls.length);
+                if (!toolTicket) {
 					this.messages.pop();
 					return terminal("incomplete", "step_limit");
 				}
-				admittedToolCalls += calls.length;
+				
 
                 if (calls.length === 1 && this.checkpoint?.pending) await this.checkpoint.pending(await snapshot("pending_tool"));
                 for (const call of calls) {
                     if (controller.signal.aborted) return terminal("cancelled", "operator_cancelled");
+                    await admission.check();
                     await settle(call);
                     if (controller.signal.aborted) return terminal("cancelled", "operator_cancelled");
                 }
+                await admission.settle(toolTicket);
                 if (this.checkpoint && this.adapter.checkpoint) await this.checkpoint.commit(await snapshot("model_exchange"));
 			}
 		} catch (error) {

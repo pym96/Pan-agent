@@ -1,3 +1,4 @@
+import { executionCli } from "./execution/cli.ts";
 import {SandboxSession} from './sandbox/session.ts';
 import {sandboxCommand} from './sandbox/cli.ts';
 import { createRetrievalTool } from './retrieval/tool.ts';
@@ -145,6 +146,7 @@ export async function runCli(args: readonly string[], dependencies: CliDependenc
 	const writeLine = (line: string): void => {
 		output.write(`${line}\n`);
 	};
+	if(['loop','goal','execution'].includes(args[0]??'')){try{return await executionCli(args,output,dependencies.input??process.stdin);}catch(error){writeLine('Execution error: '+terminalText(String(error)));return 2;}}
 	if(args[0]==='sandbox'){try{writeLine(await sandboxCommand(args.slice(1)));return 0;}catch(error){writeLine('Sandbox error: '+terminalText(String(error)));return 2;}}
 	if(args[0]==='retrieval') {try{writeLine(retrievalCommand(args.slice(1)));return 0;}catch(error){writeLine(`Retrieval configuration failed: ${terminalText(error instanceof Error?error.message:'unknown')}`);return 2;}}
 	let configuration: CliConfiguration;
