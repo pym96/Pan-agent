@@ -28,18 +28,19 @@ export function runVerifier(command:string,cwd:string,seconds:number,signal:Abor
  return new Promise((resolve,reject)=>{
   if(signal.aborted){reject(Error('verifier_cancelled'));return;}
   const child=fork(fileURLToPath(new URL(import.meta.url.endsWith('.ts')?'./verifier-executor.ts':'./verifier-executor.js',import.meta.url)),[],{stdio:['ignore','ignore','ignore','ipc'],execArgv:['--max-old-space-size=128']});
+  const startedAt=performance.now(),deadline=startedAt+seconds*1000;
   let settled=false,stopping=false,executorExited=false,owned:{pid:number;birth:string}|undefined;
   const birth=(pid:number)=>{try{return execFileSync('ps',['-p',String(pid),'-o','lstart='],{encoding:'utf8',timeout:200}).trim();}catch{return '';}};
   const alive=()=>{if(!owned)return false;try{return execFileSync('ps',['-axo','pgid=,stat='],{encoding:'utf8',timeout:200,maxBuffer:4*1024*1024}).split('\n').some(l=>{const [g,state]=l.trim().split(/\s+/);return Number(g)===owned!.pid&&state&&!state.startsWith('Z');});}catch{return true;}};
   const finish=(error?:Error,result?:{code:number|null;stdout:string;stderr:string})=>{if(settled)return;settled=true;clearTimeout(timer);signal.removeEventListener('abort',abort);if(child.connected)child.disconnect();error?reject(error):resolve(result!);};
   const stop=async(reason:string)=>{
-   if(settled||stopping)return;stopping=true;let uncertain=false;
-   if(owned){const current=birth(owned.pid);if(current&&current!==owned.birth)uncertain=true;else try{process.kill(-owned.pid,'SIGKILL');}catch(e){if((e as NodeJS.ErrnoException).code!=='ESRCH')uncertain=true;}}
+   if(settled||stopping)return;stopping=true;let uncertain=false;const stopRequestedAt=performance.now();let killRequestedAt:number|undefined;
+   if(owned){const current=birth(owned.pid);if(current&&current!==owned.birth)uncertain=true;else try{killRequestedAt=performance.now();process.kill(-owned.pid,'SIGKILL');}catch(e){if((e as NodeJS.ErrnoException).code!=='ESRCH')uncertain=true;}}
    // Continue only our direct executor so it can reap its now-killed child; do not rely on that to kill the group.
    child.kill('SIGCONT');if(child.connected)child.send({type:'stop'});
    const until=performance.now()+1000;while((alive()||!executorExited)&&performance.now()<until)await new Promise(r=>setTimeout(r,25));
    const confirmed=!uncertain&&!!owned&&!alive();child.kill('SIGKILL');
-   try{await record({type:'verifier.stop',reason,confirmed,executorPid:child.pid,owned});}catch{}
+   try{await record({type:'verifier.stop',reason,confirmed,executorPid:child.pid,owned,startedAt,deadline,stopRequestedAt,killRequestedAt,confirmedAt:performance.now()});}catch{}
    finish(Error(confirmed?reason:'verifier_stop_unconfirmed'));
   };
   const abort=()=>{void stop('verifier_cancelled');};
@@ -49,7 +50,7 @@ export function runVerifier(command:string,cwd:string,seconds:number,signal:Abor
    if(m?.type==='owned'&&!owned&&!stopping){
     if(!Number.isSafeInteger(m.pid)||m.pid<=1||!m.birth||birth(m.pid)!==m.birth){void stop('verifier_identity_unknown');return;}
     owned={pid:m.pid,birth:m.birth};
-    void record({type:'verifier.owned',executorPid:child.pid,...owned}).then(()=>{if(!settled&&!stopping&&child.connected)child.send({type:'ownership_ack'});},()=>{void stop('verifier_ownership_record_failed');});return;
+    void record({type:'verifier.owned',executorPid:child.pid,group:owned.pid,...owned,startedAt,deadline}).then(async()=>{if(!settled&&!stopping&&child.connected){await record({type:'verifier.ownership_ack',pid:owned!.pid,at:performance.now()});if(!settled&&!stopping&&child.connected)child.send({type:'ownership_ack'});}}).catch(()=>{void stop('verifier_ownership_record_failed');});return;
    }
    if(m?.type==='result'&&!stopping){if(alive()){void stop('verifier_descendants_remaining');return;}finish(m.error?Error(m.error):undefined,m.result);}
   });

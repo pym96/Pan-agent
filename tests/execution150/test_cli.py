@@ -175,7 +175,10 @@ def test_frozen_verifier_owner_parent_fallback_and_sentinel(goal):
             assert json.loads((root/'state/result.json').read_text())['reason']=='needs_review'
             events=[json.loads(line) for line in (root/'owner.stdout').read_text().splitlines()]
             assert any(e.get('type')=='verifier.owned' and e['pid']==pid for e in events)
-            assert any(e.get('type')=='verifier.stop' and e['confirmed'] for e in events)
+            stop=next(e for e in events if e.get('type')=='verifier.stop')
+            ack=next(e for e in events if e.get('type')=='verifier.ownership_ack')
+            assert stop['confirmed'] and ack['pid']==pid
+            assert ack['at']<stop['deadline']<=stop['stopRequestedAt']<=stop['killRequestedAt']<=stop['confirmedAt']
             assert sentinel.poll() is None
         finally:
             if owner:
