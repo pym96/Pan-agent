@@ -141,11 +141,12 @@ test('A-POLICY R49-01 resource aliases cannot bypass built-in or configured prot
 });
 
 
-test('A-POLICY R49-01 aliases, missing descendants, exact exceptions and controls',async()=>{
+test('A-POLICY R49-01 aliases, missing descendants, exact exceptions and controls',async(t)=>{
  const f=fixture(undefined,['Secret','Future/Private','.env.example','Café']);
  fs.mkdirSync(join(f.workspace,'Secret'));fs.mkdirSync(join(f.workspace,'Café'));
  fs.writeFileSync(join(f.workspace,'.env'),'SYNTHETIC');
  const insensitive=fs.existsSync(join(f.workspace,'.ENV'));
+ t.diagnostic(JSON.stringify({filesystemCaseAliasObserved:insensitive}));
  if(insensitive){
   for(const path of ['SECRET/deep/new','future/private/new','cafe\u0301/new','.ENV.new','.GIT/new','.SSH/new','.PAN-AGENT/new','.NPMRC','.ENV.EXAMPLE']){
    const result=await f.run('write',{path,content:'BAD'});assert.equal(result.isError,true,path);assert.match(JSON.stringify(result),/approval_unavailable/);assert.equal(fs.existsSync(join(f.workspace,path)),false,path);
@@ -159,15 +160,31 @@ test('A-POLICY R49-01 aliases, missing descendants, exact exceptions and control
   const raw=f.raw.find(t=>t.name==='read')!;assert.equal((await raw.execute({toolCallId:'raw-alias',arguments:{path:'.ENV'},signal:new AbortController().signal})).isError,true);
  }else{
   fs.mkdirSync(join(f.workspace,'secret'));fs.writeFileSync(join(f.workspace,'.ENV'),'DISTINCT');
+  const uncertain=await f.run('read',{path:'.ENV'});assert.equal(uncertain.isError,true);assert.match(JSON.stringify(uncertain),/resource_equivalence_uncertain/);
+  assert.equal(fs.readFileSync(join(f.workspace,'.ENV'),'utf8'),'DISTINCT');
+  fs.mkdirSync(join(f.workspace,'Future','Private'),{recursive:true});fs.writeFileSync(join(f.workspace,'.env.example'),'PROTECTED_ANCHOR');
+  t.diagnostic(JSON.stringify({missingConfiguredAnchorsDenied:true,materializedAnchors:['Future/Private','.env.example']}));
   assert.equal((await f.run('read',{path:'.ENV'})).isError,false);
   fs.writeFileSync(join(f.workspace,'secret/new'),'seed');assert.equal((await f.run('write',{path:'secret/new',content:'DISTINCT'})).isError,false);
  }
 });
 
 
-test('C-AUTH-01@1.2 R49-02 existing Unicode aliases and absent aliases require approval',async()=>{
+test('C-AUTH-01@1.2 R49-02 existing Unicode aliases and absent aliases require approval',async(t)=>{
  const f=fixture(undefined,['Secrets']);fs.mkdirSync(join(f.workspace,'.ssh'));fs.writeFileSync(join(f.workspace,'.ssh/data'),'SYNTHETIC');
- for(const path of ['.ſſh/data','.sſh/data']){assert.equal(fs.statSync(join(f.workspace,path)).ino,fs.statSync(join(f.workspace,'.ssh/data')).ino);assert.equal((await f.run('read',{path})).isError,true,path);}
+ for(const path of ['.ſſh/data','.sſh/data']){
+  const target=join(f.workspace,path),exists=fs.existsSync(target),protectedIdentity=fs.statSync(join(f.workspace,'.ssh/data'));
+  if(exists){
+   const observed=fs.statSync(target);assert.equal(observed.dev,protectedIdentity.dev);assert.equal(observed.ino,protectedIdentity.ino);
+   t.diagnostic(JSON.stringify({path,nativeAliasObserved:true,dev:observed.dev,ino:observed.ino}));
+  }else{
+   assert.equal(fs.existsSync(target),false);
+   t.diagnostic(JSON.stringify({path,nativeAliasObserved:false,coverage:'absent-path denial, not Unicode folding'}));
+  }
+  assert.equal((await f.run('read',{path})).isError,true,path);
+  assert.equal(fs.existsSync(target),exists,'denied read must not create an alias');
+  assert.equal(fs.readFileSync(join(f.workspace,'.ssh/data'),'utf8'),'SYNTHETIC');
+ }
  for(const path of ['ſecrets/file','Secrets/file','ordinary-new/file']){const r=await f.run('write',{path,content:'DENIED'});assert.equal(r.isError,true,path);assert.match(JSON.stringify(r),/approval_unavailable/);assert.equal(fs.existsSync(join(f.workspace,path)),false);}
 });
 

@@ -394,4 +394,4 @@ No external benchmark attempt, provider call, public number, official compatibil
 
 ## Runtime regression automation — #154
 
-[WorkOrder #154](https://github.com/pym96/Pan-agent/issues/154), Criteria CI1.0, adds CPU-only installed-runtime CI on accepted base `68b1ca3a1ab9b8cb412e651b7150b4adc658b6a2`. Scope is workflow/test orchestration and documentation; Runtime and package/lock bytes remain unchanged. See [entry](../../scripts/runtime-ci/README.md) and [evidence index](../evidence/runtime-ci/README.md). Builder candidates require separate exact-SHA Regulator acceptance; CI green is not that acceptance.
+[WorkOrder #154](https://github.com/pym96/Pan-agent/issues/154), Criteria CI1.1 (prospective filesystem-premise repair), adds CPU-only installed-runtime CI on accepted base `68b1ca3a1ab9b8cb412e651b7150b4adc658b6a2`. Scope is workflow/test orchestration and documentation; Runtime and package/lock bytes remain unchanged. See [entry](../../scripts/runtime-ci/README.md) and [evidence index](../evidence/runtime-ci/README.md). Builder candidates require separate exact-SHA Regulator acceptance; CI green is not that acceptance.
