@@ -395,3 +395,7 @@ No external benchmark attempt, provider call, public number, official compatibil
 ## Runtime regression automation — #154
 
 [WorkOrder #154](https://github.com/pym96/Pan-agent/issues/154), Criteria CI1.1 (prospective filesystem-premise repair), adds CPU-only installed-runtime CI on accepted base `68b1ca3a1ab9b8cb412e651b7150b4adc658b6a2`. Scope is workflow/test orchestration and documentation; Runtime and package/lock bytes remain unchanged. See [entry](../../scripts/runtime-ci/README.md) and [evidence index](../evidence/runtime-ci/README.md). Builder candidates require separate exact-SHA Regulator acceptance; CI green is not that acceptance.
+
+### #154 post-integration test-premise repair — CI1.2
+
+Main `8702f34d0dd6cc52c2a3ec6e83fd10e44dc6f8b4` passed independent CI1.1 review but subsequent main Node26 CI failed a shared file-capture rejection assertion. Same-workorder CI1.2 permits only per-mode test diagnostics and an explicitly metadata-observable same-size mutation fixture, plus these records. No Runtime change; original failure mode and cause remain unknown. Independent exact-SHA review and both main workflows remain required. No next Pan work is authorized by this repair.

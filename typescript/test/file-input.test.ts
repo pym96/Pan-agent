@@ -48,15 +48,20 @@ test("C-FILE-03 F-AUTH discovery is metadata only; Git ignores, hidden component
 test("C-FILE-02 bounded capture detects growth replacement and cancellation without whole-file loading",async t=>fixture(async root=>{
  const path=join(root,"selected");await fs.writeFile(path,"abcd");const original=fs.open;
  for(const mode of ["oversize","growth","change","replace","cancel"]){
-  await fs.writeFile(path,"abcd");let readBytes=0,reads=0,opens=0;const controller=new AbortController();
+  await fs.writeFile(path,"abcd");const initial=await fs.stat(path);let readBytes=0,reads=0,opens=0;const controller=new AbortController();
+  t.diagnostic(JSON.stringify({captureMode:mode,phase:"started",initial:{dev:initial.dev,ino:initial.ino,size:initial.size,mtimeMs:initial.mtimeMs}}));
   t.mock.method(fs,"open",async (...args:Parameters<typeof fs.open>)=>{opens++;const handle=await original(...args);const read=handle.read.bind(handle);
    handle.read=(async (...a:any[])=>{reads++;const result=await (read as any)(...a);readBytes+=result.bytesRead;
-    if(reads===1){if(mode==="growth")await fs.appendFile(path,"123456789");if(mode==="change")await fs.writeFile(path,"WXYZ");if(mode==="replace"){await fs.rename(path,path+".old");await fs.writeFile(path,"abcd");}if(mode==="cancel")controller.abort();}
+    if(reads===1){if(mode==="growth")await fs.appendFile(path,"123456789");if(mode==="change"){
+     await fs.writeFile(path,"WXYZ");await fs.utimes(path,initial.atime,new Date(initial.mtimeMs+10000));
+     const changed=await fs.stat(path);assert.equal(changed.dev,initial.dev);assert.equal(changed.ino,initial.ino);assert.equal(changed.size,initial.size);assert.notEqual(changed.mtimeMs,initial.mtimeMs);
+     t.diagnostic(JSON.stringify({captureMode:mode,phase:"mutation-premise",before:{dev:initial.dev,ino:initial.ino,size:initial.size,mtimeMs:initial.mtimeMs},after:{dev:changed.dev,ino:changed.ino,size:changed.size,mtimeMs:changed.mtimeMs}}));
+    }if(mode==="replace"){await fs.rename(path,path+".old");await fs.writeFile(path,"abcd");}if(mode==="cancel")controller.abort();}
     return result;
    }) as typeof handle.read;return handle;
   });syncBuiltinESMExports();
   try {await rejects(()=>captureAttachment(root,"selected",mode==="oversize"?3:4,controller.signal));assert.ok(readBytes<=5);if(mode==="oversize")assert.equal(opens,0);else assert.ok(reads>0);}
-  finally{t.mock.restoreAll();syncBuiltinESMExports();}
+  finally{t.diagnostic(JSON.stringify({captureMode:mode,phase:"settled",readBytes,reads,opens}));t.mock.restoreAll();syncBuiltinESMExports();}
  }
 }));
 
