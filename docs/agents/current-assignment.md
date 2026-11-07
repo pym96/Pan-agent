@@ -1,4 +1,12 @@
-## Current #47 additive repair navigation
+# Current navigation | Pan consumer readiness
+
+The current user-facing product is the TypeScript Native TUI/runtime. Sandbox #148 and Execution/Goal #150 landed at accepted main `01a9a40765d68bba604d8098ad8fe4a04a26651c` ([#150 final acceptance](https://github.com/pym96/Pan-agent/issues/150#issuecomment-6572639801), [PR151](https://github.com/pym96/Pan-agent/pull/151)). This is navigation to those records, not a new fact-register entry.
+
+[WorkOrder #152 CR1.0](https://github.com/pym96/Pan-agent/issues/152) authorizes only user documentation and installed offline walkthroughs. No runtime, permission, security or scheduler changes; no new release, live provider or deployment work. Builder hands off the exact candidate SHA for independent review. [User entry](../../README.md) · [Sandbox / Loop / Goal guide](../demo/consumer-readiness/README.md).
+
+The snapshots below are historical records, not current execution authority.
+
+## Historical #47 additive repair navigation
 
 [Criteria-Version 1.2](https://github.com/pym96/Pan-agent/issues/47#issuecomment-5601235744) and [activation](https://github.com/pym96/Pan-agent/issues/47#issuecomment-5601244605) authorize framing and immutable-evidence repair from `f2b6c611a6bf9c5463c4d5dc7beecbb97caaf30c`. Startup y stays; #48/#49 are not executable; #46 remains paused. Handoff #3 must bind the new full SHA; old failed evidence is retained.
 
@@ -6,11 +14,11 @@
 
 This document owns the current project lane, constraints, and non-goals. It does not grant a session-specific task or establish implementation facts. A Working session starts only from a Master-published WorkOrder, and that WorkOrder cannot widen this lane or override Human decisions. Read the fact register linked from the root Agent map before making any current-state statement.
 
-## Active mission | WorkOrder #47 TUI A
+## Historical mission | WorkOrder #47 TUI A
 
 [Criteria-Version 1.0](https://github.com/pym96/Pan-agent/issues/47#issuecomment-5596601510) and [promotion](https://github.com/pym96/Pan-agent/issues/47#issuecomment-5596609195) authorize the [daily workspace](../design/native-daily-workspace.md) from accepted base `7ade169b276fd68198ca4461d07c5589c273253f`. Only listed TUI/input-display, tests and navigation paths are in scope. Candidate branch workorder/47-candidate; installed offline demo and SHA-bound Handoff, then stop for independent/Human reviews. No real calls, #46 startup, Runtime/Provider/archive changes, B/C, or main push. #46 is paused; its retained Stage A/configuration does not authorize execution here.
 
-The following mission snapshots are historical. They retain their evidence and rules but do not activate work beyond #47's frozen contract.
+The following mission snapshots are historical. They retain their evidence and rules but do not activate work beyond the current WorkOrder.
 
 ## Historical mission | WorkOrder #45 offline development coordinator
 

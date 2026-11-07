@@ -2,6 +2,12 @@
 
 Requires Node.js >=22.19.0. Runtime dependencies: Node built-ins only. The supported validation environment is macOS arm64 with an interactive terminal; other platforms remain unverified.
 
+## Version and command navigation
+
+This checkout builds **v0.1.8**. The published GitHub archive remains **v0.1.6**; no v0.1.8 release or npm publication is implied. v0.1.6 does not include source retrieval, Sandbox, Loop or Goal. Build the source archive to use those commands.
+
+Installed v0.1.8: `pan-agent loop --help`, `pan-agent goal --help`, `pan-agent execution --help`; root `pan-agent --help` describes Sandbox. `sandbox --help` is not a supported subcommand. The complete user guide and offline installed walkthrough are at https://github.com/pym96/Pan-agent/tree/main/docs/demo/consumer-readiness . They use the existing explicit Faux fixture seam; no provider key is needed. RUNBOOK.md describes the execution/verification boundary.
+
 ## Build a package (developers)
 
 ```sh
@@ -49,7 +55,7 @@ Archives verify their stored hash chain and preserve run identity. They are not 
 
 ## License and distribution status
 
-Pan-authored code is licensed under the MIT License included as `LICENSE` in this package, copyright 2026 Pan Agent contributors. Third-party licenses are not replaced by Pan's license. Install the v0.1.6 tarball from GitHub Releases; this package is not published on npm.
+Pan-authored code is licensed under the MIT License included as `LICENSE` in this package, copyright 2026 Pan Agent contributors. Third-party licenses are not replaced by Pan's license. The prebuilt v0.1.6 tarball is on GitHub Releases; the v0.1.8 archive is built from source. Neither install path requires publishing to npm.
 
 Runtime code has no third-party npm runtime dependencies. Build-time dependencies: TypeScript (Apache-2.0), @types/node (MIT), undici-types (MIT). These dependencies are not bundled. The repository's license inventory documents separate recording tools and retained references.
 

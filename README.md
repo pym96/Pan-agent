@@ -10,7 +10,16 @@ A terminal agent for working with local files and shell commands. Watch tool cal
 
 The default local runtime needs no Python, Go, Docker, PostgreSQL, Redis or TypeScript compiler. Optional Docker sandbox mode requires a compatible Linux Docker daemon and the pinned image described below.
 
-## Install
+## Choose your version
+
+| Install | What you get |
+|---|---|
+| Published **v0.1.6** archive below | TUI, provider configuration, offline demo and saved-run replay |
+| Build **v0.1.8 source** | Those features plus document/history retrieval, optional Docker sandbox, bounded `loop`, executable `goal`, and `execution inspect` |
+
+v0.1.8 is the source package version, **not a published release or npm download**. The older videos below retain their recorded versions. For the newer features, follow [Sandbox, Loop and Goal](docs/demo/consumer-readiness/README.md), including a short offline installed-CLI walkthrough.
+
+## Install published v0.1.6
 
 Download the **v0.1.6** assets from GitHub Releases:
 
@@ -27,11 +36,12 @@ npm install ./pan-agent-0.1.6.tgz --omit=dev --ignore-scripts --no-audit --no-fu
 
 On systems whose `shasum` does not support `--ignore-missing`, run `shasum -a 256 pan-agent-0.1.6.tgz` and compare it with the matching line in SHA256SUMS. Compare the package checksum before installing. No build is needed for the prebuilt package. The package is not published on npm.
 
-To build from source:
+To build the accepted v0.1.8 runtime from a pinned source commit (the build stage needs npm's pinned development dependencies):
 
 ```sh
 git clone https://github.com/pym96/Pan-agent.git
 cd Pan-agent
+git checkout --detach 01a9a40765d68bba604d8098ad8fe4a04a26651c
 npm --prefix typescript ci --ignore-scripts
 mkdir -p artifacts
 (cd typescript && npm pack --pack-destination ../artifacts)
@@ -42,7 +52,7 @@ npm install ../artifacts/pan-agent-0.1.8.tgz --omit=dev --ignore-scripts --no-au
 
 ## Configure and run real tasks
 
-**Markdown is built into v0.1.4.** The ordinary installed TUI formats assistant text as it streams; no plugin, rendering service or demo launcher is needed. Configure a real provider first:
+**Streaming Markdown has been built in since v0.1.4.** The ordinary installed TUI formats assistant text as it streams; no plugin, rendering service or demo launcher is needed. Configure a real provider first:
 
 ```sh
 ./node_modules/.bin/pan-agent configure
@@ -139,9 +149,9 @@ This is a small display subset, not full CommonMark: nested inline formatting, e
 
 If an environment credential is missing when you submit a task, the TUI keeps the failed status and shows the expected variable (`KIMI_API_KEY` or `DEEPSEEK_API_KEY`). Exit with `:exit`, set the key in your terminal using your secret manager, then restart Pan. To change the credential source, run `pan-agent configure`. Never paste an API key into a task. Keychain configuration uses its own entry; environment keys do not override a selected Keychain source. Unknown provider errors remain generic rather than exposing raw responses.
 
-## Opt-in document and history retrieval
+## Opt-in document and history retrieval (v0.1.8 source)
 
-Retrieval is included in the **0.1.7 source/candidate package**; the published v0.1.6 download above does not contain it. Build and install the current checkout with the source instructions. No embedding service or extra runtime dependency is needed.
+Retrieval is included in the **v0.1.8 source package**; the published v0.1.6 download above does not contain it. Build and install the current checkout with the source instructions. No embedding service or extra runtime dependency is needed.
 
 Create `selection.json` outside your selected source directories, for example:
 
@@ -175,31 +185,13 @@ Settings persist in `workspace/.pan-agent/retrieval.json` across restarts. Repla
 
 Offline review tooling: [executable verification](scripts/verification/README.md) (`node scripts/verification/cli.mjs --help`); machine evidence does not replace independent acceptance.
 
-## Optional Docker sandbox (source candidate)
+## Sandbox, Loop and Goal (v0.1.8 source)
 
-Build/install the source package above, then start the ordinary TUI with:
+[Read the user guide and run the offline walkthrough](docs/demo/consumer-readiness/README.md).
 
-```sh
-./node_modules/.bin/pan-agent --kernel native --sandbox-root "$PWD/sandbox-state" \
-  --sandbox-input "$PWD/input.txt" --memory-root "$PWD/archives"
-```
+- **Sandbox:** optional Linux Docker isolation for file/shell tools, with explicit recovery, verification, export and cleanup. Default local execution still has your host-user authority.
+- **Loop:** immediate first attempt, then serial fixed-rate eligibility checks until the original deadline or another stop condition. A normal model final does not end the schedule.
+- **Goal:** uses the same controller but can finish early only after an operator-owned executable verifier passes for the bound candidate. A model saying “done” is not sufficient.
+- **Inspect:** read saved execution state without resuming commands. Interrupted work is not automatically replayed.
 
-Each task gets a separate non-root container and workspace volume. `read`, `write`, `edit` and `bash` run there; selected files appear read-only under `/inputs`, outputs go under `/workspace/task`. Retrieval is disabled in this mode. Tool approval cannot add host mounts or network access. API credentials and the agent loop remain on the host. Omitting `--sandbox-root` preserves trusted-local execution.
-
-This profile uses a pinned Python image, no network, a read-only root filesystem, 1 CPU, 512 MiB RAM and 64 PIDs. It requires Linux Docker with cgroup v2 and working resource controllers; unsupported/rootless configurations fail closed. The volume has **no filesystem quota**: memory/PID bounds are enforced, while disk protection is a preflight threshold and bounded export. Docker access itself is a trusted host privilege.
-
-After a task (or controller interruption), use explicit lifecycle commands:
-
-```sh
-pan-agent sandbox list --root "$PWD/sandbox-state"
-pan-agent sandbox recover --run /absolute/path/to/sandbox-state/RUN_ID
-pan-agent sandbox verify --run /absolute/path/to/sandbox-state/RUN_ID --command 'test -f result.txt' --seconds 10
-pan-agent sandbox export --run /absolute/path/to/sandbox-state/RUN_ID --out "$PWD/task-export"
-pan-agent sandbox cleanup --run /absolute/path/to/sandbox-state/RUN_ID
-```
-
-Recovery stops uncertain execution; it never replays task commands. Verification is explicit and runs separately against a read-only workspace after the agent container stops. Cleanup requires a rechecked export manifest, receipt and file hashes. Keep the state directory until cleanup completes; deleting it loses the recovery record. Exports accept regular files only (at most 1,000 files / 64 MiB); links, special files and unsupported tar extensions fail with the volume retained.
-
-### Bounded loop and executable goals (#150 candidate)
-
-`pan-agent loop --help` and `pan-agent goal --help` describe the noninteractive scheduled entry. Both use the native runtime and existing operation-scoped approvals. Goal completion requires an operator-owned executable verifier, never the model’s completion text. Use a new `--state` directory; `pan-agent execution inspect --state DIR` reads evidence without restarting work. See [design](docs/design/execution-controller.md). Python is required only for development tests.
+The guide distinguishes source-checked real-provider/Docker examples from the credential-free installed checks. No new model score or security claim is implied by that walkthrough.

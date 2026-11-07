@@ -1,5 +1,7 @@
 # Reproducibility scripts
 
+- [Installed consumer walkthrough](consumer-readiness/README.md): explicit offline fixture, bounded loop/goal and inspect verification.
+
 These scripts prepare ignored local state and invoke pinned external tooling. They do not produce benchmark Claims or update the project fact register.
 
 ## WorkOrder #33 direct Pan DeepSeek Adapter checks
