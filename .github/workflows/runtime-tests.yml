@@ -1,0 +1,43 @@
+name: Installed runtime regression
+on:
+  pull_request:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  runtime:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        node: ['22.19.0', '26.7.0']
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Isolate pinned test dependencies
+        run: |
+          python -m venv "$RUNNER_TEMP/pytest-env"
+          "$RUNNER_TEMP/pytest-env/bin/python" -m pip install -r scripts/runtime-ci/requirements.txt
+      - name: Build and test installed runtime
+        run: '"$RUNNER_TEMP/pytest-env/bin/python" scripts/runtime-ci/run.py --output "$RUNNER_TEMP/runtime-evidence"'
+      - name: Preserve raw evidence even after failure
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: runtime-node-${{ matrix.node }}
+          path: |
+            ${{ runner.temp }}/runtime-evidence/**
+            !${{ runner.temp }}/runtime-evidence/consumer/**
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 30

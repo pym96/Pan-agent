@@ -391,3 +391,7 @@ First independent benchmark-configuration review: REJECT. It found that the init
 Second independent review: ACCEPT for the ordinary configuration-only boundary. Independent probes rejected forged eligible fixture/evaluator values and missing/zero/negative/non-integer timeouts; linked resolved controls to both Pack compilation and actual RunReport provenance; retained 21/147 Pinch cases as ineligible; retained a 30-case vertical denominator with 2 attempted seeds and 28 ineligible cases; and rebuilt/installed the wheel with all locks present. The review explicitly excludes benchmark translation/execution, official compatibility, public numbers, remaining case implementation, high-risk security Claims, VPF, factual-ledger, and resume changes.
 
 No external benchmark attempt, provider call, public number, official compatibility Claim, Verified Project Fact, factual-ledger change, or resume change is part of this checkpoint.
+
+## Runtime regression automation — #154
+
+[WorkOrder #154](https://github.com/pym96/Pan-agent/issues/154), Criteria CI1.0, adds CPU-only installed-runtime CI on accepted base `68b1ca3a1ab9b8cb412e651b7150b4adc658b6a2`. Scope is workflow/test orchestration and documentation; Runtime and package/lock bytes remain unchanged. See [entry](../../scripts/runtime-ci/README.md) and [evidence index](../evidence/runtime-ci/README.md). Builder candidates require separate exact-SHA Regulator acceptance; CI green is not that acceptance.

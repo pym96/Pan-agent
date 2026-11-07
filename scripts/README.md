@@ -309,3 +309,5 @@ The active #60/#61/#62 PTY drivers now start at idle rather than submitting remo
 - [WO78 bounded recovery adapter](harbor/pilot/README.md) — zero-model diagnosis, candidate ceilings and scoped lifecycle release.
 
 - [WO78 Criteria1.1 continuation](../docs/evidence/terminal-bench-recovery-78.md): authorized one-network cleanup and real five-task zero-model lifecycle evidence.
+
+- [runtime-ci](runtime-ci/README.md): reproducible installed-runtime CPU regression entry and raw CI evidence.

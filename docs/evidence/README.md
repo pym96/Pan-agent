@@ -152,3 +152,5 @@ Raw artifacts remain at their stable source, Git, Trace, Test, evaluator, or ext
 - [Docker sandbox #148](sandbox/README.md): candidate CPU Docker evidence and retained failures.
 
 - [#150 candidate evidence](execution150/README.md): execution/goal controller verification records; not an accepted fact.
+
+- [Runtime CI](runtime-ci/README.md): #154 installed CPU regression evidence boundary and source/package identity.

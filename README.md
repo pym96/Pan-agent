@@ -195,3 +195,7 @@ Offline review tooling: [executable verification](scripts/verification/README.md
 - **Inspect:** read saved execution state without resuming commands. Interrupted work is not automatically replayed.
 
 The guide distinguishes source-checked real-provider/Docker examples from the credential-free installed checks. No new model score or security claim is implied by that walkthrough.
+
+### Automated runtime checks
+
+Pull requests and `main` run [installed runtime regression](scripts/runtime-ci/README.md) on Ubuntu 22.04 with Node 22.19.0 and 26.7.0: TypeScript checks, clean package installation, lifecycle tests and the offline walkthrough. Raw logs and package/source identities are retained as workflow artifacts. This CPU gate does not run Docker containment or live-model benchmarks.

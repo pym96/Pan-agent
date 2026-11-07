@@ -131,3 +131,7 @@ Recovery stops uncertain execution; it never replays task commands. Verification
 ### Bounded loop and executable goals (#150 candidate)
 
 `pan-agent loop --help` and `pan-agent goal --help` describe the noninteractive scheduled entry. Both use the native runtime and existing operation-scoped approvals. Goal completion requires an operator-owned executable verifier, never the model’s completion text. Use a new `--state` directory; `pan-agent execution inspect --state DIR` reads evidence without restarting work. See [design](../docs/design/execution-controller.md). Python is required only for development tests.
+
+## Installed runtime CI
+
+[The shared CI entry](../scripts/runtime-ci/README.md) runs the full TypeScript suite plus byte-verified installed CLI lifecycle tests and the offline walkthrough on Node 22.19.0 and 26.7.0. Docker and live providers are outside this CPU gate.
