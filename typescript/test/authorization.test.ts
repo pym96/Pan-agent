@@ -3,6 +3,7 @@ import { test } from 'node:test';
 import fs from 'node:fs';
 import { syncBuiltinESMExports } from 'node:module';
 import { join, dirname } from 'node:path';
+import { tmpdir } from 'node:os';
 import { PassThrough } from 'node:stream';
 import { SessionAuthorization, PathAssessment, protectedReason, type ApprovalChannel, type ApprovalRequest, type ApprovalDecision } from '../src/runtime/authorization.ts';
 import { createPanTrustedLocalTools } from '../src/tools/pan-trusted-local-tools.ts';
@@ -16,7 +17,7 @@ import { FauxModelAdapter } from '../src/providers/faux/faux-model-adapter.ts';
 import { RunArchiveStore } from '../src/memory/run-archive.ts';
 
 function fixture(approval?:ApprovalChannel,protectedPaths:readonly string[]=[]){
- const root=fs.mkdtempSync('/private/tmp/wo49-test-'),workspace=join(root,'workspace');fs.mkdirSync(workspace);
+ const root=fs.realpathSync(fs.mkdtempSync(join(tmpdir(),'wo49-test-'))),workspace=join(root,'workspace');fs.mkdirSync(workspace);
  const authority=new SessionAuthorization({approval,protectedPaths});
  const raw=createPanTrustedLocalTools(workspace,{PATH:'/usr/bin:/bin'}).tools;
  let n=0;

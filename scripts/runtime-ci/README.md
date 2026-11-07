@@ -1,6 +1,6 @@
 # Installed runtime regression
 
-From a source checkout, with Node **22.19.0** or **26.7.0** and Python 3.12:
+From a full-history source checkout (existing regression tests read historical Git objects), with Node **22.19.0** or **26.7.0** and Python 3.12:
 
 ```sh
 python3 -m venv /tmp/pan-ci-python
