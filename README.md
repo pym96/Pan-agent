@@ -36,12 +36,12 @@ npm install ./pan-agent-0.1.6.tgz --omit=dev --ignore-scripts --no-audit --no-fu
 
 On systems whose `shasum` does not support `--ignore-missing`, run `shasum -a 256 pan-agent-0.1.6.tgz` and compare it with the matching line in SHA256SUMS. Compare the package checksum before installing. No build is needed for the prebuilt package. The package is not published on npm.
 
-To build the accepted v0.1.8 runtime from a pinned source commit (the build stage needs npm's pinned development dependencies):
+To build v0.1.8 from the pinned walkthrough source snapshot below (including its guide and runner), use the following commands. Its runtime bytes match accepted baseline `01a9a407`; the snapshot is not a new published release. The build stage needs npm's pinned development dependencies:
 
 ```sh
 git clone https://github.com/pym96/Pan-agent.git
 cd Pan-agent
-git checkout --detach 01a9a40765d68bba604d8098ad8fe4a04a26651c
+git checkout --detach 20b7ee2fd99775e45523f6350b455ca3fc1ced94
 npm --prefix typescript ci --ignore-scripts
 mkdir -p artifacts
 (cd typescript && npm pack --pack-destination ../artifacts)
