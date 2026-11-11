@@ -1,3 +1,7 @@
+# Current work | Pan #157 portable checkout paths
+
+[WorkOrder #157 PATH1.0](https://github.com/pym96/Pan-agent/issues/157#issuecomment-6790768923) authorizes test-fixture URL/path conversion, an actual-fixture regression, and CI checkout-path coverage. Runtime, permission policy, packages and locks remain unchanged. Builder delivers a full-SHA candidate; a separate Regulator decides acceptance. [Regression entry](../../scripts/runtime-ci/README.md). Earlier assignment snapshots below do not activate work.
+
 # Current navigation | Pan consumer readiness
 
 The current user-facing product is the TypeScript Native TUI/runtime. Sandbox #148 and Execution/Goal #150 landed at accepted main `01a9a40765d68bba604d8098ad8fe4a04a26651c` ([#150 final acceptance](https://github.com/pym96/Pan-agent/issues/150#issuecomment-6572639801), [PR151](https://github.com/pym96/Pan-agent/pull/151)). This is navigation to those records, not a new fact-register entry.

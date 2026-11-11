@@ -1,3 +1,4 @@
+import { fileURLToPath } from "node:url";
 import assert from "node:assert/strict";
 import { mkdtemp } from "node:fs/promises";
 import { tmpdir } from "node:os";
@@ -160,7 +161,7 @@ test("C-KIMI-04 cancellation before admission: no tool start, no marker, one can
 		execute: async () => { toolStarts += 1; throw new Error("must never run"); },
 	};
 	const archiveStore = await RunArchiveStore.open(memory);
-	const runbook = await loadRunbook(new URL("../RUNBOOK.md", import.meta.url).pathname);
+	const runbook = await loadRunbook(fileURLToPath(new URL("../RUNBOOK.md", import.meta.url)));
 	const session = new GeneralAgentSession({
 		kernel: "native",
 		adapter: new PanKimiModelAdapter(undefined, { transport }),

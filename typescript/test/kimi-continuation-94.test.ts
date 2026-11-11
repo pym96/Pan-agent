@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {mkdtemp,readFile,readdir} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
-import {pathToFileURL} from 'node:url';
+import {fileURLToPath,pathToFileURL} from 'node:url';
 import type {Message,ModelExchangeRequest,KimiTransportRequest} from '../src/index.ts';
 const api=await import(process.env.PAN_TEST_ENTRY?pathToFileURL(process.env.PAN_TEST_ENTRY).href:new URL('../src/index.ts',import.meta.url).href);
 const profile={modelId:'k3-256k',thinkingLevel:'high'} as const;
@@ -20,7 +20,7 @@ function wire(kind:string,turn:number,variant='valid'){
 async function make(kind:string,variant='valid'){
  const requests:Record<string,any>[]=[];const observed:Record<string,any>[]=[];const effects:number[]=[];
  const adapter=new api.PanKimiModelAdapter(profile,{onStructure:(s:Record<string,any>)=>observed.push(s),transport:{async send(r:KimiTransportRequest){requests.push(JSON.parse(r.body));const bytes=Buffer.from(wire(kind,requests.length,variant));return {status:200,body:(async function*(){for(let i=0;i<bytes.length;i+=7)yield bytes.subarray(i,i+7);})()};}}});
- const root=await mkdtemp(join(tmpdir(),'kimi94-'));const archiveStore=await api.RunArchiveStore.open(root);const runbook=await api.loadRunbook(new URL('../RUNBOOK.md',import.meta.url).pathname);
+ const root=await mkdtemp(join(tmpdir(),'kimi94-'));const archiveStore=await api.RunArchiveStore.open(root);const runbook=await api.loadRunbook(fileURLToPath(new URL('../RUNBOOK.md',import.meta.url)));
  const session=new api.GeneralAgentSession({kernel:'native',adapter,systemPrompt:'offline',tools:[{name:'record',description:'synthetic',parameters:{type:'object',properties:{n:{type:'integer'}},required:['n']},validate:(value:any)=>({ok:true,value}),execute:async(invocation:{arguments:{n:number}})=>{effects.push(invocation.arguments.n);return {content:[{type:'text',text:'RESULT-'+invocation.arguments.n}]};}}],memory:{archiveStore,runbook:async()=>runbook},cleanup:()=>adapter.dispose()});
  return {requests,observed,effects,session,archiveStore};
 }

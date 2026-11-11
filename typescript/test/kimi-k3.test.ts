@@ -1,3 +1,4 @@
+import { fileURLToPath } from "node:url";
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { readFile, mkdtemp } from "node:fs/promises";
@@ -81,7 +82,7 @@ test('C-K3-02 identical visible messages never borrow private reasoning across s
 
 async function sessionFor(adapter: Pick<PanKimiModelAdapter, "providerId" | "modelId" | "reasoningLevel" | "exchange" | "dispose">) {
  const archiveStore=await RunArchiveStore.open(await mkdtemp(join(tmpdir(),'k3-memory-')));
- const runbook=await loadRunbook(new URL('../RUNBOOK.md',import.meta.url).pathname);let effects=0;
+ const runbook=await loadRunbook(fileURLToPath(new URL('../RUNBOOK.md',import.meta.url)));let effects=0;
  const session=new GeneralAgentSession({kernel:'native',adapter,systemPrompt:'offline',tools:[{name:'read',description:'synthetic',parameters:{type:'object'},validate:value=>({ok:true,value:value as never}),execute:async()=>{effects++;return{content:[{type:'text',text:'read result'}]};}}],memory:{archiveStore,runbook:async()=>runbook},cleanup:()=>adapter.dispose()});
  return {session,archiveStore,effects:()=>effects};
 }
