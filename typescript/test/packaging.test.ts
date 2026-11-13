@@ -25,7 +25,7 @@ test("C-PFREE-E101 clean compiler builds eliminate stale output and preserve det
   assert.doesNotMatch(source,/from ["'][^"']+\.ts["']|import\(["'][^"']+\.ts["']|@earendil-works\/pi-/);
  }
  const output=execFileSync(process.execPath,["bin/pan-agent.mjs","--help"],{cwd:root,encoding:"utf8"}); assert.match(output,/--kernel native/);
- const metadata=JSON.parse(await readFile(join(root,"package.json"),"utf8")); assert.equal(metadata.private,true); assert.equal(metadata.engines.node,">=22.19.0");
+ const metadata=JSON.parse(await readFile(join(root,"package.json"),"utf8")); assert.equal(metadata.private,false); assert.equal(metadata.engines.node,">=22.19.0");
  assert.deepEqual(metadata.bin,{"pan-agent":"bin/pan-agent.mjs"}); assert.equal(metadata.exports["."].import,"./dist/index.js");
  const temporary=await mkdtemp(join(tmpdir(),"wo35-package-test-"));
  try {

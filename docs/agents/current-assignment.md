@@ -1,3 +1,7 @@
+## Active #160 INSTALL1.0 — installation and onboarding
+
+[WorkOrder #160](https://github.com/pym96/Pan-agent/issues/160) prepares npm distribution, bare installed startup and concise installation documentation from `3d5297b30e6d5851baae1975e7f19ad691640e92`. Publication requires a separately authorized account; candidate preparation is not registry availability. [Builder evidence](../evidence/install160/README.md). No provider, sandbox or scheduler change. Historical assignments below do not authorize execution.
+
 # Current work | Pan #157 portable checkout paths
 
 [WorkOrder #157 PATH1.0](https://github.com/pym96/Pan-agent/issues/157#issuecomment-6790768923) authorizes test-fixture URL/path conversion, an actual-fixture regression, and CI checkout-path coverage. Runtime, permission policy, packages and locks remain unchanged. Builder delivers a full-SHA candidate; a separate Regulator decides acceptance. [Regression entry](../../scripts/runtime-ci/README.md). Earlier assignment snapshots below do not activate work.

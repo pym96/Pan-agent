@@ -676,8 +676,8 @@ test("runbook revision binding survives later edits and reverts", async () => {
 	assert.equal(await revisionOf(runV1), v1Revision);
 });
 
-// CLI contract: --memory-root is required and must be disjoint from the workspace.
-test("CLI requires a disjoint --memory-root before any Adapter construction", async () => {
+// CLI contract: default and explicit archives must be disjoint from the workspace.
+test("CLI rejects overlapping default and explicit archives before Adapter construction", async () => {
 	const output = new PassThrough();
 	let text = "";
 	output.setEncoding("utf8");
@@ -689,9 +689,10 @@ test("CLI requires a disjoint --memory-root before any Adapter construction", as
 		adapterConstructions += 1;
 		throw new Error("Adapter must not be constructed for invalid CLI input");
 	};
-	const missing = await runCli(["--kernel", "native", "--workspace", "/tmp"], { output, createNativeAdapter });
+	const home = await workspace();
+	const missing = await runCli(["--kernel", "native", "--workspace", home], { output, createNativeAdapter, home });
 	assert.equal(missing, 2);
-	assert.match(text, /--memory-root is required/);
+	assert.match(text, /disjoint/);
 
 	const directory = await workspace();
 	const nested = await runCli(["--kernel", "native", "--workspace", directory, "--memory-root", join(directory, "memory")], {

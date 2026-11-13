@@ -154,3 +154,5 @@ Raw artifacts remain at their stable source, Git, Trace, Test, evaluator, or ext
 - [#150 candidate evidence](execution150/README.md): execution/goal controller verification records; not an accepted fact.
 
 - [Runtime CI](runtime-ci/README.md): #154 installed CPU regression evidence boundary and source/package identity.
+
+- [#160 installed onboarding candidate](install160/README.md): publish preparation, actual global-prefix/PTY checks and truthful release availability.

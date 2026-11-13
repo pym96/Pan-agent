@@ -105,6 +105,8 @@ def main():
         if not cases or any(c.find(tag) is not None for c in cases for tag in ('skipped','error','failure')):
             raise RuntimeError('empty/skipped/failing installed suite')
         report['installed_tests'] = len(cases)
+        run('onboarding', [sys.executable, str(ROOT/'scripts/runtime-ci/onboarding.py'), '--package', str(package), '--output', str(out/'onboarding')], limit=120)
+        report['onboarding'] = json.loads((out/'onboarding/result.json').read_text())
         run('walkthrough', ['node', str(ROOT/'scripts/consumer-readiness/walkthrough.mjs'), str(cli), str(out/'walkthrough')])
         if not (out/'walkthrough/summary.json').is_file():
             raise RuntimeError('missing walkthrough summary')

@@ -1,7 +1,7 @@
 {
   "name": "pan-agent",
-  "version": "0.1.8",
-  "private": true,
+  "version": "0.1.9",
+  "private": false,
   "type": "module",
   "engines": {
     "node": ">=22.19.0"
@@ -48,5 +48,14 @@
     }
   },
   "types": "./dist/index.d.ts",
-  "license": "MIT"
+  "license": "MIT",
+  "description": "A terminal agent with tool approvals and replayable execution archives.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pym96/Pan-agent.git",
+    "directory": "typescript"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
 }

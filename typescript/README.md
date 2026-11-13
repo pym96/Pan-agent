@@ -1,12 +1,31 @@
 # Pan Agent — terminal runtime
 
-Requires Node.js >=22.19.0. Runtime dependencies: Node built-ins only. The supported validation environment is macOS arm64 with an interactive terminal; other platforms remain unverified.
+Requires Node.js >=22.19.0. Runtime dependencies: Node built-ins only. Installed regression runs target macOS arm64 and Linux; Windows remains unverified.
 
 ## Version and command navigation
 
-This checkout builds **v0.1.8**. The published GitHub archive remains **v0.1.6**; no v0.1.8 release or npm publication is implied. v0.1.6 does not include source retrieval, Sandbox, Loop or Goal. Build the source archive to use those commands.
+This checkout builds **v0.1.9**. The published GitHub archive remains **v0.1.6**; no v0.1.9 release or npm publication is implied. v0.1.6 does not include source retrieval, Sandbox, Loop or Goal. Build the source archive to use those commands.
 
-Installed v0.1.8: `pan-agent loop --help`, `pan-agent goal --help`, `pan-agent execution --help`; root `pan-agent --help` describes Sandbox. `sandbox --help` is not a supported subcommand. The complete user guide and offline installed walkthrough are at https://github.com/pym96/Pan-agent/tree/main/docs/demo/consumer-readiness . They use the existing explicit Faux fixture seam; no provider key is needed. RUNBOOK.md describes the execution/verification boundary.
+Installed v0.1.9: `pan-agent loop --help`, `pan-agent goal --help`, `pan-agent execution --help`; root `pan-agent --help` describes Sandbox. `sandbox --help` is not a supported subcommand. The complete user guide and offline installed walkthrough are at https://github.com/pym96/Pan-agent/tree/main/docs/demo/consumer-readiness . They use the existing explicit Faux fixture seam; no provider key is needed. RUNBOOK.md describes the execution/verification boundary.
+
+## Install a prepared archive
+
+```sh
+npm install -g --ignore-scripts /path/to/pan-agent-0.1.9.tgz
+cd /path/to/project
+pan-agent
+```
+
+The installed launcher selects the Native kernel. Workspace defaults to cwd, archives to `~/.pan-agent/archives`; explicit `--workspace` and `--memory-root` win. Keep archives disjoint from the workspace. Library `runCli` and source development entry retain explicit `--kernel native`. First launch in a terminal offers configuration; saved ordinary settings are reused. No API request is made before a task is submitted. For current published downloads see https://github.com/pym96/Pan-agent#install .
+
+## Publish checklist (maintainer)
+
+The npm account/package-name ownership is not established by this checkout. Do not advertise `npm install -g pan-agent` as working before publication. An authorized maintainer must verify registry ownership, review the tarball and its SHA256, then publish that reviewed artifact using npm's authenticated release flow. No credentials belong in source or a test artifact.
+
+1. Run the shared installed regression entry linked below and retain the exact commit, package hash and independent review.
+2. Inspect `npm pack --dry-run --json` and the built tarball: compiled runtime/assets only; no source credentials or local configuration.
+3. From an authorized account, publish the reviewed `.tgz` (public access). This is a separate release action, not part of the offline build.
+4. Install the exact published version in a fresh prefix/home and run help, onboarding and the offline demo. Only then update the root README's default installation command and release availability.
 
 ## Build a package (developers)
 
@@ -16,7 +35,7 @@ npm run build
 npm pack --pack-destination /path/to/artifacts
 ```
 
-The compiler is a pinned development dependency. A consumer does not need it. The archive contains compiled JavaScript, declarations, launchers and operating instructions; `private: true` prevents accidental npm publication.
+The compiler is a pinned development dependency. A consumer does not need it. The archive contains compiled JavaScript, declarations, launchers and operating instructions; The package is prepared for public npm publication (`private: false`); preparation does not mean it has been published.
 
 ## Install a prebuilt archive
 
@@ -55,7 +74,7 @@ Archives verify their stored hash chain and preserve run identity. They are not 
 
 ## License and distribution status
 
-Pan-authored code is licensed under the MIT License included as `LICENSE` in this package, copyright 2026 Pan Agent contributors. Third-party licenses are not replaced by Pan's license. The prebuilt v0.1.6 tarball is on GitHub Releases; the v0.1.8 archive is built from source. Neither install path requires publishing to npm.
+Pan-authored code is licensed under the MIT License included as `LICENSE` in this package, copyright 2026 Pan Agent contributors. Third-party licenses are not replaced by Pan's license. The prebuilt v0.1.6 tarball is on GitHub Releases; the v0.1.9 archive is built from source. Neither install path requires publishing to npm.
 
 Runtime code has no third-party npm runtime dependencies. Build-time dependencies: TypeScript (Apache-2.0), @types/node (MIT), undici-types (MIT). These dependencies are not bundled. The repository's license inventory documents separate recording tools and retained references.
 

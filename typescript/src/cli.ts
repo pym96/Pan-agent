@@ -3,8 +3,10 @@ import {SandboxSession} from './sandbox/session.ts';
 import {sandboxCommand} from './sandbox/cli.ts';
 import { createRetrievalTool } from './retrieval/tool.ts';
 import { retrievalCommand } from './retrieval/config.ts';
-import { stat } from "node:fs/promises";
+import { access, stat } from "node:fs/promises";
+import { constants } from "node:fs";
 import { pathToFileURL, fileURLToPath } from "node:url";
+import { homedir } from "node:os";
 import { dirname, resolve } from "node:path";
 import type { Readable, Writable } from "node:stream";
 import { isKernelSelector, type KernelSelector } from "./runtime/agent-kernel.ts";
@@ -40,11 +42,12 @@ import { createPanKimiAdapter, PanKimiModelAdapter } from "./providers/kimi/pan-
 import { DEFAULT_KIMI_PROFILE, KIMI_K3_MODEL_ID, type KimiProfile } from "./providers/kimi/kimi-profile.ts";
 
 export const CLI_USAGE = `Usage:
-  npm run agent -- --workspace /absolute/path --memory-root /absolute/path --kernel native [--model deepseek-v4-flash|deepseek-v4-pro] [--thinking low|high|max] [--max-attachment-bytes INTEGER]
+  pan-agent [--workspace /absolute/path] [--memory-root /absolute/path] --kernel native [--model deepseek-v4-flash|deepseek-v4-pro] [--thinking low|high|max] [--max-attachment-bytes INTEGER]
   npm run agent -- configure   (first-run settings: provider/model/thinking and credential source; persists no secret)
 
-The Product requires explicit --kernel native; NativeKernel receives Pan-owned typed read/write/edit/bash implementations directly.
+The installed launcher selects Native; source/library callers pass --kernel native. NativeKernel receives Pan-owned typed read/write/edit/bash implementations directly.
 By default the bash tool is trusted-local: it has host-user authority; --workspace sets cwd but is not containment or an OS sandbox.
+Defaults: workspace = current directory; memory-root = ~/.pan-agent/archives. Explicit paths override defaults.
 Every admitted run is durably archived under --memory-root (must be disjoint from the workspace) with the current Runbook revision; :details, :runs and :replay inspect sealed archives with zero Provider calls or tool effects.
 Attachments use selection-time UTF-8 snapshots; default aggregate maxAttachmentBytes=1048576 (1 MiB local byte policy, not a model token limit). Override with --max-attachment-bytes; never truncates.
 Ordinary settings persist at ~/.pan-agent/settings.json (mode 0600; schema version, provider/model/thinking and the literal credential source kind only — never a secret). Run 'configure' to create or replace them; on a TTY first run without settings the same flow is offered. Explicit --model/--thinking flags override persisted values for that run.
@@ -176,18 +179,13 @@ export async function runCli(args: readonly string[], dependencies: CliDependenc
 			return 2;
 		}
 	}
-	if (!configuration.workspace) {
-		writeLine("Validation failed: --workspace is required");
-		writeLine(CLI_USAGE);
+	// Interactive onboarding owns defaults; explicit paths remain authoritative.
+	if (!configuration.workspace && !configuration.memoryRoot && !dependencies.startTui
+		&& ((dependencies.input ?? process.stdin) as NodeJS.ReadStream).isTTY !== true) {
+		writeLine("Interactive startup requires a terminal. Run pan-agent in a terminal, or use --help / demo; use explicit --workspace and --memory-root for automated runs.");
 		return 2;
 	}
-	if (!configuration.memoryRoot) {
-		writeLine("Validation failed: --memory-root is required");
-		writeLine(CLI_USAGE);
-		return 2;
-	}
-
-	const workspace = resolve(configuration.workspace);
+	const workspace = resolve(configuration.workspace ?? process.cwd());
 	try {
 		const info = await stat(workspace);
 		if (!info.isDirectory()) throw new Error("path is not a directory");
@@ -195,9 +193,9 @@ export async function runCli(args: readonly string[], dependencies: CliDependenc
 		writeLine(`Validation failed: workspace is not an existing directory: ${terminalText(workspace)}`);
 		return 2;
 	}
-	const memoryRoot = resolve(configuration.memoryRoot);
+	const memoryRoot = resolve(configuration.memoryRoot ?? resolve(dependencies.home ?? homedir(), ".pan-agent", "archives"));
 	if (workspace === memoryRoot || workspace.startsWith(`${memoryRoot}/`) || memoryRoot.startsWith(`${workspace}/`)) {
-		writeLine("Validation failed: --memory-root must be disjoint from --workspace");
+		writeLine("Validation failed: --memory-root must be disjoint from --workspace. Choose a project subdirectory or pass --memory-root outside the workspace.");
 		return 2;
 	}
 
@@ -205,6 +203,7 @@ export async function runCli(args: readonly string[], dependencies: CliDependenc
 	try {
 		await loadRunbook(RUNBOOK_PATH);
 		archiveStore = await RunArchiveStore.open(memoryRoot);
+		await access(resolve(memoryRoot, "runs"), constants.W_OK);
 	} catch (error) {
 		writeLine(`Validation failed: ${terminalText(error instanceof Error ? error.message : "unknown")}`);
 		return 2;
