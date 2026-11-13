@@ -6,36 +6,16 @@ A terminal agent for local files and shell commands, with tool approvals and sav
 
 ## Install
 
-**v0.1.9 is prepared; its release upload and npm publication are pending.** Once the reviewed GitHub asset is published, install it without a source build:
-
 ```sh
-# Pending v0.1.9 release upload.
 npm install -g --ignore-scripts https://github.com/pym96/Pan-agent/releases/download/v0.1.9/pan-agent-0.1.9.tgz
 pan-agent
 ```
 
-After npm registry publication, the equivalent command will be:
+This installs the prebuilt **v0.1.9** release; no Git checkout or build is needed. [Release assets and checksums](https://github.com/pym96/Pan-agent/releases/tag/v0.1.9). Prefer a user-owned Node/npm installation; if npm reports permission denied, fix its prefix rather than running Pan with sudo.
 
-```sh
-# Pending publication — not an available registry download yet.
-npm install -g pan-agent
-pan-agent
-```
+## First run
 
-For now, the available prebuilt release is **v0.1.6**. No source checkout or build is needed:
-
-```sh
-npm install -g --ignore-scripts https://github.com/pym96/Pan-agent/releases/download/v0.1.6/pan-agent-0.1.6.tgz
-pan-agent configure
-mkdir -p pan-workspace pan-archives
-pan-agent --kernel native --workspace "$PWD/pan-workspace" --memory-root "$PWD/pan-archives"
-```
-
-v0.1.6 needs the explicit paths above; it does not include the new bare-command defaults, retrieval, Sandbox, Loop or Goal. [Release assets and checksums](https://github.com/pym96/Pan-agent/releases/tag/v0.1.6). Prefer a user-owned Node/npm installation; if npm reports permission denied, fix its prefix rather than running Pan with sudo.
-
-## First run in v0.1.9
-
-With a prepared v0.1.9 archive installed, enter a project directory and run `pan-agent`. The first-run wizard selects the provider, model and credential source. Subsequent launches reuse those preferences.
+Enter a project directory and run `pan-agent`. The first-run wizard selects the provider, model and credential source. Subsequent launches reuse those preferences.
 
 - **Workspace:** current directory. Override with `--workspace DIR`.
 - **History:** `~/.pan-agent/archives`. Override with `--memory-root DIR`.
