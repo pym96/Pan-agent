@@ -11,3 +11,5 @@ Early failures retained: TypeScript cast precedence prevented typecheck; first P
 Human specified simple installation; Builder implements and tests; Regulator independently reviews; Master integrates. No benchmark, security, resume or publication claim.
 
 Builder full-entry local run02: 269 TypeScript, 16 installed lifecycle, seven onboarding and eight walkthrough cases passed, zero skips. Follow-up final exact-commit run is identified in Handoff; these results alone do not authorize integration.
+
+Independent release-transition review found that the packaged README would retain a stale “current release v0.1.6” claim after v0.1.9 upload. Before publication, the package guide was changed to a version identity plus timeless GitHub Releases locator; archive examples now use v0.1.9. No runtime byte changed. New package/SHA and exact-commit validation are bound in the follow-up Handoff.

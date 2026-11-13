@@ -4,7 +4,7 @@ Requires Node.js >=22.19.0. Runtime dependencies: Node built-ins only. Installed
 
 ## Version and command navigation
 
-This checkout builds **v0.1.9**. The published GitHub archive remains **v0.1.6**; no v0.1.9 release or npm publication is implied. v0.1.6 does not include source retrieval, Sandbox, Loop or Goal. Build the source archive to use those commands.
+This package is **v0.1.9**. Published assets and checksums are listed at https://github.com/pym96/Pan-agent/releases . GitHub asset publication and npm registry publication are separate: use `npm install -g pan-agent` only after the package is published to the registry.
 
 Installed v0.1.9: `pan-agent loop --help`, `pan-agent goal --help`, `pan-agent execution --help`; root `pan-agent --help` describes Sandbox. `sandbox --help` is not a supported subcommand. The complete user guide and offline installed walkthrough are at https://github.com/pym96/Pan-agent/tree/main/docs/demo/consumer-readiness . They use the existing explicit Faux fixture seam; no provider key is needed. RUNBOOK.md describes the execution/verification boundary.
 
@@ -35,14 +35,14 @@ npm run build
 npm pack --pack-destination /path/to/artifacts
 ```
 
-The compiler is a pinned development dependency. A consumer does not need it. The archive contains compiled JavaScript, declarations, launchers and operating instructions; The package is prepared for public npm publication (`private: false`); preparation does not mean it has been published.
+The compiler is a pinned development dependency. A consumer does not need it. The archive contains compiled JavaScript, declarations, launchers and operating instructions. The package is prepared for public npm publication (`private: false`); preparation does not mean it has been published.
 
 ## Install a prebuilt archive
 
 ```sh
 mkdir pan-consumer
 cd pan-consumer
-npm install /path/to/pan-agent-0.1.6.tgz --omit=dev --ignore-scripts --no-audit --no-fund
+npm install /path/to/pan-agent-0.1.9.tgz --omit=dev --ignore-scripts --no-audit --no-fund
 ./node_modules/.bin/pan-agent --help
 ./node_modules/.bin/pan-agent demo
 ```
