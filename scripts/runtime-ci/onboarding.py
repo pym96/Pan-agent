@@ -19,7 +19,17 @@ class InstalledOnboarding(unittest.TestCase):
         if r.returncode: raise RuntimeError(r.stderr)
         cls.guard=cls.root/'network-guard.mjs'
         cls.guard.write_text("import {appendFileSync} from 'node:fs'; globalThis.fetch = (...args) => {appendFileSync(process.env.PAN_NETWORK_LOG, 'unexpected fetch\\n'); throw new Error('Provider request forbidden in onboarding test');};\n")
-        cls.env.update(NODE_OPTIONS='--import='+str(cls.guard),PAN_NETWORK_LOG=str(cls.root/'network.log'))
+        # NODE_OPTIONS is tokenized by Node, not the shell. A file URL keeps
+        # whitespace, quotes, # and % inside the module specifier as path data.
+        cls.env.update(NODE_OPTIONS='--import='+cls.guard.as_uri(),PAN_NETWORK_LOG=str(cls.root/'network.log'))
+        probe_log=cls.root/'guard-probe.log'
+        probe=subprocess.run(['node','--input-type=module','-e',
+            "try { await fetch('data:text/plain,guard-probe'); process.exit(2); } catch (error) { if (error.message !== 'Provider request forbidden in onboarding test') process.exit(3); }"],
+            env={**cls.env,'PAN_NETWORK_LOG':str(probe_log)},capture_output=True,text=True,timeout=8)
+        (cls.root/'guard-probe.stdout').write_text(probe.stdout);(cls.root/'guard-probe.stderr').write_text(probe.stderr)
+        (cls.root/'guard-probe.json').write_text(json.dumps({'returncode':probe.returncode,'node_options':cls.env['NODE_OPTIONS'],'uri':'data:text/plain,guard-probe'},indent=2)+'\n')
+        if probe.returncode or not probe_log.exists() or probe_log.read_text()!='unexpected fetch\n':
+            raise RuntimeError('onboarding fetch guard was not loaded; see guard-probe artifacts')
     def command(self,name,args,cwd=None):
         r=subprocess.run([str(self.cli),*args],cwd=cwd or self.project,env=self.env,stdin=subprocess.DEVNULL,capture_output=True,text=True,timeout=8)
         (self.root/(name+'.stdout')).write_text(r.stdout);(self.root/(name+'.stderr')).write_text(r.stderr)

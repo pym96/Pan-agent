@@ -16,6 +16,8 @@ Nine additional tests execute that constructor through the byte-verified install
 
 Both Node CI cells retain the combined-special-character checkout and additionally use a combined-special-character external output directory. All original 16 installed lifecycle cases remain, alongside the nine new cases. The full entry retains the complete TypeScript, onboarding and walkthrough suites.
 
+The first full entry at `dd35e237b289b428f140a0c9b65a01420113dc1e` passed 269 TypeScript and 25 installed lifecycle cases, then exposed another test-script path boundary: onboarding placed its absolute preload path directly in `NODE_OPTIONS`. An output directory containing quotes caused Node to exit 9 with `unterminated string`, before the CLI could start. SC-OUTPATH-GUARD-01 keeps this failed run and permits the same output-path repair in the test script: `Path.as_uri()` encodes the module specifier for Node's option parser. A bounded `data:` fetch probe confirms the preload guard actually intercepts fetch; it requires no network and retains its own output separately. All seven existing onboarding assertions remain.
+
 ## Evidence and limits
 
 The Handoff links ordinary/special baseline logs, the original red regression and source patch, fixed runs, source/package hashes, process observations, and failed preparation commands. An initial `npm pack` invocation from the repository root failed because the package lives in `typescript/`; the corrected invocation and original failure are both retained. Failures are not replaced by later passing records.
