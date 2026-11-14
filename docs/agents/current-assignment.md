@@ -1,4 +1,8 @@
-## Active #160 INSTALL1.0 — installation and onboarding
+## Active #159 OUTPATH1.0 — external evidence paths
+
+[WorkOrder #159](https://github.com/pym96/Pan-agent/issues/159#issuecomment-6869419603) scopes a test-fixture repair from accepted main `ec757b30f2840c8a1a329ff501e21b7ee9c7cae1`: quote verifier marker paths, exercise the installed lifecycle tests and preserve special output paths in shared CI. Runtime and package inputs remain unchanged. [Builder evidence](../evidence/output159/README.md). Only Pan is assigned to this session; older assignments below grant no new execution authority.
+
+## Historical #160 INSTALL1.0 — installation and onboarding
 
 [WorkOrder #160](https://github.com/pym96/Pan-agent/issues/160) prepares npm distribution, bare installed startup and concise installation documentation from `3d5297b30e6d5851baae1975e7f19ad691640e92`. Publication requires a separately authorized account; candidate preparation is not registry availability. [Builder evidence](../evidence/install160/README.md). No provider, sandbox or scheduler change. Historical assignments below do not authorize execution.
 

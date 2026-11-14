@@ -1,4 +1,4 @@
-import json, os, pathlib, subprocess, sys, selectors, time, tarfile, hashlib
+import json, os, pathlib, subprocess, sys, selectors, time, tarfile, hashlib, shlex
 import pytest
 
 HERE = pathlib.Path(__file__).parent
@@ -35,6 +35,10 @@ def response(content=None):
 
 def tool(name, args, id):
     return response([{'type':'tool_call','id':id,'name':name,'arguments':args}])
+
+def verifier_heartbeat_command(pidfile, heartbeat):
+    """The real verifier command shared by lifecycle and path regressions."""
+    return f'echo $$ > {shlex.quote(str(pidfile))}; trap "" TERM; while :; do echo beat >> {shlex.quote(str(heartbeat))}; sleep 0.05; done'
 
 @pytest.fixture
 def case(tmp_path, installed):

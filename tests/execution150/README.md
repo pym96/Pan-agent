@@ -33,3 +33,9 @@ CPU repair regressions add `test_frozen_supervisor_returns_bounded_unknown` (SIG
 For separately bounded server setup, optionally set `PAN_PREINSTALLED_ROOT` to an existing npm consumer directory alongside `PAN_PACKAGE`. Every package file is checked against the tarball before returning its CLI; mismatch is a setup failure. The default remains fresh installation. This separates install latency from individually timed lifecycle probes without substituting source execution.
 
 `test_frozen_verifier_owner_parent_fallback_and_sentinel` freezes the verifier executor after command start, keeps the CLI healthy, and checks that the owned verifier stops while an unrelated sentinel survives. It retains owned process inventory and requires separate `verifier.owned` / `verifier.stop` records. The original Regulator R150-03 probe is also replayed unchanged except fresh output and installed-CLI paths.
+
+## Output path regression (#159)
+
+The two verifier lifecycle fixtures share `verifier_heartbeat_command`, which quotes PID and heartbeat filenames as POSIX shell data. Their existing deadlines, fault injection and sentinel/termination assertions are unchanged. `test_verifier_output_paths_are_data` sends that same command through the installed CLI for nine filename classes: ASCII, Unicode, space, single quote, double quote, percent/hash, command substitution, semicolon and combined characters (including a newline and glob characters).
+
+Each case observes the exact PID destination, live heartbeat growth, confirmed stop and no later growth. Harmless `touch` canaries in filename text must never execute; retained verifier snapshots are checked for their absence. This is fixture-path correctness, not a Runtime sandbox or arbitrary-shell safety claim. The shared entry runs all 25 installed cases and preserves their paths and raw output. [Candidate diagnosis and evidence](../../docs/evidence/output159/README.md).

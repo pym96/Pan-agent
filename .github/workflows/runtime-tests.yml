@@ -34,15 +34,15 @@ jobs:
           timeout 120s python -m venv "$RUNNER_TEMP/pytest-env"
           timeout 120s "$RUNNER_TEMP/pytest-env/bin/python" -m pip install -r scripts/runtime-ci/requirements.txt
       - name: Build and test installed runtime
-        run: '"$RUNNER_TEMP/pytest-env/bin/python" scripts/runtime-ci/run.py --output "$RUNNER_TEMP/runtime-evidence"'
+        run: '"$RUNNER_TEMP/pytest-env/bin/python" scripts/runtime-ci/run.py --output "$RUNNER_TEMP/runtime-evidence 中文 space %# literal%20"'
       - name: Preserve raw evidence even after failure
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: runtime-node-${{ matrix.node }}
           path: |
-            ${{ runner.temp }}/runtime-evidence/**
-            !${{ runner.temp }}/runtime-evidence/consumer/**
+            ${{ runner.temp }}/runtime-evidence 中文 space %# literal%20/**
+            !${{ runner.temp }}/runtime-evidence 中文 space %# literal%20/consumer/**
           include-hidden-files: true
           if-no-files-found: error
           retention-days: 30

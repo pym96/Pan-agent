@@ -1,6 +1,6 @@
 import json, os, signal, subprocess, time
 import pytest
-from conftest import response, tool
+from conftest import response, tool, verifier_heartbeat_command
 
 def terminal(events):
     return next(e for e in reversed(events) if e.get('type')=='execution.terminal')
@@ -115,7 +115,7 @@ def test_frozen_supervisor_returns_bounded_unknown(case):
 
 def test_verifier_timeout_survives_cli_death(goal):
     root=goal['root'];pidfile=root/'verifier.pid';heartbeat=root/'verifier.heartbeat'
-    goal['verifier'].write_text(json.dumps({'version':'R-parent-death','command':f'echo $$ > {pidfile}; trap "" TERM; while :; do echo beat >> {heartbeat}; sleep 0.05; done','seconds':2}))
+    goal['verifier'].write_text(json.dumps({'version':'R-parent-death','command':verifier_heartbeat_command(pidfile,heartbeat),'seconds':2}))
     args=goal['args'][:];args[args.index('--for')+1]='10s'
     # No child-cleaning wrapper: it would mask the product's missing owner.
     with (root/'death.stdout').open('w') as out,(root/'death.stderr').open('w') as err:
@@ -149,7 +149,7 @@ def test_verifier_timeout_survives_cli_death(goal):
 
 def test_frozen_verifier_owner_parent_fallback_and_sentinel(goal):
     root=goal['root'];pidfile=root/'owner-verifier.pid';heartbeat=root/'owner-verifier.heartbeat'
-    goal['verifier'].write_text(json.dumps({'version':'owner-stop','command':f'echo $$ > {pidfile}; trap "" TERM; while :; do echo beat >> {heartbeat}; sleep 0.05; done','seconds':2}))
+    goal['verifier'].write_text(json.dumps({'version':'owner-stop','command':verifier_heartbeat_command(pidfile,heartbeat),'seconds':2}))
     args=goal['args'][:];args[args.index('--for')+1]='10s'
     sentinel=subprocess.Popen(['sleep','20']);pid=None;owner=None
     with (root/'owner.stdout').open('w') as out,(root/'owner.stderr').open('w') as err:
@@ -189,3 +189,61 @@ def test_frozen_verifier_owner_parent_fallback_and_sentinel(goal):
                 except ProcessLookupError:pass
             if proc.poll() is None:proc.kill();proc.wait()
             sentinel.terminate();sentinel.wait()
+
+
+@pytest.mark.parametrize('component', [
+    pytest.param('ascii', id='ascii'),
+    pytest.param('中文', id='unicode'),
+    pytest.param('with space', id='space'),
+    pytest.param("single'quote", id='single-quote'),
+    pytest.param('double"quote', id='double-quote'),
+    pytest.param('percent%20#hash', id='percent-hash'),
+    pytest.param('$(touch dollar-canary)`touch backtick-canary`', id='substitution'),
+    pytest.param('semi; touch semicolon-canary; #', id='semicolon'),
+    pytest.param('中文 space \'" %# $(touch combined-canary)\n*?', id='combined'),
+])
+def test_verifier_output_paths_are_data(goal, component):
+    # Exercise the same command as the two fault-injection tests through the
+    # installed CLI, not a quote function or a source-only subprocess surrogate.
+    root = goal['root']
+    markers = root / component
+    markers.mkdir()
+    pidfile, heartbeat = markers / 'verifier.pid', markers / 'verifier.heartbeat'
+    goal['verifier'].write_text(json.dumps({
+        'version': 'output-path-data',
+        'command': verifier_heartbeat_command(pidfile, heartbeat),
+        'seconds': 2,
+    }))
+    args = goal['args'][:]
+    args[args.index('--for') + 1] = '10s'
+    observation = {}
+
+    def observe(event, proc):
+        if event.get('type') != 'verifier.ownership_ack':
+            return
+        until = time.monotonic() + 1
+        while (not pidfile.exists() or not heartbeat.exists()) and time.monotonic() < until:
+            time.sleep(.01)
+        observation['pid'] = pidfile.read_text() if pidfile.exists() else None
+        observation['owned_pid'] = event['pid']
+        observation['before'] = heartbeat.stat().st_size if heartbeat.exists() else 0
+        time.sleep(.15)
+        observation['after'] = heartbeat.stat().st_size if heartbeat.exists() else 0
+
+    code, events, stderr = goal['run'](args, on_event=observe)
+    (root / 'path-observation.json').write_text(json.dumps(observation, indent=2))
+    assert code == 1, (events, stderr)
+    assert terminal(events)['reason'] == 'needs_review'
+    assert observation.get('pid') == str(observation.get('owned_pid')) + '\n', observation
+    assert 0 < observation['before'] < observation['after'], observation
+    assert set(p.name for p in markers.iterdir()) == {'verifier.pid', 'verifier.heartbeat'}
+    # The verifier's snapshot is retained under state/candidates. Any command
+    # substitution or semicolon canary would leave a file there.
+    assert not list((root / 'state' / 'candidates').rglob('*canary'))
+    stopped = next(e for e in events if e.get('type') == 'verifier.stop')
+    assert stopped['confirmed'] and stopped['owned']['pid'] == observation['owned_pid']
+    before = heartbeat.read_bytes()
+    time.sleep(.1)
+    assert heartbeat.read_bytes() == before
+    current = subprocess.run(['ps', '-p', str(observation['owned_pid']), '-o', 'stat='], capture_output=True, text=True).stdout.strip()
+    assert not current, current

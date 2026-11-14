@@ -1,5 +1,7 @@
 # Project Evidence
 
+- [External output paths #159](output159/README.md): installed lifecycle fixture tokenization diagnosis and path-as-data regression; SHA-bound independent review required.
+
 - [Consumer readiness #152](consumer-readiness/README.md): version-aware installation and installed offline loop/goal evidence; independent review pending.
 
 - [TUI release preparation](tui-release56/README.md): installed package, real/offline terminal capture and SHA-bound candidate evidence; not independently accepted or publicly released.
