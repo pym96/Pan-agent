@@ -25,3 +25,18 @@ Output paths are a separate boundary. Both Node cells also use the external dire
 Authorization tests record observed filesystem capabilities in TAP diagnostics. Native Unicode alias identity is asserted only when the filesystem actually exposes it; case-sensitive Linux jobs instead verify absent-path denial and no effects. Missing configured protection anchors deny access until the ordinary-control fixture explicitly materializes them. This test-premise distinction does not change Runtime authorization or claim native Unicode-fold coverage on Linux.
 
 The `onboarding.py` consumer suite additionally installs the packed artifact globally under a fresh temporary prefix/home with lifecycle scripts disabled. Actual POSIX PTYs check first-run setup, repeat launch, explicit overrides and special paths; bounded non-TTY/invalid-path probes and an intercepting fetch guard check error handling and idle behavior. The preload module is passed as an encoded file URL in `NODE_OPTIONS`; a separate `data:` fetch canary verifies guard loading without a network request. It is part of the same Linux matrix entry, with raw output under `onboarding/`. No public npm release is implied.
+
+## Fresh public-release onboarding
+
+To check the actual downloadable artifact without building source, run the same seven consumer cases in a new external directory:
+
+```sh
+python3 scripts/runtime-ci/onboarding.py \
+  --release-url https://github.com/pym96/Pan-agent/releases/download/v0.1.9/pan-agent-0.1.9.tgz \
+  --sha256 3f6783bd6674e9e57e49dac7d67a183313a6c61d3a9f1117b476019ab5c3aeab \
+  --output /tmp/pan-public-onboarding
+```
+
+This mode independently downloads the tarball, verifies the expected SHA256, installs **from that URL** with a new HOME/cache/global prefix, and compares the complete installed file map. Download and npm installation use the network; the fetch guard starts afterward for product execution. Local `--package` mode remains offline and is the CI default. Neither mode reads inherited credentials or invokes a provider. Raw install receipts, hashes and PTY logs remain in the output directory.
+
+The installed regression now includes effect→controller death→inspect→refused old-state restart. It checks product-owned process shutdown before fixture teardown and preserves exact file hashes and admission-ticket identities. See [the system guarantee matrix](../../docs/demo/consumer-readiness/system-guarantees.md) for the limits; checkpoint unit tests do not establish installed automatic resume.

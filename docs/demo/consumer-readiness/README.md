@@ -1,6 +1,8 @@
 # Use Sandbox, Loop and Goal
 
-These commands are in the **v0.1.8 source package**, based on accepted #148/#150. The downloadable **v0.1.6** release does not contain them. The [root installation instructions](../../../README.md) pin the accepted runtime commit; no v0.1.8 release is advertised. Node >=22.19.0 is required. The offline walkthrough below was checked on macOS arm64; it is not a Windows or Docker verification.
+These commands are included in the prebuilt **v0.1.9** release. Follow the [two-command installation](../../../README.md#install); no Git checkout, compiler, Python or Docker is needed for the local runtime. Node >=22.19.0 is required. The walkthrough below needs a checkout only for its test driver, and invokes the installed package. The CPU checks cover macOS and Linux; they do not establish Windows or fresh Docker behavior.
+
+For the distinction between scheduling, saved evidence and actual task continuation, see [what the system enforces](system-guarantees.md).
 
 ## First choose what should stop the work
 
@@ -19,20 +21,17 @@ An attempt finishing is not the same as the goal being correct. A tool error, ex
 
 This is a control-flow demo using Pan's public `--fixture` option and its Faux adapter. A prepared `result.txt` contains `correct`; the scripted model emits completion text. **It does not solve a task or measure model intelligence.** An operator-owned shell verifier independently checks that artifact. The negative verifier exits 2 and must produce UNKNOWN/`needs_review`, even though the same model says it is done.
 
-From a checkout containing this guide, build and install into a new consumer. `npm ci` uses the lockfile; only this source-build stage needs the TypeScript development compiler. The consumer installs compiled JavaScript without compilation or install scripts. Record the checkout SHA with the package hash for reproduction:
+From a checkout containing this guide, install the public release into a disposable consumer and run the repository's driver:
 
 ```sh
-git rev-parse HEAD
-npm --prefix typescript ci --ignore-scripts --no-audit --no-fund
 DEMO_ROOT=$(mktemp -d)
-mkdir "$DEMO_ROOT/packages" "$DEMO_ROOT/consumer"
-(cd typescript && npm pack --pack-destination "$DEMO_ROOT/packages")
-shasum -a 256 "$DEMO_ROOT/packages/pan-agent-0.1.8.tgz"
-npm install --prefix "$DEMO_ROOT/consumer" "$DEMO_ROOT/packages/pan-agent-0.1.8.tgz" --offline --omit=dev --ignore-scripts --no-audit --no-fund
-node scripts/consumer-readiness/walkthrough.mjs   "$DEMO_ROOT/consumer/node_modules/.bin/pan-agent" "$DEMO_ROOT/evidence"
+npm install --prefix "$DEMO_ROOT/consumer" --ignore-scripts --omit=dev --no-audit --no-fund \
+  https://github.com/pym96/Pan-agent/releases/download/v0.1.9/pan-agent-0.1.9.tgz
+node scripts/consumer-readiness/walkthrough.mjs \
+  "$DEMO_ROOT/consumer/node_modules/.bin/pan-agent" "$DEMO_ROOT/evidence"
 ```
 
-To reproduce a reviewed checkout rather than current main, first `git checkout --detach FULL_COMMIT_SHA`, replacing `FULL_COMMIT_SHA` with the complete commit from the relevant Handoff/Verdict. The script is repository verification tooling, not part of the installed npm package. It launches only the installed bin; it never imports source runtime code. Node and POSIX `ps`/shell are sufficient; Python/pytest/Docker/API keys are not required.
+The release archive SHA256 is `3f6783bd6674e9e57e49dac7d67a183313a6c61d3a9f1117b476019ab5c3aeab`; see [release assets](https://github.com/pym96/Pan-agent/releases/tag/v0.1.9). Download/install requires network access. The driver then runs offline. It is repository verification tooling, not part of the installed package, and never imports source runtime code. Node and POSIX `ps`/shell are sufficient; Python/pytest/Docker/API keys are not required. For source development use the [package build guide](../../../typescript/README.md); record its exact Git SHA and resulting tarball hash separately from the public release identity.
 
 The runner creates a fresh HOME, excludes provider credentials, and applies a network-denial observation guard to Node processes. It records any attempted fetch/socket/HTTP connection; this is test instrumentation, **not product sandboxing**. The fixture has no network behavior. Each CLI subprocess has a 20-second diagnostic timeout; a failed check retains its output and stops the walkthrough. Do not reinterpret a timeout or failed assertion as a passing product result.
 
@@ -50,7 +49,7 @@ Expected steps:
 
 ## Set up a real scheduled task
 
-The following examples are **syntax/source checked, not executed against a real provider in this walkthrough**. First install the v0.1.8 source package and configure DeepSeek or Kimi using `pan-agent configure`; the command name below assumes your consumer's `node_modules/.bin` is on PATH. Otherwise use its absolute path. Supply the configured environment credential or Keychain entry without embedding keys in commands or files.
+The following examples are **syntax/source checked, not executed against a real provider in this walkthrough**. First install the v0.1.9 release and configure DeepSeek or Kimi using `pan-agent configure`; the command name below assumes your consumer's `node_modules/.bin` is on PATH. Otherwise use its absolute path. Supply the configured environment credential or Keychain entry without embedding keys in commands or files.
 
 Create separate workspace, archive and control paths. `--state` must not already exist, including from a failed previous run. The workspace must exist; it cannot contain or be contained by memory/state roots.
 
@@ -108,4 +107,4 @@ Recovery stops uncertain execution; it never repeats the task. Verification chec
 
 `execution inspect` may report `interrupted_or_active` when there is no terminal result; that is uncertainty, not success or proof that processes stopped. Inspect resources and archived reservations before any new work. Local commands are not automatically resumed; sandbox uses the explicit recovery path above. Retry only as a newly authorized execution with a new state directory and after resolving possible side effects. Model task completion, independent verification, resource termination and evidence preservation are separate observations.
 
-[Execution design and limitations](../../design/execution-controller.md) · [Builder evidence](../../evidence/consumer-readiness/README.md) · [Versioned recordings](../tui-release56/README.md)
+[System guarantees and boundaries](system-guarantees.md) · [Execution design](../../design/execution-controller.md) · [Current onboarding evidence](../../evidence/onboarding-system163/README.md) · [Historical walkthrough evidence](../../evidence/consumer-readiness/README.md) · [Versioned recordings](../tui-release56/README.md)

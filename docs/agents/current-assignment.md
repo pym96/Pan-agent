@@ -1,4 +1,8 @@
-## Active #159 OUTPATH1.0 — external evidence paths
+## Active #163 ONBOARD-SYSTEM1.0 — onboarding and system guarantees
+
+[WorkOrder #163](https://github.com/pym96/Pan-agent/issues/163#issuecomment-6906385757) starts from accepted `de54065f7d0081df48b537f79f5b2c5077e826e2`. Scope: current public-release onboarding, source/test-backed timing and recovery boundaries, and focused installed regression. Runtime, package inputs, permissions, server/model calls and Pi remain outside this work. [User guide](../demo/consumer-readiness/README.md) · [Guarantee matrix](../demo/consumer-readiness/system-guarantees.md) · [Candidate evidence](../evidence/onboarding-system163/README.md). Independent SHA-bound review is required. Older snapshots below grant no new execution authority.
+
+## Historical #159 OUTPATH1.0 — external evidence paths
 
 [WorkOrder #159](https://github.com/pym96/Pan-agent/issues/159#issuecomment-6869419603) scopes a test-fixture repair from accepted main `ec757b30f2840c8a1a329ff501e21b7ee9c7cae1`: quote verifier marker paths, exercise the installed lifecycle tests and preserve special output paths in shared CI. Runtime and package inputs remain unchanged. [Builder evidence](../evidence/output159/README.md). Only Pan is assigned to this session; older assignments below grant no new execution authority.
 

@@ -4,9 +4,9 @@ Python is test-only. Use an isolated venv with `pytest==8.4.2`; no Python depend
 
 ```sh
 # From typescript/: npm pack --pack-destination /absolute/evidence/directory
-PAN_PACKAGE=/absolute/evidence/pan-agent-0.1.8.tgz python -m pytest tests/execution150/test_cli.py -q
+PAN_PACKAGE=/absolute/evidence/pan-agent-0.1.9.tgz python -m pytest tests/execution150/test_cli.py -q
 # Stage B only, after exact resource/source GO and with existing pinned Docker image:
-PAN_PACKAGE=/absolute/evidence/pan-agent-0.1.8.tgz python -m pytest tests/execution150/test_docker.py -q
+PAN_PACKAGE=/absolute/evidence/pan-agent-0.1.9.tgz python -m pytest tests/execution150/test_docker.py -q
 ```
 
 `conftest.py` supplies isolated state/workspace, clean package install, operation-scoped approval responses and cleanup. Parameterized cases exercise invalid durations and UNKNOWN/FAIL differences. Each actual CLI invocation has an independent 120-second watchdog; no Docker-missing skip exists. The watchdog samples owned descendant RSS against 4 GiB, while worker Node heaps are separately limited. This sampled bound is not an instantaneous OS memory limit. Run process-fault tests serially. Retain pytest base directories and stdout/stderr as evidence.
@@ -39,3 +39,8 @@ For separately bounded server setup, optionally set `PAN_PREINSTALLED_ROOT` to a
 The two verifier lifecycle fixtures share `verifier_heartbeat_command`, which quotes PID and heartbeat filenames as POSIX shell data. Their existing deadlines, fault injection and sentinel/termination assertions are unchanged. `test_verifier_output_paths_are_data` sends that same command through the installed CLI for nine filename classes: ASCII, Unicode, space, single quote, double quote, percent/hash, command substitution, semicolon and combined characters (including a newline and glob characters).
 
 Each case observes the exact PID destination, live heartbeat growth, confirmed stop and no later growth. Harmless `touch` canaries in filename text must never execute; retained verifier snapshots are checked for their absence. This is fixture-path correctness, not a Runtime sandbox or arbitrary-shell safety claim. The shared entry runs all 25 installed cases and preserves their paths and raw output. [Candidate diagnosis and evidence](../../docs/evidence/output159/README.md).
+
+
+## Interrupted execution inspection (#163)
+
+`test_crash_inspect_and_refused_restart_preserve_effect_and_reservations` invokes the installed CLI directly. One approved shell appends an identifiable marker, then the test kills the controller at the next model reservation. Before teardown, it observes both recorded worker/supervisor identities gone. Inspect must report uncertainty, and retrying the same state must fail before creating work. State, memory and workspace byte hashes remain unchanged; the marker remains once and all three original admission tickets remain in the archive. This checks refused replay, not automatic continuation or general exactly-once tool effects. The shared entry retains the original 25 installed cases and adds this one.

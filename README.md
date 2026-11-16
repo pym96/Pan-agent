@@ -43,7 +43,7 @@ These recordings retain their original versions and scopes. [Recording details](
 
 ## More
 
-[Package, build and publish guide](typescript/README.md) · [Sandbox, Loop and Goal](docs/demo/consumer-readiness/README.md) · [Architecture](CONTEXT.md) · [Design](docs/design/README.md) · [Evidence](docs/evidence/README.md)
+[Package, build and publish guide](typescript/README.md) · [Sandbox, Loop and Goal](docs/demo/consumer-readiness/README.md) · [Timing and recovery guarantees](docs/demo/consumer-readiness/system-guarantees.md) · [Architecture](CONTEXT.md) · [Design](docs/design/README.md) · [Evidence](docs/evidence/README.md)
 
 The TypeScript runtime is the product. Historical Python experiments, evaluation infrastructure and Web tooling are not required to use it.
 

@@ -1,6 +1,6 @@
 # Demonstrations
 
-- [Sandbox, Loop and Goal user guide](consumer-readiness/README.md): version-aware source installation and installed offline control-flow walkthrough.
+- [Sandbox, Loop and Goal user guide](consumer-readiness/README.md): current public-release installation and installed offline control-flow walkthrough, with [timing and recovery boundaries](consumer-readiness/system-guarantees.md).
 
 - [Installed TUI release demonstration](tui-release56/README.md): actual terminal capture, replay, rendering and license status.
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Real global-install/PTY consumer checks; no provider requests or source imports."""
-import argparse, fcntl, json, os, pty, select, signal, struct, subprocess, termios, time, unittest
+import argparse, fcntl, hashlib, json, os, pty, select, signal, struct, subprocess, tarfile, termios, time, unittest, urllib.request
 from pathlib import Path
 
 class InstalledOnboarding(unittest.TestCase):
@@ -14,9 +14,40 @@ class InstalledOnboarding(unittest.TestCase):
         # No inherited provider keys, NODE_OPTIONS or npm configuration.
         cls.env={'PATH':os.environ['PATH'],'HOME':str(cls.home),'TERM':'xterm-256color','LANG':'en_US.UTF-8','npm_config_cache':str(cls.root/'cache')}
         cls.cli=cls.prefix/'bin/pan-agent'
-        r=subprocess.run(['npm','install','--global','--prefix',str(cls.prefix),'--ignore-scripts','--offline','--no-audit','--no-fund',str(PACKAGE)],cwd=cls.project,env=cls.env,capture_output=True,text=True,timeout=30)
+        # Public mode downloads and installs the actual URL. Network denial begins
+        # only after installation; it describes product execution, not fetching.
+        package=PACKAGE
+        if RELEASE_URL:
+            package=cls.root/'release.tgz'
+            opener=urllib.request.build_opener(urllib.request.ProxyHandler({}))
+            with opener.open(RELEASE_URL,timeout=30) as response:
+                data=response.read(2*1024*1024+1)
+            if len(data)>2*1024*1024: raise RuntimeError('release archive exceeds onboarding download bound')
+            package.write_bytes(data)
+            if hashlib.sha256(data).hexdigest()!=EXPECTED_SHA256: raise RuntimeError('public release SHA256 mismatch')
+        command=['npm','install','--global','--prefix',str(cls.prefix),'--ignore-scripts','--no-audit','--no-fund']
+        command += [RELEASE_URL] if RELEASE_URL else ['--offline',str(package)]
+        begin=time.monotonic()
+        r=subprocess.run(command,cwd=cls.project,env=cls.env,capture_output=True,text=True,timeout=45 if RELEASE_URL else 30)
+        (cls.root/'install.json').write_text(json.dumps({'command':command,'returncode':r.returncode,'seconds':time.monotonic()-begin,'url':RELEASE_URL,'package_sha256':hashlib.sha256(package.read_bytes()).hexdigest()},indent=2)+'\n')
         (cls.root/'install.stdout').write_text(r.stdout);(cls.root/'install.stderr').write_text(r.stderr)
         if r.returncode: raise RuntimeError(r.stderr)
+        installed=cls.prefix/'lib/node_modules/pan-agent'
+        identities={}
+        with tarfile.open(package,'r:gz') as archive:
+            for member in archive.getmembers():
+                if member.isdir(): continue
+                relative=Path(member.name).relative_to('package')
+                if not member.isfile() or '..' in relative.parts: raise RuntimeError('unsafe package member')
+                target=installed/relative
+                expected=hashlib.sha256(archive.extractfile(member).read()).hexdigest()
+                if target.is_symlink() or not target.is_file() or hashlib.sha256(target.read_bytes()).hexdigest()!=expected:
+                    raise RuntimeError('installed byte mismatch: '+str(relative))
+                identities[str(relative)]=expected
+        if {str(p.relative_to(installed)) for p in installed.rglob('*') if p.is_file()}!=set(identities):
+            raise RuntimeError('installed file set differs from archive')
+        if cls.cli.resolve()!=(installed/'bin/pan-agent.mjs').resolve(): raise RuntimeError('CLI is not installed package bin')
+        (cls.root/'installed-files.json').write_text(json.dumps(identities,indent=2)+'\n')
         cls.guard=cls.root/'network-guard.mjs'
         cls.guard.write_text("import {appendFileSync} from 'node:fs'; globalThis.fetch = (...args) => {appendFileSync(process.env.PAN_NETWORK_LOG, 'unexpected fetch\\n'); throw new Error('Provider request forbidden in onboarding test');};\n")
         # NODE_OPTIONS is tokenized by Node, not the shell. A file URL keeps
@@ -110,8 +141,17 @@ class InstalledOnboarding(unittest.TestCase):
         self.assertEqual(len(list((self.home/'.pan-agent/archives/runs').iterdir())),1)
 
 if __name__=='__main__':
-    parser=argparse.ArgumentParser();parser.add_argument('--package',type=Path,required=True);parser.add_argument('--output',type=Path,required=True)
-    args=parser.parse_args();PACKAGE=args.package.resolve();OUTPUT=args.output.resolve()
+    parser=argparse.ArgumentParser()
+    source=parser.add_mutually_exclusive_group(required=True)
+    source.add_argument('--package',type=Path)
+    source.add_argument('--release-url',help='Public HTTPS npm tarball URL; installs from this URL into a fresh prefix')
+    parser.add_argument('--sha256',help='Required expected public release archive SHA256')
+    parser.add_argument('--output',type=Path,required=True)
+    args=parser.parse_args()
+    if args.release_url and (not args.release_url.startswith('https://') or not args.sha256 or len(args.sha256)!=64):
+        parser.error('--release-url requires HTTPS and --sha256')
+    PACKAGE=args.package.resolve() if args.package else None
+    RELEASE_URL=args.release_url;EXPECTED_SHA256=args.sha256;OUTPUT=args.output.resolve()
     result=unittest.TextTestRunner(verbosity=2).run(unittest.defaultTestLoader.loadTestsFromTestCase(InstalledOnboarding))
     (OUTPUT/'result.json').write_text(json.dumps({'tests':result.testsRun,'failures':len(result.failures),'errors':len(result.errors),'skipped':len(result.skipped)},indent=2)+'\n')
     raise SystemExit(not result.wasSuccessful())

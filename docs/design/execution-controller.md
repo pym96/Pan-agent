@@ -1,6 +1,6 @@
-# Execution and goal control — EC1.1 candidate
+# Execution and goal control — EC1.1
 
-WorkOrder: https://github.com/pym96/Pan-agent/issues/150 . This document describes candidate implementation; it is not an accepted project fact.
+Implementation scope: [#150](https://github.com/pym96/Pan-agent/issues/150), independently accepted in [the final Verdict](https://github.com/pym96/Pan-agent/issues/150#issuecomment-6572639801) and integrated through [PR151](https://github.com/pym96/Pan-agent/pull/151). This design is an implementation guide, not the project-fact register. [Current installed behavior and boundaries](../demo/consumer-readiness/system-guarantees.md) are checked separately in #163.
 
 The model chooses actions. An execution plan determines when those actions may be admitted. A goal adds a separate executable completion criterion. The model's final text is never the goal verdict.
 
@@ -31,6 +31,8 @@ Exit 0 is PASS, exit 1 is a valid FAIL, other exits/infrastructure exceptions ar
 ## Persistence and recovery
 
 Execution events use the existing hash-chained RunArchiveWriter, under the exclusively created execution state directory. Task archives use a separate per-execution namespace. This separation is required because `RunArchiveStore.open` recovers unsealed archives: a worker must not open and recover the parent's live archive.
+
+This is evidence recovery and controlled stopping, not automatic task continuation. The library also exposes `GeneralAgentSession.resumeTask` / `NativeKernel.resumeTask` with a compatible checkpoint-capable adapter, caller-provided durable `CheckpointSink`, identity/counter validation and explicit pending-tool reconciliation. Those opt-in library paths are covered by `typescript/test/checkpoint.test.ts`; the installed TUI and loop/goal CLI do not wire them into a restart command. A Run Archive is not a NativeCheckpoint, and replay is not resume.
 
 Existing execution state cannot be reused. `execution inspect` reads metadata and terminal evidence, or reports interrupted/active uncertainty when no terminal record exists. It does not replay commands, dispatch another worker, or reset counters. Unsettled reservations and sandbox intents remain available for manual reconciliation. The supervisor observes controller disconnect and stops the owned generation groups. A Docker preparation interrupted before its ready message is recovered from its dedicated state-root intents; uncertain daemon operations retain evidence rather than fabricated cleanup.
 

@@ -1,4 +1,4 @@
-import json, os, signal, subprocess, time
+import hashlib, json, os, signal, subprocess, time
 import pytest
 from conftest import response, tool, verifier_heartbeat_command
 
@@ -247,3 +247,79 @@ def test_verifier_output_paths_are_data(goal, component):
     assert heartbeat.read_bytes() == before
     current = subprocess.run(['ps', '-p', str(observation['owned_pid']), '-o', 'stat='], capture_output=True, text=True).stdout.strip()
     assert not current, current
+
+
+def test_crash_inspect_and_refused_restart_preserve_effect_and_reservations(case):
+    """Kill the real controller after an effect; observation must not become replay."""
+    root=case['root']; effect=case['workspace']/'effects.txt'
+    marker='ONBOARD163-effect-once'
+    case['fixture'].write_text(json.dumps([tool('bash',{'command':f"printf '%s\\n' {marker} >> effects.txt"},'once'),{'kind':'pending'}]))
+    args=case['base'][:];args[args.index('--for')+1]='20s'
+    inventory={}; events=[]; answered=set(); killed=False
+    def birth(pid):
+        return subprocess.run(['ps','-p',str(pid),'-o','lstart='],capture_output=True,text=True,timeout=2).stdout.strip()
+    def read_events():
+        result=[]
+        for line in (root/'crash.stdout').read_text().splitlines():
+            try: result.append(json.loads(line))
+            except ValueError: pass
+        return result
+    with (root/'crash.stdout').open('w') as out, (root/'crash.stderr').open('w') as err:
+        # No normal-exit descendant-cleaning wrapper: that could hide failed
+        # product cleanup after controller death. The finally block is teardown.
+        proc=subprocess.Popen(args,stdin=subprocess.PIPE,stdout=out,stderr=err,text=True,start_new_session=True)
+        inventory[proc.pid]=birth(proc.pid)
+        try:
+            until=time.monotonic()+6
+            while proc.poll() is None and time.monotonic()<until:
+                events=read_events()
+                for event in events:
+                    if event.get('type')=='worker_identity':
+                        for key in ('workerPid','supervisorPid'):
+                            pid=event[key]
+                            if pid not in inventory: inventory[pid]=birth(pid)
+                    if event.get('type')=='approval.request':
+                        request=event['request']['requestId']
+                        if request not in answered:
+                            proc.stdin.write(json.dumps({'requestId':request,'decision':'allow-once'})+'\n');proc.stdin.flush();answered.add(request)
+                reservations=[e for e in events if e.get('type')=='budget.reserved']
+                if sum(e['ticket']['count'] for e in reservations if e['ticket']['kind']=='model')==2:
+                    assert effect.read_text()==marker+'\n'
+                    os.kill(proc.pid,signal.SIGKILL);killed=True;break
+                time.sleep(.02)
+            assert killed,events
+            proc.wait(timeout=3)
+            # Product ownership, not fixture teardown, must stop both owners.
+            until=time.monotonic()+5
+            while any(birth(pid)==identity for pid,identity in inventory.items()) and time.monotonic()<until:
+                time.sleep(.05)
+            assert all(birth(pid)!=identity for pid,identity in inventory.items()),inventory
+            assert not (root/'state/result.json').exists()
+            reservations=[e for e in events if e.get('type')=='budget.reserved']
+            assert [e['ticket']['kind'] for e in reservations]==['model','tools','model']
+            raw=next((root/'state/archive/runs').glob('*/events.jsonl')).read_text()
+            assert all(e['ticket']['id'] in raw for e in reservations)
+            def snapshot():
+                return {str(p.relative_to(root)):hashlib.sha256(p.read_bytes()).hexdigest()
+                    for directory in ('state','memory','workspace') for p in (root/directory).rglob('*') if p.is_file()}
+            before=snapshot()
+            inspect=subprocess.run([str(case['installed']),'execution','inspect','--state',str(root/'state')],stdin=subprocess.DEVNULL,capture_output=True,text=True,timeout=5)
+            (root/'inspect.stdout').write_text(inspect.stdout);(root/'inspect.stderr').write_text(inspect.stderr)
+            assert inspect.returncode==0
+            observation=json.loads(inspect.stdout)
+            assert observation['result']['reason']=='interrupted_or_active'
+            retry=subprocess.run(args,stdin=subprocess.DEVNULL,capture_output=True,text=True,timeout=5)
+            (root/'retry.stdout').write_text(retry.stdout);(root/'retry.stderr').write_text(retry.stderr)
+            assert retry.returncode==2 and 'EEXIST' in retry.stdout+retry.stderr
+            assert snapshot()==before
+            assert effect.read_text()==marker+'\n'
+            (root/'recovery-observations.json').write_text(json.dumps({'effect_id':marker,'effect_count':1,'reservations':reservations,'inspect':observation,'refused_restart_exit':retry.returncode,'file_hashes_before_and_after':before,'owned_processes':inventory,'owned_observed_absent':True},indent=2)+'\n')
+        finally:
+            # Only fixture-owned identities; never broad pkill or unrelated PID.
+            for pid,identity in inventory.items():
+                if identity and birth(pid)==identity:
+                    try: os.kill(pid,signal.SIGKILL)
+                    except ProcessLookupError: pass
+            if proc.poll() is None: proc.kill()
+            proc.wait(timeout=5)
+            proc.stdin.close()

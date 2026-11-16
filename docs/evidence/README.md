@@ -1,5 +1,7 @@
 # Project Evidence
 
+- [Onboarding and system guarantees #163](onboarding-system163/README.md): fresh public v0.1.9 install, real PTY checks, timing/recovery limits and installed interruption regression; candidate pending independent review.
+
 - [External output paths #159](output159/README.md): installed lifecycle fixture tokenization diagnosis and path-as-data regression; SHA-bound independent review required.
 
 - [Consumer readiness #152](consumer-readiness/README.md): version-aware installation and installed offline loop/goal evidence; independent review pending.
