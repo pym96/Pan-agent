@@ -1,4 +1,8 @@
-## Active #163 ONBOARD-SYSTEM1.0 — onboarding and system guarantees
+## Active #165 API-ONBOARD1.0 — API setup and first task
+
+[WorkOrder #165](https://github.com/pym96/Pan-agent/issues/165) starts from accepted `df3030c7b31852e4984cb374fedb93ea314c3ed3`. Scope: root/package README instructions for the supported API choices, hidden shell input, macOS Keychain option and first task, plus this assignment and consumer-guide link consistency. Runtime, package artifacts, permissions, host Keychain, real provider calls and Pi remain outside this work. Builder checks use a fresh public v0.1.9 install, dummy keys and external raw evidence; the independent Regulator reviews the exact remote candidate SHA. No acceptance or new project fact is claimed here. Older snapshots below grant no new execution authority.
+
+## Historical #163 ONBOARD-SYSTEM1.0 — onboarding and system guarantees
 
 [WorkOrder #163](https://github.com/pym96/Pan-agent/issues/163#issuecomment-6906385757) starts from accepted `de54065f7d0081df48b537f79f5b2c5077e826e2`. Scope: current public-release onboarding, source/test-backed timing and recovery boundaries, and focused installed regression. Runtime, package inputs, permissions, server/model calls and Pi remain outside this work. [User guide](../demo/consumer-readiness/README.md) · [Guarantee matrix](../demo/consumer-readiness/system-guarantees.md) · [Candidate evidence](../evidence/onboarding-system163/README.md). Independent SHA-bound review is required. Older snapshots below grant no new execution authority.
 

@@ -12,8 +12,6 @@ Installed v0.1.9: `pan-agent loop --help`, `pan-agent goal --help`, `pan-agent e
 
 ```sh
 npm install -g --ignore-scripts https://github.com/pym96/Pan-agent/releases/download/v0.1.9/pan-agent-0.1.9.tgz
-cd /path/to/project
-pan-agent
 ```
 
 The installed launcher selects the Native kernel. Workspace defaults to cwd, archives to `~/.pan-agent/archives`; explicit `--workspace` and `--memory-root` win. Keep archives disjoint from the workspace. Library `runCli` and source development entry retain explicit `--kernel native`. First launch in a terminal offers configuration; saved ordinary settings are reused. No API request is made before a task is submitted. For current published downloads see https://github.com/pym96/Pan-agent#install .
@@ -49,18 +47,74 @@ npm install /path/to/pan-agent-0.1.9.tgz --omit=dev --ignore-scripts --no-audit 
 
 `demo` is an offline **scripted model**, not a live model result. It uses the real TUI, NativeKernel and local tools in a newly created temporary directory. Submit `Create hello.js, run it, and read it back.` Approve the displayed shell command if intended. Expected source: `console.log("PAN_DEMO_OK");` plus a newline. Optional `demo --directory NEW_DIRECTORY` selects a new directory; existing directories are refused. Retained `demo-report.json` records scripted exchanges and tool executions.
 
-## Real use
+## Configure your API and start a task
 
-Run `./node_modules/.bin/pan-agent configure`. Select DeepSeek or Kimi Code, and environment or macOS Keychain credentials. Environment mode reads `DEEPSEEK_API_KEY` or `KIMI_API_KEY` at task time; settings never save the secret. Kimi models are selected in configure, not through `--model` overrides.
+After the global installation above, use `pan-agent` in your terminal. For a local archive install, replace it with the absolute path to that installation's `node_modules/.bin/pan-agent`. Configuration is a terminal wizard, separate from the task input in the TUI.
+
+### DeepSeek
+
+Run the following block in **Bash or zsh**. At the prompt, paste your DeepSeek API key and press Enter; the terminal hides your input.
 
 ```sh
-mkdir workspace archives
-./node_modules/.bin/pan-agent --kernel native --workspace "$PWD/workspace" --memory-root "$PWD/archives"
+{
+  printf 'DeepSeek API key: '
+  IFS= read -r -s DEEPSEEK_API_KEY
+  printf '\n'
+  export DEEPSEEK_API_KEY
+}
 ```
 
-Workspace and archive root must be disjoint. Startup, configuration and local commands require no model call. Submitted real tasks use the selected provider and can incur charges.
+Then run `pan-agent configure` in the same terminal. Answer the prompts in order:
 
-Tools run with host-user authority. Workspace is a default cwd, not OS containment. Shell and protected/outside/uncertain file operations require approval. Ordinary existing workspace files can be edited automatically. Shell may be trusted for the current session; `:trust off` revokes it. Do not use untrusted tasks or sensitive workspaces.
+| Prompt | Answer |
+|---|---|
+| Provider | `deepseek` or Enter |
+| Model | `deepseek-v4-flash` or Enter; choose `deepseek-v4-pro` to use Pro |
+| Thinking | `high` or Enter; `low` and `max` are also available |
+| Credential source | `e` or Enter for environment |
+
+### Kimi Code
+
+Use a Kimi Code API key. In **Bash or zsh**, run this block, paste the key at the prompt, and press Enter:
+
+```sh
+{
+  printf 'Kimi Code API key: '
+  IFS= read -r -s KIMI_API_KEY
+  printf '\n'
+  export KIMI_API_KEY
+}
+```
+
+Then run `pan-agent configure` in the same terminal:
+
+| Model you want | Provider answer | Remaining prompts |
+|---|---|---|
+| `kimi-for-coding` | `kimi-code` | No model or thinking question; choose `e` at credential source |
+| `k3-256k` | `kimi-code:k3-256k` | Thinking: `high` or Enter (`low`/`max` also available); then `e` at credential source |
+
+Kimi models are selected through these provider answers in `configure`; Kimi `--model` and `--thinking` overrides are unsupported.
+
+### Credential options
+
+- **Environment (`e`, default):** Pan reads `DEEPSEEK_API_KEY` for DeepSeek or `KIMI_API_KEY` for either Kimi model at task time. Enter the key in your shell using the blocks above or your secret manager; the wizard only saves the source choice. The export lasts in that shell and programs launched from it. It does not configure new terminals or update an already-running Pan process. Repeat the input step when opening a new terminal.
+- **macOS Keychain (`k`):** You can skip the shell key-input block. Run `pan-agent configure`, choose your provider/model, then `k`. Paste the key at the wizard's hidden API-key prompt and confirm `y` at the save prompt. Pan remembers it in macOS Keychain and saves only the source choice in settings. A declined or failed save returns you to the credential-source choice; there is no plaintext fallback. Environment variables do not override a selected Keychain source.
+
+Pan saves ordinary preferences in `~/.pan-agent/settings.json`; no API key belongs in that file. Run `pan-agent configure` again to replace provider/model/thinking/source preferences. First bare startup without saved settings offers the same wizard; later launches reuse them. Configuration, startup, idle and local TUI commands make no provider request and do not validate your provider account.
+
+### Submit your first task
+
+In the same terminal that holds your environment key (or after Keychain configuration), create a new practice directory:
+
+```sh
+mkdir pan-first-task
+cd pan-first-task
+pan-agent
+```
+
+At **Write a task.** in the TUI, type `Create hello.txt containing Hello from Pan.` and press Enter. This submits a real task to the configured provider and may incur charges. Review tool approvals and inspect the file afterward; configuring a key alone does not establish a successful provider call. `pan-agent demo` runs the offline example described above without a key.
+
+Workspace defaults to the current directory, and archives to `~/.pan-agent/archives`. Override them with `--workspace DIR` and `--memory-root DIR`; the directories must be disjoint. Tools run with host-user authority. Workspace is a default cwd, not OS containment. Shell and protected/outside/uncertain file operations require approval. Ordinary existing workspace files can be edited automatically. Shell may be trusted for the current session; `:trust off` revokes it. Use a practice directory for your first task.
 
 ## Inspect and replay
 
@@ -86,7 +140,7 @@ This is a small display subset, not full CommonMark: nested inline formatting, e
 
 ## Missing credential
 
-If an environment credential is missing when you submit a task, the TUI keeps the failed status and shows the expected variable (`KIMI_API_KEY` or `DEEPSEEK_API_KEY`). Exit with `:exit`, set the key in your terminal using your secret manager, then restart Pan. To change the credential source, run `pan-agent configure`. Never paste an API key into a task. Keychain configuration uses its own entry; environment keys do not override a selected Keychain source. Unknown provider errors remain generic rather than exposing raw responses.
+If an environment credential is missing when you submit a task, the TUI keeps the failed status and shows the expected variable (`KIMI_API_KEY` or `DEEPSEEK_API_KEY`). Exit with `:exit`, repeat the matching [DeepSeek](#deepseek) or [Kimi Code](#kimi-code) hidden-input block in your terminal (or use your secret manager), then restart Pan. To change the credential source, run `pan-agent configure`. Never paste an API key into a task. If the selected Keychain credential is unavailable, exit and run `pan-agent configure` to update that entry or choose environment credentials. Environment keys do not override a selected Keychain source. Unknown provider errors remain generic rather than exposing raw responses.
 
 ## Opt-in document and history retrieval
 

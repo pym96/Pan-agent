@@ -1,6 +1,6 @@
 # Use Sandbox, Loop and Goal
 
-These commands are included in the prebuilt **v0.1.9** release. Follow the [two-command installation](../../../README.md#install); no Git checkout, compiler, Python or Docker is needed for the local runtime. Node >=22.19.0 is required. The walkthrough below needs a checkout only for its test driver, and invokes the installed package. The CPU checks cover macOS and Linux; they do not establish Windows or fresh Docker behavior.
+These commands are included in the prebuilt **v0.1.9** release. Follow the [installation and API setup](../../../README.md#install); no Git checkout, compiler, Python or Docker is needed for the local runtime. Node >=22.19.0 is required. The walkthrough below needs a checkout only for its test driver, and invokes the installed package. The CPU checks cover macOS and Linux; they do not establish Windows or fresh Docker behavior.
 
 For the distinction between scheduling, saved evidence and actual task continuation, see [what the system enforces](system-guarantees.md).
 

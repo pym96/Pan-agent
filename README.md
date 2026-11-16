@@ -8,24 +8,58 @@ A terminal agent for local files and shell commands, with tool approvals and sav
 
 ```sh
 npm install -g --ignore-scripts https://github.com/pym96/Pan-agent/releases/download/v0.1.9/pan-agent-0.1.9.tgz
-pan-agent
 ```
 
 This installs the prebuilt **v0.1.9** release; no Git checkout or build is needed. [Release assets and checksums](https://github.com/pym96/Pan-agent/releases/tag/v0.1.9). Prefer a user-owned Node/npm installation; if npm reports permission denied, fix its prefix rather than running Pan with sudo.
 
-## First run
+## Configure your API
 
-Enter a project directory and run `pan-agent`. The first-run wizard selects the provider, model and credential source. Subsequent launches reuse those preferences.
+For **DeepSeek**, have your DeepSeek API key ready. In a **Bash or zsh terminal**, run this block, paste the key at the prompt, then press Enter. Input stays hidden:
 
-- **Workspace:** current directory. Override with `--workspace DIR`.
-- **History:** `~/.pan-agent/archives`. Override with `--memory-root DIR`.
-- **Settings:** `~/.pan-agent/settings.json`; API keys are not stored in this file.
+```sh
+{
+  printf 'DeepSeek API key: '
+  IFS= read -r -s DEEPSEEK_API_KEY
+  printf '\n'
+  export DEEPSEEK_API_KEY
+}
+```
 
-Choose environment credentials and set `DEEPSEEK_API_KEY` or `KIMI_API_KEY` using your secret manager. macOS Keychain is also available through the wizard. Use `pan-agent configure` to change preferences. Startup, configuration and idle make no model requests; submitting a real task may incur provider charges.
+In the same terminal, run:
 
-Keep history outside the workspace. If starting from your home directory causes overlap, enter a project subdirectory or supply a disjoint `--memory-root`. Bare startup needs a terminal; automation should use the explicit command interfaces in the [package guide](typescript/README.md).
+```sh
+pan-agent configure
+```
 
-**Tools run with your host-user authority.** The workspace is a working directory, not a sandbox. Review tool approvals and use a disposable project for your first task. Use `:exit` to quit; Ctrl-C requests cancellation during execution and can retain the draft.
+Press Enter at each of the four prompts to choose `deepseek` → `deepseek-v4-flash` → thinking `high` → credential source `environment`. Environment mode reads the key from your terminal; the wizard does not ask you to paste it again.
+
+| Provider choice in the wizard | Model | Environment variable |
+|---|---|---|
+| `deepseek` (default) | `deepseek-v4-flash` (default) or `deepseek-v4-pro` | `DEEPSEEK_API_KEY` |
+| `kimi-code` | `kimi-for-coding` | `KIMI_API_KEY` |
+| `kimi-code:k3-256k` | `k3-256k` | `KIMI_API_KEY` |
+
+For Kimi Code, follow the [Kimi key input and exact wizard choices](typescript/README.md#kimi-code). On macOS, you can instead choose `k` at the credential-source prompt, enter the key in the wizard's hidden input, and confirm `y` to save it in Keychain. [Credential options](typescript/README.md#credential-options) explain both paths.
+
+Pan saves preferences in `~/.pan-agent/settings.json`, without the API key. The exported key lasts in this shell and programs launched from it; a new terminal needs the input step again. To change the provider, model or credential source, rerun `pan-agent configure`.
+
+## Run your first task
+
+In the **same terminal**, create a new practice directory and launch Pan:
+
+```sh
+mkdir pan-first-task
+cd pan-first-task
+pan-agent
+```
+
+When the TUI shows **Write a task.**, type `Create hello.txt containing Hello from Pan.` and press Enter. Review any tool approval before allowing it, then inspect the resulting file. **Startup and configuration make no model request; submitting this task uses your provider and may incur charges.** A successful configuration does not check whether your key or provider account works.
+
+Use `:exit` to quit. If a task reports a missing `DEEPSEEK_API_KEY` or `KIMI_API_KEY`, exit, repeat the key-input step in your terminal and restart Pan. Never enter an API key as task text. To try the interface without an API key, use the offline demo below.
+
+The workspace defaults to your current directory (`--workspace DIR` overrides it); history defaults to `~/.pan-agent/archives` (`--memory-root DIR` overrides it). Keep history outside the workspace. If you launch from your home directory and see an overlap error, enter a project subdirectory first.
+
+**Tools run with your host-user authority.** The workspace is a working directory, not a sandbox. Ctrl-C requests cancellation during execution and can retain the draft. Bare startup needs a terminal; see the [package guide](typescript/README.md) for command interfaces.
 
 ## Try it without a key
 
