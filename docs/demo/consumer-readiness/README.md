@@ -19,7 +19,7 @@ An attempt finishing is not the same as the goal being correct. A tool error, ex
 
 ## Run the installed offline walkthrough
 
-This is a control-flow demo using Pan's public `--fixture` option and its Faux adapter. A prepared `result.txt` contains `correct`; the scripted model emits completion text. **It does not solve a task or measure model intelligence.** An operator-owned shell verifier independently checks that artifact. The negative verifier exits 2 and must produce UNKNOWN/`needs_review`, even though the same model says it is done.
+This is a control-flow demo using Pan's public `--fixture` option and its Faux adapter. A prepared `result.txt` contains `correct`; the scripted model emits completion text. **It does not solve a task or measure model intelligence.** An operator-owned shell verifier checks that its text is `correct` after shell command substitution strips trailing newlines; this walkthrough predicate is not byte-exact. The negative verifier exits 2 and must produce UNKNOWN/`needs_review`, even though the same model says it is done.
 
 From a checkout containing this guide, install the public release into a disposable consumer and run the repository's driver:
 
@@ -69,7 +69,7 @@ Use `deny` to refuse. Closed stdin denies protected operations; do not pipe blan
 For a goal, create `verifier.json` **outside the workspace**. Choose your actual requirement before running; this example only checks exact file content:
 
 ```json
-{"version":"result-v1","command":"test \"$(cat result.txt)\" = correct","seconds":10}
+{"version":"result-v1","command":"printf 'correct\\n' | cmp -s - result.txt","seconds":10}
 ```
 
 ```sh
