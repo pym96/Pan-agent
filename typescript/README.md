@@ -207,6 +207,8 @@ Recovery stops uncertain execution; it never replays task commands. Verification
 
 ## Installed runtime CI
 
-[The shared CI entry](../scripts/runtime-ci/README.md) runs the full TypeScript suite plus byte-verified installed CLI lifecycle tests and the offline walkthrough on Node 22.19.0 and 26.7.0. Docker and live providers are outside this CPU gate.
+[The shared CI entry](../scripts/runtime-ci/README.md) works from a shallow current checkout and runs the full TypeScript suite plus byte-verified installed CLI lifecycle tests and the offline walkthrough on Node 22.19.0 and 26.7.0. Docker and live providers are outside this CPU gate.
 
 The complete suite includes seven checkout-path regressions that execute the actual Kimi fixtures under Unicode, spaces, percent/hash characters and literal `%20`; see [the shared entry](../scripts/runtime-ci/README.md). These are fixture-path checks, not a Runtime policy change.
+
+Current development requires only the checked-out tree and locked development tools; no historical Git objects or existing `dist` are needed. `npm --prefix typescript run build` builds from source; the shared entry above performs the complete regression. Optional [fixed-version historical checks](../scripts/history-replay/README.md) retain their own source/checker/criteria pins and setup costs.

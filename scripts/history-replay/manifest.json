@@ -1,0 +1,84 @@
+{
+  "schema": "pan-historical-assertions/v1",
+  "baseline_current_sha": "ee3bd081f5523e669be22b7bb740a05cfca55f8b",
+  "proofs": {
+    "layout41": {
+      "source_sha": "75de6de21c4f0c5e0a93c7a4143c5ecf94d92358",
+      "required_git": [
+        "97fb7db1574a240b1a689733bc1b56791879c6d6"
+      ],
+      "test_file": "typescript/test/module-layout.test.ts",
+      "files": {
+        "typescript/test/module-layout.test.ts": "fc0df1b39327ea4208601db7c2adc8fce438bf0982c430df57e1269034b3faef",
+        "scripts/check_module_layout.mjs": "e40542c87512bd47dc8ee5acdd9cec30701399c7422f461d64101c88957df499",
+        "docs/design/workorder-41-relocations.json": "aaee47ac5ee543ef11d4e58f93b1eb8e96a861138ba4c00d8cdcc479120250ac",
+        "docs/design/native-module-layout.md": "a55b65f410afed18176a7399e48008f208d73ebda332401beccfbabd5fdb7c9c",
+        "typescript/package.json": "542faa3f0fc753e28c3bff8dc9f8f8ea1589469fbab901fd280b2e56f38929be",
+        "typescript/package-lock.json": "4a0281812e8390efb6f702d2b15962cc9d31a5ecfe49430e192c3bc59d51785c"
+      },
+      "criteria": [
+        {
+          "file": "criteria/issue-41-body.md",
+          "sha256": "69081958d425e981f9396f55ae7106082a18de9599e6e579077cbbaa15bb88e2",
+          "url": "https://github.com/pym96/Pan-agent/issues/41"
+        }
+      ],
+      "scope": "Original four relocation/graph tests including their five edge forms, incomplete map and executable default mutation; not a current graph policy or full #41 acceptance."
+    },
+    "facts25": {
+      "source_sha": "3dc834ef3405564d8eeff802ca54cb5874079df3",
+      "required_git": [
+        "c366060a706ddbf1905943eed8d4aa029837e8c2"
+      ],
+      "test_file": "typescript/test/memory-lanes.test.ts",
+      "files": {
+        "typescript/test/memory-lanes.test.ts": "be9a2fd26b0a8b5ef71b93b095d274a2a1a7837f62258dd4c7a3ab96a2b57dc0",
+        "docs/evidence/verified-project-facts.md": "0aac99b9c9501d54cd492c59cdbeb76b095ce52bb9a31d00aa64e260b60379a1"
+      },
+      "excerpt": {
+        "first_line": 634,
+        "last_line": 642,
+        "sha256": "c550e2c8dfd6d01b64d80df07c38448f110e54cee7dafeb93fc6bb46bde060c4"
+      },
+      "criteria": [
+        {
+          "file": "criteria/issue-25-body.md",
+          "sha256": "345bb94cb937c69a83c868b48e548158d50e8bebac7f35a9543e989170fe87a8",
+          "url": "https://github.com/pym96/Pan-agent/issues/25"
+        }
+      ],
+      "scope": "Only original C-MEM-08 revision-to-base facts freeze; exact excerpt with import/test harness scaffolding, not original Pi-era memory suite or full #25 acceptance."
+    },
+    "routing43": {
+      "source_sha": "eda8bd58e95ff52af95fe2e021ebf6c7778ba74f",
+      "required_git": [],
+      "test_file": "typescript/test/cutover-contract.test.ts",
+      "files": {
+        "typescript/test/cutover-contract.test.ts": "d4173e35dc6f98664a953c1ef7dfc4878b7b9da70a7cc7c992f98533f6583588",
+        "README.md": "5b7bbf21f5efadf3fa14247444a62f781635ec794cf1f4d3d6c79a99b4d47e57",
+        "docs/agents/current-assignment.md": "fc60d09bba9224bc86c5e5db1d7a8c25f02c3cce4726cb1487a928c588cd0e41",
+        "docs/adr/0016-authoritative-typescript-product-path.md": "bb8c2d143c7a0783aee94a35296377fdb349dc0761950f6f7deac5030db53990",
+        "docs/adr/0017-product-isolation-and-frozen-pi.md": "ed9c41765781bbd65dfae08b3772563dadc1a5a8260c77784d01c4931b8ba395",
+        "docs/design/workorder-43-repair-obligations.json": "23b30d6c60f3b12a869aa70c752567062f996a2bc1078b5217a14bb8f8729656"
+      },
+      "criteria": [
+        {
+          "file": "criteria/issue-24-body.md",
+          "sha256": "c2dcc79b5b8dbd2d7e71e17c6d45195efa6b35256e427a1676d40b6e1ca2a24f",
+          "url": "https://github.com/pym96/Pan-agent/issues/24"
+        },
+        {
+          "file": "criteria/issue-43-comment-5581025788.md",
+          "sha256": "15e6464b53de6d40fab61ec9d64e28125526ee7a1aee886ea1f878c6fcceb72b",
+          "url": "https://github.com/pym96/Pan-agent/issues/43#issuecomment-5581025788"
+        },
+        {
+          "file": "criteria/issue-43-comment-5583617915.md",
+          "sha256": "a4d29bcb1ca06ba08298a7eb603973ea0a3f6f5008893415fb410af96307a0d4",
+          "url": "https://github.com/pym96/Pan-agent/issues/43#issuecomment-5583617915"
+        }
+      ],
+      "scope": "Entire original five-test cutover contract at accepted #43 1.1, including its preserved #24 C-CUT assertions and then-active #43 wording; not current install instructions or full #43 acceptance."
+    }
+  }
+}

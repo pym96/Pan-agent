@@ -1,5 +1,7 @@
 # Product tests
 
+The [complete current entry](../../scripts/runtime-ci/README.md) works in a shallow checkout and dynamically discovers every top-level `*.test.ts` here. New tests need no hardcoded count or historical manifest edit. The [assertion map](../../docs/design/current-regression-history.md) separates living checks from [explicit fixed-version replay](../../scripts/history-replay/README.md); `module-layout.test.ts` now validates only local replay input identities, while its four original #41 tests run at their pinned revision.
+
 - [streaming.test.ts](streaming.test.ts): #44 byte/delta partitions, source barriers, cancellation cleanup, observer lifetime, visibility and replay boundaries.
 - [#44 obligation map](../../docs/design/workorder-44-obligations.json): every prior test title and exact English-label changes. Existing test files and frozen fixtures remain at their declared semantics.
 

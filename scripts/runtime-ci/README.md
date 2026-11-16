@@ -1,16 +1,20 @@
 # Installed runtime regression
 
-From a full-history source checkout (existing regression tests read historical Git objects), with Node **22.19.0** or **26.7.0** and Python 3.12:
+From a current source checkout, including a clean `git clone --depth=1`, with Node **22.19.0** or **26.7.0** and Python 3.12:
 
 ```sh
+git clone --depth=1 https://github.com/pym96/Pan-agent.git /tmp/pan-current
+cd /tmp/pan-current
 python3 -m venv /tmp/pan-ci-python
 /tmp/pan-ci-python/bin/python -m pip install -r scripts/runtime-ci/requirements.txt
-/tmp/pan-ci-python/bin/python scripts/runtime-ci/run.py --output /tmp/pan-ci-evidence
+mkdir -p /tmp/pan-ci-home /tmp/pan-ci-tmp
+HOME=/tmp/pan-ci-home TMPDIR=/tmp/pan-ci-tmp \
+  /tmp/pan-ci-python/bin/python scripts/runtime-ci/run.py --output /tmp/pan-ci-evidence
 ```
 
-Use a new output directory outside the checkout each time. POSIX shell and `ps` are required. The same entry runs on Ubuntu 22.04 in both Node matrix cells on pull requests (including drafts) and pushes to `main`. It checks out the PR **head SHA**, not GitHub's synthetic merge SHA; both event and source identities are retained. A green run supplies test evidence, not approval to merge.
+Use a new output directory outside the checkout each time. POSIX shell and `ps` are required. The same entry runs on Ubuntu 22.04 in both Node matrix cells on pull requests (including drafts) and pushes to `main`. It uses `fetch-depth: 1` and checks out the PR **head SHA**, not GitHub's synthetic merge SHA; both event and source identities are retained. A green run supplies test evidence, not approval to merge.
 
-The entry installs locked development dependencies, typechecks, runs the complete TypeScript test glob with TAP collection checks, builds/packs, installs into a fresh production consumer, compares every installed package file against the tarball, runs the existing execution150 installed CLI pytest suite, and runs the existing offline consumer walkthrough. No live provider, Docker daemon, GPU, or credentials are needed. Docker sandbox containment is **outside this CPU gate**, not implicitly passing.
+The entry installs locked development dependencies, typechecks, runs the complete TypeScript test glob with TAP collection checks, builds/packs, installs into a fresh production consumer, compares every installed package file against the tarball, runs the existing execution150 installed CLI pytest suite, and runs the existing offline consumer walkthrough. No historical Git objects, parent checkout, host workspace, prebuilt `dist`, Pi installation, live provider, Docker daemon, GPU, or credentials are needed. Docker sandbox containment is **outside this CPU gate**, not implicitly passing.
 
 Each command preserves stdout/stderr, command arguments, return code and duration. `result.json`, source file hashes, package hash, installed file hashes, JUnit, and walkthrough/raw pytest case files are uploaded even after failure. The root `consumer/` installation is omitted from the upload; the tarball and installed file hashes remain. Dependency bootstrap failures remain failed jobs; missing artifacts also fail. GitHub retains artifacts for 30 days, so durable acceptance records must retain downloaded originals separately.
 
@@ -40,3 +44,9 @@ python3 scripts/runtime-ci/onboarding.py \
 This mode independently downloads the tarball, verifies the expected SHA256, installs **from that URL** with a new HOME/cache/global prefix, and compares the complete installed file map. Download and npm installation use the network; the fetch guard starts afterward for product execution. Local `--package` mode remains offline and is the CI default. Neither mode reads inherited credentials or invokes a provider. Raw install receipts, hashes and PTY logs remain in the output directory.
 
 The installed regression now includes effect→controller death→inspect→refused old-state restart. It checks product-owned process shutdown before fixture teardown and preserves exact file hashes and admission-ticket identities. See [the system guarantee matrix](../../docs/demo/consumer-readiness/system-guarantees.md) for the limits; checkpoint unit tests do not establish installed automatic resume.
+
+## Extending and reproducing checks
+
+Add current source tests as `typescript/test/*.test.ts`; the shared runner and `npm test` discover that top-level glob. Keep fixtures under the existing test fixture locations. No fixed test count or history manifest edit is required. The complete entry includes conformance in the source suite plus pack/install, lifecycle, onboarding and walkthrough; `npm run check` covers typecheck/source tests only. Locked npm development dependencies and pinned pytest preparation may download public packages; the installed consumer phase is offline.
+
+Old #41 relocation/graph proof, #25 revision-to-base facts freeze and #43 routing wording run only through [explicit historical reproduction](../history-replay/README.md). Its Git/cache prerequisites and original criteria are separate from the current entry. [Assertion map and design](../../docs/design/current-regression-history.md).

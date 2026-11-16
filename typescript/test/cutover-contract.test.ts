@@ -20,18 +20,28 @@ function markdownSection(document: string, heading: string): string {
 
 test("C-CUT-01 default README route installs and launches only the TypeScript product", async () => {
 	const readme = await text("README.md");
-	const defaultRoute = markdownSection(
-		readme,
-		"## Default product path | TypeScript Native",
-	);
-	assert.match(defaultRoute, /npm --prefix typescript ci --ignore-scripts/);
-	assert.match(defaultRoute, /read -s DEEPSEEK_API_KEY/);
-	assert.match(defaultRoute, /export DEEPSEEK_API_KEY/);
-	assert.match(defaultRoute, /npm --prefix typescript run agent --/);
-	assert.match(defaultRoute, /--kernel native/);
-	assert.match(defaultRoute, /--workspace \/absolute\/path\/to\/workspace/);
-	assert.match(defaultRoute, /--memory-root \/absolute\/path\/to\/memory/);
-	assert.doesNotMatch(defaultRoute, /python3|PYTHONPATH|pip install/i);
+	const install = markdownSection(readme, "## Install");
+	const configure = markdownSection(readme, "## Configure your API");
+	const firstTask = markdownSection(readme, "## Run your first task");
+	assert.match(install, /npm install -g --ignore-scripts https:\/\/github\.com\/pym96\/Pan-agent\/releases\/download\/v[^/\s]+\/pan-agent-[^\s]+\.tgz/);
+	assert.match(install, /prebuilt/);
+	assert.match(configure, /read -r -s DEEPSEEK_API_KEY/);
+	assert.match(configure, /export DEEPSEEK_API_KEY/);
+	assert.match(configure, /pan-agent configure/);
+	assert.match(firstTask, /\ncd pan-first-task\npan-agent\n/);
+	assert.match(firstTask, /--workspace DIR/);
+	assert.match(firstTask, /--memory-root DIR/);
+	assert.match(firstTask, /history outside the workspace/);
+	assert.doesNotMatch(`${install}\n${configure}\n${firstTask}`, /python3|PYTHONPATH|pip install|--prefix typescript/i);
+	// The original source-only route and exact wording remain SHA-bound in
+	// scripts/history-replay; source development remains a supported entry.
+	const sourceRoute = markdownSection(readme, "## Default product path | TypeScript Native");
+	assert.match(sourceRoute, /npm --prefix typescript ci --ignore-scripts/);
+	assert.match(sourceRoute, /npm --prefix typescript run agent --/);
+	assert.match(sourceRoute, /--kernel native/);
+	assert.match(sourceRoute, /--workspace \/absolute\/path\/to\/workspace/);
+	assert.match(sourceRoute, /--memory-root \/absolute\/path\/to\/memory/);
+	assert.doesNotMatch(sourceRoute, /python3|PYTHONPATH|pip install/i);
 });
 
 test("C-CUT-04 and C-CUT-08 classify every retained non-product lane", async () => {
@@ -60,7 +70,7 @@ test("C-CUT-06 assignment and ADR record architectural supersession", async () =
 	const assignment = await text("docs/agents/current-assignment.md");
 	assert.match(
 		assignment,
-		/## Active mission \| WorkOrder #43 Explicit file input/,
+		/## Accepted foundation \| WorkOrder #43 file input and minimal repair/,
 	);
 	assert.match(assignment, /## Accepted foundation \| WorkOrder #32 Pan Faux Adapter and product Tools/);
 	assert.match(

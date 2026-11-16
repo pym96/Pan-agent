@@ -4,6 +4,8 @@ Design documents record contracts and trade-offs; they do not establish implemen
 
 ## Authoritative product
 
+- [Current regression and historical proof](current-regression-history.md): #167 shallow-current verification, affected assertion map and fixed-version replay.
+
 - [ADR-0018](../adr/0018-operation-scoped-authorization.md): #49 Criteria 1.1 operation-scoped authorization and the Human-accepted pure-Node race boundary; candidate verification pending.
 
 - [`native-module-layout.md`](native-module-layout.md): WorkOrder #41 source relocation, resolved dependency graph, public package/type checks and unchanged installed behavior; [`workorder-41-relocations.json`](workorder-41-relocations.json) records all source/import/locator mappings.

@@ -1,5 +1,4 @@
 import assert from "node:assert/strict";
-import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { readFileSync, readdirSync } from "node:fs";
@@ -578,6 +577,9 @@ test("retrospective ledger enforces sealed reference integrity and supersession-
 
 // C-MEM-08: ledger entries are not trajectory and are never auto-promoted.
 test("ledger entries are rejected as archive trajectory and the fact register is untouched", async () => {
+	const repoRoot = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
+	const factsPath = join(repoRoot, "docs", "evidence", "verified-project-facts.md");
+	const factsBefore = readFileSync(factsPath);
 	const directory = await workspace();
 	const root = join(directory, "memory");
 	const store = await RunArchiveStore.open(root);
@@ -611,15 +613,9 @@ test("ledger entries are rejected as archive trajectory and the fact register is
 	await writeFile(eventsPath, `${sealedBody}${JSON.stringify(entry)}\n`, "utf8");
 	await assert.rejects(store.readArchive(writer.runId), ArchiveIntegrityError);
 
-	// The Verified Project Facts register is byte-identical to the accepted base.
-	const repoRoot = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
-	const base = execFileSync(
-		"git",
-		["show", "c366060a706ddbf1905943eed8d4aa029837e8c2:docs/evidence/verified-project-facts.md"],
-		{ cwd: repoRoot },
-	);
-	const current = readFileSync(join(repoRoot, "docs", "evidence", "verified-project-facts.md"));
-	assert.ok(base.equals(current), "verified-project-facts.md must not change in this WorkOrder");
+	// Current invariant: these memory operations never promote interpretations.
+	// The #25 revision-to-base freeze is reproduced by scripts/history-replay/.
+	assert.deepEqual(readFileSync(factsPath), factsBefore, "memory operations must not mutate the fact register");
 });
 
 // C-MEM-09: every run records the exact Runbook revision in force at its

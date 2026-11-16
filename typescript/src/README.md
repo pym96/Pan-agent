@@ -11,7 +11,7 @@ Root [`cli.ts`](cli.ts) owns concrete composition and the existing source CLI in
 | Durable memory | [memory](memory/README.md) |
 | Terminal presentation | [tui](tui/README.md) |
 
-The [#41 design](../../docs/design/native-module-layout.md) and [source map](../../docs/design/workorder-41-relocations.json) specify preservation and dependency checks. The #42 [presentation guide](../../docs/design/native-compact-tui.md) describes the subsequent Native UI change; core Modules remain unchanged.
+The [#41 design](../../docs/design/native-module-layout.md) and [source map](../../docs/design/workorder-41-relocations.json) record preservation and dependency checks for that fixed revision. [Current verification and historical proof](../../docs/design/current-regression-history.md) explains which assertions run today and how to reproduce the original checks. The #42 [presentation guide](../../docs/design/native-compact-tui.md) records the subsequent Native UI change.
 
 #44 [streaming design](../../docs/design/native-streaming-tui.md): protocol adds ModelTextDelta/ModelProgressSink; concrete Adapters emit text, Runtime correlates run/turn, TUI alone owns provisional rendering.
 

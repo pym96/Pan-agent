@@ -311,3 +311,5 @@ The active #60/#61/#62 PTY drivers now start at idle rather than submitting remo
 - [WO78 Criteria1.1 continuation](../docs/evidence/terminal-bench-recovery-78.md): authorized one-network cleanup and real five-task zero-model lifecycle evidence.
 
 - [runtime-ci](runtime-ci/README.md): reproducible installed-runtime CPU regression entry and raw CI evidence.
+
+- [history-replay](history-replay/README.md): explicit offline execution of pinned #41 layout, #25 facts freeze and #43 routing assertions. Current verification remains [runtime-ci](runtime-ci/README.md), with no old Git dependency.

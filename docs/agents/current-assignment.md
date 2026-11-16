@@ -1,4 +1,8 @@
-## Active #165 API-ONBOARD1.0 — API setup and first task
+## Active #167 REGRESSION-SEAM1.0 — current regression and historical reproduction
+
+[WorkOrder #167](https://github.com/pym96/Pan-agent/issues/167) starts from accepted `ee3bd081f5523e669be22b7bb740a05cfca55f8b`. Scope: current verification in a shallow checkout, preserved living assertions and explicit fixed-version historical replay. Product source, dependencies, fixtures and retained implementations are unchanged. [Current entry](../../scripts/runtime-ci/README.md) · [Assertion map and design](../design/current-regression-history.md) · [Historical replay](../../scripts/history-replay/README.md). Independent exact-SHA review is required; this navigation grants no acceptance or fact promotion.
+
+## Historical #165 API-ONBOARD1.0 — API setup and first task
 
 [WorkOrder #165](https://github.com/pym96/Pan-agent/issues/165) starts from accepted `df3030c7b31852e4984cb374fedb93ea314c3ed3`. Scope: root/package README instructions for the supported API choices, hidden shell input, macOS Keychain option and first task, plus this assignment and consumer-guide link consistency. Runtime, package artifacts, permissions, host Keychain, real provider calls and Pi remain outside this work. Builder checks use a fresh public v0.1.9 install, dummy keys and external raw evidence; the independent Regulator reviews the exact remote candidate SHA. No acceptance or new project fact is claimed here. Older snapshots below grant no new execution authority.
 
@@ -50,7 +54,7 @@ The following mission snapshots are historical. They retain their evidence and r
 
 ## Retained routing snapshot | #43 before its accepted landing
 
-The following is the verbatim routing snapshot from accepted base eda8bd5, retained as historical context (including its original heading). It does not authorize current #43 work. The #45 activation and active mission above supersede this routing; #43's accepted landing is recorded above. The unchanged inherited documentation check still recognizes this retained heading.
+The following is the verbatim routing snapshot from accepted base eda8bd5, retained as historical context (including its original heading). It does not authorize current #43 work. The #45 activation and active mission above supersede this routing; #43's accepted landing is recorded above. The fixed-version historical replay checks that original heading; current verification checks the accepted foundation above.
 
 > ## Active mission | WorkOrder #43 Explicit file input
 >

@@ -102,6 +102,17 @@ npm --prefix typescript run agent -- \
   --memory-root /absolute/path/to/memory
 ```
 
+## Build and verify current source
+
+A shallow checkout is sufficient for current development:
+
+```sh
+npm --prefix typescript ci --ignore-scripts
+npm --prefix typescript run build
+```
+
+Run the [complete current regression](scripts/runtime-ci/README.md) for source, conformance, packed installation, lifecycle, onboarding and walkthrough checks. The same entry runs in CI. [Historical reproduction](scripts/history-replay/README.md) is optional and declares its separate pinned Git inputs.
+
 ## Retained implementation catalog
 
 | Area | Classification |
