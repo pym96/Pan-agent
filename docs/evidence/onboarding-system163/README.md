@@ -16,6 +16,8 @@ During pre-Handoff review, the Regulator identified a second documentation misma
 
 Fresh actual public URL installation and seven PTY/onboarding cases passed; the public archive SHA256 is `3f6783bd6674e9e57e49dac7d67a183313a6c61d3a9f1117b476019ab5c3aeab`, with 122 matching installed files. Public installed walkthrough and the new interruption probe also passed. The full shared entry on clean source `d1894d032673a57e481cbfc634f50567f1fcfb61` passed 269 TypeScript tests, 26 installed lifecycle cases, 7 onboarding cases and 8 walkthrough checks, with no unexpected skips. This run preceded the later package-README correction; it is not relabeled as a later-SHA run. The test/runtime files are unchanged by that correction; final candidate package content/install checks and exact-SHA independent/CI results are recorded separately in the Handoff. This is not an acceptance claim.
 
+The final documentation-adjusted candidate archive SHA256 is `4af21a06437a0e68ebe3934d7fd06225d7af40f84daaea225e643829d4fa14da`. All 122 file names match the public archive; only `package/README.md` differs. The complete installed-file comparison and fresh seven-case onboarding on that candidate passed. No Runtime/test/validation-script bytes changed after the full run at `d1894d0`; [the machine summary](summary.json) preserves that distinction.
+
 External raw evidence is retained in the issue-specific Builder directory, with file hashes and location supplied to the Regulator. It includes original guide text, download/install receipts, PTY logs, package/file identities, walkthrough events, process/crash observations and full-suite logs. No original failure is removed or rewritten.
 
 ## Limits and contribution

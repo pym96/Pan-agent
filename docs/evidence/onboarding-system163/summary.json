@@ -1,0 +1,75 @@
+{
+  "workorder": "163",
+  "criteria": "ONBOARD-SYSTEM1.0",
+  "baseline": "de54065f7d0081df48b537f79f5b2c5077e826e2",
+  "full_entry": {
+    "source_sha": "d1894d032673a57e481cbfc634f50567f1fcfb61",
+    "status": "PASS",
+    "node": "v26.7.0",
+    "python": "3.14.0 (main, Oct  7 2025, 09:34:52) [Clang 17.0.0 (clang-1700.4.4.1)]",
+    "elapsed_seconds": 78.4531339169771,
+    "typescript": {
+      "tests": 269,
+      "pass": 269,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "installed_tests": 26,
+    "onboarding": {
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "walkthrough_checks": 8
+  },
+  "public_onboarding": {
+    "tests": 7,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "candidate_onboarding": {
+    "tests": 7,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "package_comparison": {
+    "public_sha256": "3f6783bd6674e9e57e49dac7d67a183313a6c61d3a9f1117b476019ab5c3aeab",
+    "candidate_sha256": "4af21a06437a0e68ebe3934d7fd06225d7af40f84daaea225e643829d4fa14da",
+    "public_files": 122,
+    "candidate_files": 122,
+    "changed_members": [
+      "package/README.md"
+    ],
+    "source_at_comparison": "998dd15df18dd48e712c9364e4e34c0b6c7fc380",
+    "runtime_test_delta_since_full": []
+  },
+  "doc_predicate": {
+    "old_exit_codes": [
+      0,
+      0,
+      0
+    ],
+    "corrected_exit_codes": [
+      0,
+      1,
+      1
+    ],
+    "inputs": [
+      "correct\\n",
+      "correct",
+      "correct\\n\\n"
+    ]
+  },
+  "new_installed_case": "test_crash_inspect_and_refused_restart_preserve_effect_and_reservations",
+  "limitations": [
+    "no automatic installed task or schedule continuation",
+    "library checkpoint API separate from archive replay",
+    "no Docker/server/GPU/live provider/credential/npm publishing",
+    "independent exact-SHA acceptance and CI pending"
+  ]
+}
