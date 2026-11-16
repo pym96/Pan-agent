@@ -66,7 +66,12 @@ class InstalledOnboarding(unittest.TestCase):
         (self.root/(name+'.stdout')).write_text(r.stdout);(self.root/(name+'.stderr')).write_text(r.stderr)
         return r
     def terminal(self,name,args=(),cwd=None,answers=(),task=None):
-        master,slave=pty.openpty();fcntl.ioctl(slave,termios.TIOCSWINSZ,struct.pack('HHHH',40,160,0,0))
+        # These checks compare complete configured paths in the rendered output.
+        # Allow two cells per character plus labels/borders so an external output
+        # root cannot split the path across cursor-controlled redraw rows.
+        paths=[str(cwd or self.project),str(self.home/'.pan-agent/archives'),*map(str,args)]
+        columns=max(160,2*max(map(len,paths))+32)
+        master,slave=pty.openpty();fcntl.ioctl(slave,termios.TIOCSWINSZ,struct.pack('HHHH',40,columns,0,0))
         proc=subprocess.Popen([str(self.cli),*args],cwd=cwd or self.project,env=self.env,stdin=slave,stdout=slave,stderr=slave,start_new_session=True);os.close(slave)
         raw=b'';remaining=list(answers);sent=False;task_sent=False;deadline=time.monotonic()+8
         try:
@@ -112,7 +117,9 @@ class InstalledOnboarding(unittest.TestCase):
         self.assertIn(str(work),text);self.assertIn(str(archive),text)
         self.assertTrue((archive/'runs').is_dir())
     def test_04_special_paths(self):
-        work=self.root/'中文 space %# literal%20';work.mkdir();archive=self.root/'archive 中文 %#'
+        # Exceed the former 160-column premise even with a short output root.
+        work=self.root/('path-segment-'*14+'中文 space %# literal%20');work.mkdir()
+        archive=self.root/('path-segment-'*14+'archive 中文 %#')
         text=self.terminal('special',['--memory-root',str(archive)],cwd=work)
         self.assertIn(str(work),text);self.assertIn(str(archive),text)
     def test_05_invalid_paths(self):

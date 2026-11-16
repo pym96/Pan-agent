@@ -42,6 +42,10 @@ package or a missing Git object. Replace `all` with a table ID for one proof.
 An unknown ID, missing revision, missing/corrupt snapshot or unavailable offline
 dependency is a non-success result with a diagnostic; prepare the named input
 and retry into a new output directory. Do not treat absence as a skip.
+An explicitly selected proof must have a manifest entry; `all` requires every
+declared proof, including when the manifest inventory is empty. Run the bounded
+CLI selection regressions with `python3 -m unittest discover -s scripts/history-replay -p 'test_*.py'`
+([test_selection.py](test_selection.py)); these negative cases need no history or npm cache.
 
 Each replay creates independent Git object databases through local `file://`
 transport with no alternates, plus its own HOME/TMP. The input repository is

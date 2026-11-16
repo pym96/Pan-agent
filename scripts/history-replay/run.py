@@ -13,6 +13,7 @@ import time
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[1]
+PROOFS = ('layout41', 'facts25', 'routing43')
 
 
 def sha256(path):
@@ -21,7 +22,7 @@ def sha256(path):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('proof', choices=('layout41', 'facts25', 'routing43', 'all'))
+    parser.add_argument('proof', choices=(*PROOFS, 'all'))
     parser.add_argument('--repository', type=Path, required=True,
                         help='Local Git repository containing the pinned historical commits (read only)')
     parser.add_argument('--npm-cache', type=Path, required=True,
@@ -76,14 +77,18 @@ def main():
         manifest = json.loads((HERE/'manifest.json').read_text())
         if manifest['schema'] != 'pan-historical-assertions/v1':
             raise RuntimeError('unknown historical manifest schema')
+        selected = PROOFS if args.proof == 'all' else (args.proof,)
+        missing = [name for name in selected if name not in manifest['proofs']]
+        if missing:
+            raise RuntimeError('missing selected historical proof(s): ' + ', '.join(missing)
+                               + '; restore the complete pinned manifest before replay')
         node = run('node', ['node', '--version']).strip()
         if node not in ('v22.19.0', 'v26.7.0'):
             raise RuntimeError('requires Node 22.19.0 or 26.7.0')
         report['node'] = node
         report['npm'] = run('npm', ['npm', '--version']).strip()
-        for name, spec in manifest['proofs'].items():
-            if args.proof not in ('all', name):
-                continue
+        for name in selected:
+            spec = manifest['proofs'][name]
             for item in spec['criteria']:
                 path = HERE/item['file']
                 if sha256(path) != item['sha256']:
@@ -142,6 +147,9 @@ def main():
                     or any(counters[key] for key in ('fail', 'cancelled', 'skipped', 'todo'))):
                 raise RuntimeError(f'{name}: empty/incomplete/nonpassing original assertions: {counters}')
             record.update(status='PASS', tests=counters)
+        if set(report['proofs']) != set(selected) or any(
+                proof.get('status') != 'PASS' for proof in report['proofs'].values()):
+            raise RuntimeError('selected historical proofs did not all complete')
         for row in report['commands']:
             for suffix in ('.stdout', '.stderr'):
                 if not (out/(row['name']+suffix)).is_file():
