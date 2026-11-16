@@ -8,10 +8,10 @@ This package is **v0.1.9**. Published assets and checksums are listed at https:/
 
 Installed v0.1.9: `pan-agent loop --help`, `pan-agent goal --help`, `pan-agent execution --help`; root `pan-agent --help` describes Sandbox. `sandbox --help` is not a supported subcommand. The complete user guide and offline installed walkthrough are at https://github.com/pym96/Pan-agent/tree/main/docs/demo/consumer-readiness . They use the existing explicit Faux fixture seam; no provider key is needed. RUNBOOK.md describes the execution/verification boundary.
 
-## Install a prepared archive
+## Install the public release
 
 ```sh
-npm install -g --ignore-scripts /path/to/pan-agent-0.1.9.tgz
+npm install -g --ignore-scripts https://github.com/pym96/Pan-agent/releases/download/v0.1.9/pan-agent-0.1.9.tgz
 cd /path/to/project
 pan-agent
 ```
@@ -74,7 +74,7 @@ Archives verify their stored hash chain and preserve run identity. They are not 
 
 ## License and distribution status
 
-Pan-authored code is licensed under the MIT License included as `LICENSE` in this package, copyright 2026 Pan Agent contributors. Third-party licenses are not replaced by Pan's license. The prebuilt v0.1.6 tarball is on GitHub Releases; the v0.1.9 archive is built from source. Neither install path requires publishing to npm.
+Pan-authored code is licensed under the MIT License included as `LICENSE` in this package, copyright 2026 Pan Agent contributors. Third-party licenses are not replaced by Pan's license. The prebuilt v0.1.9 tarball is on GitHub Releases. Its SHA256 is `3f6783bd6674e9e57e49dac7d67a183313a6c61d3a9f1117b476019ab5c3aeab`. Installing that URL does not require npm registry publication. A new source build has its own archive identity; do not substitute it for the released bytes.
 
 Runtime code has no third-party npm runtime dependencies. Build-time dependencies: TypeScript (Apache-2.0), @types/node (MIT), undici-types (MIT). These dependencies are not bundled. The repository's license inventory documents separate recording tools and retained references.
 
@@ -90,7 +90,7 @@ If an environment credential is missing when you submit a task, the TUI keeps th
 
 ## Opt-in document and history retrieval
 
-Retrieval is included in the **0.1.7 source/candidate package**; the published v0.1.6 release download does not contain it. Build and install the current checkout with the source instructions. No embedding service or extra runtime dependency is needed.
+Retrieval is included in the **v0.1.9 public release**. Install the release above, or build the current source checkout for development. No embedding service or extra runtime dependency is needed.
 
 Create `selection.json` outside your selected source directories, for example:
 
@@ -122,9 +122,9 @@ Each call refreshes from source; there is no persistent search cache. Reconfigur
 
 Settings persist in `workspace/.pan-agent/retrieval.json` across restarts. Replacement of a selected root or directly selected memory file requires reconfiguration. Ordinary source content updates/deletes appear on the next call. Originals are never edited by retrieval. Protected files and unsupported links are skipped with diagnostics; corrupt/unsealed history is not trusted. Large corpora return explicit partial/truncated results. Default matching is lexical: all query terms must occur in one800-character chunk; it does not promise paraphrase or semantic recall. Limits:8 sources,1024 entries,128 attempted files,4MiB aggregate,256KiB ordinary file/ledger/Runbook,1MiB sealed events,16KiB manifest/config,12 directory levels,4096 chunks,8 results and64KiB response. Oversized long-run archives are skipped; inspect them with replay, never truncate the original seal. [WorkOrder and source/evidence links](https://github.com/pym96/Pan-agent/issues/144).
 
-## Optional Docker sandbox (source candidate)
+## Optional Docker sandbox
 
-Build/install the source package above, then start the ordinary TUI with:
+The v0.1.9 release includes this optional entry. After preparing the Docker prerequisites below, start the ordinary TUI with:
 
 ```sh
 ./node_modules/.bin/pan-agent --kernel native --sandbox-root "$PWD/sandbox-state" \
@@ -147,9 +147,9 @@ pan-agent sandbox cleanup --run /absolute/path/to/sandbox-state/RUN_ID
 
 Recovery stops uncertain execution; it never replays task commands. Verification is explicit and runs separately against a read-only workspace after the agent container stops. Cleanup requires a rechecked export manifest, receipt and file hashes. Keep the state directory until cleanup completes; deleting it loses the recovery record. Exports accept regular files only (at most 1,000 files / 64 MiB); links, special files and unsupported tar extensions fail with the volume retained.
 
-### Bounded loop and executable goals (#150 candidate)
+### Bounded loop and executable goals
 
-`pan-agent loop --help` and `pan-agent goal --help` describe the noninteractive scheduled entry. Both use the native runtime and existing operation-scoped approvals. Goal completion requires an operator-owned executable verifier, never the model’s completion text. Use a new `--state` directory; `pan-agent execution inspect --state DIR` reads evidence without restarting work. See [design](../docs/design/execution-controller.md). Python is required only for development tests.
+`pan-agent loop --help` and `pan-agent goal --help` describe the noninteractive scheduled entry. Both use the native runtime and existing operation-scoped approvals. Goal completion requires an operator-owned executable verifier, never the model’s completion text. Use a new `--state` directory; `pan-agent execution inspect --state DIR` reads evidence without restarting work. See the [design](https://github.com/pym96/Pan-agent/blob/main/docs/design/execution-controller.md) and [timing/recovery boundaries](https://github.com/pym96/Pan-agent/blob/main/docs/demo/consumer-readiness/system-guarantees.md). The installed CLI has no automatic schedule restart. Checkpoint resume is an opt-in library interface requiring application-supplied storage and a compatible adapter. Python is required only for development tests.
 
 ## Installed runtime CI
 
