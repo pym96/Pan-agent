@@ -1,0 +1,25 @@
+# Settings #170 candidate evidence
+
+WorkOrder [#170](https://github.com/pym96/Pan-agent/issues/170), Criteria-Version **SETTINGS1.0**, accepted base `28727596792abcee89667ade8d23d5eb3c5c3845`, candidate branch `workorder/170-candidate`. This is Builder evidence, not acceptance. The Handoff on the issue binds the final full SHA and exact manifest; independent C-S01–05 review and Human C-S06 remain required. No release, version bump, fact registration or resume claim is part of this work.
+
+[User guide and JSON/commands](../../design/user-settings.md) · [Shared regression entry](../../../scripts/runtime-ci/README.md) · [Focused source tests](../../../typescript/test/user-settings.test.ts) · [Installed checks](../../../scripts/runtime-ci/settings.mjs).
+
+Raw Builder evidence is retained outside the checkout at `~/.local/state/pan-agent/settings-builder/`. `logs/*/{stdout,stderr,receipt.json}` retain bounded commands, exits, timestamps, process reaping and hashes. `installed-settings-01/` retains the first actual candidate installation check, guarded management command outputs and three sealed archives. The final shared regression output, manifest, exact candidate identity and settlement record are linked by the Handoff. Private HOME, temporary files, npm prefix/cache and Python environment belong to this task; inherited credential variables are excluded. No server, Docker instance, live provider or actual Keychain access was used.
+
+## Checks and reproducible observations
+
+The nine added source tests cover C-S01–04: strict grammar/resource limits, literal wildcard/newline/metacharacter matching, full validation before save, extension preservation before credentials, read-only inspection, all five host tools before dispatch, trust-shell plus caller mutation, fake sandbox boundary, actual CLI settings-to-session propagation, attachment precedence, new-session reload, archived denial and opaque injected-kernel rejection. Existing authorization/configuration/lifecycle assertions remain active. The old unknown-provider error assertion now checks the stable error category and absence of the untrusted value, because diagnostics must not echo a possible secret.
+
+The installed test uses a real shell to write `OK` to `allowed-file`, then asks for `printf CONTROL > denied-file`. With `bash(*denied-file*)`, the latter is denied before a second approval or shell dispatch even after session trust; the file is absent. Editing settings while that session exists leaves the frozen policy intact. A new session without the deny writes `CONTROL`, proving the legitimate control path. The archive reports `permission_denied`, `settings_deny`, the exact rule, SHA-256 policy revision and call/run/session identities. `settings/summary.json` and `archive-1.json` retain the evidence. This establishes request admission behavior, not semantic command equivalence detection or Docker containment.
+
+## Decisions and failed attempts
+
+Human requested useful settings outside code and deny rules. Builder chose the existing shared authorization wrapper, because host tools, retrieval and sandbox tools pass through it before their implementations. The initial design did not account for opaque injected kernels; independent preflight pointed out that they own their tool dispatch. Construction now rejects nonempty deny policy on that path, while keeping the original no-policy behavior. Master coordinated scope; this is not a claim that Human independently implemented the feature.
+
+The first new-test file write used the wrong working directory and failed. Node's explicit file arguments then ran the existing 13 configuration tests without reporting the absent new file. That run (`focused-01`) is not new-feature evidence. The next run (`focused-02`) executed all 22 cases and exposed an incorrect test expectation: the existing attachment overflow code is `attachment_budget_exceeded`, not an error containing `limit`. The assertion was corrected to that precise existing code; no product behavior or old assertion was weakened. `focused-03` passed all 22. The complete shared runner separately discovers the actual test glob and rejects empty/skipped/failing collection.
+
+## Limits and review packet
+
+Rules filter raw tool request strings; only `*` is special. Alternative spellings/scripts may be equivalent without matching. Current session policy is copied/frozen; user-owned settings may still be changed by an approved host shell for future sessions. Opaque injected kernels with nonempty deny are rejected. Management subcommands, fixed demo and unconfigured library callers do not inherit TUI settings. The public v0.1.9 release remains unchanged and lacks this feature.
+
+The final issue Handoff must supply immutable SHA/PR, raw manifest and full/installed check results. Human review follows independent technical PASS, using the guide's JSON and commands, the denied/allowed sentinel pair and these limits. Silence does not satisfy C-S06. See [verification depth and independence by risk](../../governance/verification.md).

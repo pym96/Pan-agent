@@ -107,6 +107,10 @@ def main():
         report['installed_tests'] = len(cases)
         run('onboarding', [sys.executable, str(ROOT/'scripts/runtime-ci/onboarding.py'), '--package', str(package), '--output', str(out/'onboarding')], limit=120)
         report['onboarding'] = json.loads((out/'onboarding/result.json').read_text())
+        run('settings', ['node', str(ROOT/'scripts/runtime-ci/settings.mjs'), str(consumer/'node_modules/pan-agent'), str(out/'settings')])
+        report['settings'] = json.loads((out/'settings/summary.json').read_text())
+        if report['settings']['status'] != 'PASS':
+            raise RuntimeError('installed settings checks failed')
         run('walkthrough', ['node', str(ROOT/'scripts/consumer-readiness/walkthrough.mjs'), str(cli), str(out/'walkthrough')])
         if not (out/'walkthrough/summary.json').is_file():
             raise RuntimeError('missing walkthrough summary')

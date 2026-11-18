@@ -27,7 +27,7 @@ import { createCompactPresentation, observeSafely, terminalText, type CompactPre
 import type { SessionObservation } from "./runtime/session.ts";
 
 import { validateAttachmentLimit } from "./input/attachments.ts";
-import { loadPanSettings, type PanSettings } from "./config/settings.ts";
+import { loadPanSettings, panSettingsPath, type PanSettings } from "./config/settings.ts";
 import { runFirstRunConfiguration } from "./config/first-run.ts";
 import {
 	PAN_KEYCHAIN_ACCOUNT,
@@ -43,14 +43,16 @@ import { DEFAULT_KIMI_PROFILE, KIMI_K3_MODEL_ID, type KimiProfile } from "./prov
 
 export const CLI_USAGE = `Usage:
   pan-agent [--workspace /absolute/path] [--memory-root /absolute/path] --kernel native [--model deepseek-v4-flash|deepseek-v4-pro] [--thinking low|high|max] [--max-attachment-bytes INTEGER]
+  pan-agent settings path|show|validate   (read-only ordinary settings; no credential access)
   npm run agent -- configure   (first-run settings: provider/model/thinking and credential source; persists no secret)
 
 The installed launcher selects Native; source/library callers pass --kernel native. NativeKernel receives Pan-owned typed read/write/edit/bash implementations directly.
 By default the bash tool is trusted-local: it has host-user authority; --workspace sets cwd but is not containment or an OS sandbox.
 Defaults: workspace = current directory; memory-root = ~/.pan-agent/archives. Explicit paths override defaults.
 Every admitted run is durably archived under --memory-root (must be disjoint from the workspace) with the current Runbook revision; :details, :runs and :replay inspect sealed archives with zero Provider calls or tool effects.
-Attachments use selection-time UTF-8 snapshots; default aggregate maxAttachmentBytes=1048576 (1 MiB local byte policy, not a model token limit). Override with --max-attachment-bytes; never truncates.
-Ordinary settings persist at ~/.pan-agent/settings.json (mode 0600; schema version, provider/model/thinking and the literal credential source kind only — never a secret). Run 'configure' to create or replace them; on a TTY first run without settings the same flow is offered. Explicit --model/--thinking flags override persisted values for that run.
+Attachments use selection-time UTF-8 snapshots; default aggregate maxAttachmentBytes=1048576 (1 MiB local byte policy, not a model token limit). Saved maxAttachmentBytes overrides the default; --max-attachment-bytes overrides the saved value. Never truncates.
+Ordinary settings persist at ~/.pan-agent/settings.json (mode 0600; provider/model/thinking, credential source kind, protectedPaths, permissions.deny and maxAttachmentBytes — never a secret). Run 'configure' to update provider fields while preserving valid ordinary preferences; on a TTY first run without settings the same flow is offered. Explicit --model/--thinking flags override persisted values for that run.
+Deny rules are frozen at TUI session creation, before tool execution and approval, including trusted Shell and sandbox tools. Whole tools: read/write/edit/bash/retrieve; bash(PATTERN) uses only literal characters and * wildcard. No shell semantic analysis or OS containment.
 Credential source: environment reads DEEPSEEK_API_KEY (deepseek) or KIMI_API_KEY (kimi-code) only when a Provider call is made; keychain retrieves the macOS Keychain item named by the Pan service/account convention only when a Provider call is made. kimi-code selects the official OpenAI-compatible Kimi Code endpoint with explicit kimi-for-coding or k3-256k selection in configure (kimi-code:k3-256k); Kimi --model/--thinking overrides are unsupported; arbitrary endpoints and unknown models are rejected.
 Sandbox (opt-in): add --sandbox-root DIR and optional repeated --sandbox-input FILE. One new fixed-profile Docker workspace per task; no retrieval. After exit: pan-agent sandbox list --root DIR; recover|export|verify|cleanup --run RUN_DIRECTORY (see README).
 Retrieval (default off): pan-agent retrieval configure --workspace DIR --from selection.json; retrieval show|disable --workspace DIR. Each approved call refreshes selected sources.
@@ -149,6 +151,16 @@ export async function runCli(args: readonly string[], dependencies: CliDependenc
 	const writeLine = (line: string): void => {
 		output.write(`${line}\n`);
 	};
+	if (args[0] === 'settings') {
+		if (args.length !== 2 || !['path', 'show', 'validate'].includes(args[1]!)) { writeLine('settings_usage: pan-agent settings path|show|validate'); return 2; }
+		if (args[1] === 'path') { writeLine(panSettingsPath(dependencies.home)); return 0; }
+		try {
+			const stored = await loadPanSettings(dependencies.home);
+			if (!stored) { writeLine('settings_absent: run pan-agent configure to create settings'); return args[1] === 'show' ? 0 : 2; }
+			writeLine(args[1] === 'show' ? JSON.stringify(stored, null, 2) : 'settings_valid');
+			return 0;
+		} catch (error) { writeLine(`Settings validation failed: ${terminalText(error instanceof Error ? error.message : 'unknown')}`); return 2; }
+	}
 	if(['loop','goal','execution'].includes(args[0]??'')){try{return await executionCli(args,output,dependencies.input??process.stdin);}catch(error){writeLine('Execution error: '+terminalText(String(error)));return 2;}}
 	if(args[0]==='sandbox'){try{writeLine(await sandboxCommand(args.slice(1)));return 0;}catch(error){writeLine('Sandbox error: '+terminalText(String(error)));return 2;}}
 	if(args[0]==='retrieval') {try{writeLine(retrievalCommand(args.slice(1)));return 0;}catch(error){writeLine(`Retrieval configuration failed: ${terminalText(error instanceof Error?error.message:'unknown')}`);return 2;}}
@@ -283,7 +295,7 @@ export async function runCli(args: readonly string[], dependencies: CliDependenc
 			kernel: "native",
 			adapter,
 			tools: sandbox?trustedLocal.tools:[...trustedLocal.tools, createRetrievalTool(workspace)],
-			authorization: { protectedPaths: settings?.protectedPaths },
+			authorization: { protectedPaths: settings?.protectedPaths, permissions: settings?.permissions },
 			...(adapter instanceof PanKimiModelAdapter ? { cleanup: () => adapter.dispose() } : {}),
 		});
 		provider = adapter.providerId;
@@ -307,7 +319,7 @@ export async function runCli(args: readonly string[], dependencies: CliDependenc
 		workspace,
 		output,
 		archiveStore,
-		maxAttachmentBytes: configuration.maxAttachmentBytes,
+		maxAttachmentBytes: args.includes("--max-attachment-bytes") ? configuration.maxAttachmentBytes : validateAttachmentLimit(settings?.maxAttachmentBytes),
 	});
 }
 

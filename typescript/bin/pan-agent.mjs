@@ -6,11 +6,11 @@ try {
     process.exitCode = await (await import('./demo.mjs')).runDemo(args.slice(1));
   } else {
     if (args.includes('--help') || args.includes('-h')) {
-      console.log('Installed commands: pan-agent configure | pan-agent demo [--directory NEW_DIRECTORY]');
+      console.log('Installed commands: pan-agent configure | pan-agent settings path|show|validate | pan-agent demo [--directory NEW_DIRECTORY]');
       console.log('Start: pan-agent (current directory; archives in ~/.pan-agent/archives)');
     }
     // Product launcher selects its sole supported kernel; library callers remain explicit.
-    const subcommand = ['configure', 'retrieval', 'sandbox', 'loop', 'goal', 'execution'].includes(args[0]);
+    const subcommand = ['configure', 'settings', 'retrieval', 'sandbox', 'loop', 'goal', 'execution'].includes(args[0]);
     process.exitCode = await runCli(subcommand || args.includes('--kernel') ? args : ['--kernel', 'native', ...args]);
   }
 } catch (error) {

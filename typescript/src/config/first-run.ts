@@ -3,7 +3,7 @@ import { createInterface } from "node:readline";
 import { Writable, type Readable } from "node:stream";
 import { DEEPSEEK_MODEL_IDS, type DeepSeekModelId, type DeepSeekThinkingLevel } from "../providers/deepseek/deepseek-profile.ts";
 import { KIMI_MODEL_ID, KIMI_K3_MODEL_ID, type KimiModelId } from "../providers/kimi/kimi-profile.ts";
-import { savePanSettings, type PanSettings, type PanCredentialSource, PAN_SETTINGS_SCHEMA_VERSION } from "./settings.ts";
+import { loadPanSettings, savePanSettings, type PanSettings, type PanCredentialSource, PAN_SETTINGS_SCHEMA_VERSION } from "./settings.ts";
 import { saveKeychainCredential, PAN_KEYCHAIN_SERVICE, PAN_KEYCHAIN_ACCOUNT, type KeychainReference } from "./keychain.ts";
 
 export interface FirstRunDependencies {
@@ -37,6 +37,8 @@ class MutedWritable extends Writable {
  */
 export async function runFirstRunConfiguration(dependencies: FirstRunDependencies): Promise<PanSettings> {
 	const { input, output, home } = dependencies;
+	// Validate before prompting or changing credentials; invalid policy is never discarded.
+	const previous = await loadPanSettings(home);
 	const keychainSave = dependencies.saveCredential ?? saveKeychainCredential;
 	const reference = dependencies.keychainReference ?? { service: PAN_KEYCHAIN_SERVICE, account: PAN_KEYCHAIN_ACCOUNT };
 	const muted = new MutedWritable(output);
@@ -140,7 +142,7 @@ export async function runFirstRunConfiguration(dependencies: FirstRunDependencie
 				credentialSource = "keychain";
 			} else write(`Unknown credential source: ${answer}.`);
 		}
-		const settings: PanSettings = { schemaVersion: PAN_SETTINGS_SCHEMA_VERSION, provider, modelId, thinkingLevel, credentialSource };
+		const settings: PanSettings = { ...previous, schemaVersion: PAN_SETTINGS_SCHEMA_VERSION, provider, modelId, thinkingLevel, credentialSource };
 		const path = await savePanSettings(settings, home);
 		write(`Settings saved: ${path} (mode 0600; contains no secret).`);
 		return settings;

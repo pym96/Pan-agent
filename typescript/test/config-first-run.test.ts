@@ -37,7 +37,8 @@ test("C-CONFIG-02 closed selection: secret/endpoint keys, unknown provider/model
  try {
   parsePanSettings('{"schemaVersion":1,"provider":"moonshot","modelId":"kimi-for-coding","thinkingLevel":"high","credentialSource":"environment"}');
  } catch (error) { unknownMessage = error instanceof Error ? error.message : String(error); }
- assert.match(unknownMessage, /provider_unavailable: moonshot/);
+ assert.match(unknownMessage, /provider_unavailable:/);
+ assert.doesNotMatch(unknownMessage, /moonshot/); // Settings diagnostics never echo arbitrary values.
  // #53: kimi-code is now a supported provider with its fixed official model.
  const kimi = parsePanSettings('{"schemaVersion":1,"provider":"kimi-code","modelId":"kimi-for-coding","thinkingLevel":"high","credentialSource":"environment"}');
  assert.equal(kimi.provider, "kimi-code");

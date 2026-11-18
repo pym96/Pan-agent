@@ -1,4 +1,8 @@
-## Active #167 REGRESSION-SEAM1.0 — current regression and historical reproduction
+## Active #170 SETTINGS1.0 — user settings and deny rules
+
+[WorkOrder #170](https://github.com/pym96/Pan-agent/issues/170) starts from accepted `28727596792abcee89667ade8d23d5eb3c5c3845`. Scope: the existing user settings file, read-only inspection/validation, preserved ordinary preferences, and deterministic Native tool denial before execution. [Guide](../design/user-settings.md) · [Evidence](../evidence/settings/README.md) · [Current regression](../../scripts/runtime-ci/README.md). Independent exact-SHA technical review and explicit high-risk Human review are required. No new publication, package version, project fact or resume disclosure is authorized. Older assignments below are historical navigation only.
+
+## Historical #167 REGRESSION-SEAM1.0 — current regression and historical reproduction
 
 [WorkOrder #167](https://github.com/pym96/Pan-agent/issues/167) starts from accepted `ee3bd081f5523e669be22b7bb740a05cfca55f8b`. Scope: current verification in a shallow checkout, preserved living assertions and explicit fixed-version historical replay. Product source, dependencies, fixtures and retained implementations are unchanged. [Current entry](../../scripts/runtime-ci/README.md) · [Assertion map and design](../design/current-regression-history.md) · [Historical replay](../../scripts/history-replay/README.md). Independent exact-SHA review is required; this navigation grants no acceptance or fact promotion.
 

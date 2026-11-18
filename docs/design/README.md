@@ -4,6 +4,8 @@ Design documents record contracts and trade-offs; they do not establish implemen
 
 ## Authoritative product
 
+- [User settings and deny rules](user-settings.md): #170 SETTINGS1.0 current-source/next-release configuration, request matching and explicit authority limits.
+
 - [Current regression and historical proof](current-regression-history.md): #167 shallow-current verification, affected assertion map and fixed-version replay.
 
 - [ADR-0018](../adr/0018-operation-scoped-authorization.md): #49 Criteria 1.1 operation-scoped authorization and the Human-accepted pure-Node race boundary; candidate verification pending.

@@ -115,6 +115,8 @@ export class GeneralAgentSession {
 			&& typeof (selector as AgentKernel).close === "function")) {
 			throw new Error(`Unsupported kernel: ${String(selector)}`);
 		}
+		// An opaque injected kernel owns its tools; Session cannot mediate their execution.
+		if (selector !== 'native' && options.authorization?.permissions?.deny.length) throw new Error('permissions_unsupported: injected kernel');
 		const limits = resolveKernelLimits(options.limits);
 		if (selector === "native") {
 			const nativeOptions = options as NativeGeneralAgentSessionOptions;

@@ -25,6 +25,7 @@ export { captureAttachment, discoverAttachmentPaths, validateAttachmentLimit, DE
 export { prepareAttachedTask, decodeAttachedTask } from "./input/task-envelope.ts";
 export type { AttachmentSnapshot, AttachedTask } from "./input/task-envelope.ts";
 export { loadPanSettings, savePanSettings, parsePanSettings, panSettingsPath, PAN_SETTINGS_SCHEMA_VERSION, PAN_CREDENTIAL_SOURCES } from "./config/settings.ts";
+export type { PanPermissions } from "./config/permissions.ts";
 export type { PanSettings, PanCredentialSource } from "./config/settings.ts";
 export { saveKeychainCredential, readKeychainCredential, deleteKeychainCredential, keychainCredentialExists, PanKeychainError, PAN_KEYCHAIN_SERVICE, PAN_KEYCHAIN_ACCOUNT } from "./config/keychain.ts";
 export type { KeychainReference, PanKeychainErrorCode } from "./config/keychain.ts";

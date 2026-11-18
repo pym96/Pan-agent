@@ -8,6 +8,10 @@ This package is **v0.1.9**. Published assets and checksums are listed at https:/
 
 Installed v0.1.9: `pan-agent loop --help`, `pan-agent goal --help`, `pan-agent execution --help`; root `pan-agent --help` describes Sandbox. `sandbox --help` is not a supported subcommand. The complete user guide and offline installed walkthrough are at https://github.com/pym96/Pan-agent/tree/main/docs/demo/consumer-readiness . They use the existing explicit Faux fixture seam; no provider key is needed. RUNBOOK.md describes the execution/verification boundary.
 
+## Settings in current source / next release
+
+This source revision adds `pan-agent settings path`, `pan-agent settings show` and `pan-agent settings validate`, optional `permissions.deny`, and saved `maxAttachmentBytes`. The public v0.1.9 asset does not include these additions. Build and install a tarball from this revision to use them; its unchanged version string is not proof of release identity. The [settings guide](https://github.com/pym96/Pan-agent/blob/main/docs/design/user-settings.md) gives source commands, JSON examples, precedence and policy limits. `configure` in this revision preserves valid optional preferences and rejects malformed existing settings before credential mutation.
+
 ## Install the public release
 
 ```sh

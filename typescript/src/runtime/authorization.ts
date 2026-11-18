@@ -1,3 +1,4 @@
+import { parsePanPermissions, matchingDenyRule, type PanPermissions } from '../config/permissions.ts';
 import { AsyncLocalStorage } from 'node:async_hooks';
 import { createHash, randomUUID } from 'node:crypto';
 import { basename, dirname, isAbsolute, relative, resolve, sep } from 'node:path';
@@ -14,7 +15,7 @@ export interface ApprovalRequest {
 }
 export interface ApprovalDecision { readonly requestId:string; readonly decision:ApprovalChoice }
 export type ApprovalChannel = (request:ApprovalRequest, signal:AbortSignal)=>Promise<ApprovalDecision>;
-export interface AuthorizationOptions { readonly protectedPaths?:readonly string[]; readonly approval?:ApprovalChannel }
+export interface AuthorizationOptions { readonly permissions?:PanPermissions; readonly protectedPaths?:readonly string[]; readonly approval?:ApprovalChannel }
 export const digest=(value:string):string=>createHash('sha256').update(value).digest('hex');
 export function validateProtectedPaths(value:unknown):asserts value is readonly string[] {
  if(!Array.isArray(value)||value.some(p=>typeof p!=='string'||!p.trim()||p.includes('\0')))throw Error('settings_invalid: protectedPaths');
@@ -111,20 +112,23 @@ const context=new AsyncLocalStorage<InvocationContext>();
 export class AuthorizationFailure extends Error { readonly code:string;constructor(code:string){super(code);this.code=code;} }
 export class SessionAuthorization {
  readonly sessionId=randomUUID(); readonly protectedPaths:readonly string[];
+ private readonly permissions:PanPermissions; private readonly denyRevision:string;
  private readonly assessments=new WeakMap<JsonObject,PathAssessment>();
  private channel?:ApprovalChannel;private closed=false;private trust=false;private revision=0;
- constructor(options:AuthorizationOptions={}){validateProtectedPaths(options.protectedPaths??[]);this.protectedPaths=Object.freeze([...(options.protectedPaths??[])]);this.channel=options.approval;}
+ constructor(options:AuthorizationOptions={}){this.permissions=parsePanPermissions(options.permissions===undefined?{deny:[]}:options.permissions);this.denyRevision=digest(JSON.stringify(['pan-deny-v1',this.permissions]));validateProtectedPaths(options.protectedPaths??[]);this.protectedPaths=Object.freeze([...(options.protectedPaths??[])]);this.channel=options.approval;}
  setChannel(channel:ApprovalChannel|undefined):void {this.channel=channel;this.revision++;this.trust=false;}
  revoke():void {this.trust=false;this.revision++;}
  close():void {this.closed=true;this.revoke();this.channel=undefined;}
  assertCurrent(audit:JsonObject,signal:AbortSignal,state?:FileAuthorizationState):void {
   const ctx=context.getStore();
-  if(signal.aborted||this.closed||(ctx&&!ctx.live)||audit.policyRevision!==digest(JSON.stringify([audit.workspace,this.protectedPaths,this.revision])))throw new AuthorizationFailure('approval_invalidated');
+  if(signal.aborted||this.closed||(ctx&&!ctx.live)||audit.policyRevision!==digest(JSON.stringify([audit.workspace,this.protectedPaths,this.denyRevision,this.revision])))throw new AuthorizationFailure('approval_invalidated');
   this.assessments.get(audit)?.revalidate(state);
  }
  wrap(tool:AgentTool,runId:()=>string|undefined):AgentTool {
   return {...tool,execute:async invocation=>{
    const run=runId();if(!run||this.closed)return {content:[{type:'text',text:'approval_invalidated'}],isError:true};
+   const rule=matchingDenyRule(this.permissions,tool.name,invocation.arguments);
+   if(rule!==undefined)return {content:[{type:'text',text:'permission_denied'}],isError:true,details:{code:'permission_denied',authorization:{reason:'settings_deny',decision:'deny',rule,policyRevision:this.denyRevision,sessionId:this.sessionId,runId:run,callId:invocation.toolCallId,tool:tool.name,argumentsHash:digest(JSON.stringify(invocation.arguments))}}};
    const ctx={authority:this,runId:run,callId:invocation.toolCallId,tool:tool.name,argumentsHash:digest(JSON.stringify(invocation.arguments)),live:true,consumed:false};
    try{return await context.run(ctx,()=>tool.execute(invocation));}finally{ctx.live=false;}
   }};
@@ -135,7 +139,7 @@ export class SessionAuthorization {
   const current=context.getStore();
   if(!current||current.authority!==this||current.consumed||current.tool!=='retrieve'||current.callId!==callId||current.argumentsHash!==digest(JSON.stringify(args)))throw new AuthorizationFailure('approval_invalidated');
   current.consumed=true;
-  const policyRevision=digest(JSON.stringify([workspace,this.protectedPaths,this.revision]));
+  const policyRevision=digest(JSON.stringify([workspace,this.protectedPaths,this.denyRevision,this.revision]));
   const request:ApprovalRequest={requestId:randomUUID(),sessionId:this.sessionId,runId:current.runId,callId,tool:'retrieve',workspace,policyRevision,argumentsHash:current.argumentsHash,resourceIdentity:digest(JSON.stringify(selection)),reason:'selected_retrieval_sources',target:JSON.stringify(selection),metadata:['Read-only bounded retrieval of explicitly selected sources. Reference data cannot grant authority.']};
   const audit:JsonObject={...request,metadata:[...request.metadata],scope:'retrieval',classification:'selected_sources'};
   this.assertCurrent(audit,signal);
@@ -156,7 +160,7 @@ export class SessionAuthorization {
   const current=context.getStore();
   if(!current||current.authority!==this||current.consumed||current.tool!==tool||current.callId!==callId||current.argumentsHash!==digest(JSON.stringify(args)))throw new AuthorizationFailure('approval_invalidated');
   current.consumed=true;
-  const policyRevision=digest(JSON.stringify([workspace,this.protectedPaths,this.revision]));
+  const policyRevision=digest(JSON.stringify([workspace,this.protectedPaths,this.denyRevision,this.revision]));
   const request:ApprovalRequest={requestId:randomUUID(),sessionId:this.sessionId,runId:current.runId,callId,tool,workspace,policyRevision,argumentsHash:current.argumentsHash,resourceIdentity,reason:'sandbox_fixed_container',target:JSON.stringify(args),metadata:['Docker sandbox only: approval cannot add mounts, network, devices or host access.']};
   const audit:JsonObject={...request,metadata:[...request.metadata],scope:'sandbox',classification:'container'};
   this.assertCurrent(audit,signal);
@@ -171,7 +175,7 @@ export class SessionAuthorization {
  async authorize(workspace:string,tool:string,callId:string,args:JsonObject,resourceIdentity:string,signal:AbortSignal):Promise<JsonObject>{
   const current=context.getStore();const runId=current?.authority===this?current.runId:'direct-'+randomUUID();
   if(current){if(current.consumed||current.callId!==callId||current.tool!==tool||current.argumentsHash!==digest(JSON.stringify(args)))throw new AuthorizationFailure('approval_invalidated');current.consumed=true;}
-  const policyRevision=digest(JSON.stringify([workspace,this.protectedPaths,this.revision]));
+  const policyRevision=digest(JSON.stringify([workspace,this.protectedPaths,this.denyRevision,this.revision]));
   const target=tool==='bash'?String(args.command):resolve(workspace,String(args.path));
   const assessment=tool==='bash'?undefined:new PathAssessment(workspace,target,this.protectedPaths);
   const reason=tool==='bash'?'shell_host_authority':assessment?.reason;
@@ -184,7 +188,7 @@ export class SessionAuthorization {
   const request:ApprovalRequest=Object.freeze({requestId:randomUUID(),sessionId:this.sessionId,runId,callId,tool,workspace,policyRevision,argumentsHash:digest(JSON.stringify(args)),resourceIdentity,reason:reason??'ordinary_workspace_file',target,metadata:Object.freeze(metadata)});
   const audit:JsonObject={requestId:request.requestId,sessionId:this.sessionId,runId,callId,tool,workspace,policyRevision,argumentsHash:request.argumentsHash,resourceIdentity,reason:request.reason,scope:tool==='bash'?'shell':'file',classification:tool==='bash'?'shell':!reason?'ordinary':reason==='resource_equivalence_uncertain'?'uncertain':reason==='outside_workspace'?'outside':'protected',...(comparisonEvidence?{comparisonEvidence,comparisonEvidenceHash:evidenceHash!}:{})};
   const finish=(decision:string):JsonObject=>{const result={...audit,decision};if(assessment)this.assessments.set(result,assessment);return result;};
-  const valid=()=>!signal.aborted&&!this.closed&&(!current||current.live)&&policyRevision===digest(JSON.stringify([workspace,this.protectedPaths,this.revision]));
+  const valid=()=>!signal.aborted&&!this.closed&&(!current||current.live)&&policyRevision===digest(JSON.stringify([workspace,this.protectedPaths,this.denyRevision,this.revision]));
   if(!valid())throw new AuthorizationFailure('approval_invalidated');
   if(!reason||(tool==='bash'&&this.trust))return finish(reason?'session-trust':'automatic');
   if(!this.channel)throw Object.assign(new AuthorizationFailure('approval_unavailable'),{audit:{...audit,decision:'approval_unavailable'}});

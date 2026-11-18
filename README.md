@@ -98,6 +98,10 @@ The demo uses a scripted offline model with the actual TUI and tools. Ask `Creat
 
 These recordings retain their original versions and scopes. [Recording details](docs/demo/tui-release56/README.md).
 
+## User settings in current source
+
+Current source adds settings inspection, saved attachment limits and tool deny rules in `~/.pan-agent/settings.json`. See the [settings guide](docs/design/user-settings.md) for examples and scope. These additions are for the next release; the public v0.1.9 download above does not include them.
+
 ## More
 
 [Package, build and publish guide](typescript/README.md) · [Sandbox, Loop and Goal](docs/demo/consumer-readiness/README.md) · [Timing and recovery guarantees](docs/demo/consumer-readiness/system-guarantees.md) · [Architecture](CONTEXT.md) · [Design](docs/design/README.md) · [Evidence](docs/evidence/README.md)
