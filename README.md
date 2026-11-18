@@ -6,13 +6,36 @@ A terminal agent for local files and shell commands, with tool approvals and sav
 
 ## Install
 
+Copy only the commands inside each code block into your terminal, not the headings or explanatory text.
+
 ```sh
 npm install -g --ignore-scripts https://github.com/pym96/Pan-agent/releases/download/v0.1.9/pan-agent-0.1.9.tgz
 ```
 
 This installs the prebuilt **v0.1.9** release; no Git checkout or build is needed. [Release assets and checksums](https://github.com/pym96/Pan-agent/releases/tag/v0.1.9). Prefer a user-owned Node/npm installation; if npm reports permission denied, fix its prefix rather than running Pan with sudo.
 
+If your terminal reports `pan-agent: command not found`, finish installation first. Check `command -v pan-agent`; npm's global executable directory (`$(npm prefix -g)/bin` on macOS/Linux) must be on your `PATH`. Reopen the terminal after fixing your Node/npm setup. This is an installation/PATH issue, not an API-key error.
+
 ## Configure your API
+
+### macOS: use the configuration wizard
+
+Have your **DeepSeek API key** ready, then run:
+
+```sh
+pan-agent configure
+```
+
+Answer the wizard prompts (these answers are **not shell commands**):
+
+1. **Provider**, **Model**, **Thinking**: press Enter at each prompt for `deepseek`, `deepseek-v4-flash`, and `high`.
+2. **Credential source**: type `k` and press Enter.
+3. **API key**: paste your key and press Enter. Input stays hidden.
+4. **Save this key to macOS Keychain?**: type `y` and press Enter to save it.
+
+You can now open a new terminal and use Pan without exporting a key each time. A declined or failed save returns to the credential-source prompt; there is no plaintext fallback. Pan saves preferences in `~/.pan-agent/settings.json`, without the API key. Rerun `pan-agent configure` to change them.
+
+### Linux or environment credentials: Bash / zsh
 
 For **DeepSeek**, have your DeepSeek API key ready. In a **Bash or zsh terminal**, run this block, paste the key at the prompt, then press Enter. Input stays hidden:
 
@@ -39,13 +62,13 @@ Press Enter at each of the four prompts to choose `deepseek` → `deepseek-v4-fl
 | `kimi-code` | `kimi-for-coding` | `KIMI_API_KEY` |
 | `kimi-code:k3-256k` | `k3-256k` | `KIMI_API_KEY` |
 
-For Kimi Code, follow the [Kimi key input and exact wizard choices](typescript/README.md#kimi-code). On macOS, you can instead choose `k` at the credential-source prompt, enter the key in the wizard's hidden input, and confirm `y` to save it in Keychain. [Credential options](typescript/README.md#credential-options) explain both paths.
+For Kimi Code, follow the [Kimi key input and exact wizard choices](typescript/README.md#kimi-code). [Credential options](typescript/README.md#credential-options) explain both paths.
 
-Pan saves preferences in `~/.pan-agent/settings.json`, without the API key. The exported key lasts in this shell and programs launched from it; a new terminal needs the input step again. To change the provider, model or credential source, rerun `pan-agent configure`.
+The braces group the input commands in the current shell; copy the whole block. The exported key lasts in this shell and programs launched from it; a new terminal needs the input step again. Environment mode does not save the key to disk.
 
 ## Run your first task
 
-In the **same terminal**, create a new practice directory and launch Pan:
+After Keychain configuration (or in the **same terminal** as your environment key), create a new practice directory and launch Pan:
 
 ```sh
 mkdir pan-first-task
@@ -55,7 +78,7 @@ pan-agent
 
 When the TUI shows **Write a task.**, type `Create hello.txt containing Hello from Pan.` and press Enter. Review any tool approval before allowing it, then inspect the resulting file. **Startup and configuration make no model request; submitting this task uses your provider and may incur charges.** A successful configuration does not check whether your key or provider account works.
 
-Use `:exit` to quit. If a task reports a missing `DEEPSEEK_API_KEY` or `KIMI_API_KEY`, exit, repeat the key-input step in your terminal and restart Pan. Never enter an API key as task text. To try the interface without an API key, use the offline demo below.
+Use `:exit` to quit. If environment mode reports a missing `DEEPSEEK_API_KEY` or `KIMI_API_KEY`, exit, repeat the shell key-input step and restart Pan. For a Keychain error, rerun `pan-agent configure` and check the save result. Never enter an API key as task text. To try the interface without an API key, use the offline demo below.
 
 The workspace defaults to your current directory (`--workspace DIR` overrides it); history defaults to `~/.pan-agent/archives` (`--memory-root DIR` overrides it). Keep history outside the workspace. If you launch from your home directory and see an overlap error, enter a project subdirectory first.
 

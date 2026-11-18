@@ -53,7 +53,9 @@ After the global installation above, use `pan-agent` in your terminal. For a loc
 
 ### DeepSeek
 
-Run the following block in **Bash or zsh**. At the prompt, paste your DeepSeek API key and press Enter; the terminal hides your input.
+**On macOS**, run `pan-agent configure`: press Enter at Provider, Model and Thinking for the defaults, choose `k` at Credential source, paste the key into the hidden prompt, then confirm `y` to save it to Keychain. No shell key export is needed. See [Credential options](#credential-options) for decline/failure behavior.
+
+**On Linux, or when choosing environment credentials**, run the following block in **Bash or zsh**. At the prompt, paste your DeepSeek API key and press Enter; the terminal hides your input.
 
 ```sh
 {
