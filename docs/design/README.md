@@ -136,3 +136,5 @@ The Human-accepted architecture history remains indexed in [`../adr/README.md`](
 - [Docker sandbox](docker-sandbox.md): #148 SB1.0 isolated tools, lifecycle and recovery.
 
 - [Execution and goal control](execution-controller.md): EC1.1 candidate interfaces, authority, lifecycle and test limits.
+
+- [Native macOS sandbox #172](native-macos-sandbox.md): opt-in shared workspace, host-mediated files and actual offline Seatbelt Shell; candidate pending independent/Human review.

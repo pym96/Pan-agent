@@ -293,12 +293,13 @@ export async function executeBash(
 	value: BashArguments,
 	signal: AbortSignal,
     register?: (pid:number)=>Promise<void>,
+    launch?: {readonly executable:string;readonly prefix:readonly string[];readonly evidence:JsonObject;readonly environment?:Readonly<NodeJS.ProcessEnv>;readonly settleGroup?:boolean},
 ): Promise<AgentToolExecutionResult> {
 	let child: ChildProcessWithoutNullStreams;
 	try {
-		child = spawn("/bin/bash", register ? ["-c", 'IFS= read -r gate; [ "$gate" = pan-owned ] || exit 125; exec /bin/bash -c "$1"', 'pan-shell-gate', value.command] : ["-c", value.command], {
+		child = spawn(launch?.executable ?? "/bin/bash", launch ? [...launch.prefix, "/bin/bash", "-c", value.command] : register ? ["-c", 'IFS= read -r gate; [ "$gate" = pan-owned ] || exit 125; exec /bin/bash -c "$1"', 'pan-shell-gate', value.command] : ["-c", value.command], {
 			cwd: workspace,
-			env: safeShellEnvironment(sourceEnvironment),
+			env: launch?.environment ?? safeShellEnvironment(sourceEnvironment),
 			detached: process.platform !== "win32",
 			stdio: ["pipe", "pipe", "pipe"],
 		});
@@ -354,7 +355,7 @@ export async function executeBash(
 	});
 	signal.removeEventListener("abort", onAbort);
 	if (timeoutTimer) clearTimeout(timeoutTimer);
-	if (cancelled || timedOut) terminateProcessGroup(child, "SIGKILL");
+	if (cancelled || timedOut || launch?.settleGroup) terminateProcessGroup(child, "SIGKILL");
 	if (forceTimer) clearTimeout(forceTimer);
 
 	const status = cancelled
@@ -367,6 +368,7 @@ export async function executeBash(
 					? "completed"
 					: "failed";
 	const details: JsonValue = {
+        ...(launch?.evidence ?? {}),
 		command: value.command,
 		cwd: workspace,
 		stdout,
@@ -393,6 +395,8 @@ export function createPanTrustedLocalTools(
 	workspace: string,
 	sourceEnvironment: Readonly<NodeJS.ProcessEnv> = process.env,
  supervised?: SupervisedShell,
+ filePolicy?: (path:string)=>void,
+ shellPolicy?: ()=>string,
 ): PanTrustedLocalTools {
 	const resolvedWorkspace = workspaceAnchor(workspace);
 	const enforce = (tool: AgentTool): AgentTool => ({ ...tool, async execute(invocation) {
@@ -405,10 +409,10 @@ export function createPanTrustedLocalTools(
 			const authority = invocationAuthority();
 			const shellIdentity = () => { const s=lstatSync(resolvedWorkspace);if(!s.isDirectory()||s.isSymbolicLink())throw new AuthorizationFailure('unsupported_target');return digest(JSON.stringify([resolvedWorkspace,s.dev,s.ino])); };
 			if (invocation.signal.aborted) throw new AuthorizationFailure('approval_invalidated');
-			if (tool.name !== 'bash') file = new AuthorizedFile(toolPath(resolvedWorkspace, String(args.path)), invocation.signal);
-			audit = await authority.authorize(resolvedWorkspace, tool.name, invocation.toolCallId, args, file?.resourceIdentity ?? shellIdentity(), invocation.signal);
+			if (tool.name !== 'bash') {const path=toolPath(resolvedWorkspace, String(args.path));filePolicy?.(path);file = new AuthorizedFile(path, invocation.signal);}
+			audit = await authority.authorize(resolvedWorkspace, tool.name, invocation.toolCallId, args, file?.resourceIdentity ?? shellIdentity(), invocation.signal, tool.name==='bash'?shellPolicy?.():undefined);
 			authority.assertCurrent(audit,invocation.signal);
-			file?.bindAuthorization(state=>authority.assertCurrent(audit!,invocation.signal,state));
+			file?.bindAuthorization(state=>{filePolicy?.(file!.path);authority.assertCurrent(audit!,invocation.signal,state);});
 			if(tool.name==='bash' && audit.resourceIdentity!==shellIdentity())throw new AuthorizationFailure('approval_invalidated');
 			if (invocation.signal.aborted) throw new AuthorizationFailure('approval_invalidated');
 			const run = () => tool.execute({ ...invocation, arguments: args });

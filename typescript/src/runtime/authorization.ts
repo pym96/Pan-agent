@@ -172,17 +172,17 @@ export class SessionAuthorization {
    if(decision.decision==='deny')throw new AuthorizationFailure('approval_denied');return {...audit,decision:'allow-once'};
   }finally{signal.removeEventListener('abort',abort);}
  }
- async authorize(workspace:string,tool:string,callId:string,args:JsonObject,resourceIdentity:string,signal:AbortSignal):Promise<JsonObject>{
+ async authorize(workspace:string,tool:string,callId:string,args:JsonObject,resourceIdentity:string,signal:AbortSignal,nativePolicyHash?:string):Promise<JsonObject>{
   const current=context.getStore();const runId=current?.authority===this?current.runId:'direct-'+randomUUID();
   if(current){if(current.consumed||current.callId!==callId||current.tool!==tool||current.argumentsHash!==digest(JSON.stringify(args)))throw new AuthorizationFailure('approval_invalidated');current.consumed=true;}
   const policyRevision=digest(JSON.stringify([workspace,this.protectedPaths,this.denyRevision,this.revision]));
   const target=tool==='bash'?String(args.command):resolve(workspace,String(args.path));
   const assessment=tool==='bash'?undefined:new PathAssessment(workspace,target,this.protectedPaths);
-  const reason=tool==='bash'?'shell_host_authority':assessment?.reason;
+  const reason=tool==='bash'?(nativePolicyHash?'native_sandbox_shell':'shell_host_authority'):assessment?.reason;
   const comparisonEvidence=assessment?.evidence();
   const evidenceHash=comparisonEvidence?digest(JSON.stringify(comparisonEvidence)):undefined;
   if(evidenceHash)resourceIdentity=digest(JSON.stringify([resourceIdentity,evidenceHash]));
-  const metadata:string[]=[];
+  const metadata:string[]=nativePolicyHash?['Native macOS offline sandbox; approval cannot expand its resource boundary. Policy SHA-256 '+nativePolicyHash]:[];
   if(reason==='resource_equivalence_uncertain')metadata.push('Resource equivalence is uncertain. This target has not been established as ordinary.');
   for(const key of ['content','edits'])if(args[key]!==undefined){const value=typeof args[key]==='string'?args[key] as string:JSON.stringify(args[key]);metadata.push(`${key}: ${Buffer.byteLength(value)} bytes · SHA-256 ${digest(value)}`);}
   const request:ApprovalRequest=Object.freeze({requestId:randomUUID(),sessionId:this.sessionId,runId,callId,tool,workspace,policyRevision,argumentsHash:digest(JSON.stringify(args)),resourceIdentity,reason:reason??'ordinary_workspace_file',target,metadata:Object.freeze(metadata)});

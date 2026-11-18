@@ -54,3 +54,7 @@ The installed regression now includes effect→controller death→inspect→refu
 Add current source tests as `typescript/test/*.test.ts`; the shared runner and `npm test` discover that top-level glob. Keep fixtures under the existing test fixture locations. No fixed test count or history manifest edit is required. The complete entry includes conformance in the source suite plus pack/install, lifecycle, onboarding and walkthrough; `npm run check` covers typecheck/source tests only. Locked npm development dependencies and pinned pytest preparation may download public packages; the installed consumer phase is offline.
 
 Old #41 relocation/graph proof, #25 revision-to-base facts freeze and #43 routing wording run only through [explicit historical reproduction](../history-replay/README.md). Its Git/cache prerequisites and original criteria are separate from the current entry. [Assertion map and design](../../docs/design/current-regression-history.md).
+
+## Native macOS real enforcement
+
+`node scripts/runtime-ci/native-macos.mjs INSTALLED_PACKAGE NEW_EXTERNAL_OUTPUT` runs a deterministic installed CLI/TUI task through actual Seatbelt on macOS. It needs system sandbox-exec/otool and does not call a Provider. It supplements the portable current regression; Linux unsupported-path tests are not macOS enforcement evidence. See [native sandbox design](../../docs/design/native-macos-sandbox.md).

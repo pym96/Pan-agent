@@ -218,3 +218,7 @@ Recovery stops uncertain execution; it never replays task commands. Verification
 The complete suite includes seven checkout-path regressions that execute the actual Kimi fixtures under Unicode, spaces, percent/hash characters and literal `%20`; see [the shared entry](../scripts/runtime-ci/README.md). These are fixture-path checks, not a Runtime policy change.
 
 Current development requires only the checked-out tree and locked development tools; no historical Git objects or existing `dist` are needed. `npm --prefix typescript run build` builds from source; the shared entry above performs the complete regression. Optional [fixed-version historical checks](../scripts/history-replay/README.md) retain their own source/checker/criteria pins and setup costs.
+
+## Native macOS sandbox (opt-in)
+
+The current source/next built package supports `pan-agent --native-sandbox --workspace /absolute/project --memory-root /absolute/disjoint/archives` on supported macOS. File tools and OS-isolated Shell share the live project; this initial slice is offline and protects sensitive/configuration paths. It requires system `sandbox-exec` and `otool`, provides no Docker-equivalent resource quotas, and never falls back to host execution. It applies to interactive startup only; existing scheduled commands retain their current interfaces. Public v0.1.9 does not include this option. See [Native macOS sandbox (current source / next package)](../docs/design/native-macos-sandbox.md) for exact read roots, supported tools, limitations and verification.

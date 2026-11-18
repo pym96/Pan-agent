@@ -1,4 +1,8 @@
-## Active #170 SETTINGS1.0 — user settings and deny rules
+## Active #172 NMAC1.0 — native macOS sandbox
+
+[WorkOrder #172](https://github.com/pym96/Pan-agent/issues/172#issuecomment-6973674308) starts from accepted `664b8c6cb85d66d23256210064e9c05b07ecb05f`. Scope: opt-in native macOS shared workspace, bounded host file tools and actual OS-isolated offline Shell. [Design](../design/native-macos-sandbox.md) · [Builder evidence](../evidence/native172/README.md). Native Builder and independent Regulator use separate sessions; exact-SHA technical and concrete Human high-risk gates remain required. No release/model/server/GPU/Pi or fact-promotion authority. Remaining network/trust/fallback/orchestration slices #173–177 remain separate.
+
+## Historical #170 SETTINGS1.0 — user settings and deny rules
 
 [WorkOrder #170](https://github.com/pym96/Pan-agent/issues/170) starts from accepted `28727596792abcee89667ade8d23d5eb3c5c3845`. Scope: the existing user settings file, read-only inspection/validation, preserved ordinary preferences, and deterministic Native tool denial before execution. [Guide](../design/user-settings.md) · [Evidence](../evidence/settings/README.md) · [Current regression](../../scripts/runtime-ci/README.md). Independent exact-SHA technical review and explicit high-risk Human review are required. No new publication, package version, project fact or resume disclosure is authorized. Older assignments below are historical navigation only.
 

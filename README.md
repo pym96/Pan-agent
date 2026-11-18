@@ -155,3 +155,7 @@ Run the [complete current regression](scripts/runtime-ci/README.md) for source, 
 Reference-only Python TUI: `python3 -m workspace_agent_harness.tui` belongs to the historical implementation, not the installed Pan product or its setup path.
 
 </details>
+
+## Native macOS sandbox (opt-in)
+
+The current source/next built package supports `pan-agent --native-sandbox --workspace /absolute/project --memory-root /absolute/disjoint/archives` on supported macOS. File tools and OS-isolated Shell share the live project; this initial slice is offline and protects sensitive/configuration paths. It requires system `sandbox-exec` and `otool`, provides no Docker-equivalent resource quotas, and never falls back to host execution. It applies to interactive startup only; existing scheduled commands retain their current interfaces. Public v0.1.9 does not include this option. See [Native macOS sandbox (current source / next package)](docs/design/native-macos-sandbox.md) for exact read roots, supported tools, limitations and verification.

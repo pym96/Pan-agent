@@ -57,7 +57,7 @@ export interface SessionMemory {
 interface GeneralAgentSessionOptionsBase {
 	readonly admission?: AdmissionFactory;
  readonly authorization?: AuthorizationOptions;
-	readonly executionBoundary?: {start(runId:string):Promise<void>;stop(reason:string):Promise<void>;cancel():void};
+	readonly executionBoundary?: {readonly identity?:import("../protocol/canonical-protocol.ts").JsonObject;start(runId:string):Promise<void>;stop(reason:string):Promise<void>;cancel():void};
 	readonly systemPrompt: string;
 	readonly memory: SessionMemory;
 	readonly limits?: Partial<KernelLimits>;
@@ -186,6 +186,7 @@ export class GeneralAgentSession {
 		let outcome;
 		try {
 			if(!this.admissionCancelled)await this.executionBoundary?.start(writer.runId);
+            if(this.executionBoundary?.identity)await this.archiveAppend({type:"execution.boundary",...this.executionBoundary.identity});
 			outcome = this.admissionCancelled ? {status:'cancelled' as const,reason:'operator_cancelled',finalText:'',modelCalls:0,toolCalls:0,usage:EMPTY_USAGE} : await (checkpoint
                 ? (request: import("./agent-kernel.ts").KernelRunRequest) => (this.kernel as NativeKernel).resumeTask(request, checkpoint)
                 : (request: import("./agent-kernel.ts").KernelRunRequest) => this.kernel.runTask(request))({

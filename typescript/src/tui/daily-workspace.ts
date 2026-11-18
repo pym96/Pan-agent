@@ -64,7 +64,7 @@ export class DailyWorkspace {
   if(signal.aborted)return Promise.resolve({requestId:request.requestId,decision:'deny'});
   const previous=this.overlay,focus=this.focus;this.clearDrag();
   const choices:ApprovalChoice[]=request.tool==='bash'&&request.reason!=='sandbox_fixed_container'?['deny','allow-once','trust-shell']:['deny','allow-once'];
-  this.overlay={title:'Approval required',lines:['Choices: Deny / Allow once',...(request.tool==='bash'&&request.reason!=='sandbox_fixed_container'?['Or: Trust shell for this session']:[]),`Tool: ${terminalText(request.tool)}`,`Workspace: ${terminalText(request.workspace)}`,`Reason: ${request.reason}`,'Operation / target (scroll to inspect all):',terminalText(request.target),...request.metadata,`Request: ${request.requestId}`,...(request.tool==='bash'&&request.reason!=='sandbox_fixed_container'?['Shell has host-user file/process/network authority, including protected and outside-workspace resources. Session trust applies ONLY to Shell; :trust off revokes it.']:[]),'End of operation details'],offset:0,focus};
+  this.overlay={title:'Approval required',lines:['Choices: Deny / Allow once',...(request.tool==='bash'&&request.reason!=='sandbox_fixed_container'?['Or: Trust shell for this session']:[]),`Tool: ${terminalText(request.tool)}`,`Workspace: ${terminalText(request.workspace)}`,`Reason: ${request.reason}`,'Operation / target (scroll to inspect all):',terminalText(request.target),...request.metadata,`Request: ${request.requestId}`,...(request.tool==='bash'&&request.reason==='shell_host_authority'?['Shell has host-user file/process/network authority, including protected and outside-workspace resources. Session trust applies ONLY to Shell; :trust off revokes it.']:[]),'End of operation details'],offset:0,focus};
   return new Promise(resolve=>{
    let settled=false;
    const settle=(decision:ApprovalChoice)=>{if(settled)return;settled=true;signal.removeEventListener('abort',abort);this.approval=undefined;this.overlay=previous;this.focus=focus;this.barrier=true;resolve({requestId:request.requestId,decision});this.draw();};
@@ -293,7 +293,7 @@ export class DailyWorkspace {
   let trackRows=0;let trackGeom:ScrollbarGeometry|undefined;
   if(!this.supported()){rows.push({text:'Pan · Resize terminal (min 40 x 12)'},{text:'Draft retained · Ctrl-C cancel'});cursor={row:Math.min(h-1,2),col:0};}
   else {
-   rows.push({text:`Pan · Compat · ${this.overlay?'preview':this.picker?'picker':this.focus}${this.newOutput?' · New output':''} · ${this.phase} · ${terminalText(this.options.model)}`,kind:'header'});
+   rows.push({text:`Pan · Compat${this.options.executionMode==='native-macos-offline'?' · Native offline':''} · ${this.overlay?'preview':this.picker?'picker':this.focus}${this.newOutput?' · New output':''} · ${this.phase} · ${terminalText(this.options.model)}`,kind:'header'});
    const matches=this.matches(),p=this.picker;const pickerRows=p?Math.min(7,Math.max(3,h-5-composer-1)):0;const bodyRows=h-5-composer-pickerRows;this.bodyHeight=bodyRows;trackRows=bodyRows;
    let body:{text:string;kind?:string;cells?:StyledCell[]}[]=[];
    if(this.overlay){const lines:{text:string;cells?:StyledCell[]}[]=[this.overlay.title,...this.overlay.lines].flatMap(s=>wrap(s,w-3).map(t=>({text:'│ '+t})));if(this.overlay.assistantText!==undefined)for(const r of markdownRows(this.overlay.assistantText,w-3))lines.push({text:'│ '+r.text,cells:[{text:'│'},{text:' '},...r.cells]});this.overlay.offset=Math.min(this.overlay.offset,Math.max(0,lines.length-bodyRows));body=lines.slice(this.overlay.offset,this.overlay.offset+bodyRows);}
@@ -302,7 +302,7 @@ export class DailyWorkspace {
     this.ensureLayout(w-3);
     const all=this.contentRows;
     const toolMarkerRow=selectedTool?this.layoutStarts[this.entries.indexOf(selectedTool)]!:-1;
-    if(!all.length){const intro=['Write a task. @ opens files; Tab attaches; Enter sends.','Provider: '+terminalText(this.options.provider),'Workspace: '+terminalText(this.options.workspace),this.options.executionMode==='sandbox'?'DOCKER SANDBOX · offline container · retrieval disabled':'Host-user tools; cwd is not an OS sandbox.','Protected/outside/uncertain files and Shell ask before execution.'];body=intro.flatMap(s=>wrap(s,w-3).map(text=>({text,kind:'Pan'})));}
+    if(!all.length){const intro=['Write a task. @ opens files; Tab attaches; Enter sends.','Provider: '+terminalText(this.options.provider),'Workspace: '+terminalText(this.options.workspace),this.options.executionMode==='native-macos-offline'?'NATIVE MACOS SANDBOX · shared workspace · offline · retrieval disabled':this.options.executionMode==='sandbox'?'DOCKER SANDBOX · offline container · retrieval disabled':'Host-user tools; cwd is not an OS sandbox.','Protected/outside/uncertain files and Shell ask before execution.'];body=intro.flatMap(s=>wrap(s,w-3).map(text=>({text,kind:'Pan'})));}
     else {
      if(this.revealTool&&selectedTool){this.follow=false;this.top=Math.max(0,(toolMarkerRow>=0?toolMarkerRow:0)-Math.floor(bodyRows/2));this.anchor=all[this.top]?.anchor;}
      this.revealTool=false;

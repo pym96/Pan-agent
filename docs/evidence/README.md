@@ -1,5 +1,7 @@
 # Project Evidence
 
+- [Native macOS sandbox #172](native172/README.md): real OS negatives, installed CLI/TUI dispatch, failures/repairs and SHA-bound evidence; candidate pending independent and Human review.
+
 - [User settings and deny rules #170](settings/README.md): candidate checks and raw evidence locators; independent and Human review pending.
 
 - [Current regression and historical replay #167](regression167/README.md): assertion preservation and shallow-checkout verification; candidate pending independent review.

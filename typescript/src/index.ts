@@ -45,3 +45,6 @@ export { ExecutionController, GoalController, monotonicClock, parseDuration } fr
 export type { ExecutionPlan, ExecutionResult, Clock, TaskRunner, Attempt, Verdict, Candidate } from './execution/controller.ts';
 export { BudgetLedger } from './execution/admission.ts';
 export type { Admission, AdmissionFactory, Ticket, Counts } from './execution/admission.ts';
+
+export {NativeMacSandbox} from './sandbox/native/macos.ts';
+export type {NativeMacOptions} from './sandbox/native/macos.ts';
