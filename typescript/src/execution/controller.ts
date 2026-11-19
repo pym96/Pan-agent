@@ -6,6 +6,16 @@ export const monotonicClock:Clock={now:()=>performance.now(),sleep:(ms,signal)=>
  const timer=setTimeout(()=>{signal.removeEventListener('abort',abort);resolve();},Math.ceil(ms));
  const abort=()=>{clearTimeout(timer);reject(Error('cancelled'));};signal.addEventListener('abort',abort,{once:true});
 })};
+/** Timers only make work eligible for another clock check. A fractional early wake
+ * recompares the original deadline and schedules a positive, cancellable delay. */
+export async function waitUntil(clock:Clock,deadline:number,signal:AbortSignal):Promise<void> {
+ for (;;) {
+  signal.throwIfAborted();
+  const remaining=deadline-clock.now();
+  if(remaining<=0)return;
+  await clock.sleep(Math.ceil(remaining),signal);
+ }
+}
 export type StopReason='deadline_exceeded'|'cancelled'|'budget_exhausted'|'worker_failed'|'needs_review'|'succeeded'|'stop_unconfirmed'|'cleanup_failed';
 export interface ExecutionPlan {mode:'loop'|'goal';everyMs:number;durationMs:number;objective:string;maxAttempts?:number;outer?:Partial<Counts>;criteria?:{version:string;identity:string}}
 export interface Candidate {identity:string;[key:string]:unknown}
@@ -40,7 +50,7 @@ export class ExecutionController {
   this.used=true;this.active=true;this.start=this.clock.now();this.deadline=this.start+plan.durationMs;const planHash=identity(plan);let attempts=0;let feedback='';
   const ledger=new BudgetLedger(plan.outer,()=>this.eligible(),this.record);const deadlineCancel=new AbortController();
   const external=()=>this.requestStop('cancelled');signal?.addEventListener('abort',external,{once:true});if(signal?.aborted)external();
-  const deadlineTask=this.clock.sleep(plan.durationMs,deadlineCancel.signal).then(()=>this.requestStop('deadline_exceeded')).catch(()=>{});
+  const deadlineTask=waitUntil(this.clock,this.deadline,deadlineCancel.signal).then(()=>this.requestStop('deadline_exceeded')).catch(()=>{});
   // Stopping the runner happens independently of its cooperation with run()/the worker event loop.
   let stopPromise:Promise<boolean>|undefined;
   const stop=()=>{if(stopPromise)return;const termination=runner.stop(this.reason??'cancelled');stopPromise=(async()=>{try{await this.record({type:'execution.stop_requested',reason:this.reason,at:this.clock.now()});}catch{/* Logging failure cannot prevent revocation/termination. */}return termination;})();};
@@ -72,7 +82,7 @@ export class ExecutionController {
     due=this.start+(Math.floor((this.clock.now()-this.start)/plan.everyMs)+1)*plan.everyMs;
     // Completion reconciles immediately; a valid goal FAIL may retry at once, not wait an entire poll interval.
     if(plan.mode==='goal')due=this.clock.now();
-    if(due>=this.deadline){await this.clock.sleep(Math.max(0,this.deadline-this.clock.now()),this.abort.signal);this.requestStop('deadline_exceeded');}
+    if(due>=this.deadline){await waitUntil(this.clock,this.deadline,this.abort.signal);this.requestStop('deadline_exceeded');}
    }
   }catch(error){if(!this.reason){await this.record({type:'execution.error',detail:String(error)});this.requestStop('worker_failed');}}
   finally{

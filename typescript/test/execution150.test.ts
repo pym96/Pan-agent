@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { BudgetLedger } from '../src/execution/admission.ts';
-import { ExecutionController,GoalController,parseDuration,type Clock,type TaskRunner,type ExecutionPlan,type Verdict } from '../src/execution/controller.ts';
+import { ExecutionController,GoalController,parseDuration,waitUntil,type Clock,type TaskRunner,type ExecutionPlan,type Verdict } from '../src/execution/controller.ts';
 class FakeClock implements Clock {
  time=0;timers:{due:number;resolve:()=>void;reject:(e:Error)=>void;signal:AbortSignal;abort:()=>void}[]=[];
  now(){return this.time;}
@@ -85,3 +85,35 @@ for (const failure of ['running','missing','wrong-owned','archive-tamper','unkno
   assert.equal(checked,!['unknown','cleaned'].includes(failure));
  });
 }
+
+// A scheduler wakeup is observable before the timeout is eligible on the monotonic clock.
+test('verifier parent keeps a valid result after an early timeout wakeup', async (t) => {
+ const { runVerifier } = await import('../src/execution/process-runner.ts');
+ const original = globalThis.setTimeout;
+ let early = false;
+ t.mock.method(globalThis, 'setTimeout', (callback: () => void, ms: number, ...args: unknown[]) => {
+  if (!early && ms > 4500 && ms <= 5000) {
+   early = true;
+   return original(callback, 1, ...args);
+  }
+  return original(callback, ms, ...args);
+ });
+ const result = await runVerifier('printf checked', process.cwd(), 5, new AbortController().signal);
+ assert.equal(early, true);
+ assert.deepEqual(result, {code:0,stdout:'checked',stderr:''});
+});
+
+test('absolute deadline re-arms after a fractional wake and cancellation removes that wake',async()=>{
+ for(const cancel of [true,false]){
+  const clock=new FakeClock(), control=new AbortController(), sleep=clock.sleep.bind(clock);
+  const waits:number[]=[];let expired=0;
+  clock.sleep=(ms,signal)=>{waits.push(ms);return sleep(waits.length===1?ms-0.0475:ms,signal);};
+  const waiting=waitUntil(clock,2000,control.signal).then(()=>{expired++;});
+  await clock.advance(1999.9525);
+  assert.equal(expired,0);assert.deepEqual(waits,[2000,1]);assert.equal(clock.timers.length,1);
+  if(cancel){control.abort();await assert.rejects(waiting);}
+  else{await clock.advance(2001);await waiting;}
+  await clock.advance(4000);
+  assert.equal(expired,cancel?0:1);assert.deepEqual(waits,[2000,1]);assert.equal(clock.timers.length,0);
+ }
+});

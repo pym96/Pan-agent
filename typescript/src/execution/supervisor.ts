@@ -2,22 +2,23 @@
 import { fork,execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { randomUUID } from 'node:crypto';
+import {monotonicClock,waitUntil} from './controller.ts';
 import { executeBash } from '../tools/pan-trusted-local-tools.ts';
 const worker=fork(fileURLToPath(new URL(import.meta.url.endsWith('.ts')?'./worker.ts':'./worker.js',import.meta.url)),[],{detached:true,stdio:['ignore','ignore','pipe','ipc'],execArgv:['--max-old-space-size=512']});
 const groups=new Map<number,string>();let ownershipUncertain=false;
 const birth=(pid:number)=>{try{return execFileSync('ps',['-p',String(pid),'-o','lstart='],{encoding:'utf8',timeout:500}).trim();}catch{return '';}};
 if(worker.pid)groups.set(worker.pid,birth(worker.pid));
 const ownedRequests=new Map<string,{resolve:()=>void;reject:(e:Error)=>void}>();
-const abort=new AbortController();let stopping=false,closed=false;let expiry:NodeJS.Timeout|undefined;let force:NodeJS.Timeout|undefined;let limit:NodeJS.Timeout|undefined;let poll:NodeJS.Timeout|undefined;
+const abort=new AbortController();let stopping=false,closed=false;const expiry=new AbortController();let force:NodeJS.Timeout|undefined;let limit:NodeJS.Timeout|undefined;let poll:NodeJS.Timeout|undefined;
 const send=(m:unknown)=>{if(process.connected)process.send?.(m as any);};
 const signal=(s:NodeJS.Signals)=>{for(const [pid,expected] of groups){const current=birth(pid);if(!expected||(current&&current!==expected)){ownershipUncertain=true;continue;}try{process.kill(-pid,s);}catch(error){if((error as NodeJS.ErrnoException).code!=='ESRCH'){ownershipUncertain=true;send({type:'stop_error',error:String(error)});}}}};
 function liveGroups():boolean {
  if(ownershipUncertain)return true;
  try{return execFileSync('ps',['-axo','pgid=,stat='],{encoding:'utf8',timeout:500,maxBuffer:4*1024*1024}).split('\n').some(line=>{const [pgid,state]=line.trim().split(/\s+/);return groups.has(Number(pgid))&&state&&!state.startsWith('Z');});}catch{return true;}
 }
-function finish(confirmed:boolean){clearTimeout(expiry);clearTimeout(force);clearTimeout(limit);clearInterval(poll);send({type:'stopped',confirmed,workerPid:worker.pid,groups:[...groups.keys()]});process.exit(confirmed?0:1);}
+function finish(confirmed:boolean){expiry.abort();clearTimeout(force);clearTimeout(limit);clearInterval(poll);send({type:'stopped',confirmed,workerPid:worker.pid,groups:[...groups.keys()]});process.exit(confirmed?0:1);}
 function stop(){
- if(stopping)return;stopping=true;clearTimeout(expiry);abort.abort();for(const p of ownedRequests.values())p.reject(Error('supervisor_stopped'));ownedRequests.clear();
+ if(stopping)return;stopping=true;expiry.abort();abort.abort();for(const p of ownedRequests.values())p.reject(Error('supervisor_stopped'));ownedRequests.clear();
  if(worker.connected)worker.send({type:'stop'});signal('SIGTERM');force=setTimeout(()=>signal('SIGKILL'),2000);
  poll=setInterval(()=>{if(closed&&!liveGroups())finish(true);},30);limit=setTimeout(()=>finish(closed&&!liveGroups()),4900);
 }
@@ -35,7 +36,14 @@ worker.on('exit',(code,signalName)=>{closed=true;send({type:'worker_exit',code,s
 process.on('message',(m:any)=>{
  if(m?.type==='stop'){stop();return;}
  if(m?.type==='reply'&&ownedRequests.has(m.id)){const p=ownedRequests.get(m.id)!;ownedRequests.delete(m.id);m.error?p.reject(Error(m.error)):p.resolve();return;}
- if(m?.type==='initialize'){expiry=setTimeout(stop,Math.max(0,Math.ceil(Number(BigInt(m.deadlineNs)-process.hrtime.bigint())/1000000)));send({type:'worker_identity',workerPid:worker.pid,supervisorPid:process.pid});}
+ if(m?.type==='initialize'&&!stopping){
+  // Keep the parent's cross-process hrtime deadline; process-local performance.now() origins differ.
+  const origin=process.hrtime.bigint();
+  const clock={...monotonicClock,now:()=>Number(process.hrtime.bigint()-origin)/1e6};
+  const deadline=Number(BigInt(m.deadlineNs)-origin)/1e6;
+  void waitUntil(clock,deadline,expiry.signal).then(stop,()=>{});
+  send({type:'worker_identity',workerPid:worker.pid,supervisorPid:process.pid});
+ }
  if(!stopping&&worker.connected)worker.send(m);
 });
 process.on('disconnect',stop);process.on('SIGTERM',stop);process.on('SIGINT',stop);

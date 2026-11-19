@@ -6,7 +6,7 @@ import { join,dirname } from 'node:path';
 import { createHash } from 'node:crypto';
 import { DockerSandbox } from '../sandbox/docker.ts';
 import type { Admission, AccountingSink, BudgetLedger } from './admission.ts';
-import { identity, type Attempt,type TaskRunner,type Verdict } from './controller.ts';
+import { identity, monotonicClock, waitUntil, type Attempt,type TaskRunner,type Verdict } from './controller.ts';
 import type { WorkerConfig } from './worker.ts';
 import type { ApprovalChannel } from '../runtime/authorization.ts';
 export interface VerifierSpec {version:string;command:string;seconds:number}
@@ -28,13 +28,14 @@ export function runVerifier(command:string,cwd:string,seconds:number,signal:Abor
  return new Promise((resolve,reject)=>{
   if(signal.aborted){reject(Error('verifier_cancelled'));return;}
   const child=fork(fileURLToPath(new URL(import.meta.url.endsWith('.ts')?'./verifier-executor.ts':'./verifier-executor.js',import.meta.url)),[],{stdio:['ignore','ignore','ignore','ipc'],execArgv:['--max-old-space-size=128']});
-  const startedAt=performance.now(),deadline=startedAt+seconds*1000;
+  const startedAt=monotonicClock.now(),deadline=startedAt+seconds*1000;
+  const expiry=new AbortController();
   let settled=false,stopping=false,executorExited=false,owned:{pid:number;birth:string}|undefined;
   const birth=(pid:number)=>{try{return execFileSync('ps',['-p',String(pid),'-o','lstart='],{encoding:'utf8',timeout:200}).trim();}catch{return '';}};
   const alive=()=>{if(!owned)return false;try{return execFileSync('ps',['-axo','pgid=,stat='],{encoding:'utf8',timeout:200,maxBuffer:4*1024*1024}).split('\n').some(l=>{const [g,state]=l.trim().split(/\s+/);return Number(g)===owned!.pid&&state&&!state.startsWith('Z');});}catch{return true;}};
-  const finish=(error?:Error,result?:{code:number|null;stdout:string;stderr:string})=>{if(settled)return;settled=true;clearTimeout(timer);signal.removeEventListener('abort',abort);if(child.connected)child.disconnect();error?reject(error):resolve(result!);};
+  const finish=(error?:Error,result?:{code:number|null;stdout:string;stderr:string})=>{if(settled)return;settled=true;expiry.abort();signal.removeEventListener('abort',abort);if(child.connected)child.disconnect();error?reject(error):resolve(result!);};
   const stop=async(reason:string)=>{
-   if(settled||stopping)return;stopping=true;let uncertain=false;const stopRequestedAt=performance.now();let killRequestedAt:number|undefined;
+   if(settled||stopping)return;stopping=true;expiry.abort();let uncertain=false;const stopRequestedAt=monotonicClock.now();let killRequestedAt:number|undefined;
    if(owned){const current=birth(owned.pid);if(current&&current!==owned.birth)uncertain=true;else try{killRequestedAt=performance.now();process.kill(-owned.pid,'SIGKILL');}catch(e){if((e as NodeJS.ErrnoException).code!=='ESRCH')uncertain=true;}}
    // Continue only our direct executor so it can reap its now-killed child; do not rely on that to kill the group.
    child.kill('SIGCONT');if(child.connected)child.send({type:'stop'});
@@ -44,7 +45,7 @@ export function runVerifier(command:string,cwd:string,seconds:number,signal:Abor
    finish(Error(confirmed?reason:'verifier_stop_unconfirmed'));
   };
   const abort=()=>{void stop('verifier_cancelled');};
-  const timer=setTimeout(()=>{void stop('verifier_timeout');},seconds*1000);
+  void waitUntil(monotonicClock,deadline,expiry.signal).then(()=>stop('verifier_timeout'),()=>{});
   signal.addEventListener('abort',abort,{once:true});
   child.on('message',(m:any)=>{
    if(m?.type==='owned'&&!owned&&!stopping){

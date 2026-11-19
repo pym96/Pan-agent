@@ -24,6 +24,7 @@ export async function reviewerDigest() {
     'delivery-review',
     'delivery-git',
     'delivery-contract',
+    'controller',
     'process-runner',
     'verifier-executor',
   ];

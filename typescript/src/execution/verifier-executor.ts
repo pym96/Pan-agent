@@ -1,14 +1,16 @@
 /** Trusted verifier process owner. Its deadline and disconnect handler outlive the CLI. */
 import {spawn,execFileSync,type ChildProcess} from 'node:child_process';
-let child:ChildProcess|undefined,timer:NodeJS.Timeout|undefined,guard:NodeJS.Timeout|undefined;
+import {monotonicClock,waitUntil} from './controller.ts';
+const expiry=new AbortController();
+let child:ChildProcess|undefined,guard:NodeJS.Timeout|undefined;
 let problem:string|undefined,stdout='',stderr='',started=false,done=false;
 function kill(){if(child?.pid)try{process.kill(-child.pid,'SIGKILL');}catch{}}
 function finish(code:number|null){
- if(done)return;done=true;clearTimeout(timer);clearTimeout(guard);kill();
+ if(done)return;done=true;expiry.abort();clearTimeout(guard);kill();
  const result={type:'result',...(problem?{error:problem}:{result:{code,stdout,stderr}})};
  if(process.connected)process.send?.(result,()=>process.exit(problem?1:0));else process.exit(problem?1:0);
 }
-function stop(reason:string){problem??=reason;kill();if(!child){finish(null);return;}guard??=setTimeout(()=>{problem='verifier_stop_unconfirmed';finish(null);},1000);}
+function stop(reason:string){if(done||problem)return;problem=reason;expiry.abort();kill();if(!child){finish(null);return;}guard??=setTimeout(()=>{problem='verifier_stop_unconfirmed';finish(null);},1000);}
 process.on('disconnect',()=>stop('verifier_controller_disconnected'));
 process.on('SIGTERM',()=>stop('verifier_cancelled'));
 process.on('SIGINT',()=>stop('verifier_cancelled'));
@@ -19,7 +21,8 @@ process.on('message',(m:any)=>{
  if(problem){finish(null);return;}
  if(!Number.isInteger(m.seconds)||m.seconds<1||m.seconds>25){stop('invalid_verifier_timeout');return;}
  child=spawn('/bin/sh',['-c','IFS= read -r gate; [ "$gate" = pan-verifier-owned ] || exit 125; exec /bin/sh -c "$1"','pan-verifier',m.command],{cwd:m.cwd,detached:true,stdio:['pipe','pipe','pipe'],env:{PATH:process.env.PATH,HOME:m.cwd}});
- timer=setTimeout(()=>stop('verifier_timeout'),m.seconds*1000);
+ const deadline=monotonicClock.now()+m.seconds*1000;
+ void waitUntil(monotonicClock,deadline,expiry.signal).then(()=>stop('verifier_timeout'),()=>{});
  child.stdin!.on('error',()=>{});
  try{const birth=execFileSync('ps',['-p',String(child.pid),'-o','lstart='],{encoding:'utf8',timeout:200}).trim();if(!birth)throw Error('missing identity');process.send?.({type:'owned',pid:child.pid,birth});}catch{stop('verifier_identity_unknown');}
  child.stdout!.on('data',b=>{stdout+=b.toString();if(Buffer.byteLength(stdout)>1048576)stop('verifier_output_limit');});
