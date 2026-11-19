@@ -34,6 +34,7 @@ for await (const line of input) {
     if (mode === "structured") result = {content: [], structuredContent: null};
     if (mode === "missing") delete result.content;
   }
+  if (method === "server/discover" || method === "tools/list") Object.assign(result, {ttlMs: 0, cacheScope: "public"});
   const resultType = mode === "input-required" && method === "tools/call" ? "input_required" : "complete";
   const answer = JSON.stringify({jsonrpc: "2.0", id: mode === "id" && method === "tools/call" ? id + 1 : id,
     ...(error ? {error} : {result: {resultType, ...result}})});

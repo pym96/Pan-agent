@@ -39,6 +39,35 @@ assert.equal(existsSync(marker), false);
 
 const configPrint = run("mcp", "example-config");
 assert.equal(configPrint.status, 0);
+const [example] = JSON.parse(configPrint.stdout).servers;
+// Check actual packaged server frames separately from the product client's parsing.
+const metadata = {
+  "io.modelcontextprotocol/protocolVersion": "2026-07-28",
+  "io.modelcontextprotocol/clientCapabilities": {},
+};
+const cases = [
+  ["server/discover", metadata],
+  ["tools/list", metadata],
+  ["server/discover", {"io.modelcontextprotocol/protocolVersion": "2026-07-28"}],
+  ["tools/list", {"io.modelcontextprotocol/clientCapabilities": {}}],
+  ["tools/call", {...metadata, "io.modelcontextprotocol/protocolVersion": "2025-11-25"}],
+];
+const requests = cases.map(([method, _meta], index) =>
+  JSON.stringify({jsonrpc: "2.0", id: index + 1, method, params: {_meta}}));
+const sample = spawnSync(example.command, example.args, {cwd: workspace, env: {},
+  input: requests.join("\n") + "\n", encoding: "utf8", timeout: 8000});
+assert.equal(sample.status, 0);
+const frames = sample.stdout.trimEnd().split("\n").map(line => JSON.parse(line));
+assert.equal(frames.length, cases.length);
+assert.deepEqual(frames.map(frame => frame.id), [1, 2, 3, 4, 5]);
+for (const frame of frames.slice(0, 2)) {
+  assert.equal(frame.result.resultType, "complete");
+  assert.equal(frame.result.ttlMs, 0);
+  assert.equal(frame.result.cacheScope, "public");
+}
+assert.deepEqual(frames.slice(2).map(frame => frame.error.code), [-32602, -32602, -32022]);
+assert.deepEqual(frames[4].error.data, {requested: "2025-11-25", supported: ["2026-07-28"]});
+writeFileSync(join(output, "packaged-example-wire.jsonl"), sample.stdout);
 writeFileSync(config, configPrint.stdout);
 const demo = run("mcp", "call", "example", "run_summary");
 assert.equal(demo.status, 0, demo.stdout);
