@@ -37,7 +37,7 @@ export async function runDemo(args) {
   console.log('Submit: Create hello.js, run it, and read it back.');
   console.log('Approve the displayed node hello.js command only if intended.');
   console.log('Then :runs → :replay RUN_ID → :exit. Files and archives: '+root);
-  const code=await runCli(['--kernel','native','--workspace',workspace,'--memory-root',memory],{
+  const code=await runCli(['--kernel','native','--trusted-local','--workspace',workspace,'--memory-root',memory],{
     home:join(root,'home'),createNativeAdapter:()=>adapter,
     createTools:cwd=>{const original=createPanTrustedLocalTools(cwd);return {...original,tools:original.tools.map(tool=>({...tool,async execute(call){toolExecutions++;checkpoints.push({event:'tool',name:tool.name,exchanges,toolExecutions});return tool.execute(call);}}))};},
   });

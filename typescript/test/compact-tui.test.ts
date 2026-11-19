@@ -90,7 +90,7 @@ test("C-TUI-01/04 v1.1 cancelled batches preserve distinct live admissions and i
 async function interactive(script: ConstructorParameters<typeof FauxModelAdapter>[0], drive: (chunk:string,input:PassThrough,adapter:FauxModelAdapter)=>void, factory?: Parameters<typeof runCli>[1]) {
 	const root=await mkdtemp(join(tmpdir(),"wo42-cli-"));await mkdir(join(root,"workspace"));const input=new PassThrough(),output=new PassThrough();output.setEncoding("utf8");let text="";const adapter=new FauxModelAdapter(script);
 	output.on("data",(chunk:string)=>{text+=chunk;drive(chunk,input,adapter);});
-	try {const exit=await runCli(["--kernel","native","--workspace",join(root,"workspace"),"--memory-root",join(root,"memory")],{output,createNativeAdapter:()=>adapter,startTui:options=>runTui({...options,input}),...factory});return {exit,text,state:adapter.state};}
+	try {const exit=await runCli(["--kernel","native","--trusted-local","--workspace",join(root,"workspace"),"--memory-root",join(root,"memory")],{output,createNativeAdapter:()=>adapter,startTui:options=>runTui({...options,input}),...factory});return {exit,text,state:adapter.state};}
 	finally {await rm(root,{recursive:true,force:true});}
 }
 

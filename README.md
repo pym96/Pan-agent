@@ -2,7 +2,7 @@
 
 A terminal agent for local files and shell commands, with tool approvals and saved-run replay.
 
-**Requirements:** Node.js **22.19.0+**, npm, and an interactive terminal. The default local runtime needs no compiler, Python, Docker or database. The optional Linux native sandbox has additional system requirements. Windows is not verified.
+**Requirements:** Node.js **22.19.0+**, npm, and an interactive terminal. The published v0.1.9 local runtime needs no compiler, Python, Docker or database. The native sandbox on Linux has additional system requirements. Windows is not verified.
 
 ## Install
 
@@ -88,7 +88,7 @@ Use `:exit` to quit. If environment mode reports a missing `DEEPSEEK_API_KEY` or
 
 The workspace defaults to your current directory (`--workspace DIR` overrides it); history defaults to `~/.pan-agent/archives` (`--memory-root DIR` overrides it). Keep history outside the workspace. If you launch from your home directory and see an overlap error, enter a project subdirectory first.
 
-**Tools run with your host-user authority.** The workspace is a working directory, not a sandbox. Ctrl-C requests cancellation during execution and can retain the draft. Bare startup needs a terminal; see the [package guide](typescript/README.md) for command interfaces.
+**In the v0.1.9 release, tools run with your host-user authority.** The workspace is a working directory, not a sandbox. Ctrl-C requests cancellation during execution and can retain the draft. Bare startup needs a terminal; see the [package guide](typescript/README.md) for command interfaces.
 
 ## Try it without a key
 
@@ -162,7 +162,13 @@ Reference-only Python TUI: `python3 -m workspace_agent_harness.tui` belongs to t
 
 </details>
 
-## Native workspace sandbox (opt-in)
+## Native workspace sandbox in source builds
+
+Packages built from this checkout select the native workspace sandbox when you run `pan-agent`. The public v0.1.9 release predates this default. The banner identifies the selected backend. Each submitted task must pass its native enforcement probe before the model or a task tool runs. For a scripted demonstration without a provider, use `pan-agent demo` in its disposable workspace. Select Docker with `--sandbox-root DIR`, or select the previous host-user backend and configured retrieval explicitly with `--trusted-local`.
+
+Use `pan-agent --session-auto` to create a new plain document such as `notes.txt` without approving that individual write. The typed writer only admits a new root-level ASCII filename with a letter or digit first, up to 80 letters, digits, underscores or hyphens before a lowercase `.txt` or `.md` extension. The existing no-follow and exclusive-create checks still apply. Configured protected paths retain the normal approval check. Network and credential grants cannot be combined with session automation. The TUI displays SESSION AUTO and the archive records the boundary and each admitted write. Restart normally to leave automation.
+
+If the native backend reports an unavailable prerequisite in an interactive terminal, the failed task ends before model work. Setup artifacts and its failed archive can remain. Use `:fallback cancel`, `:fallback once` or `:fallback task`, close the message and explicitly submit a fresh task. An operation is one typed tool invocation. The one-operation choice expires on its first dispatched invocation and the task choice ends at settlement or cancellation. Each host operation, including an ordinary edit, requires its own exact approval. Fallback supports ordinary project files and the exact command `pwd`, which runs the fixed host executable. Hidden paths, sensitive or outside files, arbitrary Shell and retrieval are unavailable. A workspace enrolled for credential sharing, a selected private grant or automation disables manual fallback. A new launch starts at the native boundary.
 
 Run `pan-agent --native-sandbox --workspace /absolute/project --memory-root /absolute/disjoint/archives` in an interactive terminal. Host file tools and the OS-isolated Shell share the live project. Shell can read public HTTP(S) resources with `pan-fetch URL`. Add `--native-offline` for the previous offline profile. A Shell command can create an output, atomically replace a regular file and read back the result through Pan. The native mode has fixed file and network restrictions and provides no CPU, memory or disk quotas. A failed startup reports the missing boundary before the model runs.
 

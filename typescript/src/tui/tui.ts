@@ -7,6 +7,8 @@ import type { RunArchiveStore } from "../memory/run-archive.ts";
 import type { GeneralAgentSession, SessionObservation, TaskRunResult } from "../runtime/session.ts";
 
 export interface TuiOptions {
+ readonly sessionAuto?:boolean;
+ readonly fallback?:Pick<import("../sandbox/fallback.ts").ManualFallback,"status"|"choose">;
  readonly executionMode?:"sandbox"|"native-macos-offline"|"native-linux-offline"|"native-linux-public"|"native-macos-public";
 	/** Nonsecret configuration context for safe failure guidance only. */
 	readonly credentialSource?: 'environment' | 'keychain';

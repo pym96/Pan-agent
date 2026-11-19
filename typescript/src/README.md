@@ -7,6 +7,7 @@ Root [`cli.ts`](cli.ts) owns concrete composition and the existing source CLI in
 | Shared protocol and Interfaces | [protocol](protocol/README.md) |
 | Session and Native execution | [runtime](runtime/README.md) |
 | Model implementations | [providers](providers/README.md) |
+| Native startup and operator fallback | [sandbox/fallback.ts](sandbox/fallback.ts) |
 | Local tools | [tools](tools/README.md) |
 | Durable memory | [memory](memory/README.md) |
 | Terminal presentation | [tui](tui/README.md) |

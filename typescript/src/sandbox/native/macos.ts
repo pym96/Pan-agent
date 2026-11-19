@@ -142,7 +142,7 @@ export class NativeMacSandbox {
   profile+='(deny file-link)\n';
   this.policyHash=digest(this.broker?JSON.stringify([profile,'bounded-get-v1',this.broker.grant??null]):profile);this.profile=profile;
   const check=spawnSync(SANDBOX_EXEC,['-p',profile,'/bin/bash','-c','printf pan-native-ready'],{cwd:this.workspace,env:this.environment(),encoding:'utf8',timeout:5000,maxBuffer:4096,stdio:['ignore','pipe','pipe']});
-  if(check.error||check.status!==0||check.stdout!=='pan-native-ready'){this.profile=undefined;throw Error('native_sandbox_setup_failed: OS boundary unavailable or profile rejected; no host fallback');}
+  if(check.error||check.status!==0||check.stdout!=='pan-native-ready'){this.profile=undefined;throw Error('native_sandbox_setup_failed: OS boundary unavailable or profile rejected; no automatic host fallback');}
   if(this.broker)await checkGateway(SANDBOX_EXEC,['-p',profile],this.workspace,this.environment());
   writeFileSync(join(directory,'policy.sb'),profile,{flag:'wx',mode:0o600});
   writeFileSync(join(directory,'identity.json'),JSON.stringify(this.identity,null,2)+'\n',{flag:'wx',mode:0o600});

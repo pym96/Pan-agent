@@ -404,6 +404,7 @@ export function createPanTrustedLocalTools(
  supervised?: SupervisedShell,
  filePolicy?: (path:string)=>void,
  shellPolicy?: ()=>string,
+ boundary?: 'host-fallback',
 ): PanTrustedLocalTools {
 	const resolvedWorkspace = workspaceAnchor(workspace);
 	const enforce = (tool: AgentTool): AgentTool => ({ ...tool, async execute(invocation) {
@@ -417,7 +418,7 @@ export function createPanTrustedLocalTools(
 			const shellIdentity = () => { const s=lstatSync(resolvedWorkspace);if(!s.isDirectory()||s.isSymbolicLink())throw new AuthorizationFailure('unsupported_target');return digest(JSON.stringify([resolvedWorkspace,s.dev,s.ino])); };
 			if (invocation.signal.aborted) throw new AuthorizationFailure('approval_invalidated');
 			if (tool.name !== 'bash') {const path=toolPath(resolvedWorkspace, String(args.path));filePolicy?.(path);file = new AuthorizedFile(path, invocation.signal);}
-			audit = await authority.authorize(resolvedWorkspace, tool.name, invocation.toolCallId, args, file?.resourceIdentity ?? shellIdentity(), invocation.signal, tool.name==='bash'?shellPolicy?.():undefined);
+			audit = await authority.authorize(resolvedWorkspace, tool.name, invocation.toolCallId, args, file?.resourceIdentity ?? shellIdentity(), invocation.signal, shellPolicy?.(), boundary);
 			authority.assertCurrent(audit,invocation.signal);
 			file?.bindAuthorization(state=>{filePolicy?.(file!.path);authority.assertCurrent(audit!,invocation.signal,state);});
 			if(tool.name==='bash' && audit.resourceIdentity!==shellIdentity())throw new AuthorizationFailure('approval_invalidated');

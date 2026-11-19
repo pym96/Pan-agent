@@ -75,7 +75,7 @@ test("C-PFREE-D102 explicit Native CLI and real TUI complete write/read/verify w
   if (chunk.includes("[y/N]> ")) setImmediate(() => input.write("y\n"));
   else if (chunk.endsWith("You > ")) setImmediate(() => input.write(tasks++ === 0 ? "write/read/verify proof.txt\n" : ":exit\n"));
  });
- const code = await runCli(["--kernel", "native", "--workspace", join(dir,"workspace"), "--memory-root", join(dir,"memory")], {
+ const code = await runCli(["--kernel", "native", "--trusted-local","--workspace", join(dir,"workspace"), "--memory-root", join(dir,"memory")], {
   output: out.output, createNativeAdapter: () => adapter,
   startTui: (options) => { options.session.setApprovalChannel(async request => ({ requestId: request.requestId, decision: 'allow-once' })); return runTui({...options, input}); },
  });

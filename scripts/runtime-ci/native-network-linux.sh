@@ -21,7 +21,8 @@ timeout 55s docker pull ubuntu:24.04
 container=$(docker create --network host -e DEBIAN_FRONTEND=noninteractive \
   -v /etc/ssl/certs/ca-certificates.crt:/host-ca.crt:ro ubuntu:24.04 bash -euc '
   sed -i -e "s|http://archive.ubuntu.com|https://archive.ubuntu.com|g" \
-    -e "s|http://security.ubuntu.com|https://security.ubuntu.com|g" /etc/apt/sources.list.d/ubuntu.sources
+    -e "s|http://security.ubuntu.com|https://security.ubuntu.com|g" \
+    -e "s/^Components:.*/Components: main universe/" -e "s/ noble-backports//g" /etc/apt/sources.list.d/ubuntu.sources
   opts=(-o Acquire::https::CaInfo=/host-ca.crt -o Acquire::https::Timeout=12 -o Acquire::Retries=1 -o Acquire::Languages=none)
   echo "provision: fetch signed distribution indexes over HTTPS"
   timeout 65s apt-get "${opts[@]}" -o APT::Update::Error-Mode=any update
@@ -46,6 +47,8 @@ sudo unshare --mount --propagation private /bin/bash -euc '
     setpriv --reuid "$uid" --regid "$gid" --clear-groups env -i PATH=/usr/bin:/bin HOME="$output" \
     "$node_binary" "$fixture_dir/$1.mjs" "$installed" "$output/$2"
   }
+  echo "fixture: native onboarding, manual fallback and session automation"
+  run_fixture native-onboarding onboarding
   echo "fixture: workspace credentials"
   run_fixture workspace-trust trust
   echo "fixture: bounded networking"

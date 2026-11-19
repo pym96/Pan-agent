@@ -57,7 +57,7 @@ export interface SessionMemory {
 interface GeneralAgentSessionOptionsBase {
 	readonly admission?: AdmissionFactory;
  readonly authorization?: AuthorizationOptions;
-	readonly executionBoundary?: {readonly identity?:import("../protocol/canonical-protocol.ts").JsonObject;start(runId:string):Promise<void>;stop(reason:string):Promise<void>;cancel():void};
+	readonly executionBoundary?: {readonly identity?:import("../protocol/canonical-protocol.ts").JsonObject;readonly taskInstructions?:string;start(runId:string):Promise<void>;stop(reason:string):Promise<void>;cancel():void};
 	readonly systemPrompt: string;
 	readonly memory: SessionMemory;
 	readonly limits?: Partial<KernelLimits>;
@@ -192,7 +192,7 @@ export class GeneralAgentSession {
                 : (request: import("./agent-kernel.ts").KernelRunRequest) => this.kernel.runTask(request))({
 				runId: writer.runId,
 				task,
-				systemPrompt: `${this.baseSystemPrompt}\n\nRUNBOOK (revision ${runbook.revision}):\n${runbook.content}`,
+				systemPrompt: `${this.executionBoundary?.taskInstructions??this.baseSystemPrompt}\n\nRUNBOOK (revision ${runbook.revision}):\n${runbook.content}`,
 				onObservation: (observation) => this.emit(observation),
 				...(this.onProgress ? {onProgress:this.onProgress} : {}),
 			});

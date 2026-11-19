@@ -25,6 +25,7 @@ const code = await runCli(
     "--kernel",
     "native",
     "--native-sandbox",
+    "--native-offline",
     "--workspace",
     work,
     "--memory-root",

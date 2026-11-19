@@ -103,6 +103,7 @@ class InstalledOnboarding(unittest.TestCase):
     def test_02_first_run_and_reuse(self):
         text=self.terminal('first',answers=[('Provider [','deepseek'),('Model [',''),('Thinking [',''),('Credential source:','e')])
         self.assertIn(str(self.project),text)
+        if PACKAGE: self.assertIn('Native GET',text)
         self.assertIn(str(self.home/'.pan-agent/archives'),text)
         settings=self.home/'.pan-agent/settings.json';before=settings.read_bytes()
         self.assertEqual(set(json.loads(before)),{'schemaVersion','provider','modelId','thinkingLevel','credentialSource'})
@@ -140,7 +141,7 @@ class InstalledOnboarding(unittest.TestCase):
             self.assertEqual(r.returncode,2);self.assertIn('Validation failed',r.stdout)
         finally: (existing/'runs').chmod(0o700)
     def test_06_missing_credentials(self):
-        text=self.terminal('missing-key',task='Say hello')
+        text=self.terminal('missing-key',args=[] if RELEASE_URL else ['--trusted-local'],task='Say hello')
         self.assertIn('Missing DEEPSEEK_API_KEY',text)
         self.assertEqual(list(self.project.iterdir()),[])
     def test_07_no_provider_requests(self):

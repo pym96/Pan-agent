@@ -13,7 +13,7 @@ test('ordinary Kimi missing environment credential stays failed and displays act
  const key=process.env.KIMI_API_KEY,fetch=globalThis.fetch;delete process.env.KIMI_API_KEY;let sends=0,frame='';globalThis.fetch=async()=>{sends++;throw Error('must not send');};
  const input=Object.assign(new PassThrough(),{isTTY:true,isRaw:false,setRawMode(v:boolean){this.isRaw=v;}}),output=Object.assign(new PassThrough(),{isTTY:true,columns:100,rows:28});output.on('data',x=>{frame=String(x);});
  try{
-  const code=await runCli(['--kernel','native','--workspace',join(root,'workspace'),'--memory-root',join(root,'archives')],{home:join(root,'home'),output,startTui:async options=>{
+  const code=await runCli(['--kernel','native','--trusted-local','--workspace',join(root,'workspace'),'--memory-root',join(root,'archives')],{home:join(root,'home'),output,startTui:async options=>{
    const ui=new DailyWorkspace({...options,input,output});ui.start();ui.editor.insert('Reply with hello only. Do not use tools.');ui.key(undefined,{name:'return'});
    for(let i=0;i<500&&ui.phase!=='idle';i++)await new Promise(r=>setTimeout(r,5));
    try{assert.equal(ui.phase,'idle');ui.draw();assert.match(frame,/KIMI_API_KEY/);assert.match(frame,/configure/);assert.match(frame,/model_error/);assert.equal(sends,0);}

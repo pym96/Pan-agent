@@ -127,7 +127,8 @@ export function createCompactPresentation(initialWrite: (line: string) => void =
 		if (finalText && (archived || finalText !== renderedAccepted)) emit(framed(status === "completed" ? "Final answer" : "Partial response (task incomplete)", finalText));
 		if (!archived && status !== "completed" && renderedAccepted && !transientFailed) write("Partial response — Run not completed");
 		write(`${disposition(status)} (${terminalText(str(status))}) · Model calls ${result?.modelCalls ?? missing} · Tool results ${count("tool.settled")} · :details for details`);
-		if (status !== "completed") emit(framed("Terminal reason", str(result?.reason ?? terminal?.reason ?? seal?.reason)));
+		if (!archived && status !== "completed" && (result?.toolCalls??0)>0) write(`Check prior effects in the workspace and :replay ${terminalText(str(selectedId))} before submitting again. Pan has not retried these actions.`);
+  if (status !== "completed") emit(framed("Terminal reason", str(result?.reason ?? terminal?.reason ?? seal?.reason)));
 	}
 	return {
 		attach,
