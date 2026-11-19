@@ -32,7 +32,7 @@ let transcript='',approved=false,exiting=false,store;
 output.on('data',chunk=>{const text=String(chunk);transcript+=text;if(text.includes('Approval required')&&!approved){approved=true;setImmediate(()=>input.write('\x1b[B\r'));}if(text.includes('Completed · next draft')&&!exiting){exiting=true;setTimeout(()=>input.write(':exit\r'),50);}});
 const watchdog=setTimeout(()=>{input.end();},12000);
 try{
- const code=await api.runCli(['--kernel','native','--workspace',workspace,'--memory-root',memory,'--native-sandbox'],{home,output,createNativeAdapter:()=>adapter,startTui:options=>{assert.equal(options.executionMode,mode);store=options.archiveStore;const running=api.runTui({...options,input});setImmediate(()=>input.write('Edit source then run the offline test\r'));return running;}});
+ const code=await api.runCli(['--kernel','native','--workspace',workspace,'--memory-root',memory,'--native-sandbox','--native-offline'],{home,output,createNativeAdapter:()=>adapter,startTui:options=>{assert.equal(options.executionMode,mode);store=options.archiveStore;const running=api.runTui({...options,input});setImmediate(()=>input.write('Edit source then run the offline test\r'));return running;}});
  assert.equal(code,0);assert.equal(approved,true);assert.equal(exiting,true);
  assert.equal(fs.readFileSync(path.join(workspace,'source.txt'),'utf8'),'after');
  assert.equal(fs.readFileSync(path.join(workspace,'.env'),'utf8'),'SYNTHETIC_CREDENTIAL_BODY');

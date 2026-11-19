@@ -1,9 +1,11 @@
 # Native macOS workspace sandbox — #172 NMAC1.0
 
+This document specifies the explicit offline profile. Current builds select bounded GET when `--native-sandbox` is used alone. See [native networking](native-network.md) for the network-enabled profile, arguments and supported clients.
+
 This is an opt-in Product slice for the current source/next built package. The public v0.1.9 release is unchanged and does not contain this option. Independent review and the concrete high-risk Human gate remain required; this design is not a project-fact register.
 
 ```sh
-pan-agent --native-sandbox --workspace /absolute/project --memory-root /absolute/disjoint/archives
+pan-agent --native-sandbox --native-offline --workspace /absolute/project --memory-root /absolute/disjoint/archives
 ```
 
 Use a normal interactive terminal with Node 22.19.0+ on macOS, `/usr/bin/sandbox-exec` and `/usr/bin/otool`. The installed package has compiled JavaScript; it needs no source checkout/compiler, Docker, Python, new npm dependency or service. The option applies to the ordinary interactive CLI only. `loop`/`goal`/`execution` retain their existing interfaces and do not accept this native flag. Current trusted-local default and Docker `--sandbox-root` remain available; Docker/native flags cannot be combined. No host fallback is implemented in this slice.

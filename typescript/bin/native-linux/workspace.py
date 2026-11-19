@@ -231,7 +231,7 @@ class Workspace(Operations):
             os.utime(name, times, dir_fd=parent, follow_symlinks=False)
 
 
-def shell_filter():
+def shell_filter(local_sockets):
     # libseccomp translates syscall names for the native ABI and rejects other ABIs.
     lib = ctypes.CDLL('libseccomp.so.2')
     lib.seccomp_init.argtypes = [ctypes.c_uint32]
@@ -249,7 +249,16 @@ def shell_filter():
         raise RuntimeError('libseccomp initialization failed')
     fd = os.memfd_create('pan-shell-policy')
     try:
-        for name in ('socket', 'connect', 'io_uring_setup', 'unshare', 'setns', 'mount',
+        socket_denials = () if local_sockets else ('socket', 'connect')
+        if local_sockets:
+            # The child sees only a private mount tree and an isolated network namespace.
+            for name in ('socket', 'socketpair'):
+                nr = lib.seccomp_syscall_resolve_name(name.encode('ascii'))
+                condition = Argument(0, 1, 1, 0)  # SCMP_CMP_NE, AF_UNIX
+                if nr < 0 or lib.seccomp_rule_add_array(ctx, 0x00050000 | errno.EPERM, nr, 1,
+                                                        ctypes.byref(condition)) != 0:
+                    raise RuntimeError('libseccomp cannot restrict socket family')
+        for name in socket_denials + ('io_uring_setup', 'unshare', 'setns', 'mount',
                      'umount2', 'ptrace', 'bpf', 'keyctl', 'add_key', 'request_key',
                      'open_by_handle_at', 'perf_event_open'):
             nr = lib.seccomp_syscall_resolve_name(name.encode('ascii'))
@@ -298,7 +307,7 @@ def main():
             time.sleep(0.01)
         else:
             raise RuntimeError('FUSE mount timed out')
-        fd = shell_filter()
+        fd = shell_filter(policy['localSockets'])
         try:
             argv = ['/usr/bin/bwrap', '--unshare-pid', '--die-with-parent', '--new-session',
                     '--cap-drop', 'ALL', '--seccomp', str(fd), '--clearenv']

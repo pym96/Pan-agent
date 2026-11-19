@@ -1,5 +1,7 @@
 # Project Evidence
 
+- [Native sandbox networking #174](network174/README.md) records the candidate evaluation, observed limitations and independent reproduction commands.
+
 - [Native macOS sandbox #172](native172/README.md): real OS negatives, installed CLI/TUI dispatch, failures/repairs and SHA-bound evidence; candidate pending independent and Human review.
 
 - [User settings and deny rules #170](settings/README.md): candidate checks and raw evidence locators; independent and Human review pending.

@@ -1,9 +1,11 @@
 # Native Linux workspace sandbox
 
+This document specifies the explicit offline profile. Current builds select bounded GET when `--native-sandbox` is used alone. See [native networking](native-network.md) for the network-enabled profile, arguments and supported clients.
+
 The interactive `--native-sandbox` option uses Bubblewrap and a filtered FUSE mount on supported x86-64 Linux. Typed file tools edit the selected host directory. Shell sees the same files under `/work`. A script can create an output, atomically replace a project file and read the change back through a typed tool. This option applies to the current source and packages built from it. The published v0.1.9 package predates the option.
 
 ```sh
-pan-agent --native-sandbox --workspace /absolute/project --memory-root /absolute/disjoint/archives
+pan-agent --native-sandbox --native-offline --workspace /absolute/project --memory-root /absolute/disjoint/archives
 ```
 
 ## System requirements

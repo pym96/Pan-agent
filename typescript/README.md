@@ -221,10 +221,31 @@ Current development requires only the checked-out tree and locked development to
 
 ## Native workspace sandbox (opt-in)
 
-Run `pan-agent --native-sandbox --workspace /absolute/project --memory-root /absolute/disjoint/archives` in an interactive terminal. Host file tools and the offline Shell share the live project. A Shell command can create an output, atomically replace a regular file and read back the result through Pan. The native mode has fixed file and network restrictions and provides no CPU, memory or disk quotas. A failed startup reports the missing boundary before the model runs.
+Run `pan-agent --native-sandbox --workspace /absolute/project --memory-root /absolute/disjoint/archives` in an interactive terminal. Host file tools and the OS-isolated Shell share the live project. Shell can read public HTTP(S) resources with `pan-fetch URL`. Add `--native-offline` for the previous offline profile. A Shell command can create an output, atomically replace a regular file and read back the result through Pan. The native mode has fixed file and network restrictions and provides no CPU, memory or disk quotas. A failed startup reports the missing boundary before the model runs.
 
 - On macOS, the backend uses the system Seatbelt tools. [macOS requirements and policy](https://github.com/pym96/Pan-agent/blob/main/docs/design/native-macos-sandbox.md)
 - On supported x86-64 Linux, the backend uses Bubblewrap, working unprivileged namespaces, `/dev/fuse`, fusermount, libfuse2, libseccomp2, system Python 3 and glibc tools. The package includes its Python binding. Saved protected paths must be literal descendants of the selected project on case-sensitive ext4. An external configured path prevents Linux native startup. Shell sees the filtered live project at `/work` and a private writable `/tmp`. [Linux setup, supported operations and limitations](https://github.com/pym96/Pan-agent/blob/main/docs/design/native-linux-sandbox.md)
+
+### Network commands inside the native Shell
+
+Fetch a file into the live project. The task sees ordinary response bytes and a nonzero exit code on denial or failure.
+
+```sh
+url='https://pym96.github.io/Pan-agent/LICENSE'
+pan-fetch "$url" > upstream-license
+```
+
+Stock curl can use the same Unix socket. The gateway checks the destination and reads the resource. Direct curl HTTPS, npm network installs and generic proxy clients are outside this interface.
+
+```sh
+curl -q --fail --silent --show-error --noproxy '*' \
+  --unix-socket "$PAN_NETWORK_SOCKET" --get --data-urlencode "url=$url" \
+  http://localhost/fetch > upstream-license
+```
+
+A test server and its child client can communicate over a Unix socket in `$PAN_LOCAL_SOCKETS`. Programs that require a TCP loopback port need a Unix-listener option. To read a specific private HTTP service, supply its exact numeric origin when launching Pan, for example `--native-sandbox --native-grant http://127.0.0.1:8123`. Within the first task, `pan-fetch http://127.0.0.1:8123/health` can reach that service. A different port is denied. The next task in the same CLI process has no grant. Use only a service you intend to expose to that task. The gateway does not send cookies or authorization headers.
+
+[Protocol coverage, local server example, platform requirements and evidence](https://github.com/pym96/Pan-agent/blob/main/docs/design/native-network.md)
 
 The option applies to current source builds. Public v0.1.9 predates it. Scheduled commands keep their existing interfaces.
 

@@ -1,4 +1,5 @@
 /** Opt-in offline Linux execution. Only the trusted supervisor sees the backing project. */
+import { NativeNetwork, fetchClient, checkGateway } from "./network.ts";
 import { spawnSync } from "node:child_process";
 import {
   lstatSync,
@@ -209,7 +210,11 @@ function libraryMounts(commands: string[]): Map<string, string> {
 }
 
 export class NativeLinuxSandbox {
-  readonly executionMode = "native-linux-offline" as const;
+  get executionMode() {
+    return this.options.network === "public" ? "native-linux-public" as const : "native-linux-offline" as const;
+  }
+  private broker?: NativeNetwork;
+  private pendingGrant?: string;
   readonly workspace: string;
   readonly stateRoot: string;
   readonly tools: readonly AgentTool[];
@@ -229,6 +234,7 @@ export class NativeLinuxSandbox {
 
   constructor(options: NativeSandboxOptions) {
     this.options = options;
+    this.pendingGrant = options.privateGrant;
     this.workspace = realpathSync(options.workspace);
     this.stateRoot = resolve(options.stateRoot);
     if (overlaps(this.workspace, this.stateRoot))
@@ -287,7 +293,8 @@ export class NativeLinuxSandbox {
       readRoots: [],
       runtimeFiles: [...this.runtimeFiles],
       protectedRoots: [...this.protectedRoots],
-      network: "denied",
+      network: this.broker ? "bounded-http-get" : "denied",
+      privateGrant: this.broker?.grant ?? null,
       resourceQuotas: "not_enforced",
     };
   }
@@ -347,7 +354,8 @@ export class NativeLinuxSandbox {
         DIAGNOSTIC + " (reinstall the package with its native-linux helper)",
       );
     }
-    const programs = PROGRAMS.map((name) => "/usr/bin/" + name);
+    const commands = this.options.network === "public" ? [...PROGRAMS, "curl"] : PROGRAMS;
+    const programs = commands.map((name) => "/usr/bin/" + name);
     const libraries = libraryMounts([node, ...programs]);
     this.runtimeFiles = [
       ...new Set([
@@ -359,6 +367,7 @@ export class NativeLinuxSandbox {
       ]),
     ].sort();
     const runtime = [...this.runtimeFiles, helper];
+    if (this.options.network === "public") runtime.push(realpathSync(fetchClient));
     if (runtime.some((path) => overlaps(this.workspace, path)))
       throw Error("native_sandbox_mutable_toolchain");
     const run = join(this.stateRoot, runId);
@@ -376,7 +385,7 @@ export class NativeLinuxSandbox {
       ];
       for (const [destination, source] of libraries)
         shellMounts.push("--ro-bind", source, destination);
-      for (const name of PROGRAMS)
+      for (const name of commands)
         shellMounts.push("--ro-bind", "/usr/bin/" + name, "/usr/bin/" + name);
       for (const name of ["null", "zero", "random", "urandom"])
         shellMounts.push("--dev-bind", "/dev/" + name, "/dev/" + name);
@@ -390,9 +399,23 @@ export class NativeLinuxSandbox {
         "--remount-ro",
         "/",
       );
+      const gatewayMounts: string[] = [];
+      const environment = {...ENVIRONMENT};
+      if (this.options.network === "public") {
+        const grant = this.pendingGrant;
+        this.pendingGrant = undefined;
+        this.broker = await NativeNetwork.open(run, grant, this.options.resolveNetworkName);
+        if (inside(this.workspace, this.broker.directory)) throw Error("native_sandbox_network_state_overlap");
+        gatewayMounts.push("--ro-bind", this.broker.socket, "/pan-get.sock", "--ro-bind", fetchClient, "/pan-fetch");
+        shellMounts.splice(0, 0, "--ro-bind", "/pan-get.sock", "/run/pan-get.sock",
+          "--ro-bind", "/pan-fetch", "/runtime/pan-fetch");
+        Object.assign(environment, {PAN_NETWORK_SOCKET: "/run/pan-get.sock", PAN_LOCAL_SOCKETS: "/tmp"});
+      }
       const policy = {
         protected: roots.child,
-        environment: ENVIRONMENT,
+        environment,
+        localSockets: !!this.broker,
+        privateGrant: this.broker?.grant ?? null,
         shellMounts,
       };
       const policyPath = join(run, "policy.json");
@@ -424,6 +447,7 @@ export class NativeLinuxSandbox {
         "--setenv",
         "FUSE_LIBRARY_PATH",
         "libfuse.so.2",
+        ...gatewayMounts,
         "--ro-bind",
         "/usr",
         "/usr",
@@ -501,6 +525,8 @@ export class NativeLinuxSandbox {
           "startup computation failed";
         throw Error(DIAGNOSTIC + " (" + cause + ")");
       }
+      if (this.broker) await checkGateway(BWRAP, prefix, this.workspace, {PATH: "/usr/bin:/bin", LANG: "C"});
+      if (this.cancelled) throw Error("native_sandbox_cancelled");
       writeFileSync(
         join(run, "identity.json"),
         JSON.stringify(this.identity, null, 2) + "\n",
@@ -508,9 +534,11 @@ export class NativeLinuxSandbox {
       );
       this.prefix = prefix;
       this.options.notify?.(
-        "NATIVE LINUX SANDBOX offline policy=" + this.policyHash,
+        "NATIVE LINUX SANDBOX " + (this.broker ? "bounded GET" : "offline") + " policy=" + this.policyHash,
       );
     } catch (error) {
+      this.broker?.close();
+      this.broker = undefined;
       this.policyHash = undefined;
       rmSync(this.temporary, { recursive: true, force: true });
       throw error;
@@ -518,11 +546,13 @@ export class NativeLinuxSandbox {
   }
   cancel(): void {
     this.cancelled = true;
+    this.broker?.close();
     for (const controller of this.controllers.keys()) controller.abort();
   }
   async stop(_reason: string): Promise<void> {
     this.cancel();
     this.prefix = undefined;
+    this.broker = undefined;
     const temporary = this.temporary;
     await Promise.allSettled([...this.controllers.values()]);
     if (temporary) rmSync(temporary, { recursive: true, force: true });

@@ -4,6 +4,8 @@ Design documents record contracts and trade-offs; they do not establish implemen
 
 ## Authoritative product
 
+- [Native sandbox networking](native-network.md) describes bounded GET, Unix services and task-scoped private origins.
+
 - [User settings and deny rules](user-settings.md): #170 SETTINGS1.0 current-source/next-release configuration, request matching and explicit authority limits.
 
 - [Current regression and historical proof](current-regression-history.md): #167 shallow-current verification, affected assertion map and fixed-version replay.

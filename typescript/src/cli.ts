@@ -1,3 +1,4 @@
+import {privateOrigin, type ResolveAddresses} from './sandbox/native/network.ts';
 import {NativeLinuxSandbox} from './sandbox/native/linux.ts';
 import {NativeMacSandbox} from './sandbox/native/macos.ts';
 import { deliveryCli } from "./execution/delivery-cli.ts";
@@ -58,7 +59,7 @@ Attachments use selection-time UTF-8 snapshots; default aggregate maxAttachmentB
 Ordinary settings persist at ~/.pan-agent/settings.json (mode 0600; provider/model/thinking, credential source kind, protectedPaths, permissions.deny and maxAttachmentBytes — never a secret). Run 'configure' to update provider fields while preserving valid ordinary preferences; on a TTY first run without settings the same flow is offered. Explicit --model/--thinking flags override persisted values for that run.
 Deny rules are frozen at TUI session creation, before tool execution and approval, including trusted Shell and sandbox tools. Whole tools: read/write/edit/bash/retrieve; bash(PATTERN) uses only literal characters and * wildcard. No shell semantic analysis or OS containment.
 Credential source: environment reads DEEPSEEK_API_KEY (deepseek) or KIMI_API_KEY (kimi-code) only when a Provider call is made; keychain retrieves the macOS Keychain item named by the Pan service/account convention only when a Provider call is made. kimi-code selects the official OpenAI-compatible Kimi Code endpoint with explicit kimi-for-coding or k3-256k selection in configure (kimi-code:k3-256k); Kimi --model/--thinking overrides are unsupported; arbitrary endpoints and unknown models are rejected.
-Native workspace sandbox (opt-in): --native-sandbox shares --workspace through host-mediated files and OS-isolated Shell/descendants; offline, no retrieval, no host fallback. Requires macOS sandbox-exec/otool or a supported x86-64 Linux Bubblewrap/FUSE setup. No Docker-equivalent resource quotas; see README.
+Native workspace sandbox (opt-in): --native-sandbox shares --workspace through host-mediated files and OS-isolated Shell/descendants. Default bounded HTTP(S) GET through pan-fetch; --native-offline denies network. --native-grant ORIGIN permits one private IP service for the first task. No retrieval or host fallback. Requires macOS sandbox-exec/otool or a supported x86-64 Linux Bubblewrap/FUSE setup. No Docker-equivalent resource quotas; see README.
 Sandbox (opt-in): add --sandbox-root DIR and optional repeated --sandbox-input FILE. One new fixed-profile Docker workspace per task; no retrieval. After exit: pan-agent sandbox list --root DIR; recover|export|verify|cleanup --run RUN_DIRECTORY (see README).
 Retrieval (default off): pan-agent retrieval configure --workspace DIR --from selection.json; retrieval show|disable --workspace DIR. Each approved call refreshes selected sources.
 No Provider call occurs for --help, configure, startup, idle cancellation, or TUI commands. Startup has no y; protected/outside/uncertain file operations and Shell require operation-scoped approval.`;
@@ -70,6 +71,8 @@ export interface CliConfiguration {
 	readonly maxAttachmentBytes?: number;
 	readonly workspace?: string;
  readonly nativeSandbox?:boolean;
+ readonly nativeOffline?:boolean;
+ readonly nativeGrant?:string;
  readonly sandboxRoot?:string;
  readonly sandboxInputs?:readonly string[];
 	readonly memoryRoot?: string;
@@ -82,7 +85,8 @@ export interface CliConfiguration {
 export function parseCliArgs(args: readonly string[]): CliConfiguration {
 	let maxAttachmentBytes = validateAttachmentLimit();
 	let workspace: string | undefined;
- let nativeSandbox=false;
+ let nativeSandbox=false,nativeOffline=false;
+ let nativeGrant:string|undefined;
  let sandboxRoot:string|undefined;const sandboxInputs:string[]=[];
 	let memoryRoot: string | undefined;
 	let kernel: string | undefined;
@@ -98,7 +102,12 @@ export function parseCliArgs(args: readonly string[]): CliConfiguration {
 			return { help: false, configure: true, kernel: "native", profile: DEFAULT_DEEPSEEK_PROFILE };
 		}
 		if(argument === "--native-sandbox"){if(nativeSandbox)throw Error("duplicate_native_sandbox");nativeSandbox=true;continue;}
-		const value = args[index + 1];
+		if(argument === "--native-offline"){if(nativeOffline)throw Error("duplicate_native_offline");nativeOffline=true;continue;}
+  const value = args[index + 1];
+  if(argument === "--native-grant"){
+   if(nativeGrant || !value || value.startsWith("--"))throw Error("one --native-grant ORIGIN is supported");
+   nativeGrant=privateOrigin(value);index++;continue;
+  }
 		if (argument === "--sandbox-root" || argument === "--sandbox-input" || argument === "--workspace" || argument === "--memory-root" || argument === "--kernel" || argument === "--model" || argument === "--thinking" || argument === "--max-attachment-bytes") {
 			if (!value || value.startsWith("--")) throw new Error(`${argument} requires a value`);
 			index += 1;
@@ -117,7 +126,9 @@ export function parseCliArgs(args: readonly string[]): CliConfiguration {
 		}
 		throw new Error(`Unknown argument: ${argument}`);
 	}
-	if (kernel === undefined) throw new Error("kernel_selection_required: pass --kernel native");
+	if ((nativeOffline || nativeGrant) && !nativeSandbox) throw Error("--native-offline/--native-grant require --native-sandbox");
+ if (nativeOffline && nativeGrant) throw Error("--native-offline cannot grant a network service");
+ if (kernel === undefined) throw new Error("kernel_selection_required: pass --kernel native");
 	if (kernel === "pi") throw new Error("kernel_not_in_product: see references/pi/README.md");
 	if (!isKernelSelector(kernel)) throw new Error(`Unsupported kernel: ${kernel}`);
 	if (!isDeepSeekModelId(modelId)) throw new Error(`Unsupported DeepSeek model: ${modelId}`);
@@ -127,7 +138,7 @@ export function parseCliArgs(args: readonly string[]): CliConfiguration {
 	return {
 		help: false,
 		maxAttachmentBytes,
-  sandboxRoot,sandboxInputs,nativeSandbox,
+  sandboxRoot,sandboxInputs,nativeSandbox,nativeOffline,nativeGrant,
 		workspace,
 		memoryRoot,
 		kernel,
@@ -148,7 +159,9 @@ export interface CliDependencies {
 	readonly createNativeAdapter?: (profile: DeepSeekProfile) => ModelAdapter;
 	/** Pan-owned injection seam for deterministic Kimi composition tests (#53). */
 	readonly createKimiAdapter?: (profile: KimiProfile) => ModelAdapter;
-	readonly createTools?: typeof createPanTrustedLocalTools;
+	/** Trusted composition seam for controlled DNS fixtures. Public address checks still apply. */
+ readonly resolveNetworkName?: ResolveAddresses;
+ readonly createTools?: typeof createPanTrustedLocalTools;
 	readonly startTui?: typeof runTui;
 	/** Optional presentation factory; execution stays in Session. */
 	readonly createPresentation?: typeof createCompactPresentation;
@@ -243,7 +256,7 @@ export async function runCli(args: readonly string[], dependencies: CliDependenc
 			if (presentation.progressError) presentation.progressError();
 			else writeLine("Display error: progress observer failed; execution continues.");
 		},
-		systemPrompt: (configuration.nativeSandbox?"You are a coding agent in a shared live workspace. Use typed read/write/edit/bash tools and observations; protected/outside files are denied, Shell and descendants use a fixed offline OS sandbox. No host fallback, no retrieval. Return accurate results; never print secrets.":GENERAL_AGENT_SYSTEM_PROMPT)+(sandbox?"\nTools run ONLY in an isolated Docker workspace /workspace/task. Selected inputs are /inputs, read-only. No retrieval or host tool access. Each new task gets a new workspace.":""),
+		systemPrompt: (configuration.nativeSandbox?"You are a coding agent in a shared live workspace. Use typed read/write/edit/bash tools and observations; protected/outside files are denied, Shell and descendants use a fixed OS sandbox. "+(configuration.nativeOffline?"Networking is offline.":"Use pan-fetch URL for bounded HTTP(S) GET and PAN_LOCAL_SOCKETS for local Unix services.")+" No host fallback, no retrieval. Return accurate results; never print secrets.":GENERAL_AGENT_SYSTEM_PROMPT)+(sandbox?"\nTools run ONLY in an isolated Docker workspace /workspace/task. Selected inputs are /inputs, read-only. No retrieval or host tool access. Each new task gets a new workspace.":""),
 		memory: { archiveStore, runbook: () => loadRunbook(RUNBOOK_PATH) },
 		onObservation(observation: SessionObservation) {
 			observeSafely(presentation, observation, writeLine);
@@ -301,7 +314,7 @@ export async function runCli(args: readonly string[], dependencies: CliDependenc
 				: {}));
 			adapter = adapterFactory(profile);
 		}
-		nativeSandbox=configuration.nativeSandbox?new NativeSandbox({workspace,stateRoot:resolve(memoryRoot,"native-sandbox"),protectedPaths:settings?.protectedPaths,notify:writeLine}):undefined;
+		nativeSandbox=configuration.nativeSandbox?new NativeSandbox({workspace,stateRoot:resolve(memoryRoot,"native-sandbox"),network:configuration.nativeOffline?"offline":"public",privateGrant:configuration.nativeGrant,resolveNetworkName:dependencies.resolveNetworkName,protectedPaths:settings?.protectedPaths,notify:writeLine}):undefined;
         const trustedLocal = sandbox??nativeSandbox??(dependencies.createTools ? dependencies.createTools(workspace) : createPanTrustedLocalTools(workspace));
 		session = new GeneralAgentSession({
 			...shared,

@@ -1,4 +1,5 @@
 /** Offline macOS boundary. No shell text analysis and no implicit host fallback. */
+import {NativeNetwork, fetchClient, checkGateway, type ResolveAddresses} from './network.ts';
 import {spawnSync} from 'node:child_process';
 import {mkdirSync, readdirSync, existsSync, realpathSync, lstatSync, writeFileSync, rmSync} from 'node:fs';
 import {dirname, isAbsolute, join, relative, resolve, sep} from 'node:path';
@@ -44,6 +45,9 @@ export interface NativeSandboxOptions {
  readonly workspace:string;
  /** Private state outside the live workspace. No arbitrary toolchain/read-root option. */
  readonly stateRoot:string;
+ readonly network?:'public'|'offline';
+ readonly privateGrant?:string;
+ readonly resolveNetworkName?:ResolveAddresses;
  readonly protectedPaths?:readonly string[];
  readonly notify?:(text:string)=>void;
 }
@@ -51,7 +55,9 @@ export interface NativeSandboxOptions {
 export type NativeMacOptions = NativeSandboxOptions;
 
 export class NativeMacSandbox {
- readonly executionMode='native-macos-offline' as const;
+ get executionMode(){return this.options.network==='public'?'native-macos-public' as const:'native-macos-offline' as const;}
+ private broker?:NativeNetwork;
+ private pendingGrant?:string;
  readonly workspace:string;
  readonly stateRoot:string;
  readonly tools:readonly AgentTool[];
@@ -65,7 +71,7 @@ export class NativeMacSandbox {
  private files:readonly string[]=[];
  private readonly options:NativeMacOptions;
  constructor(options:NativeMacOptions){
-  this.options=options;
+  this.options=options;this.pendingGrant=options.privateGrant;
   this.workspace=realpathSync(options.workspace);
   this.stateRoot=resolve(options.stateRoot);
   if(inside(this.workspace,this.stateRoot)||inside(this.stateRoot,this.workspace))throw Error('native_sandbox_state_overlap');
@@ -77,8 +83,8 @@ export class NativeMacSandbox {
    finally{signal.removeEventListener('abort',abort);this.controllers.delete(controller);}
   },path=>this.assertFile(path),()=>{if(!this.profile||!this.policyHash||this.cancelled)policyError('unavailable');return this.policyHash;}).tools;
  }
- get identity():JsonObject{return {executionMode:'native-macos-offline',backend:'seatbelt',profileVersion:1,policyHash:this.policyHash??null,runId:this.runId??null,workspace:this.workspace,temporary:this.temporary??null,readRoots:[...SYSTEM_READ_ROOTS],runtimeFiles:[...this.files],protectedRoots:[...this.protectedRoots],network:'denied',resourceQuotas:'not_enforced'};}
- private environment():Record<string,string>{return {PATH:dirname(realpathSync(process.execPath))+':/usr/bin:/bin:/usr/sbin:/sbin',HOME:this.temporary!,TMPDIR:this.temporary!,LANG:'C',LC_ALL:'C',OPENSSL_CONF:'/dev/null'};}
+ get identity():JsonObject{return {executionMode:this.executionMode,backend:'seatbelt',profileVersion:1,policyHash:this.policyHash??null,runId:this.runId??null,workspace:this.workspace,temporary:this.temporary??null,readRoots:[...SYSTEM_READ_ROOTS],runtimeFiles:[...this.files],protectedRoots:[...this.protectedRoots],network:this.broker?'bounded-http-get':'denied',privateGrant:this.broker?.grant??null,resourceQuotas:'not_enforced'};}
+ private environment():Record<string,string>{return {PATH:(this.broker?dirname(fetchClient)+':':'')+dirname(realpathSync(process.execPath))+':/usr/bin:/bin:/usr/sbin:/sbin',HOME:this.temporary!,TMPDIR:this.temporary!,LANG:'C',LC_ALL:'C',...(this.broker?{PAN_NETWORK_SOCKET:this.broker.socket,PAN_LOCAL_SOCKETS:this.broker.local}:{}),OPENSSL_CONF:'/dev/null'};}
  private assertFile(path:string):void {
   if(!this.profile||this.cancelled)policyError('unavailable');
   if(!inside(this.workspace,path))policyError('outside_workspace');
@@ -103,7 +109,14 @@ export class NativeMacSandbox {
   const inspect=(directory:string):void=>{for(const name of readdirSync(directory)){if(++entries>50000)throw Error('native_sandbox_workspace_scan_limit');const path=join(directory,name),s=lstatSync(path);if(s.isSymbolicLink())continue;if(s.isFile()&&s.nlink!==1)throw Error('native_sandbox_hardlink_workspace');if(s.isDirectory())inspect(path);}};
   inspect(this.workspace);
   this.files=runtimeFiles();
+  if(this.options.network==='public')this.files=[...this.files,realpathSync(fetchClient)];
   if(this.files.some(path=>inside(this.workspace,path)))throw Error('native_sandbox_mutable_toolchain');
+  try {
+  if(this.options.network==='public'){
+   const grant=this.pendingGrant;this.pendingGrant=undefined;
+   this.broker=await NativeNetwork.open(directory,grant,this.options.resolveNetworkName);
+   if(inside(this.workspace,this.broker.directory))throw Error('native_sandbox_network_state_overlap');
+  }
   // System directories and exact executable dependencies are readonly, never HOME or /private.
   const readable=[...SYSTEM_READ_ROOTS,this.workspace,this.temporary];
   let profile='(version 1)\n(deny default)\n(allow process-fork)\n(allow process-info* (target same-sandbox))\n(allow signal (target same-sandbox))\n';
@@ -113,18 +126,27 @@ export class NativeMacSandbox {
   profile+='(allow file-read* '+readable.map(p=>`(subpath ${quote(p)})`).join(' ')+' '+this.files.map(p=>`(literal ${quote(p)})`).join(' ')+')\n';
   profile+='(allow process-exec '+readable.map(p=>`(subpath ${quote(p)})`).join(' ')+' '+this.files.map(p=>`(literal ${quote(p)})`).join(' ')+')\n';
   profile+='(allow file-write* (subpath '+quote(this.workspace)+') (subpath '+quote(this.temporary)+') (literal "/dev/null"))\n';
+  if(this.broker){
+   const local='(subpath '+quote(this.broker.local)+')';
+   profile+='(allow file-read* (literal "/private/etc/ssl/openssl.cnf"))\n';
+   profile+='(allow file-read* file-write* '+local+')\n';
+   profile+='(allow network-bind network-inbound '+local+')\n';
+   profile+='(allow network-outbound (remote unix-socket (path '+quote(this.broker.socket)+')) '+local+')\n';
+  }
   const base=regexEscape(this.workspace);
   const patterns=[...RESERVED.map(n=>`^${base}/(.*/)?${insensitive(n)}(/|$)`),`^${base}/(.*/)?${insensitive('.env')}($|[./])`,`^${base}/.*[.]([pP][eE][mM]|[kK][eE][yY])$`,`^${base}/(.*/)?${insensitive('id_rsa')}($|/)`,`^${base}/(.*/)?${insensitive('id_ed25519')}($|/)`];
   profile+='(deny process-exec file-read* file-write* '+patterns.map(p=>`(regex ${quote(p)})`).join(' ')+' '+this.protectedRoots.map(p=>`(subpath ${quote(p)})`).join(' ')+')\n';
   profile+='(deny file-link)\n';
-  this.policyHash=digest(profile);this.profile=profile;
+  this.policyHash=digest(this.broker?JSON.stringify([profile,'bounded-get-v1',this.broker.grant??null]):profile);this.profile=profile;
   const check=spawnSync(SANDBOX_EXEC,['-p',profile,'/bin/bash','-c','printf pan-native-ready'],{cwd:this.workspace,env:this.environment(),encoding:'utf8',timeout:5000,maxBuffer:4096,stdio:['ignore','pipe','pipe']});
   if(check.error||check.status!==0||check.stdout!=='pan-native-ready'){this.profile=undefined;throw Error('native_sandbox_setup_failed: OS boundary unavailable or profile rejected; no host fallback');}
+  if(this.broker)await checkGateway(SANDBOX_EXEC,['-p',profile],this.workspace,this.environment());
   writeFileSync(join(directory,'policy.sb'),profile,{flag:'wx',mode:0o600});
   writeFileSync(join(directory,'identity.json'),JSON.stringify(this.identity,null,2)+'\n',{flag:'wx',mode:0o600});
   if(this.cancelled){await this.stop('cancelled_during_setup');throw Error('native_sandbox_cancelled');}
-  this.options.notify?.('NATIVE MACOS SANDBOX offline policy='+this.policyHash);
+  this.options.notify?.('NATIVE MACOS SANDBOX '+(this.broker?'bounded GET':'offline')+' policy='+this.policyHash);
+  }catch(error){this.profile=undefined;this.broker?.close();this.broker=undefined;rmSync(this.temporary,{recursive:true,force:true});throw error;}
  }
- cancel():void{this.cancelled=true;for(const controller of this.controllers)controller.abort();}
- async stop(_reason:string):Promise<void>{this.cancel();this.profile=undefined;if(this.temporary&&this.controllers.size===0)rmSync(this.temporary,{recursive:true,force:true});}
+ cancel():void{this.cancelled=true;this.broker?.close();for(const controller of this.controllers)controller.abort();}
+ async stop(_reason:string):Promise<void>{this.cancel();this.profile=undefined;this.broker=undefined;if(this.temporary&&this.controllers.size===0)rmSync(this.temporary,{recursive:true,force:true});}
 }
