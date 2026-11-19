@@ -1,4 +1,5 @@
 /** Offline macOS boundary. No shell text analysis and no implicit host fallback. */
+import type {WorkspaceGrant} from '../../config/workspace-trust.ts';
 import {NativeNetwork, fetchClient, checkGateway, type ResolveAddresses} from './network.ts';
 import {spawnSync} from 'node:child_process';
 import {mkdirSync, readdirSync, existsSync, realpathSync, lstatSync, writeFileSync, rmSync} from 'node:fs';
@@ -47,6 +48,7 @@ export interface NativeSandboxOptions {
  readonly stateRoot:string;
  readonly network?:'public'|'offline';
  readonly privateGrant?:string;
+ readonly credentialGrant?: WorkspaceGrant;
  readonly resolveNetworkName?:ResolveAddresses;
  readonly protectedPaths?:readonly string[];
  readonly notify?:(text:string)=>void;
@@ -79,7 +81,7 @@ export class NativeMacSandbox {
   this.tools=createPanTrustedLocalTools(this.workspace,{},async(workspace,value,signal)=>{
    if(!this.profile||!this.temporary||!this.policyHash||this.cancelled)return {content:[{type:'text',text:'native_sandbox_unavailable'}],isError:true};
    const controller=new AbortController();const abort=()=>controller.abort();signal.addEventListener('abort',abort,{once:true});if(signal.aborted)abort();this.controllers.add(controller);
-   try{return await executeBash(workspace,this.environment(),value,controller.signal,undefined,{executable:SANDBOX_EXEC,prefix:['-p',this.profile],evidence:this.identity,environment:this.environment(),settleGroup:true});}
+   try{return await executeBash(workspace,this.environment(),value,controller.signal,undefined,{executable:SANDBOX_EXEC,prefix:['-p',this.profile],evidence:this.identity,environment:this.environment(),settleGroup:true,credentialInput:this.options.credentialGrant?.take(value.command)});}
    finally{signal.removeEventListener('abort',abort);this.controllers.delete(controller);}
   },path=>this.assertFile(path),()=>{if(!this.profile||!this.policyHash||this.cancelled)policyError('unavailable');return this.policyHash;}).tools;
  }
@@ -98,6 +100,7 @@ export class NativeMacSandbox {
   if(this.profile)throw Error('native_sandbox_already_active');
   if(process.platform!=='darwin')throw Error('native_sandbox_unsupported_platform: requires macOS sandbox-exec');
   if(!/^[a-zA-Z0-9_-]+$/.test(runId))throw Error('native_sandbox_invalid_run');
+  this.options.credentialGrant?.start(this.workspace);
   this.cancelled=false;this.runId=runId;
   mkdirSync(this.stateRoot,{recursive:true,mode:0o700});
   const canonical=realpathSync(this.stateRoot);
@@ -147,6 +150,6 @@ export class NativeMacSandbox {
   this.options.notify?.('NATIVE MACOS SANDBOX '+(this.broker?'bounded GET':'offline')+' policy='+this.policyHash);
   }catch(error){this.profile=undefined;this.broker?.close();this.broker=undefined;rmSync(this.temporary,{recursive:true,force:true});throw error;}
  }
- cancel():void{this.cancelled=true;this.broker?.close();for(const controller of this.controllers)controller.abort();}
+ cancel():void{this.options.credentialGrant?.expire();this.cancelled=true;this.broker?.close();for(const controller of this.controllers)controller.abort();}
  async stop(_reason:string):Promise<void>{this.cancel();this.profile=undefined;this.broker=undefined;if(this.temporary&&this.controllers.size===0)rmSync(this.temporary,{recursive:true,force:true});}
 }

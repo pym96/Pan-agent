@@ -18,3 +18,5 @@ The [#41 design](../../docs/design/native-module-layout.md) and [source map](../
 [input/](input/README.md) prepares explicit file snapshots above `GeneralAgentSession.runTask(string)`; Runtime, Protocol, Provider, Tools and memory remain unchanged.
 
 - [execution/](execution/README.md): shared admission, scheduler, goal verification and supervised installed CLI (#150 candidate).
+
+`config/workspace-trust.ts` validates the optional native workspace declaration, maintains operator-owned trust receipts and binds a selected read-only resource to an exact command or the first task.

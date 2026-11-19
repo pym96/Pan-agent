@@ -1,3 +1,4 @@
+import {workspaceTrust, WorkspaceGrant, type GrantSelection} from "./config/workspace-trust.ts";
 import {privateOrigin, type ResolveAddresses} from './sandbox/native/network.ts';
 import {NativeLinuxSandbox} from './sandbox/native/linux.ts';
 import {NativeMacSandbox} from './sandbox/native/macos.ts';
@@ -47,6 +48,9 @@ import { DEFAULT_KIMI_PROFILE, KIMI_K3_MODEL_ID, type KimiProfile } from "./prov
 
 export const CLI_USAGE = `Usage:
   pan-agent [--workspace /absolute/path] [--memory-root /absolute/path] --kernel native [--model deepseek-v4-flash|deepseek-v4-pro] [--thinking low|high|max] [--max-attachment-bytes INTEGER]
+  pan-agent trust --workspace PATH [--approve REVIEW_HASH]
+  pan-agent --native-sandbox --native-resource ID (--grant-command EXACT_SHELL | --grant-task)
+  Only authorized Shell and children receive PAN_GRANTED_VALUE. File tools still deny the protected path.
   pan-agent delivery --help   (bounded local delivery with independent checks)
   pan-agent settings path|show|validate   (read-only ordinary settings; no credential access)
   npm run agent -- configure   (first-run settings: provider/model/thinking and credential source; persists no secret)
@@ -73,6 +77,7 @@ export interface CliConfiguration {
  readonly nativeSandbox?:boolean;
  readonly nativeOffline?:boolean;
  readonly nativeGrant?:string;
+ readonly credentialSelection?:GrantSelection;
  readonly sandboxRoot?:string;
  readonly sandboxInputs?:readonly string[];
 	readonly memoryRoot?: string;
@@ -87,6 +92,7 @@ export function parseCliArgs(args: readonly string[]): CliConfiguration {
 	let workspace: string | undefined;
  let nativeSandbox=false,nativeOffline=false;
  let nativeGrant:string|undefined;
+ let resource:string|undefined,command:string|undefined,task=false;
  let sandboxRoot:string|undefined;const sandboxInputs:string[]=[];
 	let memoryRoot: string | undefined;
 	let kernel: string | undefined;
@@ -104,6 +110,16 @@ export function parseCliArgs(args: readonly string[]): CliConfiguration {
 		if(argument === "--native-sandbox"){if(nativeSandbox)throw Error("duplicate_native_sandbox");nativeSandbox=true;continue;}
 		if(argument === "--native-offline"){if(nativeOffline)throw Error("duplicate_native_offline");nativeOffline=true;continue;}
   const value = args[index + 1];
+  if(argument === "--grant-task"){
+   if(task) throw Error("duplicate_grant_scope");
+   task=true;continue;
+  }
+  if(argument === "--native-resource" || argument === "--grant-command"){
+   if(!value || value.startsWith("--")) throw Error("missing_grant_argument");
+   if(argument === "--native-resource"){if(resource)throw Error("duplicate_resource");resource=value;}
+   else {if(command)throw Error("duplicate_grant_command");command=value;}
+   index++;continue;
+  }
   if(argument === "--native-grant"){
    if(nativeGrant || !value || value.startsWith("--"))throw Error("one --native-grant ORIGIN is supported");
    nativeGrant=privateOrigin(value);index++;continue;
@@ -127,6 +143,7 @@ export function parseCliArgs(args: readonly string[]): CliConfiguration {
 		throw new Error(`Unknown argument: ${argument}`);
 	}
 	if ((nativeOffline || nativeGrant) && !nativeSandbox) throw Error("--native-offline/--native-grant require --native-sandbox");
+ if ((resource || command || task) && (!nativeSandbox || !resource || (task ? command !== undefined : !command))) throw Error("credential grant requires --native-sandbox --native-resource ID and an exact --grant-command or --grant-task");
  if (nativeOffline && nativeGrant) throw Error("--native-offline cannot grant a network service");
  if (kernel === undefined) throw new Error("kernel_selection_required: pass --kernel native");
 	if (kernel === "pi") throw new Error("kernel_not_in_product: see references/pi/README.md");
@@ -138,7 +155,7 @@ export function parseCliArgs(args: readonly string[]): CliConfiguration {
 	return {
 		help: false,
 		maxAttachmentBytes,
-  sandboxRoot,sandboxInputs,nativeSandbox,nativeOffline,nativeGrant,
+  sandboxRoot,sandboxInputs,nativeSandbox,nativeOffline,nativeGrant,credentialSelection:resource?{resource,command,task}:undefined,
 		workspace,
 		memoryRoot,
 		kernel,
@@ -172,7 +189,15 @@ export async function runCli(args: readonly string[], dependencies: CliDependenc
 	const writeLine = (line: string): void => {
 		output.write(`${line}\n`);
 	};
-	if (args[0] === 'settings') {
+	if (args[0] === 'trust') {
+    try {
+      if (args[1] !== '--workspace' || !args[2] || !(args.length === 3 || (args.length === 5 && args[3] === '--approve'))) throw Error("usage: pan-agent trust --workspace PATH [--approve REVIEW_HASH]");
+      const trust = workspaceTrust(args[2], dependencies.home, args[4]);
+      writeLine(JSON.stringify({workspace: trust.root, review: trust.revision, requested: trust.declared, eligible: trust.eligible}, null, 2));
+      return 0;
+    } catch(error) {writeLine("Trust review failed: " + terminalText(String(error))); return 2;}
+  }
+  if (args[0] === 'settings') {
 		if (args.length !== 2 || !['path', 'show', 'validate'].includes(args[1]!)) { writeLine('settings_usage: pan-agent settings path|show|validate'); return 2; }
 		if (args[1] === 'path') { writeLine(panSettingsPath(dependencies.home)); return 0; }
 		try {
@@ -274,7 +299,18 @@ export async function runCli(args: readonly string[], dependencies: CliDependenc
 		writeLine(`Validation failed: ${terminalText(error instanceof Error ? error.message : "unknown")}`);
 		return 2;
 	}
-	const firstRunInput = dependencies.input ?? process.stdin;
+	let credentialGrant: WorkspaceGrant | undefined;
+  try {
+    const home = dependencies.home ?? homedir();
+    const trust = workspaceTrust(workspace, home);
+    if (trust.enrolled && !configuration.nativeSandbox) throw Error("enrolled workspace requires --native-sandbox");
+    if (configuration.credentialSelection) {
+      credentialGrant = new WorkspaceGrant(workspace, home, configuration.credentialSelection, settings?.protectedPaths ?? [], writeLine);
+      writeLine("Native credential grant: " + configuration.credentialSelection.resource +
+        (configuration.credentialSelection.task ? " for first task" : " for one exact command in first task") + "; granted command output suppressed.");
+    }
+  } catch(error) {writeLine("Trust validation failed: " + terminalText(String(error))); return 2;}
+  const firstRunInput = dependencies.input ?? process.stdin;
 	if (!settings && !dependencies.createNativeAdapter && (firstRunInput as NodeJS.ReadStream).isTTY === true) {
 		try {
 			settings = await runFirstRunConfiguration({
@@ -314,7 +350,7 @@ export async function runCli(args: readonly string[], dependencies: CliDependenc
 				: {}));
 			adapter = adapterFactory(profile);
 		}
-		nativeSandbox=configuration.nativeSandbox?new NativeSandbox({workspace,stateRoot:resolve(memoryRoot,"native-sandbox"),network:configuration.nativeOffline?"offline":"public",privateGrant:configuration.nativeGrant,resolveNetworkName:dependencies.resolveNetworkName,protectedPaths:settings?.protectedPaths,notify:writeLine}):undefined;
+		nativeSandbox=configuration.nativeSandbox?new NativeSandbox({workspace,stateRoot:resolve(memoryRoot,"native-sandbox"),network:configuration.nativeOffline?"offline":"public",privateGrant:configuration.nativeGrant,credentialGrant,resolveNetworkName:dependencies.resolveNetworkName,protectedPaths:settings?.protectedPaths,notify:writeLine}):undefined;
         const trustedLocal = sandbox??nativeSandbox??(dependencies.createTools ? dependencies.createTools(workspace) : createPanTrustedLocalTools(workspace));
 		session = new GeneralAgentSession({
 			...shared,

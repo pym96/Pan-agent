@@ -293,11 +293,18 @@ export async function executeBash(
 	value: BashArguments,
 	signal: AbortSignal,
     register?: (pid:number)=>Promise<void>,
-    launch?: {readonly executable:string;readonly prefix:readonly string[];readonly evidence:JsonObject;readonly environment?:Readonly<NodeJS.ProcessEnv>;readonly settleGroup?:boolean},
+    launch?: {readonly executable:string;readonly prefix:readonly string[];readonly evidence:JsonObject;readonly environment?:Readonly<NodeJS.ProcessEnv>;readonly settleGroup?:boolean;readonly credentialInput?:string},
 ): Promise<AgentToolExecutionResult> {
-	let child: ChildProcessWithoutNullStreams;
+	// The inner Bash inherits stdin through both OS launchers. Read raw UTF-8 through NUL,
+  // export one fixed data variable, and leave command stdin at EOF. Values never enter argv.
+  const credential = launch?.credentialInput;
+  const commandArgs = credential === undefined ? ["-c", value.command] : [
+    "-c", 'IFS= read -r -d "" PAN_GRANTED_VALUE || exit 125; export PAN_GRANTED_VALUE; exec /bin/bash -c "$1"',
+    "pan-credential", value.command,
+  ];
+  let child: ChildProcessWithoutNullStreams;
 	try {
-		child = spawn(launch?.executable ?? "/bin/bash", launch ? [...launch.prefix, "/bin/bash", "-c", value.command] : register ? ["-c", 'IFS= read -r gate; [ "$gate" = pan-owned ] || exit 125; exec /bin/bash -c "$1"', 'pan-shell-gate', value.command] : ["-c", value.command], {
+		child = spawn(launch?.executable ?? "/bin/bash", launch ? [...launch.prefix, "/bin/bash", ...commandArgs] : register ? ["-c", 'IFS= read -r gate; [ "$gate" = pan-owned ] || exit 125; exec /bin/bash -c "$1"', 'pan-shell-gate', value.command] : ["-c", value.command], {
 			cwd: workspace,
 			env: launch?.environment ?? safeShellEnvironment(sourceEnvironment),
 			detached: process.platform !== "win32",
@@ -314,15 +321,15 @@ export async function executeBash(
     if(register){
         try { if(!child.pid)throw Error('shell_pid_missing'); await register(child.pid);if(signal.aborted)throw Error('shell_cancelled_before_release');child.stdin.end('pan-owned\n'); }
         catch(error){terminateProcessGroup(child,'SIGKILL');child.stdin.end();throw error;}
-    } else child.stdin.end();
+    } else child.stdin.end(credential === undefined ? undefined : credential + "\0");
 	let stdout = "";
 	let stderr = "";
 	let cancelled = false;
 	let timedOut = false;
 	child.stdout.setEncoding("utf8");
 	child.stderr.setEncoding("utf8");
-	child.stdout.on("data", (chunk: string) => { stdout += chunk; });
-	child.stderr.on("data", (chunk: string) => { stderr += chunk; });
+	child.stdout.on("data", (chunk: string) => { if (credential === undefined) stdout += chunk; });
+	child.stderr.on("data", (chunk: string) => { if (credential === undefined) stderr += chunk; });
 
 	let forceTimer: NodeJS.Timeout | undefined;
 	const terminate = (reason: "cancelled" | "timeout"): void => {

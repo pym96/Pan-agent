@@ -262,6 +262,7 @@ export class NativeLinuxSandbox {
             evidence: this.identity,
             environment: { PATH: "/usr/bin:/bin", LANG: "C" },
             settleGroup: true,
+            credentialInput: this.options.credentialGrant?.take(value.command),
           },
         );
         this.controllers.set(controller, task);
@@ -329,6 +330,7 @@ export class NativeLinuxSandbox {
       this.configuredRoots,
       mountpoints(),
     );
+    this.options.credentialGrant?.start(this.workspace);
     this.admittedRoots = roots.host;
     this.cancelled = false;
     this.runId = runId;
@@ -545,6 +547,7 @@ export class NativeLinuxSandbox {
     }
   }
   cancel(): void {
+    this.options.credentialGrant?.expire();
     this.cancelled = true;
     this.broker?.close();
     for (const controller of this.controllers.keys()) controller.abort();

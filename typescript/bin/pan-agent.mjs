@@ -10,7 +10,7 @@ try {
       console.log('Start: pan-agent (current directory; archives in ~/.pan-agent/archives)');
     }
     // Product launcher selects its sole supported kernel; library callers remain explicit.
-    const subcommand = ['configure', 'settings', 'retrieval', 'sandbox', 'loop', 'goal', 'execution', 'delivery'].includes(args[0]);
+    const subcommand = ['configure', 'trust', 'settings', 'retrieval', 'sandbox', 'loop', 'goal', 'execution', 'delivery'].includes(args[0]);
     process.exitCode = await runCli(subcommand || args.includes('--kernel') ? args : ['--kernel', 'native', ...args]);
   }
 } catch (error) {

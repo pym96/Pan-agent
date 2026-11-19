@@ -304,3 +304,28 @@ The foreground controller owns retries and acceptance. It binds the private comm
 Ctrl-C or SIGTERM cancels work. The controller reports `stop_unconfirmed` if process settlement cannot be established. Owner interruption, reviewer failure and bad or incomplete evidence cannot produce success. The read-only inspect command reports an unfinished run as `interrupted_or_active`, rechecks sealed successful evidence and both candidate and reviewer checkouts, and reports later changes. `archive/runs/<id>/events.jsonl` contains the ordered controller records; the matching manifest seals completed runs. A missing terminal file leaves the result uncertain. Inspect the remaining files and process records before starting a new, explicitly authorized run. Reusing a state directory is refused. There is no background scheduler, automatic replay or automatic resume.
 
 For the executable regression and its raw logs, see the [installed runtime checks](../scripts/runtime-ci/README.md).
+
+### Workspace trust and one-use credentials
+
+In a package built from this source, an operator can share one UTF-8 credential with a native sandbox command. The project declares candidate names in `.pan-agent/workspace.json`. A new project has no eligible resources. For example, this declaration requests one process environment variable and one protected project file.
+
+```json
+{"version":1,"resources":["env:PAN_TEST_TOKEN","file:.env.fixture"]}
+```
+
+Review the canonical project and names, then pass the review hash printed for that exact workspace and list.
+
+```sh
+pan-agent trust --workspace "$PWD"
+pan-agent trust --workspace "$PWD" --approve REVIEW_HASH
+pan-agent --native-sandbox --native-offline --workspace "$PWD" \
+  --native-resource env:PAN_TEST_TOKEN --grant-command 'node check-fixture.cjs'
+```
+
+Set the variable through the operator environment or place a disposable fixture in the declared file. Keep secret values out of prompts and CLI flags. Use `file:.env.fixture` to select the file instead. One exact shell command in the first task receives the selected value in **PAN_GRANTED_VALUE**. Its children inherit that variable. An exact command matches literal shell text; it can execute scripts and read other ordinary project inputs, so review their contents. A second invocation gets the ordinary environment. To share the same resource with every shell call in the first task, replace `--grant-command '…'` with `--grant-task`. The terminal reports expiry on consumption or task end. A fresh task needs a fresh operator selection. Shell approvals and configured deny rules still apply. Built-in shell variables such as LANG are constructed by the sandbox. Arbitrary host variables are excluded.
+
+File tools and Shell continue to deny the original sensitive path, including during a grant. A file value must come from an existing, singly linked regular file within the selected workspace. Use a native protected basename (for example, `.env.fixture`) or add an exact or enclosing path to the operator's `protectedPaths`. Direct edits stay blocked. Links, stale identities, changed values and invalid text fail closed. A resource name is limited to 256 characters, a list to 32 names and a value to 16 KiB of nonempty UTF-8 text without NUL. An operator can protect custom test files; recognition covers documented names and configured paths.
+
+Pan stores approvals separately in `~/.pan-agent/workspace-trust/` as private receipts containing a workspace identity and resource names. Operators can inspect them. Permissions bind to the canonical workspace directory and its filesystem identity. On review, startup and granted use, a removed resource loses eligibility. A later observed expansion requires another review. Workspace declarations cannot change global deny rules, provider settings, shell backend or ordinary preferences. Participating projects require `--native-sandbox` for interactive tasks, including after an observed removal of the declaration. Unusable or ambiguous policy stops admission. A stale `.lock` directory blocks review until the owner verifies that no review is running and removes the stale lock. Ordinary projects without enrollment retain the existing launch behavior.
+
+Granted calls suppress direct stdout and stderr capture. The value travels to the native child on a pipe. Receipts, command arguments and Pan's generated launch policy contain only nonsecret metadata. Authorized code can deliberately copy or transmit the value using any channel the approved sandbox permits, including ordinary project output that a later call can read and archive. Expiry ends subsequent delivery; existing disclosures and copies persist. Use disposable test credentials, review code before granting, and use offline mode when network access is unnecessary.
