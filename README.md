@@ -16,6 +16,12 @@ This installs the prebuilt **v0.1.9** release; no Git checkout or build is neede
 
 If your terminal reports `pan-agent: command not found`, finish installation first. Check `command -v pan-agent`; npm's global executable directory (`$(npm prefix -g)/bin` on macOS/Linux) must be on your `PATH`. Reopen the terminal after fixing your Node/npm setup. This is an installation/PATH issue, not an API-key error.
 
+## Supervised local delivery in the source build
+
+The current source can deliver a bounded update to selected text or data files in a local Git project. A builder produces a private candidate commit. A separate executable reviewer checks the exact commit against every operator-supplied criterion. The demo records a failed first commit and a fresh review of the repair.
+
+This command ships in packages built from this checkout. For the installed offline demo and configuration for your own task, see the [delivery walkthrough and limits](typescript/README.md#supervised-local-delivery).
+
 ## Configure your API
 
 ### macOS: use the configuration wizard

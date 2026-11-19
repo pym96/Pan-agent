@@ -120,6 +120,8 @@ High-risk acceptance additionally requires a different model family or explicit 
 - personal contribution, authorship, or ownership attribution;
 - security, authority, credential, deletion, or production-environment behavior.
 
+For the explicitly authorized Pan delivery queue beginning at #173, the owner delegated the delivery decision to the Master under `HF-20261119-PAN-DELEGATED`. The Master records its own acceptance, rejection or repair decision and the grant, exact candidate SHA, independent technical findings and residual authority/compatibility limits. The independent development Regulator then signs the final Verdict on that same SHA. A replacement candidate requires fresh review. This queue-specific decision provides the authorized review input; it must be attributed to the delegated Master, never recorded as an observation performed by a human. Separate authority for fact promotion, disclosure, expenditure or publishing still applies. The Product's local builder and executable reviewer cannot exercise this repository governance authority.
+
 The same model family in a separate context may regulate ordinary changes, but cannot alone release a high-risk Claim. Self-acceptance is forbidden at every risk level.
 
 ## Decision state

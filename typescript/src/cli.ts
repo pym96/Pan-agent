@@ -1,5 +1,6 @@
 import {NativeLinuxSandbox} from './sandbox/native/linux.ts';
 import {NativeMacSandbox} from './sandbox/native/macos.ts';
+import { deliveryCli } from "./execution/delivery-cli.ts";
 import { executionCli } from "./execution/cli.ts";
 import {SandboxSession} from './sandbox/session.ts';
 import {sandboxCommand} from './sandbox/cli.ts';
@@ -45,6 +46,7 @@ import { DEFAULT_KIMI_PROFILE, KIMI_K3_MODEL_ID, type KimiProfile } from "./prov
 
 export const CLI_USAGE = `Usage:
   pan-agent [--workspace /absolute/path] [--memory-root /absolute/path] --kernel native [--model deepseek-v4-flash|deepseek-v4-pro] [--thinking low|high|max] [--max-attachment-bytes INTEGER]
+  pan-agent delivery --help   (bounded local delivery with independent checks)
   pan-agent settings path|show|validate   (read-only ordinary settings; no credential access)
   npm run agent -- configure   (first-run settings: provider/model/thinking and credential source; persists no secret)
 
@@ -167,6 +169,7 @@ export async function runCli(args: readonly string[], dependencies: CliDependenc
 			return 0;
 		} catch (error) { writeLine(`Settings validation failed: ${terminalText(error instanceof Error ? error.message : 'unknown')}`); return 2; }
 	}
+	if(args[0]==='delivery'){try{return await deliveryCli(args.slice(1),output);}catch(error){writeLine('Delivery error: '+terminalText(String(error)));return 2;}}
 	if(['loop','goal','execution'].includes(args[0]??'')){try{return await executionCli(args,output,dependencies.input??process.stdin);}catch(error){writeLine('Execution error: '+terminalText(String(error)));return 2;}}
 	if(args[0]==='sandbox'){try{writeLine(await sandboxCommand(args.slice(1)));return 0;}catch(error){writeLine('Sandbox error: '+terminalText(String(error)));return 2;}}
 	if(args[0]==='retrieval') {try{writeLine(retrievalCommand(args.slice(1)));return 0;}catch(error){writeLine(`Retrieval configuration failed: ${terminalText(error instanceof Error?error.message:'unknown')}`);return 2;}}

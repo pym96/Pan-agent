@@ -111,6 +111,10 @@ def main():
         report['settings'] = json.loads((out/'settings/summary.json').read_text())
         if report['settings']['status'] != 'PASS':
             raise RuntimeError('installed settings checks failed')
+        run('delivery', ['node', str(ROOT/'scripts/runtime-ci/delivery.mjs'), str(cli), str(out/'delivery')])
+        report['delivery'] = json.loads((out/'delivery/summary.json').read_text())
+        if report['delivery']['status'] != 'PASS':
+            raise RuntimeError('installed supervised delivery checks failed')
         run('walkthrough', ['node', str(ROOT/'scripts/consumer-readiness/walkthrough.mjs'), str(cli), str(out/'walkthrough')])
         if not (out/'walkthrough/summary.json').is_file():
             raise RuntimeError('missing walkthrough summary')

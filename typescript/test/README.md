@@ -41,3 +41,5 @@ Run `npm --prefix typescript run check` from the repository root. Reference rema
 - [kimi-source-settlement-103.test.ts](kimi-source-settlement-103.test.ts): original read/cleanup settlement, cancellation races and late fetch cleanup (#103).
 
 - [execution150.test.ts](execution150.test.ts): virtual-clock cadence, budget/goal invariants; [installed black-box tests](../../tests/execution150/README.md).
+
+[Supervised delivery](delivery.test.ts) checks file/criterion bounds and stale, incomplete or misattributed reviewer output.

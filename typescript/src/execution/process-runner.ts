@@ -11,12 +11,12 @@ import type { WorkerConfig } from './worker.ts';
 import type { ApprovalChannel } from '../runtime/authorization.ts';
 export interface VerifierSpec {version:string;command:string;seconds:number}
 export interface ProcessRunnerConfig {worker:WorkerConfig;durationMs:number;root:string;verifier?:VerifierSpec;approval:ApprovalChannel;record:AccountingSink}
-export async function treeManifest(root:string):Promise<{path:string;bytes:number;sha256:string}[]> {
+export async function treeManifest(root:string,skipRootGit=false):Promise<{path:string;bytes:number;sha256:string}[]> {
  const files:{path:string;bytes:number;sha256:string}[]=[];let bytes=0;
  async function visit(rel:string){
   const path=join(root,rel);const stat=await lstat(path);
   if(stat.isSymbolicLink()||(!stat.isDirectory()&&!stat.isFile())||(stat.isFile()&&stat.nlink!==1))throw Error('candidate_unsafe_entry');
-  if(stat.isDirectory()){for(const name of (await readdir(path)).sort())await visit(rel?`${rel}/${name}`:name);return;}
+  if(stat.isDirectory()){for(const name of (await readdir(path)).sort()){if(skipRootGit&&!rel&&name==='.git')continue;await visit(rel?`${rel}/${name}`:name);}return;}
   bytes+=stat.size;if(bytes>64*1024*1024||files.length>=1000)throw Error('candidate_limit');
   const fd=await open(path,constants.O_RDONLY|constants.O_NOFOLLOW);try{const before=await fd.stat();if(before.dev!==stat.dev||before.ino!==stat.ino)throw Error('candidate_changed');const data=await fd.readFile();const after=await fd.stat();if(after.size!==before.size||after.mtimeMs!==before.mtimeMs)throw Error('candidate_changed');files.push({path:rel,bytes:data.length,sha256:createHash('sha256').update(data).digest('hex')});}finally{await fd.close();}
  }

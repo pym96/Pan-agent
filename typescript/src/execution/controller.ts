@@ -7,7 +7,7 @@ export const monotonicClock:Clock={now:()=>performance.now(),sleep:(ms,signal)=>
  const abort=()=>{clearTimeout(timer);reject(Error('cancelled'));};signal.addEventListener('abort',abort,{once:true});
 })};
 export type StopReason='deadline_exceeded'|'cancelled'|'budget_exhausted'|'worker_failed'|'needs_review'|'succeeded'|'stop_unconfirmed'|'cleanup_failed';
-export interface ExecutionPlan {mode:'loop'|'goal';everyMs:number;durationMs:number;objective:string;outer?:Partial<Counts>;criteria?:{version:string;identity:string}}
+export interface ExecutionPlan {mode:'loop'|'goal';everyMs:number;durationMs:number;objective:string;maxAttempts?:number;outer?:Partial<Counts>;criteria?:{version:string;identity:string}}
 export interface Candidate {identity:string;[key:string]:unknown}
 export interface Attempt {status:'completed'|'incomplete'|'model_error'|'cancelled';reason:string;candidate?:Candidate;[key:string]:unknown}
 export interface Verdict {status:'PASS'|'FAIL'|'UNKNOWN';candidateIdentity:string;criteriaVersion:string;verifierIdentity:string;detail:string}
@@ -23,6 +23,7 @@ export function validatePlan(plan:ExecutionPlan):void {
  if(!['loop','goal'].includes(plan.mode)||typeof plan.objective!=='string'||!plan.objective.trim())throw Error('invalid_plan');
  for(const n of [plan.everyMs,plan.durationMs])if(!Number.isSafeInteger(n)||n<=0||n>2147483647)throw Error('invalid_duration');
  if(plan.mode==='goal'&&(!plan.criteria?.version||!plan.criteria?.identity))throw Error('goal_criteria_required');
+ if(plan.maxAttempts!==undefined&&(!Number.isSafeInteger(plan.maxAttempts)||plan.maxAttempts<1))throw Error('invalid_attempt_limit');
  new BudgetLedger(plan.outer);
 }
 export function parseDuration(text:string):number {const m=/^(\d+)(ms|s|m|h)$/.exec(text);if(!m)throw Error('invalid_duration');const n=Number(m[1])*({ms:1,s:1000,m:60000,h:3600000}[m[2]!]!);if(!Number.isSafeInteger(n)||n<=0||n>2147483647)throw Error('invalid_duration');return n;}
@@ -50,7 +51,8 @@ export class ExecutionController {
    let due=this.start;
    while(!this.reason){
     while(due>this.clock.now())await this.clock.sleep(due-this.clock.now(),this.abort.signal);
-    this.eligible();const attemptId=`${planHash}:${++attempts}`;
+    this.eligible();if(plan.maxAttempts!==undefined&&attempts>=plan.maxAttempts){this.requestStop('budget_exhausted');break;}
+    const attemptId=`${planHash}:${++attempts}`;
     await this.record({type:'execution.attempt',attemptId,planned:due,actual:this.clock.now(),deadline:this.deadline});this.eligible();
     const task=feedback?`${plan.objective}\n\nIndependent verification feedback from the previous attempt:\n${feedback}`:plan.objective;
     const attempt=await runner.run({attemptId,task,signal:this.abort.signal,ledger,deadline:this.deadline});

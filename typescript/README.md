@@ -227,3 +227,59 @@ Run `pan-agent --native-sandbox --workspace /absolute/project --memory-root /abs
 - On supported x86-64 Linux, the backend uses Bubblewrap, working unprivileged namespaces, `/dev/fuse`, fusermount, libfuse2, libseccomp2, system Python 3 and glibc tools. The package includes its Python binding. Saved protected paths must be literal descendants of the selected project on case-sensitive ext4. An external configured path prevents Linux native startup. Shell sees the filtered live project at `/work` and a private writable `/tmp`. [Linux setup, supported operations and limitations](https://github.com/pym96/Pan-agent/blob/main/docs/design/native-linux-sandbox.md)
 
 The option applies to current source builds. Public v0.1.9 predates it. Scheduled commands keep their existing interfaces.
+
+## Supervised local delivery
+
+Use the package built from the current source. The previously published v0.1.9 archive predates this command. A consumer needs Node 22.19+ and local Git with SHA-1 or SHA-256 object format support on macOS or Linux. From this repository's `typescript/` directory, build and install into a disposable prefix:
+
+```sh
+trial=$(mktemp -d)
+npm ci --ignore-scripts
+npm pack --pack-destination "$trial"
+npm install --offline --ignore-scripts --no-audit --no-fund --prefix "$trial/consumer" "$trial/pan-agent-0.1.9.tgz"
+pan="$trial/consumer/node_modules/.bin/pan-agent"
+"$pan" delivery demo --directory "$trial/example"
+"$pan" delivery inspect --state "$trial/example/delivery"
+```
+
+The offline example updates office hours in a new disposable project. Look for two `delivery.handoff` events with different commit SHAs. The first `goal.verdict` records the failed weekday and time checks. The builder receives that feedback, writes the repair and hands off a new commit. A fresh reviewer receives it in a separate clean checkout. The final record includes the winning SHA, shared model/tool counts and stop confirmation.
+
+### Run an operator task
+
+Choose an owned local Git project, commit the input files you want to use, and save your criteria **outside** the project. This example changes existing `inventory.json` and `notes.md`:
+
+```json
+{
+  "version": "inventory-v2",
+  "files": ["inventory.json", "notes.md"],
+  "checks": [
+    {"id": "stock", "file": "inventory.json", "kind": "json-equals", "value": "{\"pens\":3,\"pads\":2}"},
+    {"id": "dated", "file": "notes.md", "kind": "includes", "value": "Friday"},
+    {"id": "final", "file": "notes.md", "kind": "excludes", "value": "TODO"}
+  ]
+}
+```
+
+Configure DeepSeek or Kimi with `pan-agent configure`. From outside the project:
+
+```sh
+pan-agent delivery run --workspace /path/to/project --state /path/to/new-state \
+  --criteria /path/to/criteria.json --attempts 3 --for 60s \
+  --task 'Record three pens and two pads. Mark the Friday count complete in the notes.'
+pan-agent delivery inspect --state /path/to/new-state
+git -C /path/to/new-state/builder show HEAD
+```
+
+The owner supplies the task, file scope and all required predicates. Use `equals` for exact UTF-8 text (including trailing line breaks), `includes` or `excludes` for literal text, or `json-equals` for structural JSON equality. A missing file fails its check. Each check has a unique ID and selects a declared path. The builder sees the criteria and has typed read/write access to the exact listed files. Shell, retrieval and candidate-supplied check commands have no entry in this flow. Protected, uncertain or approval-requiring files are declined. Pick existing unprotected files; initialize and commit an empty input when creating a new document.
+
+The source is the Git **HEAD commit**. Uncommitted, ignored and untracked files in the operator's directory are excluded. Pan imports a self-contained shallow copy under the new state directory. Each repair becomes a new private commit on top of that base. The original repository and its current branch stay under operator control. To keep the result, inspect the candidate's diff and apply it yourself. Pan does not publish or merge it.
+
+Limits per delivery are 1–8 attempts (default 3), up to five minutes of controller time including checkout, six model turns and five tool steps per attempt with enclosing caps. Each reviewer gets at most 25 seconds within the shared deadline. The source tree allows up to 512 regular files, 8 MiB total and 1 MiB per file. Symlinks and submodules are refused. Up to 16 named `.txt`, `.md`, `.rst`, `.json`, `.csv`, `.tsv`, `.yaml` or `.yml` files and 32 required checks are supported. Selected data is limited to 128 KiB per file. Use a new private state directory disjoint from the input. The state can contain project files, criteria, tool transcripts and model output.
+
+### Evidence and interruption
+
+The foreground controller owns retries and acceptance. It binds the private commit SHA, worktree byte manifest, frozen criteria bytes, checker implementation digest and reviewer dispatch. The reviewer is a deterministic package executable in a separate process with its own checkout. Its registered process channel supplies PID, required check results, stdout/stderr and exit code. Worker claims and reviewer-shaped text have no authority. The reviewer uses no model or provider credential. All roles share the host and OS account. This separation supplies independently attributable check execution, without providing hostile same-user isolation, a second model-family judgment or a correctness guarantee beyond the chosen checks.
+
+Ctrl-C or SIGTERM cancels work. The controller reports `stop_unconfirmed` if process settlement cannot be established. Owner interruption, reviewer failure and bad or incomplete evidence cannot produce success. The read-only inspect command reports an unfinished run as `interrupted_or_active`, rechecks sealed successful evidence and both candidate and reviewer checkouts, and reports later changes. `archive/runs/<id>/events.jsonl` contains the ordered controller records; the matching manifest seals completed runs. A missing terminal file leaves the result uncertain. Inspect the remaining files and process records before starting a new, explicitly authorized run. Reusing a state directory is refused. There is no background scheduler, automatic replay or automatic resume.
+
+For the executable regression and its raw logs, see the [installed runtime checks](../scripts/runtime-ci/README.md).
