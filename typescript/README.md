@@ -335,3 +335,29 @@ File tools and Shell continue to deny the original sensitive path, including dur
 Pan stores approvals separately in `~/.pan-agent/workspace-trust/` as private receipts containing a workspace identity and resource names. Operators can inspect them. Permissions bind to the canonical workspace directory and its filesystem identity. On review, startup and granted use, a removed resource loses eligibility. A later observed expansion requires another review. Workspace declarations cannot change global deny rules, provider settings, shell backend or ordinary preferences. Participating projects require the native sandbox for interactive tasks, including after an observed removal of the declaration. Unusable or ambiguous policy stops admission. A stale `.lock` directory blocks review until the owner verifies that no review is running and removes the stale lock. Ordinary projects without enrollment retain the existing launch behavior.
 
 Granted calls suppress direct stdout and stderr capture. The value travels to the native child on a pipe. Receipts, command arguments and Pan's generated launch policy contain only nonsecret metadata. Authorized code can deliberately copy or transmit the value using any channel the approved sandbox permits, including ordinary project output that a later call can read and archive. Expiry ends subsequent delivery; existing disclosures and copies persist. Use disposable test credentials, review code before granting, and use offline mode when network access is unnecessary.
+
+## Local MCP reports
+
+A tarball built from this revision includes a local stdio client and an offline sample server. After installing that tarball, run these commands from a consumer directory. The temporary home keeps the demo's operator declaration separate from your regular settings. The client prints JSON, including the synthetic run ID `sample-001`, three completed jobs and zero failures.
+
+```sh
+demo_home="$(mktemp -d)"
+mkdir -m 700 "$demo_home/.pan-agent"
+(umask 077 && pan-agent mcp example-config > "$demo_home/.pan-agent/mcp-reports.json")
+HOME="$demo_home" pan-agent mcp list example
+HOME="$demo_home" pan-agent mcp call example run_summary
+```
+
+For your own server, put the declaration in `~/.pan-agent/mcp-reports.json` under the home selected by your trusted launcher. An entry names an exact absolute executable, literal arguments and report tools you authorize. Review the executable, scripts, dependencies and their replacement permissions first. The example config command prints the installed Node and sample script paths. An ordinary launch, root help and printing an example start zero peers.
+
+```json
+{"servers":[{"name":"reports","command":"/opt/reports/bin/server","args":[],"tools":["run_summary"]}]}
+```
+
+Only explicit `mcp list SERVER` and `mcp call SERVER TOOL` start a peer. The policy and its directory must be outside the current workspace. The canonical home, policy directory and policy file must be owned by the current OS user and deny group/other writes. Use a regular, single-link file and a real policy directory. Tool names are case-sensitive. An unapproved tool fails before launch. The server's annotations and reported identity grant no permissions.
+
+**Host authority.** The selected local program runs with the current user's filesystem, network and process privileges, outside Pan's task sandbox. The operator vouches for its read-only behavior. It runs from the policy directory through POSIX `/usr/bin/env -i` with literal arguments and piped stdin/stdout. The launcher clears its environment, including model keys, PATH and HOME. The OS or runtime may supply bookkeeping variables (macOS text encoding, for example). Stderr goes to the null device. Use trusted programs that stay in the foreground and exit on stdin EOF. Shutdown supervises the one directly launched server PID. A daemonized process, separately spawned helpers and loss of the client to SIGKILL lie outside this ownership contract. Supported hosts are macOS and Linux.
+
+**Wire subset.** Every request uses revision `2026-07-28` and supplies protocol version, client identity and empty client capabilities in `params._meta`. Each operation checks `server/discover` for that version and the tools capability, then pages through `tools/list`. An approved tool must accept an empty argument object. Supported input schema keys are `type: "object"`, `properties`, an empty `required`, boolean `additionalProperties`, title, description and the 2020-12 dialect URI. The client omits tools with other input constraints or a declared output schema. This avoids promising validation of arbitrary JSON Schema. It accepts complete responses with a content array of text blocks (possibly empty) and optional `structuredContent` including arrays, scalars and null. Tool failures, RPC errors, unsupported result types and blocks all fail the command. Output uses JavaScript JSON values. No credential exchange, remote transport, legacy handshake, notifications from peers, input rounds, resource or model calls are implemented.
+
+The policy file is limited to 32 KiB, each UTF-8 response including LF to 256 KiB and each request to three seconds. At most eight tools pages are read, so a call makes at most ten requests. Only one request is in flight. On timeout or cancellation the client attempts the stdio cancellation notification, closes stdin, waits 150 ms, sends TERM, waits 200 ms and then sends KILL and waits up to one second for exit. An uncertain call is never retried. CLI failures return status 2 with a diagnostic.

@@ -49,3 +49,5 @@ export type { Admission, AdmissionFactory, Ticket, Counts } from './execution/ad
 export {NativeLinuxSandbox} from './sandbox/native/linux.ts';
 export {NativeMacSandbox} from './sandbox/native/macos.ts';
 export type {NativeMacOptions,NativeSandboxOptions} from './sandbox/native/macos.ts';
+
+export { localReports, type ReportRequest, type ReportResponse } from "./mcp/mcp-reports.ts";

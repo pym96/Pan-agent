@@ -3,6 +3,7 @@ import {privateOrigin, type ResolveAddresses} from './sandbox/native/network.ts'
 import {ManualFallback} from './sandbox/fallback.ts';
 import {NativeLinuxSandbox} from './sandbox/native/linux.ts';
 import {NativeMacSandbox} from './sandbox/native/macos.ts';
+import { reportCommand, MCP_USAGE } from "./mcp/mcp-cli.ts";
 import { deliveryCli } from "./execution/delivery-cli.ts";
 import { executionCli } from "./execution/cli.ts";
 import {SandboxSession} from './sandbox/session.ts';
@@ -52,6 +53,7 @@ export const CLI_USAGE = `Usage:
   pan-agent trust --workspace PATH [--approve REVIEW_HASH]
   pan-agent --native-sandbox --native-resource ID (--grant-command EXACT_SHELL | --grant-task)
   Only authorized Shell and children receive PAN_GRANTED_VALUE. File tools still deny the protected path.
+  ${MCP_USAGE}
   pan-agent delivery --help   (bounded local delivery with independent checks)
   pan-agent settings path|show|validate   (read-only ordinary settings; no credential access)
   npm run agent -- configure   (first-run settings: provider/model/thinking and credential source; persists no secret)
@@ -196,6 +198,10 @@ export async function runCli(args: readonly string[], dependencies: CliDependenc
 	const writeLine = (line: string): void => {
 		output.write(`${line}\n`);
 	};
+  if (args[0] === "mcp") {
+    try { writeLine(await reportCommand(args.slice(1), dependencies.home)); return 0; }
+    catch (error) { writeLine("MCP failed: " + terminalText(error instanceof Error ? error.message : "unknown")); return 2; }
+  }
 	if (args[0] === 'trust') {
     try {
       if (args[1] !== '--workspace' || !args[2] || !(args.length === 3 || (args.length === 5 && args[3] === '--approve'))) throw Error("usage: pan-agent trust --workspace PATH [--approve REVIEW_HASH]");

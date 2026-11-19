@@ -197,3 +197,5 @@ A test server and its child client can communicate over a Unix socket in `$PAN_L
 [Protocol coverage, local server example, platform requirements and evidence](docs/design/native-network.md)
 
 The option applies to current source builds. Public v0.1.9 predates it. Scheduled commands keep their existing interfaces.
+
+[Local MCP report demo](typescript/README.md#local-mcp-reports) describes how to use a tarball built from this revision to list and call an explicitly configured read-only reporting server.

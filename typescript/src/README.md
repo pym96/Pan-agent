@@ -21,3 +21,5 @@ The [#41 design](../../docs/design/native-module-layout.md) and [source map](../
 - [execution/](execution/README.md): shared admission, scheduler, goal verification and supervised installed CLI (#150 candidate).
 
 `config/workspace-trust.ts` validates the optional native workspace declaration, maintains operator-owned trust receipts and binds a selected read-only resource to an exact command or the first task.
+
+[Local MCP reports](mcp/README.md) contains the operator-authorized stdio report client, process transport and CLI mapping.

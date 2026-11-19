@@ -111,6 +111,10 @@ def main():
         report['settings'] = json.loads((out/'settings/summary.json').read_text())
         if report['settings']['status'] != 'PASS':
             raise RuntimeError('installed settings checks failed')
+        run('mcp-reports', ['node', str(ROOT/'scripts/runtime-ci/mcp-reports.mjs'), str(cli), str(out/'mcp-reports')])
+        report['mcp_reports'] = json.loads((out/'mcp-reports/summary.json').read_text())
+        if report['mcp_reports']['status'] != 'PASS':
+            raise RuntimeError('installed MCP report checks failed')
         run('delivery', ['node', str(ROOT/'scripts/runtime-ci/delivery.mjs'), str(cli), str(out/'delivery')])
         report['delivery'] = json.loads((out/'delivery/summary.json').read_text())
         if report['delivery']['status'] != 'PASS':
