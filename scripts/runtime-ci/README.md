@@ -55,6 +55,6 @@ Add current source tests as `typescript/test/*.test.ts`; the shared runner and `
 
 Old #41 relocation/graph proof, #25 revision-to-base facts freeze and #43 routing wording run only through [explicit historical reproduction](../history-replay/README.md). Its Git/cache prerequisites and original criteria are separate from the current entry. [Assertion map and design](../../docs/design/current-regression-history.md).
 
-## Native macOS real enforcement
+## Native platform enforcement
 
-`node scripts/runtime-ci/native-macos.mjs INSTALLED_PACKAGE NEW_EXTERNAL_OUTPUT` runs a deterministic installed CLI/TUI task through actual Seatbelt on macOS. It needs system sandbox-exec/otool and does not call a Provider. It supplements the portable current regression; Linux unsupported-path tests are not macOS enforcement evidence. See [native sandbox design](../../docs/design/native-macos-sandbox.md).
+`node scripts/runtime-ci/native-macos.mjs INSTALLED_PACKAGE NEW_EXTERNAL_OUTPUT` exercises the real installed CLI/TUI and actual native backend on macOS or supported x86-64 Linux. It checks a host edit, Shell command, atomic project output replacement and typed readback using scripted responses. The required-real Linux source test sets `PAN_REQUIRE_NATIVE_LINUX=1`. Restricted-runner refusal is recorded separately. `native-linux-unavailable.mjs INSTALLED_PACKAGE NEW_OUTPUT` verifies zero calls/effects in an intentionally unsupported Linux fixture. See the [Linux policy](../../docs/design/native-linux-sandbox.md) and [macOS policy](../../docs/design/native-macos-sandbox.md).

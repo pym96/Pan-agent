@@ -1,3 +1,4 @@
+import {NativeLinuxSandbox} from './sandbox/native/linux.ts';
 import {NativeMacSandbox} from './sandbox/native/macos.ts';
 import { executionCli } from "./execution/cli.ts";
 import {SandboxSession} from './sandbox/session.ts';
@@ -55,7 +56,7 @@ Attachments use selection-time UTF-8 snapshots; default aggregate maxAttachmentB
 Ordinary settings persist at ~/.pan-agent/settings.json (mode 0600; provider/model/thinking, credential source kind, protectedPaths, permissions.deny and maxAttachmentBytes — never a secret). Run 'configure' to update provider fields while preserving valid ordinary preferences; on a TTY first run without settings the same flow is offered. Explicit --model/--thinking flags override persisted values for that run.
 Deny rules are frozen at TUI session creation, before tool execution and approval, including trusted Shell and sandbox tools. Whole tools: read/write/edit/bash/retrieve; bash(PATTERN) uses only literal characters and * wildcard. No shell semantic analysis or OS containment.
 Credential source: environment reads DEEPSEEK_API_KEY (deepseek) or KIMI_API_KEY (kimi-code) only when a Provider call is made; keychain retrieves the macOS Keychain item named by the Pan service/account convention only when a Provider call is made. kimi-code selects the official OpenAI-compatible Kimi Code endpoint with explicit kimi-for-coding or k3-256k selection in configure (kimi-code:k3-256k); Kimi --model/--thinking overrides are unsupported; arbitrary endpoints and unknown models are rejected.
-Native macOS sandbox (opt-in): --native-sandbox shares --workspace through host-mediated files and OS-isolated Shell/descendants; offline, no retrieval, no host fallback. Requires macOS sandbox-exec and otool. No Docker-equivalent resource quotas; see README.
+Native workspace sandbox (opt-in): --native-sandbox shares --workspace through host-mediated files and OS-isolated Shell/descendants; offline, no retrieval, no host fallback. Requires macOS sandbox-exec/otool or a supported x86-64 Linux Bubblewrap/FUSE setup. No Docker-equivalent resource quotas; see README.
 Sandbox (opt-in): add --sandbox-root DIR and optional repeated --sandbox-input FILE. One new fixed-profile Docker workspace per task; no retrieval. After exit: pan-agent sandbox list --root DIR; recover|export|verify|cleanup --run RUN_DIRECTORY (see README).
 Retrieval (default off): pan-agent retrieval configure --workspace DIR --from selection.json; retrieval show|disable --workspace DIR. Each approved call refreshes selected sources.
 No Provider call occurs for --help, configure, startup, idle cancellation, or TUI commands. Startup has no y; protected/outside/uncertain file operations and Shell require operation-scoped approval.`;
@@ -228,8 +229,9 @@ export async function runCli(args: readonly string[], dependencies: CliDependenc
 
 	if(configuration.sandboxInputs?.length&&!configuration.sandboxRoot){writeLine("Validation failed: sandbox inputs require --sandbox-root");return 2;}
  if(configuration.nativeSandbox&&(configuration.sandboxRoot||configuration.sandboxInputs?.length)){writeLine("Validation failed: native sandbox cannot combine with Docker flags");return 2;}
- if(configuration.nativeSandbox&&process.platform!=='darwin'){writeLine("Validation failed: native_sandbox_unsupported_platform: requires macOS");return 2;}
- let nativeSandbox:NativeMacSandbox|undefined;
+ if(configuration.nativeSandbox&&process.platform!=='darwin'&&process.platform!=='linux'){writeLine("Validation failed: native_sandbox_unsupported_platform: requires macOS or supported Linux");return 2;}
+ const NativeSandbox=process.platform==='linux'?NativeLinuxSandbox:NativeMacSandbox;
+ let nativeSandbox:NativeLinuxSandbox|NativeMacSandbox|undefined;
  const sandbox=configuration.sandboxRoot?new SandboxSession({stateRoot:resolve(configuration.sandboxRoot),inputs:configuration.sandboxInputs},writeLine):undefined;
  const presentation: CompactPresentation = (dependencies.createPresentation ?? createCompactPresentation)(writeLine);
 	const shared = {
@@ -238,7 +240,7 @@ export async function runCli(args: readonly string[], dependencies: CliDependenc
 			if (presentation.progressError) presentation.progressError();
 			else writeLine("Display error: progress observer failed; execution continues.");
 		},
-		systemPrompt: (configuration.nativeSandbox?"You are a coding agent in a shared live workspace. Use typed read/write/edit/bash tools and observations; protected/outside files are denied, Shell and descendants use a fixed offline macOS OS sandbox. No host fallback, no retrieval. Return accurate results; never print secrets.":GENERAL_AGENT_SYSTEM_PROMPT)+(sandbox?"\nTools run ONLY in an isolated Docker workspace /workspace/task. Selected inputs are /inputs, read-only. No retrieval or host tool access. Each new task gets a new workspace.":""),
+		systemPrompt: (configuration.nativeSandbox?"You are a coding agent in a shared live workspace. Use typed read/write/edit/bash tools and observations; protected/outside files are denied, Shell and descendants use a fixed offline OS sandbox. No host fallback, no retrieval. Return accurate results; never print secrets.":GENERAL_AGENT_SYSTEM_PROMPT)+(sandbox?"\nTools run ONLY in an isolated Docker workspace /workspace/task. Selected inputs are /inputs, read-only. No retrieval or host tool access. Each new task gets a new workspace.":""),
 		memory: { archiveStore, runbook: () => loadRunbook(RUNBOOK_PATH) },
 		onObservation(observation: SessionObservation) {
 			observeSafely(presentation, observation, writeLine);
@@ -296,7 +298,7 @@ export async function runCli(args: readonly string[], dependencies: CliDependenc
 				: {}));
 			adapter = adapterFactory(profile);
 		}
-		nativeSandbox=configuration.nativeSandbox?new NativeMacSandbox({workspace,stateRoot:resolve(memoryRoot,"native-sandbox"),protectedPaths:settings?.protectedPaths,notify:writeLine}):undefined;
+		nativeSandbox=configuration.nativeSandbox?new NativeSandbox({workspace,stateRoot:resolve(memoryRoot,"native-sandbox"),protectedPaths:settings?.protectedPaths,notify:writeLine}):undefined;
         const trustedLocal = sandbox??nativeSandbox??(dependencies.createTools ? dependencies.createTools(workspace) : createPanTrustedLocalTools(workspace));
 		session = new GeneralAgentSession({
 			...shared,
@@ -318,7 +320,7 @@ export async function runCli(args: readonly string[], dependencies: CliDependenc
 		? `CREDENTIAL keychain (macOS Keychain service ${keychainReference.service} account ${keychainReference.account}; retrieved only when a Provider call is made)`
 		: `CREDENTIAL environment ${credentialEnv} (required at task time; never saved)`);
 	return (dependencies.startTui ?? runTui)({
-  ...(sandbox?{executionMode:"sandbox" as const}:nativeSandbox?{executionMode:"native-macos-offline" as const}:{}),
+  ...(sandbox?{executionMode:"sandbox" as const}:nativeSandbox?{executionMode:nativeSandbox.executionMode}:{}),
 		credentialSource,
 		session,
 		presentation,

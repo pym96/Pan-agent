@@ -40,7 +40,7 @@ function runtimeFiles():string[]{
  visit(node);return [...seen].sort();
 }
 
-export interface NativeMacOptions {
+export interface NativeSandboxOptions {
  readonly workspace:string;
  /** Private state outside the live workspace. No arbitrary toolchain/read-root option. */
  readonly stateRoot:string;
@@ -48,7 +48,10 @@ export interface NativeMacOptions {
  readonly notify?:(text:string)=>void;
 }
 
+export type NativeMacOptions = NativeSandboxOptions;
+
 export class NativeMacSandbox {
+ readonly executionMode='native-macos-offline' as const;
  readonly workspace:string;
  readonly stateRoot:string;
  readonly tools:readonly AgentTool[];

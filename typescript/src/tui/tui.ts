@@ -7,7 +7,7 @@ import type { RunArchiveStore } from "../memory/run-archive.ts";
 import type { GeneralAgentSession, SessionObservation, TaskRunResult } from "../runtime/session.ts";
 
 export interface TuiOptions {
- readonly executionMode?:"sandbox"|"native-macos-offline";
+ readonly executionMode?:"sandbox"|"native-macos-offline"|"native-linux-offline";
 	/** Nonsecret configuration context for safe failure guidance only. */
 	readonly credentialSource?: 'environment' | 'keychain';
 	readonly maxAttachmentBytes?: number;
@@ -114,7 +114,7 @@ export async function runTui(options: TuiOptions): Promise<number> {
 	writeLine(`THINKING ${options.thinking}`);
 	writeLine(`KERNEL ${options.session.kernelKind}`);
 	writeLine(`WORKSPACE ${options.workspace}`);
-	writeLine(options.executionMode==="native-macos-offline"?"NATIVE MACOS SANDBOX: shared workspace; offline Shell and descendants; host-mediated files; retrieval disabled.":options.executionMode==="sandbox"?"DOCKER SANDBOX: fixed offline container; retrieval disabled; one workspace per task.":"SHELL trusted-local: host-user authority; workspace is cwd, not containment or an OS sandbox.");
+	writeLine(options.executionMode?.startsWith("native-")?`NATIVE ${options.executionMode==="native-linux-offline"?"LINUX":"MACOS"} SANDBOX: shared workspace; offline Shell and descendants; host-mediated files; retrieval disabled.`:options.executionMode==="sandbox"?"DOCKER SANDBOX: fixed offline container; retrieval disabled; one workspace per task.":"SHELL trusted-local: host-user authority; workspace is cwd, not containment or an OS sandbox.");
 
 	try {
 		// Frozen Reference retains its historical acknowledgement; Product CLI cannot select Pi.

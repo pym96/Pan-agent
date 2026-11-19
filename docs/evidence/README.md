@@ -166,3 +166,5 @@ Raw artifacts remain at their stable source, Git, Trace, Test, evaluator, or ext
 - [Runtime CI](runtime-ci/README.md): #154 installed CPU regression evidence boundary and source/package identity.
 
 - [#160 installed onboarding candidate](install160/README.md): publish preparation, actual global-prefix/PTY checks and truthful release availability.
+
+- [Native Linux sandbox #173](native173/README.md) records the Builder evidence route, earlier failures and policy boundaries.

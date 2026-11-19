@@ -1,6 +1,6 @@
 # Pan Agent — terminal runtime
 
-Requires Node.js >=22.19.0. Runtime dependencies: Node built-ins only. Installed regression runs target macOS arm64 and Linux; Windows remains unverified.
+Requires Node.js >=22.19.0. Default runtime dependencies: Node built-ins only. The optional Linux native sandbox uses system tools described below. Installed regression runs target macOS arm64 and Linux; Windows remains unverified.
 
 ## Version and command navigation
 
@@ -219,6 +219,11 @@ The complete suite includes seven checkout-path regressions that execute the act
 
 Current development requires only the checked-out tree and locked development tools; no historical Git objects or existing `dist` are needed. `npm --prefix typescript run build` builds from source; the shared entry above performs the complete regression. Optional [fixed-version historical checks](../scripts/history-replay/README.md) retain their own source/checker/criteria pins and setup costs.
 
-## Native macOS sandbox (opt-in)
+## Native workspace sandbox (opt-in)
 
-The current source/next built package supports `pan-agent --native-sandbox --workspace /absolute/project --memory-root /absolute/disjoint/archives` on supported macOS. File tools and OS-isolated Shell share the live project; this initial slice is offline and protects sensitive/configuration paths. It requires system `sandbox-exec` and `otool`, provides no Docker-equivalent resource quotas, and never falls back to host execution. It applies to interactive startup only; existing scheduled commands retain their current interfaces. Public v0.1.9 does not include this option. See [Native macOS sandbox (current source / next package)](../docs/design/native-macos-sandbox.md) for exact read roots, supported tools, limitations and verification.
+Run `pan-agent --native-sandbox --workspace /absolute/project --memory-root /absolute/disjoint/archives` in an interactive terminal. Host file tools and the offline Shell share the live project. A Shell command can create an output, atomically replace a regular file and read back the result through Pan. The native mode has fixed file and network restrictions and provides no CPU, memory or disk quotas. A failed startup reports the missing boundary before the model runs.
+
+- On macOS, the backend uses the system Seatbelt tools. [macOS requirements and policy](https://github.com/pym96/Pan-agent/blob/main/docs/design/native-macos-sandbox.md)
+- On supported x86-64 Linux, the backend uses Bubblewrap, working unprivileged namespaces, `/dev/fuse`, fusermount, libfuse2, libseccomp2, system Python 3 and glibc tools. The package includes its Python binding. Shell sees the filtered live project at `/work` and a private writable `/tmp`. [Linux setup, supported operations and limitations](https://github.com/pym96/Pan-agent/blob/main/docs/design/native-linux-sandbox.md)
+
+The option applies to current source builds. Public v0.1.9 predates it. Scheduled commands keep their existing interfaces.

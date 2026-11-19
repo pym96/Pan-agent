@@ -138,3 +138,5 @@ The Human-accepted architecture history remains indexed in [`../adr/README.md`](
 - [Execution and goal control](execution-controller.md): EC1.1 candidate interfaces, authority, lifecycle and test limits.
 
 - [Native macOS sandbox #172](native-macos-sandbox.md): opt-in shared workspace, host-mediated files and actual offline Seatbelt Shell; candidate pending independent/Human review.
+
+- [Native Linux sandbox #173](native-linux-sandbox.md) documents the Bubblewrap and FUSE workspace, supported installation and offline policy.

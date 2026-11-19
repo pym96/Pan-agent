@@ -46,5 +46,6 @@ export type { ExecutionPlan, ExecutionResult, Clock, TaskRunner, Attempt, Verdic
 export { BudgetLedger } from './execution/admission.ts';
 export type { Admission, AdmissionFactory, Ticket, Counts } from './execution/admission.ts';
 
+export {NativeLinuxSandbox} from './sandbox/native/linux.ts';
 export {NativeMacSandbox} from './sandbox/native/macos.ts';
-export type {NativeMacOptions} from './sandbox/native/macos.ts';
+export type {NativeMacOptions,NativeSandboxOptions} from './sandbox/native/macos.ts';
