@@ -7,10 +7,92 @@ import { join } from "node:path";
 import { test } from "node:test";
 import type { JsonObject } from "../src/protocol/canonical-protocol.ts";
 import { SessionAuthorization } from "../src/runtime/authorization.ts";
-import { NativeLinuxSandbox } from "../src/sandbox/native/linux.ts";
+import {
+  compileLinuxProtectedPaths,
+  NativeLinuxSandbox,
+} from "../src/sandbox/native/linux.ts";
 
 const quote = (text: string) => "'" + text.replaceAll("'", "'\\''") + "'";
 const pause = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+test("Linux policy compilation maps every accepted configured root and rejects ambiguous metadata", async () => {
+  const base = fs.realpathSync(
+    fs.mkdtempSync(join(tmpdir(), "pan-linux-policy-")),
+  );
+  try {
+    const workspace = join(base, "project"),
+      outside = join(base, "outside");
+    fs.mkdirSync(workspace);
+    fs.mkdirSync(outside);
+    fs.mkdirSync(join(workspace, "existing"));
+    fs.closeSync(fs.openSync(join(workspace, "empty-file"), "wx"));
+    fs.symlinkSync(join(workspace, "existing"), join(base, "alias"));
+    fs.symlinkSync("existing", join(workspace, "alias"));
+    fs.symlinkSync("missing", join(workspace, "dangling"));
+    fs.linkSync(join(workspace, "empty-file"), join(workspace, "hardlink"));
+
+    const inputs = [
+      "existing",
+      join(workspace, "existing", "future", "deep"),
+      "future-root/leaf",
+      "./literal space/next",
+    ];
+    const rules = compileLinuxProtectedPaths(workspace, inputs, []);
+    assert.deepEqual(rules.child, [
+      "existing",
+      "existing/future/deep",
+      "future-root/leaf",
+      "literal space/next",
+    ]);
+    assert.deepEqual(
+      rules.host,
+      rules.child.map((rule) => join(workspace, rule)),
+    );
+    assert.equal(rules.child.length, inputs.length);
+    for (const root of [
+      outside,
+      join(outside, "future"),
+      join(base, "alias"),
+      join(base, "alias", "future"),
+      workspace,
+      "alias",
+      "alias/future",
+      "dangling/future",
+      "hardlink",
+      "empty-file/future",
+      "alias/../existing",
+    ]) {
+      assert.throws(
+        () => compileLinuxProtectedPaths(workspace, [...inputs, root], []),
+        /native_sandbox_protected_path_(scope|alias)/,
+      );
+    }
+    assert.throws(
+      () =>
+        compileLinuxProtectedPaths(
+          workspace,
+          ["existing/future"],
+          [join(workspace, "existing")],
+        ),
+      /nested mount/,
+    );
+    if (process.platform === "linux" && process.arch === "x64") {
+      const stateRoot = join(base, "unused-state");
+      const sandbox = new NativeLinuxSandbox({
+        workspace,
+        stateRoot,
+        protectedPaths: [join(base, "alias", "future")],
+      });
+      await assert.rejects(
+        sandbox.start("metadata"),
+        /native_sandbox_protected_path_scope/,
+      );
+      assert.equal(fs.existsSync(stateRoot), false);
+    }
+  } finally {
+    fs.rmSync(base, { recursive: true, force: true });
+  }
+});
 
 test(
   "Linux native admission and live workspace use a real OS boundary or report unavailability",
@@ -50,6 +132,14 @@ test(
     try {
       try {
         await box.start("run");
+        const configured = JSON.parse(
+          fs.readFileSync(join(stateRoot, "run", "policy.json"), "utf8"),
+        ).protected;
+        assert.deepEqual(configured, ["private/config"]);
+        assert.deepEqual(
+          box.identity.protectedRoots,
+          configured.map((entry: string) => join(workspace, entry)),
+        );
       } catch (error) {
         if (process.env.PAN_REQUIRE_NATIVE_LINUX === "1") throw error;
         assert.match(String(error), /native_sandbox_linux_unavailable/);

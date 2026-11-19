@@ -1,6 +1,8 @@
 """Live, filtered projection of /source inside the Bubblewrap supervisor namespace."""
+import array
 import ctypes
 import errno
+import fcntl
 import json
 import os
 import signal
@@ -38,6 +40,37 @@ class Workspace(Operations):
         self.root = os.open('/source', DIRECTORY)
         self.mount = mount_id(self.root)
         self.protected = {tuple(root.split('/')) for root in roots}
+
+    def validate_protected_names(self):
+        if not self.protected:
+            return
+        # Case-sensitive spelling of a non-existent suffix cannot be established by
+        # readdir. Use ext4's real, per-directory lookup mode on this x86-64 backend.
+        mount_number = self.mount.split()[1]
+        with open('/proc/self/mountinfo', encoding='utf-8') as info:
+            filesystem = next(line.split(' - ', 1)[1].split()[0] for line in info
+                              if line.split()[0] == mount_number)
+        if filesystem != 'ext4':
+            raise RuntimeError('Linux configured protectedPaths require a case-sensitive ext4 project')
+        for root in self.protected:
+            parent = os.dup(self.root)
+            try:
+                for index, component in enumerate(root):
+                    flags = array.array('l', [0])
+                    fcntl.ioctl(parent, 0x80086601, flags, True)  # FS_IOC_GETFLAGS on x86-64
+                    if flags[0] & 0x40000000:  # EXT4_CASEFOLD_FL
+                        raise RuntimeError('Linux configured protectedPaths require literal case-sensitive ext4 directories')
+                    if index + 1 == len(root):
+                        break
+                    try:
+                        child = os.open(component, DIRECTORY, dir_fd=parent)
+                    except FileNotFoundError:
+                        break  # New directories inherit the verified parent's lookup mode.
+                    os.close(parent)
+                    parent = child
+                    self.validate(parent)
+            finally:
+                os.close(parent)
 
     def parts(self, path):
         if not path.startswith('/'):
@@ -248,9 +281,11 @@ def shell_filter():
 def main():
     with open('/pan-policy.json', encoding='utf-8') as source:
         policy = json.load(source)
+    workspace = Workspace(policy['protected'])
+    workspace.validate_protected_names()
     pid = os.fork()
     if pid == 0:
-        FUSE(Workspace(policy['protected']), '/view', foreground=True, nothreads=True,
+        FUSE(workspace, '/view', foreground=True, nothreads=True,
              direct_io=True, default_permissions=True, attr_timeout=0, entry_timeout=0,
              negative_timeout=0, fsname='pan-workspace')
         os._exit(0)

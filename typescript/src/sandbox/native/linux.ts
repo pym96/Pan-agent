@@ -124,6 +124,63 @@ function exactComponents(root: string, target: string): void {
   }
 }
 
+/** Compile one child deny rule for each accepted host root, including future paths. */
+export function compileLinuxProtectedPaths(
+  workspace: string,
+  configured: readonly string[],
+  mounts: readonly string[],
+): { host: readonly string[]; child: readonly string[] } {
+  const child = configured.map((input) => {
+    const hostPath = resolve(workspace, input);
+    if (
+      !input.trim() ||
+      input.includes("\0") ||
+      input.split(sep).includes("..") ||
+      hostPath === workspace ||
+      !inside(workspace, hostPath)
+    ) {
+      throw Error(
+        "native_sandbox_protected_path_scope: Linux protectedPaths must name literal descendants of the selected project without parent traversal; external protected roots prevent startup",
+      );
+    }
+    if (
+      mounts.some(
+        (mount) =>
+          mount !== workspace &&
+          inside(workspace, mount) &&
+          inside(mount, hostPath),
+      )
+    )
+      throw Error(
+        "native_sandbox_protected_path_alias: a protected root crosses a nested mount",
+      );
+    let parent = workspace;
+    const components = relative(workspace, hostPath).split(sep);
+    for (const [index, component] of components.entries()) {
+      const next = join(parent, component);
+      const st = lstatSync(next, { throwIfNoEntry: false });
+      if (!st) break; // The unavailable suffix remains in the rule verbatim.
+      if (
+        !readdirSync(parent).includes(component) ||
+        st.isSymbolicLink() ||
+        !(
+          st.isDirectory() ||
+          (index === components.length - 1 && st.isFile() && st.nlink === 1)
+        )
+      )
+        throw Error(
+          "native_sandbox_protected_path_alias: use literal project paths without links or special files",
+        );
+      parent = next;
+    }
+    return relative(workspace, hostPath);
+  });
+  return {
+    host: Object.freeze(child.map((path) => join(workspace, path))),
+    child: Object.freeze(child),
+  };
+}
+
 /** Resolve only the running Node and fixed OS utilities, never a project executable. */
 function libraryMounts(commands: string[]): Map<string, string> {
   const proc = spawnSync("/usr/bin/ldd", commands, {
@@ -156,7 +213,11 @@ export class NativeLinuxSandbox {
   readonly workspace: string;
   readonly stateRoot: string;
   readonly tools: readonly AgentTool[];
-  readonly protectedRoots: string[];
+  private readonly configuredRoots: readonly string[];
+  private admittedRoots: readonly string[] = Object.freeze([]);
+  get protectedRoots(): readonly string[] {
+    return this.admittedRoots;
+  }
   private readonly options: NativeSandboxOptions;
   private readonly controllers = new Map<AbortController, Promise<unknown>>();
   private temporary?: string;
@@ -172,9 +233,7 @@ export class NativeLinuxSandbox {
     this.stateRoot = resolve(options.stateRoot);
     if (overlaps(this.workspace, this.stateRoot))
       throw Error("native_sandbox_state_overlap");
-    this.protectedRoots = (options.protectedPaths ?? []).map((path) =>
-      resolve(this.workspace, path),
-    );
+    this.configuredRoots = Object.freeze([...(options.protectedPaths ?? [])]);
     this.tools = createPanTrustedLocalTools(
       this.workspace,
       {},
@@ -258,6 +317,12 @@ export class NativeLinuxSandbox {
       throw Error(DIAGNOSTIC);
     if (!/^[a-zA-Z0-9_-]+$/.test(runId))
       throw Error("native_sandbox_invalid_run");
+    const roots = compileLinuxProtectedPaths(
+      this.workspace,
+      this.configuredRoots,
+      mountpoints(),
+    );
+    this.admittedRoots = roots.host;
     this.cancelled = false;
     this.runId = runId;
     let ancestor = this.stateRoot;
@@ -296,20 +361,6 @@ export class NativeLinuxSandbox {
     const runtime = [...this.runtimeFiles, helper];
     if (runtime.some((path) => overlaps(this.workspace, path)))
       throw Error("native_sandbox_mutable_toolchain");
-    for (const root of this.protectedRoots) {
-      const canonical = lstatSync(root, { throwIfNoEntry: false })
-        ? realpathSync(root)
-        : root;
-      if (
-        inside(root, this.workspace) ||
-        inside(canonical, this.workspace) ||
-        runtime.some(
-          (path) => overlaps(root, path) || overlaps(canonical, path),
-        )
-      )
-        throw Error("native_sandbox_protected_overlap");
-      if (inside(this.workspace, root)) exactComponents(this.workspace, root);
-    }
     const run = join(this.stateRoot, runId);
     mkdirSync(run, { mode: 0o700 });
     this.temporary = join(run, "temporary");
@@ -340,9 +391,7 @@ export class NativeLinuxSandbox {
         "/",
       );
       const policy = {
-        protected: this.protectedRoots
-          .filter((path) => inside(this.workspace, path))
-          .map((path) => relative(this.workspace, path)),
+        protected: roots.child,
         environment: ENVIRONMENT,
         shellMounts,
       };
