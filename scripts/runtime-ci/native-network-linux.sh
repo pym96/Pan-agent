@@ -16,18 +16,29 @@ cleanup() {
 }
 trap cleanup EXIT
 # Docker only provisions distribution packages; neither Pan nor its test workload runs under Docker here.
-echo "provision: obtain Ubuntu 24.04 userspace"
-timeout 55s docker pull ubuntu:24.04
-container=$(docker create --network host -e DEBIAN_FRONTEND=noninteractive \
-  -v /etc/ssl/certs/ca-certificates.crt:/host-ca.crt:ro ubuntu:24.04 bash -euc '
-  sed -i -e "s|http://archive.ubuntu.com|https://archive.ubuntu.com|g" \
-    -e "s|http://security.ubuntu.com|https://security.ubuntu.com|g" \
-    -e "s/^Components:.*/Components: main universe/" -e "s/ noble-backports//g" /etc/apt/sources.list.d/ubuntu.sources
-  opts=(-o Acquire::https::CaInfo=/host-ca.crt -o Acquire::https::Timeout=12 -o Acquire::Retries=1 -o Acquire::Languages=none)
+# Pin the amd64 image selected by the successful CI run, and a later signed archive
+# snapshot. All three pockets then describe a single point in time.
+image=ubuntu@sha256:77eb101c607d6e3d4f5ad0c8a02c2136c689b98aba1f359e6502ba517e5c57ec
+archive=https://snapshot.ubuntu.com/ubuntu/20261117T120000Z
+echo "provision: obtain $image with archive $archive"
+timeout 55s docker pull --platform linux/amd64 "$image"
+container=$(docker create --platform linux/amd64 --network host -e DEBIAN_FRONTEND=noninteractive -e PAN_APT_ARCHIVE="$archive" \
+  -v /etc/ssl/certs/ca-certificates.crt:/host-ca.crt:ro "$image" bash -euc '
+  cat > /etc/apt/sources.list.d/ubuntu.sources <<SOURCES
+Types: deb
+URIs: $PAN_APT_ARCHIVE
+Suites: noble noble-updates noble-security
+Components: main universe
+Architectures: amd64
+Signed-By: /usr/share/keyrings/ubuntu-archive-keyring.gpg
+SOURCES
+  opts=(-o Acquire::https::CaInfo=/host-ca.crt -o Acquire::https::Timeout=12 -o Acquire::Retries=1 -o Acquire::Languages=none -o Acquire::CompressionTypes::Order::=xz)
   echo "provision: fetch signed distribution indexes over HTTPS"
   timeout 65s apt-get "${opts[@]}" -o APT::Update::Error-Mode=any update
   echo "provision: install native prerequisites"
-  timeout 65s apt-get "${opts[@]}" install -y --no-install-recommends bubblewrap fuse3 libfuse2t64 libseccomp2 libatomic1 python3 curl ca-certificates
+  packages=(bubblewrap fuse3 libfuse2t64 libseccomp2 libatomic1 python3 curl ca-certificates)
+  timeout 65s apt-get "${opts[@]}" install -y --no-install-recommends "${packages[@]}"
+  dpkg-query -W "${packages[@]}"
 ')
 docker start -a "$container"
 test "$(docker inspect --format '{{.State.ExitCode}}' "$container")" = 0
