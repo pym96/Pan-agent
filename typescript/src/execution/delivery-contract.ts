@@ -42,8 +42,55 @@ function keys(value: unknown, expected: string[]): boolean {
     JSON.stringify(Object.keys(value).sort()) === JSON.stringify([...expected].sort())
   );
 }
+// JSON.parse's numeric value is already binary64, even inside its reviver. Node 22.19+
+// also supplies the original token. Normalize that token without expanding powers of ten.
+class JsonDecimal {
+  readonly coefficient: string;
+  readonly exponent: bigint;
+  constructor(token: string) {
+    const parts = /^(-?)(\d+)(?:\.(\d+))?(?:[eE]([+-]?\d+))?$/.exec(token);
+    if (!parts) throw Error('invalid_json_number');
+    const fraction = parts[3] ?? '';
+    const digits = (parts[2]! + fraction).replace(/^0+/, '');
+    let end = digits.length;
+    while (end > 0 && digits[end - 1] === '0') end--;
+    this.coefficient = end ? parts[1]! + digits.slice(0, end) : '0';
+    this.exponent = end ? BigInt(parts[4] ?? '0') + BigInt(digits.length - end - fraction.length) : 0n;
+  }
+}
+
+// The native parser has already validated syntax. Scan the original member names because
+// the parsed object itself no longer reveals duplicate keys, including differently escaped spellings.
+function checkUniqueNames(text: string): void {
+  const stack: Set<string>[] = [];
+  for (const match of text.matchAll(/"(?:\\.|[^"\\])*"|[{}]/g)) {
+    const token = match[0];
+    if (token === '{') stack.push(new Set());
+    else if (token === '}') stack.pop();
+    else {
+      let pos = match.index + token.length;
+      while (' \n\t\r'.includes(text[pos] ?? '\0')) pos++;
+      if (text[pos] !== ':') continue;
+      const key: string = JSON.parse(token);
+      const names = stack[stack.length - 1]!;
+      if (names.has(key)) throw Error('duplicate_json_member');
+      names.add(key);
+    }
+  }
+}
+export function parseExactJson(text: string): unknown {
+  const value = JSON.parse(text, (_key: string, parsed: unknown, context?: { source?: string }) => {
+    if (typeof parsed !== 'number') return parsed;
+    if (typeof context?.source !== 'string') throw Error('json_number_source_unavailable');
+    return new JsonDecimal(context.source);
+  });
+  checkUniqueNames(text);
+  return value;
+}
 export function parseCriteria(bytes: Buffer): DeliveryCriteria {
-  const value = JSON.parse(bytes.toString('utf8'));
+  const text = new TextDecoder('utf-8', { fatal: true, ignoreBOM: true }).decode(bytes);
+  const value = JSON.parse(text);
+  checkUniqueNames(text);
   if (
     !keys(value, ['version', 'files', 'checks']) ||
     typeof value.version !== 'string' ||
@@ -84,7 +131,7 @@ export function parseCriteria(bytes: Buffer): DeliveryCriteria {
       (!check.value && ['includes', 'excludes'].includes(check.kind))
     )
       throw Error('invalid_delivery_check');
-    if (check.kind === 'json-equals') JSON.parse(check.value);
+    if (check.kind === 'json-equals') parseExactJson(check.value);
     ids.add(check.id);
   }
   return value;

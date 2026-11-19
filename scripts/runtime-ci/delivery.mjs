@@ -117,6 +117,37 @@ const invalid = await run('builder-prose', args('prose', prose));
 assert.equal(invalid.code, 1);
 assert.equal(type(invalid, 'delivery.handoff').length, 0);
 assert.match(JSON.stringify(invalid.events), /builder_produced_no_candidate/);
+// The criteria and candidate enter through their original UTF-8 text. Creating either with a JS number
+// would round the fixture itself and erase the regression before it reaches the installed reviewer.
+const preciseCriteria = join(out, 'numeric-criteria.json');
+const numericFixture = join(out, 'numeric-fixture.json');
+const numericScript = structuredClone(responses.slice(-2));
+numericScript[0].message.content[0].arguments.content = '{"record":9007199254740992}';
+save(numericFixture, numericScript);
+save(preciseCriteria, {
+  version: 'records-v3',
+  files: ['hours.txt'],
+  checks: [
+    { id: 'record', file: 'hours.txt', kind: 'json-equals', value: '{"record":9007199254740993}' },
+  ],
+});
+const precise = await run('numeric-mismatch', [
+  'run',
+  '--workspace',
+  project,
+  '--state',
+  join(out, 'numeric'),
+  '--criteria',
+  preciseCriteria,
+  '--fixture',
+  numericFixture,
+  '--attempts',
+  '1',
+  '--task',
+  'Set the record number.',
+]);
+assert.equal(type(precise, 'goal.verdict')[0].verdict.status, 'FAIL');
+assert.equal(precise.code, 1);
 const budget = await run('budget', [...args('limited'), '--attempts', '1']);
 assert.equal(type(budget, 'goal.verdict')[0].verdict.status, 'FAIL');
 assert.equal(json(join(out, 'limited', 'result.json')).attempts, 1);
@@ -281,11 +312,14 @@ assert.deepEqual(
   ]
 );
 const settingsFile = join(home, '.pan-agent', 'settings.json');
-save(settingsFile, {...json(settingsFile), permissions: {deny: ['write']}});
+save(settingsFile, { ...json(settingsFile), permissions: { deny: ['write'] } });
 const denied = await run('deny-write', args('denied', latest));
 assert.equal(denied.code, 1);
 assert.equal(type(denied, 'delivery.handoff').length, 0);
-assert.equal(readFileSync(join(out, 'denied', 'builder', 'hours.txt'), 'utf8'), 'Office hours pending.\n');
+assert.equal(
+  readFileSync(join(out, 'denied', 'builder', 'hours.txt'), 'utf8'),
+  'Office hours pending.\n'
+);
 
 save(join(out, 'summary.json'), {
   status: 'PASS',

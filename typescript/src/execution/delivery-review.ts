@@ -1,7 +1,7 @@
 /** Installed independent reviewer. No candidate modules are loaded, and criteria cannot name commands. */
 import { isDeepStrictEqual } from 'node:util';
 import { join } from 'node:path';
-import { boundedRead, digest, parseCriteria } from './delivery-contract.ts';
+import { boundedRead, digest, parseCriteria, parseExactJson } from './delivery-contract.ts';
 import { observed } from './delivery-git.ts';
 
 async function review() {
@@ -36,7 +36,7 @@ async function review() {
         break;
       case 'json-equals':
         try {
-          pass = isDeepStrictEqual(JSON.parse(text), JSON.parse(check.value));
+          pass = isDeepStrictEqual(parseExactJson(text), parseExactJson(check.value));
         } catch {
           pass = false;
         }
