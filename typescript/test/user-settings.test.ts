@@ -83,7 +83,7 @@ test('SETTINGS C03 sandbox denies precede box.call; legitimate nonmatch retains 
 test('SETTINGS C03 CLI freezes/reloads policy, propagates attachment precedence, and archives denial',async t=>{
  const root=await temp(t),home=join(root,'home'),workspace=join(root,'workspace');await fs.mkdir(workspace);await fs.writeFile(join(workspace,'attachment.txt'),'123456789');await savePanSettings({...valid,permissions:{deny:['bash']},maxAttachmentBytes:8},home);const memory=join(root,'archive');let approvals=0,seen=0;
  const adapter=()=>new FauxModelAdapter([calls([{id:'shell-call',name:'bash',arguments:{command:'printf ALLOWED > marker'}}]),final]);
- const launch=async(args:string[]=[])=>runCli(['--kernel','native','--workspace',workspace,'--memory-root',memory,...args],{home,output:output().stream,createNativeAdapter:adapter,startTui:async o=>{
+ const launch=async(args:string[]=[])=>runCli(['--kernel','native','--trusted-local','--workspace',workspace,'--memory-root',memory,...args],{home,output:output().stream,createNativeAdapter:adapter,startTui:async o=>{
   seen++;assert.equal(o.maxAttachmentBytes,seen===1?8:seen===2?16:DEFAULT_MAX_ATTACHMENT_BYTES);o.session.setApprovalChannel(async r=>{approvals++;return {requestId:r.requestId,decision:'allow-once'};});
   if(seen===1){await assert.rejects(captureAttachment(workspace,'attachment.txt',o.maxAttachmentBytes!),/attachment_budget_exceeded/);await savePanSettings({...valid,permissions:{deny:[]},maxAttachmentBytes:32},home);}
   const result=await o.session.runTask('offline policy check'),archive=await o.archiveStore!.readArchive(result.runId),settled=archive.find(r=>r.type==='tool.settled')!;assert.equal(settled.toolCallId,'shell-call');assert.equal(settled.isError,seen===1);
