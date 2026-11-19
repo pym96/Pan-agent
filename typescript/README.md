@@ -338,7 +338,15 @@ Granted calls suppress direct stdout and stderr capture. The value travels to th
 
 ## Local MCP reports
 
-A tarball built from this revision includes a local stdio client and an offline sample server. After installing that tarball, run these commands from a consumer directory. The temporary home keeps the demo's operator declaration separate from your regular settings. The client prints JSON, including the synthetic run ID `sample-001`, three completed jobs and zero failures.
+A tarball built from this revision includes a local stdio client and an offline sample server. To install from CI without a source checkout, open the green **Installed runtime regression** run for this revision, download the `runtime-node-26.7.0` artifact and unzip it in a new directory. From that directory:
+
+```sh
+tar -xzf runtime-evidence.tar.gz ./pan-agent-0.1.9.tgz
+npm install --offline --ignore-scripts --no-audit --no-fund --prefix "$PWD/pan-install" ./pan-agent-0.1.9.tgz
+export PATH="$PWD/pan-install/node_modules/.bin:$PATH"
+```
+
+Run the following commands from your project workspace. The temporary home keeps the demo's operator declaration separate from your regular settings. The client prints JSON, including the synthetic run ID `sample-001`, three completed jobs and zero failures.
 
 ```sh
 demo_home="$(mktemp -d)"
@@ -348,13 +356,23 @@ HOME="$demo_home" pan-agent mcp list example
 HOME="$demo_home" pan-agent mcp call example run_summary
 ```
 
+To ask the installed TUI about the sample, start it from a workspace outside the temporary home. With a configured model, submit **Why does sample-001 have no score? Use the local report.** When Pan shows the `example/run_summary` selection for `mcp_report`, choose **Allow once**. The sample reports that its scoring rubric was missing. Choosing **Deny** leaves the request unexecuted. The report peer works offline. Interactive answers use your normal configured model. A first launch with this temporary home opens the usual model setup.
+
+```sh
+HOME="$demo_home" pan-agent --mcp-report example run_summary
+```
+
+The default launch starts zero peers, even with an operator declaration. The TUI flag starts one short-lived discovery process. If the selected report accepts an empty object and has a supported declaration, Pan adds a single fixed `mcp_report({})` tool alongside the session's existing tools. Each approved call opens a fresh process and rediscovers the report. Whole-tool `permissions.deny` accepts `mcp_report`. Unsupported schemas, duplicate declarations, collisions with builtins and contradictory read-only hints disable the selection with a diagnostic. Pan binds the selected command and arguments for the session and checks the current policy again before dispatch. The Docker profile excludes host reporting. Report calls are also disabled during a manual host-fallback task. The native workspace sandbox and trusted-local sessions both support this explicit host process.
+
+An external error, a failure before dispatch and an uncertain outcome after dispatch appear separately in Trace. The approval request ID also appears in the peer's `tools/call` metadata as `io.github.pym96/pan-call`; the settled tool record contains the server, remote name and wire request ID for dispatched calls. Use `:details` or inspect the sealed run under the printed archive directory. After a failed report, submit another task in the same TUI to use the ordinary tools.
+
 For your own server, put the declaration in `~/.pan-agent/mcp-reports.json` under the home selected by your trusted launcher. An entry names an exact absolute executable, literal arguments and report tools you authorize. Review the executable, scripts, dependencies and their replacement permissions first. The example config command prints the installed Node and sample script paths. An ordinary launch, root help and printing an example start zero peers.
 
 ```json
 {"servers":[{"name":"reports","command":"/opt/reports/bin/server","args":[],"tools":["run_summary"]}]}
 ```
 
-Only explicit `mcp list SERVER` and `mcp call SERVER TOOL` start a peer. The policy and its directory must be outside the current workspace. The canonical home, policy directory and policy file must be owned by the current OS user and deny group/other writes. Use a regular, single-link file and a real policy directory. Tool names are case-sensitive. An unapproved tool fails before launch. The server's annotations and reported identity grant no permissions.
+The CLI starts a peer only for an explicit list, call, or TUI report selection. The policy and its directory must be outside the current workspace. The canonical home, policy directory and policy file must be owned by the current OS user and deny group/other writes. Use a regular, single-link file and a real policy directory. Tool names are case-sensitive. An unapproved tool fails before launch. The server's annotations and reported identity grant no permissions.
 
 **Host authority.** The selected local program runs with the current user's filesystem, network and process privileges, outside Pan's task sandbox. The operator vouches for its read-only behavior. It runs from the policy directory through POSIX `/usr/bin/env -i` with literal arguments and piped stdin/stdout. The launcher clears its environment, including model keys, PATH and HOME. The OS or runtime may supply bookkeeping variables (macOS text encoding, for example). Stderr goes to the null device. Use trusted programs that stay in the foreground and exit on stdin EOF. Shutdown supervises the one directly launched server PID. A daemonized process, separately spawned helpers and loss of the client to SIGKILL lie outside this ownership contract. Supported hosts are macOS and Linux.
 

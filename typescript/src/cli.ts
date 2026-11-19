@@ -3,6 +3,7 @@ import {privateOrigin, type ResolveAddresses} from './sandbox/native/network.ts'
 import {ManualFallback} from './sandbox/fallback.ts';
 import {NativeLinuxSandbox} from './sandbox/native/linux.ts';
 import {NativeMacSandbox} from './sandbox/native/macos.ts';
+import { createReportTool, type ReportSelection } from "./mcp/report-tool.ts";
 import { reportCommand, MCP_USAGE } from "./mcp/mcp-cli.ts";
 import { deliveryCli } from "./execution/delivery-cli.ts";
 import { executionCli } from "./execution/cli.ts";
@@ -53,6 +54,7 @@ export const CLI_USAGE = `Usage:
   pan-agent trust --workspace PATH [--approve REVIEW_HASH]
   pan-agent --native-sandbox --native-resource ID (--grant-command EXACT_SHELL | --grant-task)
   Only authorized Shell and children receive PAN_GRANTED_VALUE. File tools still deny the protected path.
+  pan-agent --mcp-report SERVER TOOL    (offer one operator-selected local report; approve each call)
   ${MCP_USAGE}
   pan-agent delivery --help   (bounded local delivery with independent checks)
   pan-agent settings path|show|validate   (read-only ordinary settings; no credential access)
@@ -64,7 +66,7 @@ Defaults: workspace = current directory; memory-root = ~/.pan-agent/archives. Ex
 Every admitted run is durably archived under --memory-root (must be disjoint from the workspace) with the current Runbook revision; :details, :runs and :replay inspect sealed archives with zero Provider calls or tool effects.
 Attachments use selection-time UTF-8 snapshots; default aggregate maxAttachmentBytes=1048576 (1 MiB local byte policy, not a model token limit). Saved maxAttachmentBytes overrides the default; --max-attachment-bytes overrides the saved value. Never truncates.
 Ordinary settings persist at ~/.pan-agent/settings.json (mode 0600; provider/model/thinking, credential source kind, protectedPaths, permissions.deny and maxAttachmentBytes — never a secret). Run 'configure' to update provider fields while preserving valid ordinary preferences; on a TTY first run without settings the same flow is offered. Explicit --model/--thinking flags override persisted values for that run.
-Deny rules are frozen at TUI session creation, before tool execution and approval, including trusted Shell and sandbox tools. Whole tools: read/write/edit/bash/retrieve; bash(PATTERN) uses only literal characters and * wildcard. No shell semantic analysis or OS containment.
+Deny rules are frozen at TUI session creation, before tool execution and approval, including trusted Shell and sandbox tools. Whole tools: read/write/edit/bash/retrieve/mcp_report; bash(PATTERN) uses only literal characters and * wildcard. No shell semantic analysis or OS containment.
 Credential source: environment reads DEEPSEEK_API_KEY (deepseek) or KIMI_API_KEY (kimi-code) only when a Provider call is made; keychain retrieves the macOS Keychain item named by the Pan service/account convention only when a Provider call is made. kimi-code selects the official OpenAI-compatible Kimi Code endpoint with explicit kimi-for-coding or k3-256k selection in configure (kimi-code:k3-256k); Kimi --model/--thinking overrides are unsupported; arbitrary endpoints and unknown models are rejected.
 Native workspace sandbox (default): --native-sandbox shares --workspace through host-mediated files and OS-isolated Shell/descendants. Default bounded HTTP(S) GET through pan-fetch; --native-offline denies network. --native-grant ORIGIN permits one private IP service for the first task. No retrieval. On eligible native setup failure the interactive operator may cancel or select reviewed workspace file operations and exact pwd once or for one fresh task. Requires macOS sandbox-exec/otool or a supported x86-64 Linux Bubblewrap/FUSE setup. No Docker-equivalent resource quotas; see README.
 Session-only --session-auto permits creating a new plain ASCII .txt or .md document at the native workspace root without individual approval (no protected-path overrides or resource grants). Other approvals and deny rules remain in force.
@@ -76,6 +78,7 @@ const RUNBOOK_PATH = resolve(dirname(fileURLToPath(import.meta.url)), "..", "RUN
 
 export interface CliConfiguration {
 	readonly help: boolean;
+  readonly mcpReport?: ReportSelection;
 	readonly maxAttachmentBytes?: number;
 	readonly workspace?: string;
  readonly nativeSandbox?:boolean;
@@ -95,6 +98,7 @@ export interface CliConfiguration {
 export function parseCliArgs(args: readonly string[]): CliConfiguration {
 	let maxAttachmentBytes = validateAttachmentLimit();
 	let workspace: string | undefined;
+  let mcpReport: ReportSelection | undefined;
  let nativeSandbox=false,nativeOffline=false,trustedLocal=false,sessionAuto=false;
  let nativeGrant:string|undefined;
  let resource:string|undefined,command:string|undefined,task=false;
@@ -117,6 +121,14 @@ export function parseCliArgs(args: readonly string[]): CliConfiguration {
   if(argument === "--native-sandbox"){if(nativeSandbox)throw Error("duplicate_native_sandbox");nativeSandbox=true;continue;}
 		if(argument === "--native-offline"){if(nativeOffline)throw Error("duplicate_native_offline");nativeOffline=true;continue;}
   const value = args[index + 1];
+  if (argument === "--mcp-report") {
+    const server = value, tool = args[index + 2];
+    if (mcpReport || !server || !tool || ![server, tool].every(v => /^[a-zA-Z0-9_.-]{1,128}$/.test(v) && !v.startsWith("--")))
+      throw Error("expected one --mcp-report SERVER TOOL");
+    mcpReport = {server, tool};
+    index += 2;
+    continue;
+  }
   if(argument === "--grant-task"){
    if(task) throw Error("duplicate_grant_scope");
    task=true;continue;
@@ -150,6 +162,7 @@ export function parseCliArgs(args: readonly string[]): CliConfiguration {
 		throw new Error(`Unknown argument: ${argument}`);
 	}
 	if(trustedLocal && (nativeSandbox || nativeOffline || nativeGrant || resource || sandboxRoot || sessionAuto)) throw Error("--trusted-local conflicts with sandbox options");
+ if (mcpReport && sandboxRoot) throw Error("--mcp-report uses a host process and cannot run inside the Docker profile");
  if(sessionAuto && (sandboxRoot || nativeGrant || resource)) throw Error("--session-auto requires native sandbox without resource grants");
  if ((nativeOffline || nativeGrant) && !nativeSandbox) throw Error("--native-offline/--native-grant require --native-sandbox");
  if ((resource || command || task) && (!nativeSandbox || !resource || (task ? command !== undefined : !command))) throw Error("credential grant requires --native-sandbox --native-resource ID and an exact --grant-command or --grant-task");
@@ -164,7 +177,7 @@ export function parseCliArgs(args: readonly string[]): CliConfiguration {
 	return {
 		help: false,
 		maxAttachmentBytes,
-  sandboxRoot,sandboxInputs,nativeSandbox:nativeSandbox||(!trustedLocal&&!sandboxRoot),sessionAuto,nativeOffline,nativeGrant,credentialSelection:resource?{resource,command,task}:undefined,
+  mcpReport,sandboxRoot,sandboxInputs,nativeSandbox:nativeSandbox||(!trustedLocal&&!sandboxRoot),sessionAuto,nativeOffline,nativeGrant,credentialSelection:resource?{resource,command,task}:undefined,
 		workspace,
 		memoryRoot,
 		kernel,
@@ -302,6 +315,7 @@ export async function runCli(args: readonly string[], dependencies: CliDependenc
 		},
 	};
 	let session: GeneralAgentSession;
+  let reportNotice: string | undefined;
 	let provider: string;
 	let model: string;
 	let thinking: string;
@@ -371,12 +385,24 @@ export async function runCli(args: readonly string[], dependencies: CliDependenc
          fallback=new ManualFallback(nativeSandbox, workspace, home, settings?.protectedPaths??[],operatorAllowed,configuration.sessionAuto===true);
         }
         const trustedLocal = sandbox??fallback??(dependencies.createTools ? dependencies.createTools(workspace) : createPanTrustedLocalTools(workspace));
-		session = new GeneralAgentSession({
+		const tools = [...trustedLocal.tools];
+        if (!sandbox && !nativeSandbox) tools.push(createRetrievalTool(workspace));
+        if (configuration.mcpReport) {
+          try {
+            const {server, tool} = configuration.mcpReport;
+            tools.push(await createReportTool(configuration.mcpReport, workspace, dependencies.home, tools,
+              () => fallback?.identity.executionMode === "host-fallback"));
+            reportNotice = `Local MCP report: ${server}/${tool} · approve each call`;
+          } catch (error) {
+            reportNotice = "Local MCP report disabled: " + terminalText(error instanceof Error ? error.message : "unavailable");
+          }
+        }
+        session = new GeneralAgentSession({
 			...shared,
             executionBoundary:sandbox??fallback,
 			kernel: "native",
 			adapter,
-			tools: (sandbox||nativeSandbox)?trustedLocal.tools:[...trustedLocal.tools, createRetrievalTool(workspace)],
+			tools,
 			authorization: {sessionAuto:configuration.sessionAuto, protectedPaths: settings?.protectedPaths, permissions: settings?.permissions },
 			...(adapter instanceof PanKimiModelAdapter ? { cleanup: () => adapter.dispose() } : {}),
 		});
@@ -392,6 +418,7 @@ export async function runCli(args: readonly string[], dependencies: CliDependenc
 		: `CREDENTIAL environment ${credentialEnv} (required at task time; never saved)`);
 	return (dependencies.startTui ?? runTui)({
   input: dependencies.input,
+  reportNotice,
   sessionAuto:configuration.sessionAuto,
   fallback,
   ...(sandbox?{executionMode:"sandbox" as const}:nativeSandbox?{executionMode:nativeSandbox.executionMode}:{}),

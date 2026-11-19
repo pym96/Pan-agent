@@ -86,6 +86,7 @@ export async function runCompactTui(options: TuiOptions): Promise<number> {
 	write(`Model: ${terminalText(options.model)}`);
 	write(`Workspace: ${terminalText(options.workspace)}`);
 	write(options.executionMode?.startsWith("native-")?`NATIVE ${options.executionMode.startsWith("native-linux")?"LINUX":"MACOS"} SANDBOX: shared workspace; ${options.executionMode.endsWith("offline")?"offline":"bounded HTTP(S) GET"} Shell and descendants; host-mediated files; retrieval disabled.`:options.executionMode==="sandbox"?"DOCKER SANDBOX: fixed offline container; retrieval disabled; one workspace per task.":"SHELL trusted-local: host-user authority; workspace is cwd, not containment or an OS sandbox.");
+	if(options.reportNotice)write(options.reportNotice);
 	if(options.sessionAuto)write("SESSION AUTO · native workspace documents only · expires on exit.");
 	write("The selected model is called only for a confirmed nonblank task; local commands make no model calls.");
 	write(`Attachments: @ picker · Ctrl-P preview · Ctrl-R remove last · ${maxAttachmentBytes} byte aggregate local policy; snapshots are sent and archived only on submit.`);

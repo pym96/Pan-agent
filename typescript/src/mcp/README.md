@@ -6,6 +6,7 @@
 
 - [mcp-reports.ts](mcp-reports.ts) reads the fixed operator policy, checks discovery and validates supported tools and results.
 - [mcp-stdio.ts](mcp-stdio.ts) supervises one child and correlates newline-framed JSON-RPC requests.
+- [report-tool.ts](report-tool.ts) binds one operator-selected report to a fixed TUI AgentTool and uses Pan approval for each invocation.
 - [mcp-cli.ts](mcp-cli.ts) maps explicit CLI actions and process cancellation to the adapter.
 - [mcp-report-example.mjs](../../bin/mcp-report-example.mjs) is the synthetic peer installed with the package.
 
@@ -27,3 +28,9 @@ The Builder ran the real stdio client against the separate test peer. Each line 
 ```
 
 The first candidate omitted cache hints inherited from the shared result schema. Independent inspection of the packaged example caught the omission. The installed regression now records the example’s own discovery and list frames and checks their hints directly.
+
+## Installed TUI calls
+
+The model receives a Pan-owned `mcp_report` declaration with empty arguments. The server alias and remote tool come from the operator's launch options and the external command comes from the fixed home policy. Startup discovery closes its child. A call starts a separate child only after Pan's operation-scoped approval. If the selected executable or its arguments change, a fresh TUI selection is required.
+
+The JSON-RPC sequence starts over with each child. A wire ID by itself cannot identify which Pan request produced the call. Pan therefore sends the unique approval request ID in `tools/call` metadata and archives it alongside the model call ID, run ID, server, tool and wire ID. The [PTY regression](../../../scripts/runtime-ci/mcp-tui.py) checks that join against the child's actual receipt. Each run generates a fresh report reason so the fixture model must read the result to answer.

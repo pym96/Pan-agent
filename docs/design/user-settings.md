@@ -61,7 +61,7 @@ Attachment limits are positive safe integers in bytes. The order is explicit `--
 
 | Rule | Meaning |
 | --- | --- |
-| `read`, `write`, `edit`, `bash`, `retrieve` | Deny every invocation of that exact native tool name. |
+| `read`, `write`, `edit`, `bash`, `retrieve`, `mcp_report` | Deny every invocation of that exact native tool name. |
 | `bash(PATTERN)` | Deny a bash request whose entire command string matches PATTERN. |
 
 PATTERN must be nonempty. Matching is case-sensitive. Only `*` is special: it matches any sequence, including an empty sequence and newlines. All other characters are literal, including `?`, `[`, `]`, `.`, backslashes, parentheses and shell metacharacters. There is no escape syntax for a literal `*`. This is Pan's grammar; Claude-style `Bash(...)`, regular expressions, negation, aliases and rules for other tools are rejected.
@@ -89,7 +89,7 @@ The observable tool result and sealed archive carry `details.code = "permission_
 
 Library callers must explicitly pass `authorization: { permissions: { deny: [...] } }` to a Native `GeneralAgentSession`. They do not automatically read the user's settings. A nonempty deny policy with an opaque injected `AgentKernel` fails construction with `permissions_unsupported: injected kernel`, because that kernel owns tool dispatch beyond the shared wrapper. Injected kernels without deny rules retain their previous behavior.
 
-Management commands (`retrieval`, `sandbox`, `loop`, `goal`, `execution`), the fixed offline `demo`, and library compositions that do not supply this policy are outside TUI settings propagation. A rule such as `retrieve` denies the model's retrieval tool; it does not disable the separate `retrieval configure` command. Attachment selection, model submission and provider network access are also separate from tool-name denials.
+Management commands (`mcp`, `retrieval`, `sandbox`, `loop`, `goal`, `execution`), the fixed offline `demo`, and library compositions that do not supply this policy are outside TUI settings propagation. A rule such as `retrieve` denies the model's retrieval tool; it does not disable the separate `retrieval configure` command. Attachment selection, model submission and provider network access are also separate from tool-name denials.
 
 ## Limits
 

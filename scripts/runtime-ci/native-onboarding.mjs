@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import {PassThrough} from 'node:stream';
 import {setTimeout as delay} from 'node:timers/promises';
-import {pathToFileURL} from 'node:url';
+import {fileURLToPath,pathToFileURL} from 'node:url';
 const [pkg, destination] = process.argv.slice(2);
 const root = path.resolve(destination);
 fs.mkdirSync(root, {mode:0o700});
@@ -100,12 +100,15 @@ try {
   const target=paths(scope);
   await savePanSettings({...settings,permissions:{deny:['bash(*forbidden*)']}},target.home);
   const term=terminal();
-  const script=[write('first','first.txt','yes'),write('second','second.txt','two'),
+  const reportLog=path.join(target.base,'report-peer.jsonl');
+  put(path.join(target.home,'.pan-agent','mcp-reports.json'), {servers:[{name:'reports',command:process.execPath,
+   args:[fileURLToPath(new URL('./mcp-report-peer.mjs',import.meta.url)),'ok',reportLog],tools:['summary']}]});
+  const script=[call('fallback-report','mcp_report',{}),write('first','first.txt','yes'),write('second','second.txt','two'),
     write('declined','declined.txt','requires separate approval'),call('denied','bash',{command:'forbidden'}),call('pwd','bash',{command:'pwd'}),
     call('outside','read',{path:'../home/nope'}),done];
   const model=new FauxModelAdapter(script);
   let store;
-  const running=runCli(target.args,{home:target.home,input:term.input,output:term.output,createNativeAdapter:()=>model,
+  const running=runCli([...target.args,'--mcp-report','reports','summary'],{home:target.home,input:term.input,output:term.output,createNativeAdapter:()=>model,
    startTui:async options=>{store=options.archiveStore;return runTui(options);}});
   const idle=async text=>{await term.wait(f=>f.includes('· idle ·')&&f.includes(text));};
   const submit=async text=>{term.send(text+'\r');await delay(40);};
@@ -134,6 +137,10 @@ try {
    }
    put(path.join(target.base,'host-archive.json'),activeArchive);
    const tool=id=>activeArchive.find(e=>e.type==='tool.settled'&&e.toolCallId===id);
+   assert.equal(tool('fallback-report').details.code,'mcp_disabled_in_host_fallback');
+   const reportEvents=fs.readFileSync(reportLog,'utf8').trim().split('\n').map(line=>JSON.parse(line));
+   assert.equal(reportEvents.filter(e=>e.pid).length,1);
+   assert.equal(reportEvents.filter(e=>e.fromClient&&JSON.parse(e.fromClient).method==='tools/call').length,0);
    assert.equal(tool('first').details.authorization.decision,'allow-once');assert.equal(tool('first').details.boundary.scope,scope);
    assert.equal(tool('second').isError,scope==='once');
    assert.equal(tool('declined').isError,true);assert.equal(fs.existsSync(path.join(target.workspace,'declined.txt')),false);

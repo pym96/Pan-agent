@@ -115,6 +115,10 @@ def main():
         report['mcp_reports'] = json.loads((out/'mcp-reports/summary.json').read_text())
         if report['mcp_reports']['status'] != 'PASS':
             raise RuntimeError('installed MCP report checks failed')
+        run('mcp-tui', [sys.executable, str(ROOT/'scripts/runtime-ci/mcp-tui.py'), str(cli), str(out/'mcp-tui')])
+        report['mcp_tui'] = json.loads((out/'mcp-tui/summary.json').read_text())
+        if report['mcp_tui']['status'] != 'PASS':
+            raise RuntimeError('installed MCP TUI checks failed')
         run('delivery', ['node', str(ROOT/'scripts/runtime-ci/delivery.mjs'), str(cli), str(out/'delivery')])
         report['delivery'] = json.loads((out/'delivery/summary.json').read_text())
         if report['delivery']['status'] != 'PASS':

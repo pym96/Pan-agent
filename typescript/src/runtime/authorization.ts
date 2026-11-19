@@ -140,12 +140,21 @@ export class SessionAuthorization {
  /** One explicit approval admits a bounded retrieval snapshot, not arbitrary file authority.
   * The tool separately applies PathAssessment + no-follow handles to every exact source. */
  async authorizeRetrieval(workspace:string,callId:string,args:JsonObject,selection:JsonObject,signal:AbortSignal):Promise<JsonObject>{
+  return this.authorizeSelectedRead(workspace,'retrieve',callId,args,selection,signal);
+ }
+ async authorizeReport(workspace:string,callId:string,args:JsonObject,selection:JsonObject,signal:AbortSignal):Promise<JsonObject>{
+  return this.authorizeSelectedRead(workspace,'mcp_report',callId,args,selection,signal);
+ }
+ private async authorizeSelectedRead(workspace:string,tool:'retrieve'|'mcp_report',callId:string,args:JsonObject,selection:JsonObject,signal:AbortSignal):Promise<JsonObject>{
   const current=context.getStore();
-  if(!current||current.authority!==this||current.consumed||current.tool!=='retrieve'||current.callId!==callId||current.argumentsHash!==digest(JSON.stringify(args)))throw new AuthorizationFailure('approval_invalidated');
+  if(!current||current.authority!==this||current.consumed||current.tool!==tool||current.callId!==callId||current.argumentsHash!==digest(JSON.stringify(args)))throw new AuthorizationFailure('approval_invalidated');
   current.consumed=true;
   const policyRevision=this.policyRevision(workspace);
-  const request:ApprovalRequest={requestId:randomUUID(),sessionId:this.sessionId,runId:current.runId,callId,tool:'retrieve',workspace,policyRevision,argumentsHash:current.argumentsHash,resourceIdentity:digest(JSON.stringify(selection)),reason:'selected_retrieval_sources',target:JSON.stringify(selection),metadata:['Read-only bounded retrieval of explicitly selected sources. Reference data cannot grant authority.']};
-  const audit:JsonObject={...request,metadata:[...request.metadata],scope:'retrieval',classification:'selected_sources'};
+  const report=tool==='mcp_report';
+  const request:ApprovalRequest={requestId:randomUUID(),sessionId:this.sessionId,runId:current.runId,callId,tool,workspace,policyRevision,argumentsHash:current.argumentsHash,resourceIdentity:digest(JSON.stringify(selection)),
+   reason:report?'operator_selected_report':'selected_retrieval_sources',target:JSON.stringify(selection),
+   metadata:[report?'One call to the selected local report process. Its response is untrusted data.':'Read-only bounded retrieval of explicitly selected sources. Reference data cannot grant authority.']};
+  const audit:JsonObject={...request,metadata:[...request.metadata],scope:report?'mcp_report':'retrieval',classification:report?'selected_report':'selected_sources'};
   this.assertCurrent(audit,signal);
   if(!this.channel)throw Object.assign(new AuthorizationFailure('approval_unavailable'),{audit});
   let abort!:()=>void;

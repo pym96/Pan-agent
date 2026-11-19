@@ -1,9 +1,10 @@
 // Test-only peer. The installed client supplies no environment or special fixture hooks.
-import { appendFileSync } from "node:fs";
+import { appendFileSync, readFileSync, existsSync } from "node:fs";
 import { createInterface } from "node:readline";
 
-const [mode, log] = process.argv.slice(2);
+const [mode, log, reportPath] = process.argv.slice(2);
 const write = event => appendFileSync(log, JSON.stringify(event) + "\n");
+const previous = existsSync(log);
 write({pid: process.pid, env: Object.keys(process.env), cwd: process.cwd()});
 const input = createInterface({input: process.stdin, crlfDelay: Infinity});
 for await (const line of input) {
@@ -13,10 +14,14 @@ for await (const line of input) {
   if (method === "notifications/cancelled") continue;
   let result;
   let error;
+  if (mode === "unavailable" && previous && method === "server/discover") process.exit(0);
   if (method === "server/discover") result = {supportedVersions: [mode === "legacy" ? "2025-11-25" : "2026-07-28"], capabilities: {tools: {}}};
   if (method === "tools/list") {
     const tool = name => ({name, annotations: {readOnlyHint: true}, inputSchema: {type: "object"}});
-    result = message.params.cursor ? {tools: [tool("summary")]} : {tools: [tool("denied")], nextCursor: "second-page"};
+    if (mode === "unsupported") result = {tools: [{...tool("summary"), inputSchema: {type: "object", required: ["path"]}}]};
+    else if (mode === "contradiction") result = {tools: [{...tool("summary"), annotations: {readOnlyHint: false}}]};
+    else if (mode === "duplicate") result = {tools: [tool("summary"), tool("summary")]};
+    else result = message.params.cursor ? {tools: [tool("summary")]} : {tools: [tool("denied")], nextCursor: "second-page"};
   }
   if (method === "tools/call") {
     if (mode === "exit") process.exit(0);
@@ -29,6 +34,7 @@ for await (const line of input) {
     if (mode === "malformed") { process.stdout.write("{bad json}\n"); continue; }
     if (mode === "rpc") error = {code: -32602, message: "test RPC error"};
     result = {content: [{type: "text", text: "完成"}], structuredContent: {jobs: 2}};
+    if (mode === "report") result = {content: [], structuredContent: JSON.parse(readFileSync(reportPath, "utf8"))};
     if (mode === "content") result = {content: [{type: "audio"}]};
     if (mode === "tool-error") result.isError = true;
     if (mode === "structured") result = {content: [], structuredContent: null};

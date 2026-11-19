@@ -30,7 +30,7 @@ function respond(method, params) {
   if (params.arguments !== undefined && !object(params.arguments)) return invalidParams("Expected object arguments");
   if (Object.keys(params.arguments ?? {}).length)
     return complete({isError: true, content: [{type: "text", text: "run_summary takes no arguments"}]});
-  return complete({content: [{type: "text", text: "Synthetic run sample-001"}], structuredContent: report});
+  return complete({content: [{type: "text", text: "Synthetic run sample-001 has no score because its scoring rubric was not supplied."}], structuredContent: report});
 }
 
 const send = fields => process.stdout.write(JSON.stringify({jsonrpc: "2.0", ...fields}) + "\n");

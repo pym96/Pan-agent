@@ -1,8 +1,9 @@
+import { createHash } from "node:crypto";
 import { lstatSync, realpathSync } from "node:fs";
 import { homedir } from "node:os";
 import { isAbsolute, join, relative, sep } from "node:path";
 import { AuthorizedFile } from "../tools/authorized-file.ts";
-import { MCP_REVISION, openReportPeer, record } from "./mcp-stdio.ts";
+import { MCP_REVISION, openReportPeer, record, type ReportCallReceipt } from "./mcp-stdio.ts";
 
 const identifier = (value: unknown): value is string => typeof value === "string" && /^[a-zA-Z0-9_.-]{1,128}$/.test(value);
 const contains = (parent: string, child: string) => {
@@ -68,7 +69,37 @@ export interface ReportResponse {
 
 /** No policy or executable selection comes from tool results or workspace declarations. */
 export async function localReports(request: ReportRequest): Promise<ReportResponse> {
-  const policy = declaration(request.server, request.tool, request.home ?? homedir(), request.workspace ?? process.cwd());
+  return operate(request, readPolicy(request));
+}
+
+type Policy = ReturnType<typeof declaration>;
+function readPolicy(request: ReportRequest): Policy {
+  return declaration(request.server, request.tool, request.home ?? homedir(), request.workspace ?? process.cwd());
+}
+
+export class ReportToolError extends Error {}
+
+/** Pin the operator's executable selection for this TUI. Rediscover on each use. */
+export async function selectReport(request: ReportRequest & {tool: string}) {
+  const policy = readPolicy(request);
+  const identity = (value: Policy) => createHash("sha256").update(JSON.stringify(
+    [value.directory, value.command, value.args, request.server, request.tool])).digest("hex");
+  const revision = identity(policy);
+  const check = () => {
+    if (identity(readPolicy(request)) !== revision) throw Error("MCP authority: selected command changed");
+  };
+  const listed = await operate({...request, tool: undefined}, policy, true);
+  if (!listed.tools.includes(request.tool)) throw Error("MCP protocol: approved report absent or unsupported declaration");
+  return {revision, async call(signal: AbortSignal, receipt: ReportCallReceipt) {
+    check();
+    return operate({...request, signal}, policy, true, {
+      correlationId: receipt.correlationId,
+      sending(id) { check(); receipt.sending(id); },
+    });
+  }};
+}
+
+async function operate(request: ReportRequest, policy: Policy, readOnly = false, receipt?: ReportCallReceipt): Promise<ReportResponse> {
   const peer = openReportPeer(policy.command, policy.args, policy.directory, request.signal);
   try {
     const discovery = await peer.request("server/discover");
@@ -86,6 +117,9 @@ export async function localReports(request: ReportRequest): Promise<ReportRespon
         if (!record(tool) || !identifier(tool.name) || names.has(tool.name) || !record(tool.inputSchema) || tool.inputSchema.type !== "object")
           throw Error("MCP protocol: invalid or duplicate tool");
         names.add(tool.name);
+        if (readOnly && tool.annotations !== undefined &&
+            (!record(tool.annotations) || (tool.annotations.readOnlyHint !== undefined && tool.annotations.readOnlyHint !== true) ||
+             (tool.annotations.destructiveHint !== undefined && tool.annotations.destructiveHint !== false))) continue;
         if (policy.tools.has(tool.name) && acceptsNoArguments(tool.inputSchema) && tool.outputSchema === undefined)
           tools.push(tool.name);
       }
@@ -97,8 +131,8 @@ export async function localReports(request: ReportRequest): Promise<ReportRespon
     const response: ReportResponse = {server: request.server, revision: MCP_REVISION, tools};
     if (request.tool === undefined) return response;
     if (!tools.includes(request.tool)) throw Error("MCP protocol: approved report absent or unsupported schema");
-    const result = await peer.request("tools/call", {name: request.tool, arguments: {}});
-    if (result.isError === true) throw Error("MCP tool execution error: " + request.tool);
+    const result = await peer.request("tools/call", {name: request.tool, arguments: {}}, receipt);
+    if (result.isError === true) throw new ReportToolError("MCP tool execution error: " + request.tool);
     if ((result.isError !== undefined && result.isError !== false) || !Array.isArray(result.content))
       throw Error("MCP protocol: invalid tool result");
     const content = result.content.map(block => {

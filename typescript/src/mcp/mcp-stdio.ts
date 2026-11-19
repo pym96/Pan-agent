@@ -29,6 +29,12 @@ async function exitedWithin(exit: Promise<void>, ms: number): Promise<boolean> {
   } finally { clearTimeout(timer); }
 }
 
+export class ReportRpcError extends Error {}
+export interface ReportCallReceipt {
+  correlationId: string;
+  sending: (requestId: number) => void;
+}
+
 /** One local child, one outstanding request, and one bounded response frame. */
 export function openReportPeer(command: string, args: string[], cwd: string, signal?: AbortSignal) {
   signal?.throwIfAborted();
@@ -73,17 +79,19 @@ export function openReportPeer(command: string, args: string[], cwd: string, sig
   const abort = () => { cancel(); fail(Error("MCP transport: cancelled")); };
   signal?.addEventListener("abort", abort, {once: true});
   return {
-    async request(method: string, params: Record<string, unknown> = {}) {
+    async request(method: string, params: Record<string, unknown> = {}, receipt?: ReportCallReceipt) {
       if (failure) throw failure;
       if (child.stdout.readableEnded || !child.stdin.writable) throw Error("MCP transport: peer closed");
       const id = ++sequence;
+      const meta = receipt ? {...metadata, "io.github.pym96/pan-call": receipt.correlationId} : metadata;
       let timer: NodeJS.Timeout | undefined;
       let bytes: Buffer;
       try {
         bytes = await new Promise<Buffer>((resolve, reject) => {
+          receipt?.sending(id);
           pending = {id, chunks: [], bytes: 0, resolve, reject};
           timer = setTimeout(() => { cancel(); fail(Error("MCP transport timeout: " + method)); }, REQUEST_MS);
-          child.stdin.write(JSON.stringify({jsonrpc: "2.0", id, method, params: {...params, _meta: metadata}}) + "\n");
+          child.stdin.write(JSON.stringify({jsonrpc: "2.0", id, method, params: {...params, _meta: meta}}) + "\n");
         });
       } finally { pending = undefined; clearTimeout(timer); }
       let reply: unknown;
@@ -95,7 +103,7 @@ export function openReportPeer(command: string, args: string[], cwd: string, sig
         const error = reply.error;
         if (!record(error) || !Number.isInteger(error.code) || typeof error.message !== "string")
           throw Error("MCP protocol: invalid RPC error");
-        throw Error("MCP RPC " + error.code + " in " + method + ": " + error.message.slice(0, 512));
+        throw new ReportRpcError("MCP RPC " + error.code + " in " + method + ": " + error.message.slice(0, 512));
       }
       if (!record(reply.result) || reply.result.resultType !== "complete")
         throw Error("MCP protocol: unsupported resultType in " + method);
