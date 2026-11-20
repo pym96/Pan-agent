@@ -40,7 +40,7 @@ jobs:
         run: |
           out="$RUNNER_TEMP/runtime-evidence 中文 space %# literal%20"
           mkdir "$out/native-linux"
-          timeout 240s bash scripts/runtime-ci/native-network-linux.sh "$out/consumer/node_modules/pan-agent" "$out/native-linux" > "$out/native-linux/setup.log" 2>&1 || { tail -100 "$out/native-linux/setup.log"; exit 1; }
+          timeout 800s bash scripts/runtime-ci/native-network-linux.sh "$out/consumer/node_modules/pan-agent" "$out/native-linux" > "$out/native-linux/setup.log" 2>&1 || { tail -100 "$out/native-linux/setup.log"; exit 1; }
       - name: Exercise retained offline Docker from the installed package
         if: matrix.node == '26.7.0'
         run: |

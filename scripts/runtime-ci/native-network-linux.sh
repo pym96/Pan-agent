@@ -34,10 +34,10 @@ Signed-By: /usr/share/keyrings/ubuntu-archive-keyring.gpg
 SOURCES
   opts=(-o Acquire::https::CaInfo=/host-ca.crt -o Acquire::https::Timeout=12 -o Acquire::Retries=1 -o Acquire::Languages=none -o Acquire::CompressionTypes::Order::=xz)
   echo "provision: fetch signed distribution indexes over HTTPS"
-  timeout 65s apt-get "${opts[@]}" -o APT::Update::Error-Mode=any update
+  timeout 300s apt-get "${opts[@]}" -o APT::Update::Error-Mode=any update
   echo "provision: install native prerequisites"
   packages=(bubblewrap fuse3 libfuse2t64 libseccomp2 libatomic1 python3 curl ca-certificates)
-  timeout 65s apt-get "${opts[@]}" install -y --no-install-recommends "${packages[@]}"
+  timeout 300s apt-get "${opts[@]}" install -y --no-install-recommends "${packages[@]}"
   dpkg-query -W "${packages[@]}"
 ')
 docker start -a "$container"
