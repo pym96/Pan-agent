@@ -69,6 +69,7 @@ Ordinary settings persist at ~/.pan-agent/settings.json (mode 0600; provider/mod
 Deny rules are frozen at TUI session creation, before tool execution and approval, including trusted Shell and sandbox tools. Whole tools: read/write/edit/bash/retrieve/mcp_report; bash(PATTERN) uses only literal characters and * wildcard. No shell semantic analysis or OS containment.
 Credential source: bare interactive startup checks whether the selected environment variable is set (DEEPSEEK_API_KEY for DeepSeek or KIMI_API_KEY for Kimi). Provider calls use its value; keychain retrieves the macOS Keychain item named by the Pan service/account convention only when a Provider call is made. kimi-code selects the official OpenAI-compatible Kimi Code endpoint with explicit kimi-for-coding or k3-256k selection in configure (kimi-code:k3-256k); Kimi --model/--thinking overrides are unsupported; arbitrary endpoints and unknown models are rejected.
 Native workspace sandbox (default): --native-sandbox shares --workspace through host-mediated files and OS-isolated Shell/descendants. Default bounded HTTP(S) GET through pan-fetch; --native-offline denies network. --native-grant ORIGIN permits one private IP service for the first task. No retrieval. On eligible native setup failure the interactive operator may cancel or select reviewed workspace file operations and exact pwd once or for one fresh task. Requires macOS sandbox-exec/otool or a supported x86-64 Linux Bubblewrap/FUSE setup. No Docker-equivalent resource quotas; see README.
+--session-npm-test permits the exact npm test command in this workspace for this native session. Test scripts and child processes run inside the native sandbox.
 Session-only --session-auto permits creating a new plain ASCII .txt or .md document at the native workspace root without individual approval (no protected-path overrides or resource grants). Other approvals and deny rules remain in force.
 Sandbox (opt-in): add --sandbox-root DIR and optional repeated --sandbox-input FILE. One new fixed-profile Docker workspace per task; no retrieval. After exit: pan-agent sandbox list --root DIR; recover|export|verify|cleanup --run RUN_DIRECTORY (see README).
 Retrieval (default off): pan-agent retrieval configure --workspace DIR --from selection.json; retrieval show|disable --workspace DIR. Each approved call refreshes selected sources.
@@ -84,6 +85,7 @@ export interface CliConfiguration {
 	readonly workspace?: string;
  readonly nativeSandbox?:boolean;
  readonly sessionAuto?:boolean;
+ readonly sessionNpmTest?:boolean;
  readonly nativeOffline?:boolean;
  readonly nativeGrant?:string;
  readonly credentialSelection?:GrantSelection;
@@ -100,7 +102,7 @@ export function parseCliArgs(args: readonly string[]): CliConfiguration {
 	let maxAttachmentBytes = validateAttachmentLimit();
 	let workspace: string | undefined;
   let mcpReport: ReportSelection | undefined;
- let nativeSandbox=false,nativeOffline=false,trustedLocal=false,sessionAuto=false;
+ let nativeSandbox=false,nativeOffline=false,trustedLocal=false,sessionAuto=false,sessionNpmTest=false;
  let nativeGrant:string|undefined;
  let resource:string|undefined,command:string|undefined,task=false;
  let sandboxRoot:string|undefined;const sandboxInputs:string[]=[];
@@ -118,6 +120,7 @@ export function parseCliArgs(args: readonly string[]): CliConfiguration {
 			return { help: false, configure: true, kernel: "native", profile: DEFAULT_DEEPSEEK_PROFILE };
 		}
 		if(argument === "--trusted-local"){if(trustedLocal)throw Error("duplicate_trusted_local");trustedLocal=true;continue;}
+  if(argument === "--session-npm-test"){if(sessionNpmTest)throw Error("duplicate_session_npm_test");sessionNpmTest=true;continue;}
   if(argument === "--session-auto"){if(sessionAuto)throw Error("duplicate_session_auto");sessionAuto=true;continue;}
   if(argument === "--native-sandbox"){if(nativeSandbox)throw Error("duplicate_native_sandbox");nativeSandbox=true;continue;}
 		if(argument === "--native-offline"){if(nativeOffline)throw Error("duplicate_native_offline");nativeOffline=true;continue;}
@@ -162,8 +165,9 @@ export function parseCliArgs(args: readonly string[]): CliConfiguration {
 		}
 		throw new Error(`Unknown argument: ${argument}`);
 	}
-	if(trustedLocal && (nativeSandbox || nativeOffline || nativeGrant || resource || sandboxRoot || sessionAuto)) throw Error("--trusted-local conflicts with sandbox options");
+	if(trustedLocal && (nativeSandbox || nativeOffline || nativeGrant || resource || sandboxRoot || sessionAuto || sessionNpmTest)) throw Error("--trusted-local conflicts with sandbox options");
  if (mcpReport && sandboxRoot) throw Error("--mcp-report uses a host process and cannot run inside the Docker profile");
+ if(sessionNpmTest && (sandboxRoot || nativeGrant || resource)) throw Error("--session-npm-test requires the native sandbox without credential or private network grants");
  if(sessionAuto && (sandboxRoot || nativeGrant || resource)) throw Error("--session-auto requires native sandbox without resource grants");
  if ((nativeOffline || nativeGrant) && !nativeSandbox) throw Error("--native-offline/--native-grant require --native-sandbox");
  if ((resource || command || task) && (!nativeSandbox || !resource || (task ? command !== undefined : !command))) throw Error("credential grant requires --native-sandbox --native-resource ID and an exact --grant-command or --grant-task");
@@ -178,7 +182,7 @@ export function parseCliArgs(args: readonly string[]): CliConfiguration {
 	return {
 		help: false,
 		maxAttachmentBytes,
-  mcpReport,sandboxRoot,sandboxInputs,nativeSandbox:nativeSandbox||(!trustedLocal&&!sandboxRoot),sessionAuto,nativeOffline,nativeGrant,credentialSelection:resource?{resource,command,task}:undefined,
+  mcpReport,sandboxRoot,sandboxInputs,nativeSandbox:nativeSandbox||(!trustedLocal&&!sandboxRoot),sessionAuto,sessionNpmTest,nativeOffline,nativeGrant,credentialSelection:resource?{resource,command,task}:undefined,
 		workspace,
 		memoryRoot,
 		kernel,
@@ -369,9 +373,16 @@ export async function runCli(args: readonly string[], dependencies: CliDependenc
 		return 2;
 	}
 	let credentialGrant: WorkspaceGrant | undefined;
+  let verifyNpmWorkspace: ((path: string) => boolean) | undefined;
   try {
     const home = dependencies.home ?? homedir();
     const trust = workspaceTrust(workspace, home);
+    if (configuration.sessionNpmTest) {
+      verifyNpmWorkspace = current => {
+        const observed = workspaceTrust(current, home);
+        return observed.root === trust.root && observed.identity === trust.identity && observed.revision === trust.revision;
+      };
+    }
     if (trust.enrolled && !configuration.nativeSandbox) throw Error("enrolled workspace requires --native-sandbox");
     if (configuration.credentialSelection) {
       credentialGrant = new WorkspaceGrant(workspace, home, configuration.credentialSelection, settings?.protectedPaths ?? [], writeLine);
@@ -421,10 +432,10 @@ export async function runCli(args: readonly string[], dependencies: CliDependenc
 				: {}));
 			adapter = adapterFactory(profile);
 		}
-		nativeSandbox=configuration.nativeSandbox?new NativeSandbox({workspace,stateRoot:resolve(memoryRoot,"native-sandbox"),network:configuration.nativeOffline?"offline":"public",privateGrant:configuration.nativeGrant,credentialGrant,resolveNetworkName:dependencies.resolveNetworkName,protectedPaths:settings?.protectedPaths,notify:writeLine}):undefined;
+		nativeSandbox=configuration.nativeSandbox?new NativeSandbox({workspace,stateRoot:resolve(memoryRoot,"native-sandbox"),sessionNpmTest:configuration.sessionNpmTest,network:configuration.nativeOffline?"offline":"public",privateGrant:configuration.nativeGrant,credentialGrant,resolveNetworkName:dependencies.resolveNetworkName,protectedPaths:settings?.protectedPaths,notify:writeLine}):undefined;
         if(nativeSandbox) {
          const home=dependencies.home??homedir();
-         const operatorAllowed=((dependencies.input??process.stdin) as NodeJS.ReadStream).isTTY===true && (output as NodeJS.WriteStream).isTTY===true && !configuration.sessionAuto && !configuration.credentialSelection && !configuration.nativeGrant;
+         const operatorAllowed=((dependencies.input??process.stdin) as NodeJS.ReadStream).isTTY===true && (output as NodeJS.WriteStream).isTTY===true && !configuration.sessionAuto && !configuration.sessionNpmTest && !configuration.credentialSelection && !configuration.nativeGrant;
          fallback=new ManualFallback(nativeSandbox, workspace, home, settings?.protectedPaths??[],operatorAllowed,configuration.sessionAuto===true);
         }
         const trustedLocal = sandbox??fallback??(dependencies.createTools ? dependencies.createTools(workspace) : createPanTrustedLocalTools(workspace));
@@ -446,7 +457,7 @@ export async function runCli(args: readonly string[], dependencies: CliDependenc
 			kernel: "native",
 			adapter,
 			tools,
-			authorization: {sessionAuto:configuration.sessionAuto, protectedPaths: settings?.protectedPaths, permissions: settings?.permissions },
+			authorization: {verifyNpmWorkspace, sessionAuto:configuration.sessionAuto, protectedPaths: settings?.protectedPaths, permissions: settings?.permissions },
 			...(adapter instanceof PanKimiModelAdapter ? { cleanup: () => adapter.dispose() } : {}),
 		});
 		provider = adapter.providerId;
@@ -462,6 +473,7 @@ export async function runCli(args: readonly string[], dependencies: CliDependenc
 	return (dependencies.startTui ?? runTui)({
   input: dependencies.input,
   reportNotice,
+  sessionNpmTest:configuration.sessionNpmTest,
   sessionAuto:configuration.sessionAuto,
   fallback,
   ...(sandbox?{executionMode:"sandbox" as const}:nativeSandbox?{executionMode:nativeSandbox.executionMode}:{}),

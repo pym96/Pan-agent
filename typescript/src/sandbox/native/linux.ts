@@ -1,4 +1,5 @@
 /** Opt-in offline Linux execution. Only the trusted supervisor sees the backing project. */
+import {bundledNpmRoot, npmRuntimeEntries} from "./npm.ts";
 import { NativeNetwork, fetchClient, checkGateway } from "./network.ts";
 import { spawnSync } from "node:child_process";
 import {
@@ -297,6 +298,7 @@ export class NativeLinuxSandbox {
       network: this.broker ? "bounded-http-get" : "denied",
       privateGrant: this.broker?.grant ?? null,
       resourceQuotas: "not_enforced",
+      ...(this.options.sessionNpmTest ? {sessionNpmTest: true} : {}),
     };
   }
   private assertFile(path: string): void {
@@ -368,6 +370,7 @@ export class NativeLinuxSandbox {
         ...libraries.values(),
       ]),
     ].sort();
+    const npmRoot = this.options.sessionNpmTest ? bundledNpmRoot(this.workspace) : undefined;
     const runtime = [...this.runtimeFiles, helper];
     if (this.options.network === "public") runtime.push(realpathSync(fetchClient));
     if (runtime.some((path) => overlaps(this.workspace, path)))
@@ -402,6 +405,13 @@ export class NativeLinuxSandbox {
         "/",
       );
       const gatewayMounts: string[] = [];
+      if (npmRoot) {
+        gatewayMounts.push("--ro-bind", npmRoot, "/pan-npm");
+        const npmMounts = npmRuntimeEntries.flatMap(entry => [
+          "--ro-bind", join("/pan-npm", entry), join("/runtime/npm-package", entry),
+        ]);
+        shellMounts.unshift(...npmMounts, "--symlink", "npm-package/bin/npm-cli.js", "/runtime/npm");
+      }
       const environment = {...ENVIRONMENT};
       if (this.options.network === "public") {
         const grant = this.pendingGrant;

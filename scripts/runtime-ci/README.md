@@ -73,7 +73,7 @@ The Node 26 cell also provisions the existing pinned amd64 Docker image and runs
 
 Run `node scripts/runtime-ci/workspace-trust.mjs INSTALLED_PACKAGE NEW_OUTPUT` on supported macOS or Linux for #175. The installed release candidate, offline OS sandbox and real subprocesses exercise two operator-selected scopes and four sealed tasks. Hash receipts distinguish authorization from expiry without printing fixture values. Linux CI runs this fixture beside the networking regression in the same provisioned userspace.
 
-The installed [native onboarding fixture](native-onboarding.mjs) compares normal and session-only creation of the same ordinary workspace document. It drives real TUI choices and checks host invocation receipts after a controlled pre-task prerequisite failure. On macOS run `node scripts/runtime-ci/native-onboarding.mjs INSTALLED_PACKAGE NEW_ABSOLUTE_OUTPUT` with canonical paths. The provisioned Linux CI step runs the same fixture using its real native backend.
+The installed [native onboarding fixture](native-onboarding.mjs) compares normal and session-only creation of the same ordinary workspace document. It also runs a dependency-free npm lifecycle script twice under the native OS boundary, verifies a deliberate failure and protected fixture, and checks grant expiry, near-match approval and configured denial. It drives real TUI choices and checks host invocation receipts after a controlled pre-task prerequisite failure. On macOS run `node scripts/runtime-ci/native-onboarding.mjs INSTALLED_PACKAGE NEW_ABSOLUTE_OUTPUT` with canonical paths. The provisioned Linux CI step runs the same fixture using its real native backend.
 
 ### Reproducing the Linux prerequisite set
 

@@ -71,6 +71,82 @@ async function automation(auto) {
 }
 await automation(true);
 await automation(false);
+
+// Real npm, a lifecycle script and its Node child. Only the model and terminal input are synthetic.
+const npmTarget=paths('npm-test');
+const marker=path.join(npmTarget.workspace,'runs.txt');
+fs.writeFileSync(path.join(npmTarget.workspace,'package.json'),JSON.stringify({
+ name:'pan-test-fixture',version:'1.0.0',scripts:{test:'node check.cjs'}
+}));
+fs.writeFileSync(path.join(npmTarget.workspace,'private.txt'),'synthetic fixture');
+fs.writeFileSync(path.join(npmTarget.workspace,'check.cjs'),`
+const fs=require('node:fs');
+try { fs.readFileSync('private.txt'); process.exit(41); }
+catch (e) { if (!['EACCES','EPERM','ENOENT'].includes(e.code)) throw e; }
+fs.appendFileSync('runs.txt','ran\\n');
+console.log('PAN_NPM_EXECUTED');
+if (fs.existsSync('fail')) { console.error('PAN_NPM_FAILED'); process.exit(23); }
+`);
+const runNpm=(id,command='npm test')=>call(id,'bash',{command});
+async function npmSession(label, flags, replies, interaction) {
+ const term=terminal();
+ const model=new FauxModelAdapter(replies);
+ let store;
+ const archive=path.join(npmTarget.base,label+'-archives');
+ const running=runCli(['--kernel','native','--workspace',npmTarget.workspace,'--memory-root',archive,'--native-sandbox','--native-offline',...flags],{
+  home:npmTarget.home,input:term.input,output:term.output,createNativeAdapter:()=>model,
+  startTui:opts=>{store=opts.archiveStore;return runTui(opts);}
+ });
+ try {
+  await term.wait(f=>f.includes('Write a task'));
+  assert.equal(term.log().includes('NPM TEST'),flags.includes('--session-npm-test'));
+  await interaction(term);
+  await term.wait(f=>f.includes('Fixture finished')&&f.includes('· idle ·'));
+  const [run]=await store.listRuns();
+  const records=await store.readArchive(run.runId);
+  put(path.join(npmTarget.base,label+'.json'),records);
+  term.send(':exit\r');assert.equal(await running,0);
+  return records;
+ } finally {
+  fs.writeFileSync(path.join(npmTarget.base,label+'.tui'),term.log());
+  term.input.end();term.output.destroy();
+ }
+}
+const npmSettings={...settings,protectedPaths:['private.txt']};
+await savePanSettings(npmSettings,npmTarget.home);
+const submit=term=>term.send('Run the fixture tests\r');
+const settled=(records,id)=>records.find(e=>e.type==='tool.settled'&&e.toolCallId===id);
+const verifyNpm=(record,code)=>{
+ assert.equal(record.details.authorization.decision,'session-npm-test');
+ assert.equal(record.details.backend,platform==='macos'?'seatbelt':'bubblewrap-fuse');
+ assert.equal(record.details.network,'denied');
+ assert.equal(record.details.exitCode,code,record.text);
+ assert.equal(record.isError,code!==0);
+ assert.match(record.details.stdout,/PAN_NPM_EXECUTED/);
+};
+const npmFlag=['--session-npm-test'];
+const positive=await npmSession('twice',npmFlag,[runNpm('first'),runNpm('second'),done],submit);
+verifyNpm(settled(positive,'first'),0);
+verifyNpm(settled(positive,'second'),0);
+assert.equal(fs.readFileSync(marker,'utf8'),'ran\nran\n');
+fs.writeFileSync(path.join(npmTarget.workspace,'fail'),'');
+const failed=await npmSession('failure',npmFlag,[runNpm('test-fail'),done],submit);
+verifyNpm(settled(failed,'test-fail'),23);
+assert.match(settled(failed,'test-fail').details.stderr,/PAN_NPM_FAILED/);
+for(const [label,flags,command] of [
+ ['expired',[],'npm test'],['other',npmFlag,'npm test && touch unexpected']
+]){
+ const records=await npmSession(label,flags,[runNpm(label,command),done],async term=>{
+  submit(term);await term.wait(f=>f.includes('Approval required'));term.send('\r');
+ });
+ assert.equal(settled(records,label).details.code,'approval_denied');
+}
+await savePanSettings({...npmSettings,permissions:{deny:['bash(npm test)']}},npmTarget.home);
+const denied=await npmSession('denied',npmFlag,[runNpm('deny'),done],submit);
+assert.equal(settled(denied,'deny').details.code,'permission_denied');
+assert.equal(fs.readFileSync(marker,'utf8'),'ran\nran\nran\n');
+assert.equal(fs.existsSync(path.join(npmTarget.workspace,'unexpected')),false);
+
 // With an actual admitted native task, a result observed before provider failure remains durable.
 {
  const target=paths('partial');
