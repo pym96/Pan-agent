@@ -11,11 +11,11 @@ import {SandboxSession} from './sandbox/session.ts';
 import {sandboxCommand} from './sandbox/cli.ts';
 import { createRetrievalTool } from './retrieval/tool.ts';
 import { retrievalCommand } from './retrieval/config.ts';
-import { access, stat } from "node:fs/promises";
+import { access, lstat, mkdir, realpath, stat } from "node:fs/promises";
 import { constants } from "node:fs";
 import { pathToFileURL, fileURLToPath } from "node:url";
 import { homedir } from "node:os";
-import { dirname, resolve } from "node:path";
+import { basename, dirname, join, relative, resolve, sep } from "node:path";
 import type { Readable, Writable } from "node:stream";
 import { isKernelSelector, type KernelSelector } from "./runtime/agent-kernel.ts";
 import {
@@ -36,7 +36,7 @@ import type { SessionObservation } from "./runtime/session.ts";
 
 import { validateAttachmentLimit } from "./input/attachments.ts";
 import { loadPanSettings, panSettingsPath, type PanSettings } from "./config/settings.ts";
-import { runFirstRunConfiguration } from "./config/first-run.ts";
+import { providerCredentialVariable, runFirstRunConfiguration } from "./config/first-run.ts";
 import {
 	PAN_KEYCHAIN_ACCOUNT,
 	PAN_KEYCHAIN_KIMI_ACCOUNT,
@@ -62,7 +62,7 @@ export const CLI_USAGE = `Usage:
 
 The installed launcher selects Native; source/library callers pass --kernel native. NativeKernel receives Pan-owned typed read/write/edit/bash implementations directly.
 Interactive tasks default to the native workspace sandbox. Explicit --trusted-local uses host-user tools and enables configured retrieval; workspace is its cwd.
-Defaults: workspace = current directory; memory-root = ~/.pan-agent/archives. Explicit paths override defaults.
+Defaults: workspace = current directory (bare launch from home uses ~/pan-workspace); memory-root = ~/.pan-agent/archives. Explicit paths override defaults.
 Every admitted run is durably archived under --memory-root (must be disjoint from the workspace) with the current Runbook revision; :details, :runs and :replay inspect sealed archives with zero Provider calls or tool effects.
 Attachments use selection-time UTF-8 snapshots; default aggregate maxAttachmentBytes=1048576 (1 MiB local byte policy, not a model token limit). Saved maxAttachmentBytes overrides the default; --max-attachment-bytes overrides the saved value. Never truncates.
 Ordinary settings persist at ~/.pan-agent/settings.json (mode 0600; provider/model/thinking, credential source kind, protectedPaths, permissions.deny and maxAttachmentBytes — never a secret). Run 'configure' to update provider fields while preserving valid ordinary preferences; on a TTY first run without settings the same flow is offered. Explicit --model/--thinking flags override persisted values for that run.
@@ -206,6 +206,22 @@ export interface CliDependencies {
 	readonly createPresentation?: typeof createCompactPresentation;
 }
 
+// Archives may not exist yet. Resolve their existing ancestors and reject dangling links.
+async function physicalPath(path: string): Promise<string> {
+	try {
+		await lstat(path);
+	} catch (error) {
+		if ((error as NodeJS.ErrnoException).code !== "ENOENT" || path === dirname(path)) throw error;
+		return join(await physicalPath(dirname(path)), basename(path));
+	}
+	return realpath(path);
+}
+
+function containsPath(parent: string, path: string): boolean {
+	const suffix = relative(parent, path);
+	return suffix !== ".." && !suffix.startsWith(".." + sep);
+}
+
 export async function runCli(args: readonly string[], dependencies: CliDependencies = {}): Promise<number> {
 	const output = dependencies.output ?? process.stdout;
 	const writeLine = (line: string): void => {
@@ -270,7 +286,12 @@ export async function runCli(args: readonly string[], dependencies: CliDependenc
 		writeLine("Interactive startup requires a terminal. Run pan-agent in a terminal, or use --help / demo; use explicit --workspace and --memory-root for automated runs.");
 		return 2;
 	}
-	const workspace = resolve(configuration.workspace ?? process.cwd());
+	const input = dependencies.input ?? process.stdin;
+	const terminal = (input as NodeJS.ReadStream).isTTY === true && (output as NodeJS.WriteStream).isTTY === true;
+	// The installed launcher supplies --kernel native even when invoked without options.
+	const bare = terminal && args.length === 2 && args[0] === "--kernel" && args[1] === "native";
+	const home = dependencies.home ?? homedir();
+	let workspace = resolve(configuration.workspace ?? process.cwd());
 	try {
 		const info = await stat(workspace);
 		if (!info.isDirectory()) throw new Error("path is not a directory");
@@ -278,14 +299,32 @@ export async function runCli(args: readonly string[], dependencies: CliDependenc
 		writeLine(`Validation failed: workspace is not an existing directory: ${terminalText(workspace)}`);
 		return 2;
 	}
-	const memoryRoot = resolve(configuration.memoryRoot ?? resolve(dependencies.home ?? homedir(), ".pan-agent", "archives"));
-	if (workspace === memoryRoot || workspace.startsWith(`${memoryRoot}/`) || memoryRoot.startsWith(`${workspace}/`)) {
-		writeLine("Validation failed: --memory-root must be disjoint from --workspace. Choose a project subdirectory or pass --memory-root outside the workspace.");
-		return 2;
-	}
-
+	const memoryRoot = resolve(configuration.memoryRoot ?? resolve(home, ".pan-agent", "archives"));
 	let archiveStore;
 	try {
+		let physicalWorkspace = await realpath(workspace);
+		const archive = await physicalPath(memoryRoot);
+		const runs = await physicalPath(join(memoryRoot, "runs"));
+		const physicalHome = await realpath(home);
+		const homeLaunch = bare && physicalWorkspace === physicalHome;
+		if (homeLaunch) {
+			workspace = join(physicalHome, "pan-workspace");
+			physicalWorkspace = await physicalPath(workspace);
+			if (physicalWorkspace !== workspace || archive !== join(physicalHome, ".pan-agent", "archives") || runs !== join(archive, "runs")) {
+				throw new Error("home launch requires ordinary workspace and archive directories; remove the symlink or select another project");
+			}
+		}
+		if ([archive, runs].some(path => containsPath(physicalWorkspace, path) || containsPath(path, physicalWorkspace))) {
+			throw new Error("--memory-root must be disjoint from --workspace. Choose a project subdirectory or pass --memory-root outside the workspace.");
+		}
+		if (homeLaunch) {
+			await mkdir(workspace, { recursive: true, mode: 0o700 });
+			const info = await lstat(workspace);
+			if (!info.isDirectory() || info.uid !== process.getuid?.() || (info.mode & 0o022) || await realpath(workspace) !== workspace) {
+				throw new Error("home workspace must be an ordinary directory owned by you and writable only by you");
+			}
+			writeLine(`Home launch workspace: ${terminalText(workspace)} (reused on your next home launch)`);
+		}
 		await loadRunbook(RUNBOOK_PATH);
 		archiveStore = await RunArchiveStore.open(memoryRoot);
 		await access(resolve(memoryRoot, "runs"), constants.W_OK);
@@ -338,8 +377,9 @@ export async function runCli(args: readonly string[], dependencies: CliDependenc
         (configuration.credentialSelection.task ? " for first task" : " for one exact command in first task") + "; granted command output suppressed.");
     }
   } catch(error) {writeLine("Trust validation failed: " + terminalText(String(error))); return 2;}
-  const firstRunInput = dependencies.input ?? process.stdin;
-	if (!settings && !dependencies.createNativeAdapter && (firstRunInput as NodeJS.ReadStream).isTTY === true) {
+  const firstRunInput = input;
+	const recover = bare && settings?.credentialSource === "environment" && !process.env[providerCredentialVariable(settings.provider)]?.trim();
+	if ((!settings || recover) && !dependencies.createNativeAdapter && (firstRunInput as NodeJS.ReadStream).isTTY === true) {
 		try {
 			settings = await runFirstRunConfiguration({
 				input: firstRunInput,
@@ -347,7 +387,7 @@ export async function runCli(args: readonly string[], dependencies: CliDependenc
 				home: dependencies.home,
 				saveCredential: dependencies.saveCredential,
 				keychainReference: dependencies.keychainReference,
-			});
+			}, recover ? "recover" : "configure");
 		} catch (error) {
 			writeLine(`Configuration failed: ${terminalText(error instanceof Error ? error.message : "unknown")}`);
 			return 2;
@@ -412,7 +452,7 @@ export async function runCli(args: readonly string[], dependencies: CliDependenc
 	}
 
 	writeLine(`Archives: ${terminalText(memoryRoot)}`);
-	const credentialEnv = selectedProvider === "kimi-code" ? "KIMI_API_KEY" : "DEEPSEEK_API_KEY";
+	const credentialEnv = providerCredentialVariable(selectedProvider);
 	writeLine(credentialSource === "keychain"
 		? `CREDENTIAL keychain (macOS Keychain service ${keychainReference.service} account ${keychainReference.account}; retrieved only when a Provider call is made)`
 		: `CREDENTIAL environment ${credentialEnv} (required at task time; never saved)`);

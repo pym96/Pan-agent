@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 """Real global-install/PTY consumer checks; no provider requests or source imports."""
-import argparse, fcntl, hashlib, json, os, pty, select, signal, struct, subprocess, tarfile, termios, time, unittest, urllib.request
+import argparse, fcntl, hashlib, json, os, pty, select, signal, struct, subprocess, sys, tarfile, termios, time, unittest, urllib.request
 from pathlib import Path
+
+SYNTHETIC = 'PAN-190-SYNTHETIC'
 
 class InstalledOnboarding(unittest.TestCase):
     @classmethod
@@ -65,14 +67,14 @@ class InstalledOnboarding(unittest.TestCase):
         r=subprocess.run([str(self.cli),*args],cwd=cwd or self.project,env=self.env,stdin=subprocess.DEVNULL,capture_output=True,text=True,timeout=8)
         (self.root/(name+'.stdout')).write_text(r.stdout);(self.root/(name+'.stderr')).write_text(r.stderr)
         return r
-    def terminal(self,name,args=(),cwd=None,answers=(),task=None):
+    def terminal(self,name,args=(),cwd=None,answers=(),task=None, env=None, expected_code=0, task_done="Missing DEEPSEEK_API_KEY"):
         # These checks compare complete configured paths in the rendered output.
         # Allow two cells per character plus labels/borders so an external output
         # root cannot split the path across cursor-controlled redraw rows.
         paths=[str(cwd or self.project),str(self.home/'.pan-agent/archives'),*map(str,args)]
         columns=max(160,2*max(map(len,paths))+32)
         master,slave=pty.openpty();fcntl.ioctl(slave,termios.TIOCSWINSZ,struct.pack('HHHH',40,columns,0,0))
-        proc=subprocess.Popen([str(self.cli),*args],cwd=cwd or self.project,env=self.env,stdin=slave,stdout=slave,stderr=slave,start_new_session=True);os.close(slave)
+        proc=subprocess.Popen([str(self.cli),*args],cwd=cwd or self.project,env=env or self.env,stdin=slave,stdout=slave,stderr=slave,start_new_session=True);os.close(slave)
         raw=b'';remaining=list(answers);sent=False;task_sent=False;deadline=time.monotonic()+8
         try:
             while proc.poll() is None and time.monotonic()<deadline:
@@ -85,16 +87,16 @@ class InstalledOnboarding(unittest.TestCase):
                 elif not remaining and 'Write a task.' in text and not sent:
                     if task is not None and not task_sent:
                         os.write(master,(task+'\r').encode());task_sent=True
-                    elif task is None or ('Missing DEEPSEEK_API_KEY' in text and text.rfind('· idle ·') > text.rfind('· running ·')):
+                    elif task is None or (task_done in text and text.rfind('· idle ·') > text.rfind('· running ·')):
                         os.write(master,b':exit\r');sent=True
             proc.wait(timeout=1)
-            self.assertEqual(proc.returncode,0,text)
-            self.assertTrue(sent,text)
-            self.assertFalse(remaining,text)
+            self.assertEqual(proc.returncode,expected_code,text.replace(SYNTHETIC,"[redacted]"))
+            if expected_code == 0: self.assertTrue(sent,text.replace(SYNTHETIC,"[redacted]"))
+            self.assertFalse(bool(remaining),"not all scripted prompts were consumed")
             return text
         finally:
             if proc.poll() is None: os.killpg(proc.pid,signal.SIGKILL);proc.wait()
-            os.close(master);(self.root/(name+'.pty')).write_bytes(raw)
+            os.close(master);(self.root/(name+'.pty')).write_bytes(raw.replace(SYNTHETIC.encode(),b'[redacted]'))
     def test_01_help_and_nontty(self):
         r=self.command('help',['--help']);self.assertEqual(r.returncode,0);self.assertIn('current directory',r.stdout)
         r=self.command('nontty',[]);self.assertEqual(r.returncode,2);self.assertIn('requires a terminal',r.stdout)
@@ -108,7 +110,7 @@ class InstalledOnboarding(unittest.TestCase):
         settings=self.home/'.pan-agent/settings.json';before=settings.read_bytes()
         self.assertEqual(set(json.loads(before)),{'schemaVersion','provider','modelId','thinkingLevel','credentialSource'})
         self.assertEqual(settings.stat().st_mode & 0o777,0o600)
-        text=self.terminal('repeat');self.assertNotIn('Pan first-run configuration',text)
+        text=self.terminal('repeat', answers=[('Credential source:', 'e')] if PACKAGE else ());self.assertNotIn('Pan first-run configuration',text)
         self.assertEqual(settings.read_bytes(),before)
         self.assertTrue((self.home/'.pan-agent/archives/runs').is_dir())
         self.assertEqual(list(self.project.iterdir()),[])
@@ -147,6 +149,101 @@ class InstalledOnboarding(unittest.TestCase):
     def test_07_no_provider_requests(self):
         self.assertFalse((self.root/'network.log').exists())
         self.assertEqual(len(list((self.home/'.pan-agent/archives/runs').iterdir())),1)
+
+    def test_08_home_workspace_and_recovery(self):
+        if not PACKAGE: self.skipTest('candidate-only startup behavior')
+        alias=self.root/'home-alias';alias.symlink_to(self.home,target_is_directory=True)
+        env={**self.env,'HOME':str(alias)}
+        workspace=self.home/'pan-workspace'
+        outside=self.root/'outside';outside.mkdir()
+        workspace.symlink_to(outside,target_is_directory=True)
+        try:
+            text=self.terminal('home-symlink',cwd=alias,env=env,expected_code=2)
+            self.assertIn('ordinary workspace',text)
+            self.assertEqual(list(outside.iterdir()),[])
+        finally:
+            workspace.unlink()
+        for launch in range(2):
+            text=self.terminal('home-'+str(launch),cwd=alias,env=env,answers=[('Credential source:', 'e')])
+            self.assertIn('Home launch workspace: '+str(workspace),text)
+            self.assertIn('missing in this terminal',text)
+            self.assertTrue(workspace.is_dir())
+        settings=self.home/'.pan-agent/settings.json';before=settings.read_bytes()
+        text=self.terminal('home-cancel',cwd=self.home,answers=[('Credential source:', 'q')],expected_code=2)
+        self.assertIn('configuration_cancelled',text)
+        self.assertEqual(settings.read_bytes(),before)
+        text=self.terminal('working-env',env={**self.env,'DEEPSEEK_API_KEY':SYNTHETIC})
+        self.assertNotIn('Credential source:',text)
+        self.assertFalse(SYNTHETIC in text,'synthetic credential appeared in PTY')
+        r=self.command('overlap-via-alias',['--workspace',str(self.home),'--memory-root',str(alias/'absent'/'archive')])
+        self.assertEqual(r.returncode,2);self.assertIn('disjoint',r.stdout)
+        self.assertFalse((self.home/'absent').exists())
+
+    def test_09_durable_account(self):
+        if not PACKAGE: self.skipTest('candidate-only onboarding behavior')
+        if sys.platform != 'darwin':
+            text=self.terminal('linux-sources',answers=[('Credential source:', 'e')])
+            self.assertNotIn('(k)eychain',text)
+            return
+        # Intercept the exact OS boundary before the installed bin imports child_process.
+        # Only item names/operations are logged. Synthetic contents never go to /usr/bin/security.
+        guard=self.root/'credential-double.mjs'
+        guard.write_text("""import cp from 'node:child_process';
+import {syncBuiltinESMExports} from 'node:module';
+import {appendFileSync,existsSync,readFileSync} from 'node:fs';
+const original = cp.spawnSync, token = 'PAN-190-SYNTHETIC';
+const log = process.env.PAN_ITEM_LOG;
+cp.spawnSync = (cmd, args, opts) => {
+    if (cmd !== 'security') return original(cmd,args,opts);
+    if (args.includes(token)) throw Error('unexpected secret in argv');
+    const account = 'deepseek-api-key', service = 'com.pym96.pan-agent';
+    if (args.join(' ') === '-i' && opts.input.trim() === `add-generic-password -s ${service} -a ${account} -w ${token} -U`) {
+        appendFileSync(log,'save '+account+'\\n'); return {status:0,stdout:'',stderr:''};
+    }
+    if (args.join(' ') === `find-generic-password -s ${service} -a ${account} -w` && existsSync(log) && readFileSync(log,'utf8').includes('save '+account)) {
+        appendFileSync(log,'read '+account+'\\n'); return {status:0,stdout:token,stderr:''};
+    }
+    throw Error('unexpected credential operation');
+};
+syncBuiltinESMExports();
+if (process.env.PAN_OFFLINE_PROVIDER === '1') globalThis.fetch = async (url, req) => {
+    if (new URL(url).hostname !== 'api.deepseek.com' || req.headers.authorization !== 'Bearer '+token) throw Error('unexpected provider request');
+    appendFileSync(log,'offline-provider\\n');
+    return new Response('synthetic rejection',{status:401});
+};
+""")
+        log=self.root/'item-operations'
+        env={**self.env, 'NODE_OPTIONS':self.env['NODE_OPTIONS']+' --import='+guard.as_uri(),'PAN_ITEM_LOG':str(log)}
+        home=self.root/'fresh-mac';home.mkdir();env['HOME']=str(home)
+        text=self.terminal('mac-first',cwd=home,env=env,answers=[
+            ('Provider [',''),('Model [',''),('Thinking [',''),('(q)uit [k]:',''),
+            ('input hidden;',SYNTHETIC),('Save this key','y')])
+        self.assertFalse(SYNTHETIC in text,'synthetic credential appeared in PTY')
+        self.assertEqual(log.read_text().splitlines(),['save deepseek-api-key'])
+        settings=home/'.pan-agent/settings.json';before=settings.read_bytes()
+        self.assertEqual(json.loads(before)['credentialSource'],'keychain')
+        for launch in range(2):
+            project=self.root/('account-project-'+str(launch));project.mkdir()
+            text=self.terminal('mac-reuse-'+str(launch),cwd=project,env=env)
+            self.assertNotIn('Credential source:',text);self.assertIn('CREDENTIAL keychain',text)
+            self.assertIn(str(project),text)
+            tested=self.terminal('mac-offline-provider-'+str(launch),args=['--trusted-local'],cwd=project,
+                env={**env,'PAN_OFFLINE_PROVIDER':'1'},task='Say hello',task_done='· running ·')
+            self.assertFalse(SYNTHETIC in tested,'synthetic credential appeared in PTY')
+            self.assertEqual(list(project.iterdir()),[])
+        self.assertEqual(log.read_text().splitlines(),['save deepseek-api-key']+['read deepseek-api-key','offline-provider']*2)
+        self.assertEqual(settings.read_bytes(),before)
+        # Recover in-place from an existing env selection, retaining optional preferences.
+        record={**json.loads(before),'credentialSource':'environment','maxAttachmentBytes':512}
+        settings.write_text(json.dumps(record))
+        text=self.terminal('mac-recover',cwd=project,env=env,answers=[
+            ('(q)uit [k]:',''),('input hidden;',SYNTHETIC),('Save this key','y')])
+        self.assertNotIn('Provider [',text);self.assertFalse(SYNTHETIC in text,'synthetic credential appeared in PTY')
+        self.assertEqual(json.loads(settings.read_bytes()),{**record,'credentialSource':'keychain'})
+        self.assertEqual(log.read_text().splitlines()[-1],'save deepseek-api-key')
+        for file in home.rglob('*'):
+            if file.is_file(): self.assertFalse(SYNTHETIC.encode() in file.read_bytes(),str(file))
+        self.assertFalse((self.root/'network.log').exists())
 
 if __name__=='__main__':
     parser=argparse.ArgumentParser()

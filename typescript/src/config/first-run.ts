@@ -4,7 +4,7 @@ import { Writable, type Readable } from "node:stream";
 import { DEEPSEEK_MODEL_IDS, type DeepSeekModelId, type DeepSeekThinkingLevel } from "../providers/deepseek/deepseek-profile.ts";
 import { KIMI_MODEL_ID, KIMI_K3_MODEL_ID, type KimiModelId } from "../providers/kimi/kimi-profile.ts";
 import { loadPanSettings, savePanSettings, type PanSettings, type PanCredentialSource, PAN_SETTINGS_SCHEMA_VERSION } from "./settings.ts";
-import { saveKeychainCredential, PAN_KEYCHAIN_SERVICE, PAN_KEYCHAIN_ACCOUNT, type KeychainReference } from "./keychain.ts";
+import { saveKeychainCredential, PAN_KEYCHAIN_SERVICE, PAN_KEYCHAIN_ACCOUNT, PAN_KEYCHAIN_KIMI_ACCOUNT, type KeychainReference } from "./keychain.ts";
 
 export interface FirstRunDependencies {
 	readonly input: Readable;
@@ -13,6 +13,11 @@ export interface FirstRunDependencies {
 	/** Injectable for tests; production uses the real Keychain. */
 	readonly saveCredential?: (secret: string, reference: KeychainReference) => void;
 	readonly keychainReference?: KeychainReference;
+	readonly platform?: NodeJS.Platform;
+}
+
+export function providerCredentialVariable(provider: PanSettings["provider"]): string {
+	return provider === "kimi-code" ? "KIMI_API_KEY" : "DEEPSEEK_API_KEY";
 }
 
 const THINKING_LEVELS: readonly DeepSeekThinkingLevel[] = ["low", "high", "max"];
@@ -31,14 +36,16 @@ class MutedWritable extends Writable {
 }
 
 /**
- * Interactive first-run configuration. Every selection is explicit; kimi-code and
- * unknown providers render unavailable and persist nothing; the Keychain item is
- * written only after an explicit save confirmation; secrets never enter settings.
+ * First-time setup and credential-only recovery share the same consent prompt.
+ * Only an affirmative save writes a Keychain item.
  */
-export async function runFirstRunConfiguration(dependencies: FirstRunDependencies): Promise<PanSettings> {
+export async function runFirstRunConfiguration(dependencies: FirstRunDependencies, mode: "configure" | "recover" = "configure"): Promise<PanSettings> {
 	const { input, output, home } = dependencies;
 	// Validate before prompting or changing credentials; invalid policy is never discarded.
 	const previous = await loadPanSettings(home);
+	const recovering = mode === "recover";
+	if (recovering && previous?.credentialSource !== "environment") throw new Error("configuration_changed: restart Pan");
+	const supportsKeychain = (dependencies.platform ?? process.platform) === "darwin";
 	const keychainSave = dependencies.saveCredential ?? saveKeychainCredential;
 	const reference = dependencies.keychainReference ?? { service: PAN_KEYCHAIN_SERVICE, account: PAN_KEYCHAIN_ACCOUNT };
 	const muted = new MutedWritable(output);
@@ -54,7 +61,9 @@ export async function runFirstRunConfiguration(dependencies: FirstRunDependencie
 		if (waiter) waiter.resolve(line);
 		else buffered.push(line);
 	});
+	let closed = false;
 	terminal.on("close", () => {
+		closed = true;
 		const waiter = waiters.shift();
 		if (waiter) waiter.reject(new Error("configuration_cancelled: input closed"));
 	});
@@ -68,6 +77,7 @@ export async function runFirstRunConfiguration(dependencies: FirstRunDependencie
 		}
 		try {
 			if (buffered.length) return buffered.shift()!.trim();
+			if (closed) throw new Error("configuration_cancelled: input closed");
 			return (await new Promise<string>((resolve, reject) => waiters.push({ resolve, reject }))).trim();
 		} finally {
 			if (mask) {
@@ -76,7 +86,7 @@ export async function runFirstRunConfiguration(dependencies: FirstRunDependencie
 			}
 		}
 	};
-	try {
+	const chooseProfile = async () => {
 		write("Pan first-run configuration. Settings persist ordinary preferences only; secrets are never written to settings.");
 		let provider: "deepseek" | "kimi-code" | undefined;
 		let selectK3 = false;
@@ -114,14 +124,30 @@ export async function runFirstRunConfiguration(dependencies: FirstRunDependencie
 			}
 			thinkingLevel = selectedThinking;
 		}
-		const credentialEnv = provider === "kimi-code" ? "KIMI_API_KEY" : "DEEPSEEK_API_KEY";
-		const keychainAccount = provider === "kimi-code" ? "kimi-code-key" : reference.account;
+		return { provider, modelId, thinkingLevel };
+	};
+	try {
+		const { provider, modelId, thinkingLevel } = recovering && previous ? previous : await chooseProfile();
+		const credentialEnv = providerCredentialVariable(provider);
+		const interactive = (input as NodeJS.ReadStream).isTTY === true && (output as NodeJS.WriteStream).isTTY === true;
+		const defaultKeychain = interactive && supportsKeychain && !process.env[credentialEnv]?.trim();
+		if (recovering) {
+			write(`Saved provider ${provider} uses ${credentialEnv}, which is missing in this terminal. Keep environment mode to open Pan without a key, or quit and supply it from your shell or secret manager.`);
+		}
+		const keychainAccount = provider === "kimi-code" ? PAN_KEYCHAIN_KIMI_ACCOUNT : reference.account;
 		const activeReference: KeychainReference = { service: reference.service, account: keychainAccount };
 		let credentialSource: PanCredentialSource | undefined;
 		while (!credentialSource) {
-			const answer = (await ask(`Credential source: (e)nvironment ${credentialEnv}, never saved / (k)eychain remember [e]: `)).toLowerCase();
-			if (answer === "" || answer === "e" || answer === "environment") credentialSource = "environment";
-			else if (answer === "k" || answer === "keychain") {
+			const options = supportsKeychain
+				? `(k)eychain — remember across terminals and projects / (e)nvironment ${credentialEnv}`
+				: `(e)nvironment ${credentialEnv} from your shell or secret manager`;
+			const answer = (await ask(`Credential source: ${options} / (q)uit [${defaultKeychain ? "k" : "e"}]: `)).toLowerCase();
+			if (answer === "q" || answer === "quit") throw new Error("configuration_cancelled: no changes saved");
+			const choice = answer || (defaultKeychain ? "k" : "e");
+			if (choice === "e" || choice === "environment") {
+				if (recovering && previous) return previous;
+				credentialSource = "environment";
+			} else if (supportsKeychain && (choice === "k" || choice === "keychain")) {
 				const secret = await ask(`${provider === "kimi-code" ? "Kimi" : "DeepSeek"} API key to remember (input hidden; stored only in macOS Keychain): `, true);
 				if (!secret) {
 					write("Empty key; nothing written.");
@@ -140,7 +166,7 @@ export async function runFirstRunConfiguration(dependencies: FirstRunDependencie
 				}
 				write("Keychain item saved. Settings will reference it by name only.");
 				credentialSource = "keychain";
-			} else write(`Unknown credential source: ${answer}.`);
+			} else write("Choose one of the displayed credential sources, or q to quit.");
 		}
 		const settings: PanSettings = { ...previous, schemaVersion: PAN_SETTINGS_SCHEMA_VERSION, provider, modelId, thinkingLevel, credentialSource };
 		const path = await savePanSettings(settings, home);

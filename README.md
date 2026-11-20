@@ -12,6 +12,8 @@ npm install -g pan-agent
 
 This installs the prebuilt [Pan Agent npm package](https://www.npmjs.com/package/pan-agent). To reproduce the 0.1.10 release, use `npm install -g pan-agent@0.1.10`. No checkout or compilation is required. The older [GitHub v0.1.9 release](https://github.com/pym96/Pan-agent/releases/tag/v0.1.9) retains its original archive and checksums.
 
+The 0.1.11 source candidate adds one-time macOS Keychain setup on first launch and a persistent workspace for launches from home. The current npm release is 0.1.10. Use the [package build and installation instructions](typescript/README.md#build-a-package-developers) to try the candidate.
+
 Use a user-owned Node/npm installation. If installation reports permission denied, check that your npm prefix is writable.
 
 If your terminal reports `pan-agent: command not found`, finish installation first. Check `command -v pan-agent`; npm's global executable directory (`$(npm prefix -g)/bin` on macOS/Linux) must be on your `PATH`. Reopen the terminal after fixing your Node/npm setup. This is an installation/PATH issue, not an API-key error.
@@ -26,7 +28,9 @@ For the installed offline demo and configuration for your own task, see the [del
 
 ### macOS: use the configuration wizard
 
-Have your **DeepSeek API key** ready, then run:
+With the **0.1.11 candidate**, run `pan-agent` from your home or project directory. At first launch, press Enter for the DeepSeek defaults and, if the provider environment variable is absent, for Keychain. Paste the API key at the hidden prompt and confirm the save with `y`. Later terminals and projects use that account automatically. If an older environment selection is missing its key, the candidate offers the same credential choice immediately and preserves your provider and other preferences. Choose `e` to keep environment mode or `q` to exit.
+
+For the **0.1.10 npm release**, have your DeepSeek API key ready, then run:
 
 ```sh
 pan-agent configure
@@ -86,7 +90,7 @@ When the TUI shows **Write a task.**, type `Create hello.txt containing Hello fr
 
 Use `:exit` to quit. If environment mode reports a missing `DEEPSEEK_API_KEY` or `KIMI_API_KEY`, exit, repeat the shell key-input step and restart Pan. For a Keychain error, rerun `pan-agent configure` and check the save result. Never enter an API key as task text. To try the interface without an API key, use the offline demo below.
 
-The workspace defaults to your current directory (`--workspace DIR` overrides it); history defaults to `~/.pan-agent/archives` (`--memory-root DIR` overrides it). Keep history outside the workspace. If you launch from your home directory and see an overlap error, enter a project subdirectory first.
+The workspace defaults to your current directory (`--workspace DIR` overrides it); history defaults to `~/.pan-agent/archives` (`--memory-root DIR` overrides it). Keep history outside the workspace. In the 0.1.11 candidate, a bare launch from home opens `~/pan-workspace` and reuses it next time. With npm release 0.1.10, enter a project subdirectory first to avoid an overlap error.
 
 The 0.1.10 interactive launcher selects the native workspace sandbox by default. Check the backend shown in the banner. Pan checks enforcement before it sends a task to the model. Ctrl-C requests cancellation during execution and can retain the draft. Bare startup needs a terminal; see the [package guide](typescript/README.md) for command interfaces.
 

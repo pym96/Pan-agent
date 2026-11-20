@@ -56,7 +56,7 @@ function wizard(answers: readonly string[], saveCredential?: (secret: string, re
  return {
   rendered: () => rendered,
   run: async (home: string) => {
-   const pending = runFirstRunConfiguration({ input, output, home, saveCredential, keychainReference: { service: "com.pym96.pan-agent.workorder-52-test", account: "unit-test" } });
+   const pending = runFirstRunConfiguration({ input, output, home, saveCredential, platform: "darwin", keychainReference: { service: "com.pym96.pan-agent.workorder-52-test", account: "unit-test" } });
    for (const line of writes) input.write(line);
    input.end();
    return pending;
@@ -64,7 +64,7 @@ function wizard(answers: readonly string[], saveCredential?: (secret: string, re
  };
 }
 
-test("C-CONFIG-01 wizard defaults persist environment source without any secret", async () => {
+test("C-CONFIG-01 noninteractive wizard defaults persist environment source without any secret", async () => {
  const home = await tempHome();
  const w = wizard(["", "", "", ""]);
  const settings = await w.run(home);
@@ -164,4 +164,27 @@ test("C-CONFIG-04 multi-line or whitespace keys are rejected before any Keychain
  for (const bad of ["line1\nline2", "has space", "has\ttab", "quote\"inside", "with\rcr"]) {
   assert.throws(() => saveKeychainCredential(bad, { service: "com.pym96.pan-agent.workorder-52-test", account: "unit-test" }), /single line of printable characters/);
  }
+});
+
+
+test("credential recovery preserves Kimi provider, model, policy and explicit cancellation", async () => {
+ const home = await tempHome();
+ const original = { ...valid, provider: "kimi-code", modelId: "k3-256k", maxAttachmentBytes: 4096 } as const;
+ const path = await savePanSettings(original, home);
+ const before = await readFile(path);
+ const output = new PassThrough();
+ output.resume();
+ const writes: string[] = [];
+ const recover = async (answers: string) => {
+  const input = new PassThrough();
+  input.end(answers);
+  return runFirstRunConfiguration({
+   input, output, home, platform: "darwin", saveCredential: (_secret, ref) => { writes.push(ref.account); },
+  }, "recover");
+ };
+ await assert.rejects(recover("k\nCANARY-DECLINED\nn\nq\n"), /configuration_cancelled/);
+ assert.deepEqual(await readFile(path), before);
+ assert.deepEqual(writes, []);
+ assert.deepEqual(await recover("k\nCANARY-ACCEPTED\ny\n"), { ...original, credentialSource: "keychain" });
+ assert.deepEqual(writes, ["kimi-code-key"]);
 });

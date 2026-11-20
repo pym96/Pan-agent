@@ -7,7 +7,7 @@ try {
   } else {
     if (args.includes('--help') || args.includes('-h')) {
       console.log('Installed commands: pan-agent configure | pan-agent settings path|show|validate | pan-agent demo [--directory NEW_DIRECTORY]');
-      console.log('Start: pan-agent (current directory; archives in ~/.pan-agent/archives)');
+      console.log('Start: pan-agent (current directory, ~/pan-workspace when launched from home; archives in ~/.pan-agent/archives)');
     }
     // Product launcher selects its sole supported kernel; library callers remain explicit.
     const subcommand = ['mcp', 'configure', 'trust', 'settings', 'retrieval', 'sandbox', 'loop', 'goal', 'execution', 'delivery'].includes(args[0]);

@@ -86,7 +86,7 @@ export function saveKeychainCredential(secret: string, reference: KeychainRefere
 	if (result.error) throw new PanKeychainError("keychain_unavailable", `security CLI unavailable: ${result.error.message}`);
 	const combined = `${String(result.stdout ?? "")}\n${String(result.stderr ?? "")}`;
 	const returned = /returned\s+(-?\d+)/.exec(combined);
-	if ((returned !== null && returned[1] !== "0") || /unknown command/i.test(combined)) {
+	if (result.status !== 0 || (returned !== null && returned[1] !== "0") || /unknown command/i.test(combined)) {
 		throw new PanKeychainError(classify(combined), `security add-generic-password failed for service ${reference.service} account ${reference.account}`);
 	}
 }

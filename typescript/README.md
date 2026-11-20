@@ -8,7 +8,9 @@ Requires Node.js >=22.19.0, npm and an interactive terminal for the TUI. Pan has
 npm install -g pan-agent
 ```
 
-This installs the prebuilt [npm package](https://www.npmjs.com/package/pan-agent). To pin this release, use `npm install -g pan-agent@0.1.10`. Open a terminal in a project directory and run `pan-agent configure` to select a provider and credential source. Run `pan-agent demo` for the offline example.
+This installs the prebuilt [npm package](https://www.npmjs.com/package/pan-agent). The current public release is 0.1.10. To pin it, use `npm install -g pan-agent@0.1.10`. Open a terminal in a project directory and run `pan-agent configure` to select a provider and credential source. Run `pan-agent demo` for the offline example.
+
+The 0.1.11 source candidate can be installed from a [locally built tarball](#build-a-package-developers). The startup changes below apply to that candidate.
 
 ## Version and command navigation
 
@@ -20,7 +22,7 @@ Pan 0.1.10 includes `pan-agent settings path`, `pan-agent settings show` and `pa
 
 ## Interactive startup
 
-The installed launcher selects the Native kernel and native workspace sandbox. The workspace defaults to the current directory and archives to `~/.pan-agent/archives`. Use `--workspace` and `--memory-root` to override them and keep their directories disjoint. First launch in a terminal offers configuration and reuses saved settings on later runs. No API request is made before a task is submitted.
+The installed launcher selects the Native kernel and native workspace sandbox. In the 0.1.11 candidate, running `pan-agent` from home opens `~/pan-workspace`, creating it on first use. Run the same command in a project to work in that directory. The archive for both lives at `~/.pan-agent/archives`. With npm release 0.1.10, start in a project directory. Use `--workspace` and `--memory-root` to override them and keep their directories disjoint. First launch in a terminal offers configuration and reuses saved settings on later runs. No API request is made before a task is submitted.
 
 ## Publish checklist (maintainer)
 
@@ -46,7 +48,7 @@ The compiler is a pinned development dependency. A consumer does not need it. Th
 ```sh
 mkdir pan-consumer
 cd pan-consumer
-npm install /path/to/pan-agent-0.1.10.tgz --omit=dev --ignore-scripts --no-audit --no-fund
+npm install /path/to/pan-agent-0.1.11.tgz --omit=dev --ignore-scripts --no-audit --no-fund
 ./node_modules/.bin/pan-agent --help
 ./node_modules/.bin/pan-agent demo
 ```
@@ -59,7 +61,7 @@ After the global installation above, use `pan-agent` in your terminal. For a loc
 
 ### DeepSeek
 
-**On macOS**, run `pan-agent configure`: press Enter at Provider, Model and Thinking for the defaults, choose `k` at Credential source, paste the key into the hidden prompt, then confirm `y` to save it to Keychain. No shell key export is needed. See [Credential options](#credential-options) for decline/failure behavior.
+**On macOS**, run `pan-agent configure`: press Enter at Provider, Model and Thinking for the defaults, choose `k` at Credential source (the 0.1.11 macOS default when its provider key is absent), paste the key into the hidden prompt, then confirm `y` to save it to Keychain. No shell key export is needed. See [Credential options](#credential-options) for decline/failure behavior.
 
 **On Linux, or when choosing environment credentials**, run the following block in **Bash or zsh**. At the prompt, paste your DeepSeek API key and press Enter; the terminal hides your input.
 
@@ -105,10 +107,10 @@ Kimi models are selected through these provider answers in `configure`; Kimi `--
 
 ### Credential options
 
-- **Environment (`e`, default):** Pan reads `DEEPSEEK_API_KEY` for DeepSeek or `KIMI_API_KEY` for either Kimi model at task time. Enter the key in your shell using the blocks above or your secret manager; the wizard only saves the source choice. The export lasts in that shell and programs launched from it. It does not configure new terminals or update an already-running Pan process. Repeat the input step when opening a new terminal.
-- **macOS Keychain (`k`):** You can skip the shell key-input block. Run `pan-agent configure`, choose your provider/model, then `k`. Paste the key at the wizard's hidden API-key prompt and confirm `y` at the save prompt. Pan remembers it in macOS Keychain and saves only the source choice in settings. A declined or failed save returns you to the credential-source choice; there is no plaintext fallback. Environment variables do not override a selected Keychain source.
+- **Environment (`e`):** Pan reads `DEEPSEEK_API_KEY` for DeepSeek or `KIMI_API_KEY` for either Kimi model at task time. Enter the key in your shell using the blocks above or your secret manager; the wizard only saves the source choice. The export lasts in that shell and programs launched from it. It does not configure new terminals or update an already-running Pan process. Repeat the input step when opening a new terminal.
+- **macOS Keychain (`k`, candidate default when the selected provider environment key is absent):** You can skip the shell key-input block. Run `pan-agent configure`, choose your provider/model, then `k`. Paste the key at the wizard's hidden API-key prompt and confirm `y` at the save prompt. Pan remembers it in macOS Keychain and saves only the source choice in settings. A declined or failed save returns you to the credential-source choice; there is no plaintext fallback. Environment variables do not override a selected Keychain source.
 
-Pan saves ordinary preferences in `~/.pan-agent/settings.json`; no API key belongs in that file. Run `pan-agent configure` again to replace provider/model/thinking/source preferences. First bare startup without saved settings offers the same wizard; later launches reuse them. Configuration, startup, idle and local TUI commands make no provider request and do not validate your provider account.
+Pan saves ordinary preferences in `~/.pan-agent/settings.json`; no API key belongs in that file. Run `pan-agent configure` again to replace provider/model/thinking/source preferences. First bare startup without saved settings offers the same wizard; later launches reuse them across projects. On a bare interactive launch, the candidate offers to repair a saved environment choice when the selected key is missing. On macOS, press Enter to save it once in Keychain, then confirm with `y`. Choose `e` to continue without a key or `q` to quit. On Linux, supply the named variable from your shell or secret manager before starting a model task. Configuration, startup, idle and local TUI commands make no provider request and do not validate your provider account.
 
 ### Submit your first task
 
@@ -122,7 +124,7 @@ pan-agent
 
 At **Write a task.** in the TUI, type `Create hello.txt containing Hello from Pan.` and press Enter. This submits a real task to the configured provider and may incur charges. Review tool approvals and inspect the file afterward; configuring a key alone does not establish a successful provider call. `pan-agent demo` runs the offline example described above without a key.
 
-Workspace defaults to the current directory, and archives to `~/.pan-agent/archives`. Override them with `--workspace DIR` and `--memory-root DIR`; the directories must be disjoint. The interactive 0.1.10 release uses the native workspace sandbox by default and checks its enforcement before the model runs. Review the approval for a new file. Trusted-local mode grants host-user tool authority and enables configured retrieval when explicitly selected with `--trusted-local`. Use a practice directory for your first task.
+In a project, workspace defaults to the current directory, and archives to `~/.pan-agent/archives`. Override them with `--workspace DIR` and `--memory-root DIR`; the directories must be disjoint. The interactive 0.1.10 release uses the native workspace sandbox by default and checks its enforcement before the model runs. Review the approval for a new file. Trusted-local mode grants host-user tool authority and enables configured retrieval when explicitly selected with `--trusted-local`. Use a practice directory for your first task.
 
 ## Inspect and replay
 
