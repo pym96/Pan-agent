@@ -79,7 +79,11 @@ export class DailyWorkspace {
   this.exitCode = 130;
   this.end();
  };
- private readonly end=()=>{this.closing=true;if(this.phase==='running'||this.phase==='cancelling')this.cancel();else this.finish();};
+ private readonly end=()=>{
+  this.closing=true;
+  if(this.options.executionMode==='trusted-local')this.options.session.stopAcceptingTasks();
+  if(this.phase==='running'||this.phase==='cancelling')this.cancel();else this.finish();
+ };
  private finish():void {this.phase='closed';this.picker?.abort.abort();this.done();}
  private readonly parser=new FramedInput(event=>{
   if(event.type==='key')this.key(event.text,event.key);
@@ -316,9 +320,10 @@ export class DailyWorkspace {
   if(this.phase==='closed')return;const w=Math.max(1,this.output.columns??80),h=Math.max(1,this.output.rows??24);const view=this.editor.visual(Math.max(1,w-3));const composer=Math.min(view.lines.length,Math.max(1,Math.floor(h/3)));
   const rows:{text:string;kind?:string;cells?:StyledCell[]}[]=[];let cursor={row:h-1,col:0};
   let trackRows=0;let trackGeom:ScrollbarGeometry|undefined;
-  if(!this.supported()){rows.push({text:'Pan · Resize terminal (min 40 x 12)'},{text:'Ctrl-C: cancel task or exit'});cursor={row:Math.min(h-1,2),col:0};}
+  const hostLabel=this.options.executionMode==='trusted-local'?' · HOST (trusted-local)':'';
+  if(!this.supported()){rows.push({text:'Pan'+hostLabel+' · Resize terminal (min 40 x 12)'},{text:'Ctrl-C: cancel task or exit'});cursor={row:Math.min(h-1,2),col:0};}
   else {
-   rows.push({text:`Pan · Compat${this.options.sessionNpmTest?' · NPM TEST':''}${this.options.sessionAuto?' · SESSION AUTO':''}${this.options.fallback?.status?' · '+this.options.fallback.status:this.options.executionMode?.startsWith('native-')?(this.options.executionMode.endsWith('offline')?' · Native offline':' · Native GET'):''} · ${this.overlay?'preview':this.picker?'picker':this.focus}${this.newOutput?' · New output':''} · ${this.phase} · ${terminalText(this.options.model)}`,kind:'header'});
+   rows.push({text:`Pan · Compat${hostLabel}${this.options.sessionNpmTest?' · NPM TEST':''}${this.options.sessionAuto?' · SESSION AUTO':''}${this.options.fallback?.status?' · '+this.options.fallback.status:this.options.executionMode?.startsWith('native-')?(this.options.executionMode.endsWith('offline')?' · Native offline':' · Native GET'):''} · ${this.overlay?'preview':this.picker?'picker':this.focus}${this.newOutput?' · New output':''} · ${this.phase} · ${terminalText(this.options.model)}`,kind:'header'});
    const matches=this.matches(),p=this.picker;const pickerRows=p?Math.min(7,Math.max(3,h-5-composer-1)):0;const bodyRows=h-5-composer-pickerRows;this.bodyHeight=bodyRows;trackRows=bodyRows;
    let body:{text:string;kind?:string;cells?:StyledCell[]}[]=[];
    if(this.overlay){const lines:{text:string;cells?:StyledCell[]}[]=[this.overlay.title,...this.overlay.lines].flatMap(s=>wrap(s,w-3).map(t=>({text:'│ '+t})));if(this.overlay.assistantText!==undefined)for(const r of markdownRows(this.overlay.assistantText,w-3))lines.push({text:'│ '+r.text,cells:[{text:'│'},{text:' '},...r.cells]});this.overlay.offset=Math.min(this.overlay.offset,Math.max(0,lines.length-bodyRows));body=lines.slice(this.overlay.offset,this.overlay.offset+bodyRows);}
@@ -327,7 +332,7 @@ export class DailyWorkspace {
     this.ensureLayout(w-3);
     const all=this.contentRows;
     const toolMarkerRow=selectedTool?this.layoutStarts[this.entries.indexOf(selectedTool)]!:-1;
-    if(!all.length){const intro=['Write a task. @ opens files; Tab attaches; Enter sends.','Provider: '+terminalText(this.options.provider),'Workspace: '+terminalText(this.options.workspace),this.options.executionMode?.startsWith('native-')?`NATIVE ${this.options.executionMode.startsWith('native-linux')?'LINUX':'MACOS'} SANDBOX · shared workspace · ${this.options.executionMode.endsWith('offline')?'offline':'bounded HTTP(S) GET'} · retrieval disabled`:this.options.executionMode==='sandbox'?'DOCKER SANDBOX · offline container · retrieval disabled':'Host-user tools; cwd is not an OS sandbox.',this.options.executionMode?.startsWith('native-')?'Each task verifies its backend before the model runs. Sensitive/outside files are denied.':'Protected/outside/uncertain files and Shell ask before execution.',...(this.options.reportNotice?[this.options.reportNotice]:[])];body=intro.flatMap(s=>wrap(s,w-3).map(text=>({text,kind:'Pan'})));}
+    if(!all.length){const intro=['Write a task. @ opens files; Tab attaches; Enter sends.','Provider: '+terminalText(this.options.provider),'Workspace: '+terminalText(this.options.workspace),this.options.executionMode?.startsWith('native-')?`NATIVE ${this.options.executionMode.startsWith('native-linux')?'LINUX':'MACOS'} SANDBOX · shared workspace · ${this.options.executionMode.endsWith('offline')?'offline':'bounded HTTP(S) GET'} · retrieval disabled`:this.options.executionMode==='sandbox'?'DOCKER SANDBOX · offline container · retrieval disabled':'Host-user tools; Ctrl-D revokes this host session and exits.',this.options.executionMode?.startsWith('native-')?'Each task verifies its backend before the model runs. Sensitive/outside files are denied.':'Protected/outside/uncertain files and Shell ask before execution.',...(this.options.reportNotice?[this.options.reportNotice]:[])];body=intro.flatMap(s=>wrap(s,w-3).map(text=>({text,kind:'Pan'})));}
     else {
      if(this.revealTool&&selectedTool){this.follow=false;this.top=Math.max(0,(toolMarkerRow>=0?toolMarkerRow:0)-Math.floor(bodyRows/2));this.anchor=all[this.top]?.anchor;}
      this.revealTool=false;

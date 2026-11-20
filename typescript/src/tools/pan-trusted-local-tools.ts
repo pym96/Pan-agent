@@ -111,6 +111,19 @@ function terminateProcessGroup(child: ChildProcessWithoutNullStreams, signal: No
 	}
 }
 
+/** A killed process group can still exist briefly. Only ESRCH confirms it disappeared. */
+async function observeCancelledGroup(pid: number): Promise<"stopped" | "unconfirmed"> {
+	const started = performance.now();
+	do {
+		try { process.kill(-pid, 0); }
+		catch (error) {
+			return error instanceof Error && "code" in error && error.code === "ESRCH" ? "stopped" : "unconfirmed";
+		}
+		await new Promise(resolve => setTimeout(resolve, 20));
+	} while (performance.now() - started < 500);
+	return "unconfirmed";
+}
+
 function readTool(workspace: string): AgentTool<ReadArguments> {
 	return {
 		name: "read",
@@ -364,6 +377,8 @@ export async function executeBash(
 	if (timeoutTimer) clearTimeout(timeoutTimer);
 	if (cancelled || timedOut || launch?.settleGroup) terminateProcessGroup(child, "SIGKILL");
 	if (forceTimer) clearTimeout(forceTimer);
+	const groupSettlement = cancelled && !launch && !register && child.pid && process.platform !== "win32"
+		? await observeCancelledGroup(child.pid) : undefined;
 
 	const status = cancelled
 		? "cancelled"
@@ -376,6 +391,7 @@ export async function executeBash(
 					: "failed";
 	const details: JsonValue = {
         ...(launch?.evidence ?? {}),
+		...(groupSettlement ? {groupSettlement} : {}),
 		command: value.command,
 		cwd: workspace,
 		stdout,

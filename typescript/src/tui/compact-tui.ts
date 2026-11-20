@@ -31,6 +31,7 @@ export async function runCompactTui(options: TuiOptions): Promise<number> {
 	}
 	function end(): void {
 		ending = true;
+		if (options.executionMode === "trusted-local") options.session.stopAcceptingTasks();
 		if (phase === "running") { if (!cancelled) cancelTask(); }
 		else if (phase !== "command") finish();
 	}
@@ -97,6 +98,7 @@ export async function runCompactTui(options: TuiOptions): Promise<number> {
 	write(`Model: ${terminalText(options.model)}`);
 	write(`Workspace: ${terminalText(options.workspace)}`);
 	write(options.executionMode?.startsWith("native-")?`NATIVE ${options.executionMode.startsWith("native-linux")?"LINUX":"MACOS"} SANDBOX: shared workspace; ${options.executionMode.endsWith("offline")?"offline":"bounded HTTP(S) GET"} Shell and descendants; host-mediated files; retrieval disabled.`:options.executionMode==="sandbox"?"DOCKER SANDBOX: fixed offline container; retrieval disabled; one workspace per task.":"SHELL trusted-local: host-user authority; workspace is cwd, not containment or an OS sandbox.");
+	if(options.executionMode==="trusted-local")write("HOST (trusted-local) · Ctrl-D revokes this host session and exits.");
 	if(options.reportNotice)write(options.reportNotice);
 	if(options.sessionNpmTest)write("NPM TEST · native workspace · expires on exit.");
 	if(options.sessionAuto)write("SESSION AUTO · native workspace documents only · expires on exit.");

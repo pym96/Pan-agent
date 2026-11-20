@@ -1,17 +1,11 @@
 """Exercise the installed launcher, full-screen TUI, provider adapter, archive and separate stdio peer."""
 import argparse
-import errno
-import fcntl
+from installed_pty import Terminal
 import json
 import os
 from pathlib import Path
-import pty
-import select
 import shutil
-import struct
 import subprocess
-import termios
-import time
 import uuid
 
 parser = argparse.ArgumentParser()
@@ -29,49 +23,6 @@ assert node
 def rows(path):
     return [json.loads(line) for line in path.read_text().splitlines()] if path.exists() else []
 
-
-class Terminal:
-    def __init__(self, args, cwd, env):
-        self.master, slave = pty.openpty()
-        fcntl.ioctl(slave, termios.TIOCSWINSZ, struct.pack("HHHH", 40, 160, 0, 0))
-        try:
-            self.process = subprocess.Popen([cli, *args], cwd=cwd, env=env, stdin=slave, stdout=slave, stderr=slave)
-        finally:
-            os.close(slave)
-        self.buffer = bytearray()
-        self.offset = 0
-
-    def wait(self, text):
-        deadline = time.monotonic() + 15
-        while time.monotonic() < deadline:
-            found = self.buffer.find(text.encode(), self.offset)
-            if found >= 0:
-                self.offset = found + len(text.encode())
-                return
-            if select.select([self.master], [], [], 0.2)[0]:
-                try:
-                    chunk = os.read(self.master, 65536)
-                except OSError as exc:
-                    if exc.errno != errno.EIO:
-                        raise
-                    break
-                if not chunk:
-                    break
-                self.buffer.extend(chunk)
-        raise AssertionError(f"missing {text!r}: {bytes(self.buffer[-3500:])!r}")
-
-    def send(self, text):
-        self.offset = len(self.buffer)
-        os.write(self.master, text.encode())
-
-    def close(self, log):
-        try:
-            if self.process.poll() is None:
-                self.process.kill()
-            self.process.wait(timeout=5)
-        finally:
-            log.write_bytes(self.buffer)
-            os.close(self.master)
 
 
 def scenario(mode):
@@ -112,7 +63,7 @@ def scenario(mode):
     if mode != "disabled":
         args += ["--mcp-report", server, tool]
     visible = mode not in {"collision", "unsupported", "duplicate", "disabled", "project", "contradiction"}
-    term = Terminal(args, work, env)
+    term = Terminal(cli, args, work, env)
     try:
         term.wait("Write a task.")
         if mode != "disabled":

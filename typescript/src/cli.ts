@@ -61,7 +61,7 @@ export const CLI_USAGE = `Usage:
   pan-agent configure   (first-run settings: provider/model/thinking and credential source; persists no secret)
 
 The installed launcher selects Native; source/library callers pass --kernel native. NativeKernel receives Pan-owned typed read/write/edit/bash implementations directly.
-Interactive tasks default to the native workspace sandbox. Explicit --trusted-local uses host-user tools and enables configured retrieval; workspace is its cwd.
+Interactive tasks default to the native workspace sandbox. Explicit --trusted-local uses host-user tools and enables configured retrieval; workspace is its cwd. Ctrl-D revokes this host session and exits after the active task settles.
 Defaults: workspace = current directory (bare launch from home uses ~/pan-workspace); memory-root = ~/.pan-agent/archives. Explicit paths override defaults.
 Every admitted run is durably archived under --memory-root (must be disjoint from the workspace) with the current Runbook revision; :details, :runs and :replay inspect sealed archives with zero Provider calls or tool effects.
 Attachments use selection-time UTF-8 snapshots; default aggregate maxAttachmentBytes=1048576 (1 MiB local byte policy, not a model token limit). Saved maxAttachmentBytes overrides the default; --max-attachment-bytes overrides the saved value. Never truncates.
@@ -454,6 +454,7 @@ export async function runCli(args: readonly string[], dependencies: CliDependenc
         session = new GeneralAgentSession({
 			...shared,
             executionBoundary:sandbox??fallback,
+            trustedLocalWorkspace:!sandbox && !nativeSandbox ? workspace : undefined,
 			kernel: "native",
 			adapter,
 			tools,
@@ -476,7 +477,7 @@ export async function runCli(args: readonly string[], dependencies: CliDependenc
   sessionNpmTest:configuration.sessionNpmTest,
   sessionAuto:configuration.sessionAuto,
   fallback,
-  ...(sandbox?{executionMode:"sandbox" as const}:nativeSandbox?{executionMode:nativeSandbox.executionMode}:{}),
+  executionMode:sandbox ? "sandbox" : nativeSandbox?.executionMode ?? "trusted-local",
 		credentialSource,
 		session,
 		presentation,

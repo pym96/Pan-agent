@@ -11,7 +11,7 @@ export interface TuiOptions {
  readonly sessionAuto?:boolean;
  readonly sessionNpmTest?:boolean;
  readonly fallback?:Pick<import("../sandbox/fallback.ts").ManualFallback,"status"|"choose">;
- readonly executionMode?:"sandbox"|"native-macos-offline"|"native-linux-offline"|"native-linux-public"|"native-macos-public";
+ readonly executionMode?:"trusted-local"|"sandbox"|"native-macos-offline"|"native-linux-offline"|"native-linux-public"|"native-macos-public";
 	/** Nonsecret configuration context for safe failure guidance only. */
 	readonly credentialSource?: 'environment' | 'keychain';
 	readonly maxAttachmentBytes?: number;

@@ -115,6 +115,8 @@ def main():
         report['mcp_reports'] = json.loads((out/'mcp-reports/summary.json').read_text())
         if report['mcp_reports']['status'] != 'PASS':
             raise RuntimeError('installed MCP report checks failed')
+        if platform.system() == 'Darwin':
+            run('host-lifecycle', [sys.executable, str(ROOT/'scripts/runtime-ci/host-lifecycle.py'), str(cli), str(out/'host-lifecycle')])
         run('mcp-tui', [sys.executable, str(ROOT/'scripts/runtime-ci/mcp-tui.py'), str(cli), str(out/'mcp-tui')])
         report['mcp_tui'] = json.loads((out/'mcp-tui/summary.json').read_text())
         if report['mcp_tui']['status'] != 'PASS':

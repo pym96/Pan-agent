@@ -19,9 +19,10 @@ globalThis.fetch = async (url, init) => {
     finish = "stop";
   } else {
     const builtin = last.content.includes("Read marker");
-    const args = builtin ? {path: "marker.txt"} : last.content.includes("invalid arguments") ? {tool: "read"} : {};
+    const command = JSON.parse(process.env.PAN_TEST_HOST_COMMANDS ?? "{}")[last.content];
+    const args = command ? {command} : builtin ? {path: "marker.txt"} : last.content.includes("invalid arguments") ? {tool: "read"} : {};
     delta = {tool_calls: [{index: 0, id: "intent-" + randomUUID(), type: "function",
-      function: {name: builtin ? "read" : "mcp_report", arguments: JSON.stringify(args)}}]};
+      function: {name: command ? "bash" : builtin ? "read" : "mcp_report", arguments: JSON.stringify(args)}}]};
     finish = "tool_calls";
   }
   const identity = {id: "model-" + randomUUID(), object: "chat.completion.chunk",

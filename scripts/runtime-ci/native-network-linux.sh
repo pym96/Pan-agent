@@ -60,6 +60,9 @@ sudo unshare --mount --propagation private /bin/bash -euc '
   }
   echo "fixture: native onboarding, manual fallback and session automation"
   run_fixture native-onboarding onboarding
+  echo "fixture: installed host lifecycle and native restart"
+  setpriv --reuid "$uid" --regid "$gid" --clear-groups env -i PATH="$(dirname "$node_binary"):/usr/bin:/bin" HOME="$output" \
+    /usr/bin/python3 "$fixture_dir/host-lifecycle.py" "$installed/bin/pan-agent.mjs" "$output/host-lifecycle"
   echo "fixture: installed default TUI and operator-selected local report"
   setpriv --reuid "$uid" --regid "$gid" --clear-groups env -i PATH="$(dirname "$node_binary"):/usr/bin:/bin" HOME="$output" \
     /usr/bin/python3 "$fixture_dir/mcp-tui.py" "$installed/bin/pan-agent.mjs" "$output/mcp-tui" --native-sample
