@@ -10,7 +10,7 @@ npm install -g pan-agent
 
 This installs the prebuilt [npm package](https://www.npmjs.com/package/pan-agent). The current public release is 0.1.10. To pin it, use `npm install -g pan-agent@0.1.10`. Open a terminal in a project directory and run `pan-agent configure` to select a provider and credential source. Run `pan-agent demo` for the offline example.
 
-The 0.1.11 source candidate can be installed from a [locally built tarball](#build-a-package-developers). The startup changes below apply to that candidate.
+The 0.1.11 source candidate can be installed from a [locally built tarball](#build-a-package-developers). The startup changes below apply to that candidate. All interactive setup answers are hidden as you type. Enter one answer per prompt and paste the API key only when asked for it.
 
 ## Version and command navigation
 

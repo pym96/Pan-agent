@@ -1,6 +1,6 @@
 /** #52 first-run configuration wizard: explicit choices, closed selection, secrets never persisted here. */
-import { createInterface } from "node:readline";
-import { Writable, type Readable } from "node:stream";
+import { createInterface, emitKeypressEvents, type Key } from "node:readline";
+import type { Writable, Readable } from "node:stream";
 import { DEEPSEEK_MODEL_IDS, type DeepSeekModelId, type DeepSeekThinkingLevel } from "../providers/deepseek/deepseek-profile.ts";
 import { KIMI_MODEL_ID, KIMI_K3_MODEL_ID, type KimiModelId } from "../providers/kimi/kimi-profile.ts";
 import { loadPanSettings, savePanSettings, type PanSettings, type PanCredentialSource, PAN_SETTINGS_SCHEMA_VERSION } from "./settings.ts";
@@ -22,17 +22,87 @@ export function providerCredentialVariable(provider: PanSettings["provider"]): s
 
 const THINKING_LEVELS: readonly DeepSeekThinkingLevel[] = ["low", "high", "max"];
 
-class MutedWritable extends Writable {
-	muted = false;
-	readonly inner: Writable;
-	constructor(inner: Writable) {
-		super();
-		this.inner = inner;
+/** Read one answer per displayed prompt. A real TTY stays in no-echo mode throughout setup. */
+function openPrompts(input: Readable, output: Writable) {
+	const tty = input as NodeJS.ReadStream;
+	const cancelled = () => new Error("configuration_cancelled: input closed");
+	if (!tty.isTTY) {
+		// Preserve piped/scripted configuration, including prewritten lines followed by EOF.
+		const lines = createInterface({ input, terminal: false });
+		const iterator = lines[Symbol.asyncIterator]();
+		return {
+			async ask(query: string) {
+				output.write(query);
+				const next = await iterator.next();
+				if (next.done) throw cancelled();
+				return next.value.trim();
+			},
+			close() { lines.close(); },
+		};
 	}
-	override _write(chunk: unknown, encoding: BufferEncoding, callback: () => void): void {
-		if (!this.muted) this.inner.write(chunk as string, encoding);
-		callback();
-	}
+
+	const wasRaw = tty.isRaw;
+	tty.setRawMode(true);
+	emitKeypressEvents(tty);
+	const bracketed = (output as NodeJS.WriteStream).isTTY === true;
+	if (bracketed) output.write("\x1b[?2004h");
+	let answer = "", pasting = false, invalid = false, submitted = false, closed = false;
+	let reply: ((answer: string | undefined) => void) | undefined;
+	const end = () => { closed = true; reply?.(undefined); };
+	const keypress = (character: string | undefined, key: Key) => {
+		if (!reply) return;
+		if (submitted) { invalid = true; return; }
+		if (key.name === "paste-start") { pasting = true; return; }
+		if (key.name === "paste-end") { pasting = false; return; }
+		if (!pasting && key.ctrl && (key.name === "c" || key.name === "d")) { end(); return; }
+		if (key.name === "return" || key.name === "enter") {
+			if (pasting) { invalid = true; return; }
+			submitted = true;
+			// Keypresses from one input chunk are synchronous. Reject the whole batch if
+			// trailing bytes arrived with Enter, before they can answer another prompt.
+			queueMicrotask(() => {
+				output.write("\n");
+				if (invalid) {
+					output.write("Enter one answer at a time.\n" + prompt);
+					answer = ""; invalid = false; submitted = false;
+				} else {
+					const resolve = reply;
+					reply = undefined;
+					resolve?.(answer.trim());
+				}
+			});
+		} else if (!pasting && key.name === "backspace") {
+			answer = answer.slice(0, -1);
+		} else if (character && !/[\x00-\x1f\x7f]/u.test(character) && !key.meta) {
+			answer += character;
+		} else {
+			// Never interpret an escape/control sequence inside a pasted value as a choice.
+			invalid = true;
+		}
+	};
+	let prompt = "";
+	tty.on("keypress", keypress);
+	tty.on("end", end);
+	tty.resume();
+	return {
+		async ask(query: string) {
+			if (closed) throw cancelled();
+			prompt = query;
+			answer = ""; invalid = false; submitted = false;
+			const response = new Promise<string | undefined>((resolve) => { reply = resolve; });
+			output.write(query);
+			const value = await response;
+			if (value === undefined) throw cancelled();
+			return value;
+		},
+		close() {
+			tty.off("keypress", keypress);
+			tty.off("end", end);
+			tty.pause();
+			tty.setRawMode(wasRaw);
+			if (bracketed) output.write("\x1b[?2004l");
+		},
+	};
 }
 
 /**
@@ -48,46 +118,10 @@ export async function runFirstRunConfiguration(dependencies: FirstRunDependencie
 	const supportsKeychain = (dependencies.platform ?? process.platform) === "darwin";
 	const keychainSave = dependencies.saveCredential ?? saveKeychainCredential;
 	const reference = dependencies.keychainReference ?? { service: PAN_KEYCHAIN_SERVICE, account: PAN_KEYCHAIN_ACCOUNT };
-	const muted = new MutedWritable(output);
-	const terminal = createInterface({ input, output: muted, terminal: (input as NodeJS.ReadStream).isTTY === true });
-	const write = (line: string): void => {
-		output.write(`${line}\n`);
-	};
-	// Buffered line queue: pre-written scripted input must survive stream end.
-	const buffered: string[] = [];
-	const waiters: Array<{ resolve: (line: string) => void; reject: (error: Error) => void }> = [];
-	terminal.on("line", (line) => {
-		const waiter = waiters.shift();
-		if (waiter) waiter.resolve(line);
-		else buffered.push(line);
-	});
-	let closed = false;
-	terminal.on("close", () => {
-		closed = true;
-		const waiter = waiters.shift();
-		if (waiter) waiter.reject(new Error("configuration_cancelled: input closed"));
-	});
-	/** One answered line; EOF with an empty buffer is an explicit cancellation, never a default. */
-	const ask = async (query: string, mask = false): Promise<string> => {
-		if (mask) {
-			muted.inner.write(query);
-			muted.muted = true;
-		} else {
-			muted.inner.write(query);
-		}
-		try {
-			if (buffered.length) return buffered.shift()!.trim();
-			if (closed) throw new Error("configuration_cancelled: input closed");
-			return (await new Promise<string>((resolve, reject) => waiters.push({ resolve, reject }))).trim();
-		} finally {
-			if (mask) {
-				muted.muted = false;
-				muted.inner.write("\n");
-			}
-		}
-	};
+	const { ask, close } = openPrompts(input, output);
+	const write = (line: string): void => { output.write(`${line}\n`); };
 	const chooseProfile = async () => {
-		write("Pan first-run configuration. Settings persist ordinary preferences only; secrets are never written to settings.");
+		write("Pan first-run configuration. Input is hidden at every prompt. Press Enter to use a displayed default.");
 		let provider: "deepseek" | "kimi-code" | undefined;
 		let selectK3 = false;
 		while (!provider) {
@@ -95,7 +129,7 @@ export async function runFirstRunConfiguration(dependencies: FirstRunDependencie
 			if (answer === "" || answer === "deepseek") provider = "deepseek";
 			else if (answer === "kimi-code" || answer === "kimi") provider = "kimi-code";
 			else if (answer === "kimi-code:k3-256k") { provider = "kimi-code"; selectK3 = true; }
-			else write(`Unknown provider: ${answer}. This build supports deepseek and kimi-code only.`);
+			else write("Unknown provider. Choose a displayed provider.");
 		}
 		let modelId: DeepSeekModelId | KimiModelId;
 		if (provider === "kimi-code") {
@@ -107,7 +141,7 @@ export async function runFirstRunConfiguration(dependencies: FirstRunDependencie
 				const answer = await ask(`Model [${DEEPSEEK_MODEL_IDS.join("|")}] (default deepseek-v4-flash): `);
 				if (answer === "") selected = "deepseek-v4-flash";
 				else if ((DEEPSEEK_MODEL_IDS as readonly string[]).includes(answer)) selected = answer as DeepSeekModelId;
-				else write(`Unknown model: ${answer}.`);
+				else write("Unknown model. Choose a displayed model.");
 			}
 			modelId = selected;
 		}
@@ -120,7 +154,7 @@ export async function runFirstRunConfiguration(dependencies: FirstRunDependencie
 				const answer = (await ask(`Thinking [${THINKING_LEVELS.join("|")}] (default high): `)).toLowerCase();
 				if (answer === "") selectedThinking = "high";
 				else if ((THINKING_LEVELS as readonly string[]).includes(answer)) selectedThinking = answer as DeepSeekThinkingLevel;
-				else write(`Unknown thinking level: ${answer}.`);
+				else write("Unknown thinking level. Choose a displayed level.");
 			}
 			thinkingLevel = selectedThinking;
 		}
@@ -132,7 +166,7 @@ export async function runFirstRunConfiguration(dependencies: FirstRunDependencie
 		const interactive = (input as NodeJS.ReadStream).isTTY === true && (output as NodeJS.WriteStream).isTTY === true;
 		const defaultKeychain = interactive && supportsKeychain && !process.env[credentialEnv]?.trim();
 		if (recovering) {
-			write(`Saved provider ${provider} uses ${credentialEnv}, which is missing in this terminal. Keep environment mode to open Pan without a key, or quit and supply it from your shell or secret manager.`);
+			write(`Saved provider ${provider} uses ${credentialEnv}, which is missing in this terminal. Keep environment mode to open Pan without a key, or quit and supply it from your shell or secret manager. Input is hidden at every prompt.`);
 		}
 		const keychainAccount = provider === "kimi-code" ? PAN_KEYCHAIN_KIMI_ACCOUNT : reference.account;
 		const activeReference: KeychainReference = { service: reference.service, account: keychainAccount };
@@ -148,7 +182,7 @@ export async function runFirstRunConfiguration(dependencies: FirstRunDependencie
 				if (recovering && previous) return previous;
 				credentialSource = "environment";
 			} else if (supportsKeychain && (choice === "k" || choice === "keychain")) {
-				const secret = await ask(`${provider === "kimi-code" ? "Kimi" : "DeepSeek"} API key to remember (input hidden; stored only in macOS Keychain): `, true);
+				const secret = await ask(`${provider === "kimi-code" ? "Kimi" : "DeepSeek"} API key to remember (input hidden; stored only in macOS Keychain): `);
 				if (!secret) {
 					write("Empty key; nothing written.");
 					continue;
@@ -173,6 +207,6 @@ export async function runFirstRunConfiguration(dependencies: FirstRunDependencie
 		write(`Settings saved: ${path} (mode 0600; contains no secret).`);
 		return settings;
 	} finally {
-		terminal.close();
+		close();
 	}
 }

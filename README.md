@@ -28,7 +28,7 @@ For the installed offline demo and configuration for your own task, see the [del
 
 ### macOS: use the configuration wizard
 
-With the **0.1.11 candidate**, run `pan-agent` from your home or project directory. At first launch, press Enter for the DeepSeek defaults and, if the provider environment variable is absent, for Keychain. Paste the API key at the hidden prompt and confirm the save with `y`. Later terminals and projects use that account automatically. If an older environment selection is missing its key, the candidate offers the same credential choice immediately and preserves your provider and other preferences. Choose `e` to keep environment mode or `q` to exit.
+With the **0.1.11 candidate**, run `pan-agent` from your home or project directory. At first launch, press Enter for the DeepSeek defaults and, if the provider environment variable is absent, for Keychain. Input stays hidden at every setup prompt. Wait for the API key prompt before pasting the key, then type `y` at the separate save prompt. Later terminals and projects use that account automatically. If an older environment selection is missing its key, the candidate offers the same credential choice immediately and preserves your provider and other preferences. Choose `e` to keep environment mode or `q` to exit.
 
 For the **0.1.10 npm release**, have your DeepSeek API key ready, then run:
 

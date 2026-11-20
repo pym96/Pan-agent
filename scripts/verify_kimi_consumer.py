@@ -151,7 +151,7 @@ if True:
  # kimi-code through the wizard: explicit unavailable, nothing persisted, cancellation on EOF.
  log=run([node,instrumentation/'configure.mjs',installed,settings_home,instrumentation/'answers-kimi.json',keychain_account,'kimi'],consumer,'configure-kimi',{**guarded(consumer,'configure-kimi'),**canary_env},expected=2)
  kimi_report=json.loads((settings_home/'configure-report.json').read_text())
- assert 'Unknown provider: moonshot' in kimi_report['rendered'] and kimi_report['settings'] is None and kimi_report['keychainCalls']==0
+ assert 'Unknown provider.' in kimi_report['rendered'] and 'moonshot' not in kimi_report['rendered'] and kimi_report['settings'] is None and kimi_report['keychainCalls']==0
  # C-CONFIG-01: configure with environment source, canaries present in the parent env.
  log=run([node,instrumentation/'configure.mjs',installed,settings_home,instrumentation/'answers-env.json',keychain_account,'accept-env'],consumer,'configure-env',{**guarded(consumer,'configure-env'),**canary_env})
  configure_report=json.loads((settings_home/'configure-report.json').read_text())

@@ -87,8 +87,9 @@ test("C-CONFIG-02 wizard rejects unknown model and thinking values explicitly", 
  const home = await tempHome();
  const w = wizard(["", "kimi-k2", "deepseek-v4-pro", "ultra", "max", ""]);
  const settings = await w.run(home);
- assert.match(w.rendered(), /Unknown model: kimi-k2/);
- assert.match(w.rendered(), /Unknown thinking level: ultra/);
+ assert.doesNotMatch(w.rendered(), /kimi-k2|ultra/);
+ assert.match(w.rendered(), /Unknown model\./);
+ assert.match(w.rendered(), /Unknown thinking level\./);
  assert.equal(settings.modelId, "deepseek-v4-pro");
  assert.equal(settings.thinkingLevel, "max");
 });

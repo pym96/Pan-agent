@@ -67,7 +67,7 @@ class InstalledOnboarding(unittest.TestCase):
         r=subprocess.run([str(self.cli),*args],cwd=cwd or self.project,env=self.env,stdin=subprocess.DEVNULL,capture_output=True,text=True,timeout=8)
         (self.root/(name+'.stdout')).write_text(r.stdout);(self.root/(name+'.stderr')).write_text(r.stderr)
         return r
-    def terminal(self,name,args=(),cwd=None,answers=(),task=None, env=None, expected_code=0, task_done="Missing DEEPSEEK_API_KEY"):
+    def terminal(self,name,args=(),cwd=None,answers=(),task=None, env=None, expected_code=0, task_done="Missing DEEPSEEK_API_KEY", check_silent=False):
         # These checks compare complete configured paths in the rendered output.
         # Allow two cells per character plus labels/borders so an external output
         # root cannot split the path across cursor-controlled redraw rows.
@@ -75,21 +75,36 @@ class InstalledOnboarding(unittest.TestCase):
         columns=max(160,2*max(map(len,paths))+32)
         master,slave=pty.openpty();fcntl.ioctl(slave,termios.TIOCSWINSZ,struct.pack('HHHH',40,columns,0,0))
         proc=subprocess.Popen([str(self.cli),*args],cwd=cwd or self.project,env=env or self.env,stdin=slave,stdout=slave,stderr=slave,start_new_session=True);os.close(slave)
-        raw=b'';remaining=list(answers);sent=False;task_sent=False;deadline=time.monotonic()+8
+        raw=b'';prompt_offset=0;remaining=list(answers);sent=False;task_sent=False;deadline=time.monotonic()+8
         try:
             while proc.poll() is None and time.monotonic()<deadline:
                 if select.select([master],[],[],.05)[0]:
                     try: raw+=os.read(master,65536)
                     except OSError: break
                 text=raw.decode(errors='replace')
-                if remaining and remaining[0][0] in text:
-                    _,answer=remaining.pop(0);os.write(master,(answer+'\n').encode())
+                if remaining and remaining[0][0] in text[prompt_offset:]:
+                    prompt_offset=len(text)
+                    _,answer=remaining.pop(0)
+                    if check_silent and '\n' not in answer and '\r' not in answer:
+                        os.write(master,answer.encode())
+                        self.assertFalse(select.select([master],[],[],.08)[0],
+                                         'TTY produced output before Enter')
+                        os.write(master,b'\n')
+                    else:
+                        os.write(master,(answer+'\n').encode())
                 elif not remaining and 'Write a task.' in text and not sent:
                     if task is not None and not task_sent:
                         os.write(master,(task+'\r').encode());task_sent=True
                     elif task is None or (task_done in text and text.rfind('· idle ·') > text.rfind('· running ·')):
                         os.write(master,b':exit\r');sent=True
             proc.wait(timeout=1)
+            # Capture remaining PTY bytes even if the child exited between polls.
+            while select.select([master],[],[],0)[0]:
+                try: tail=os.read(master,65536)
+                except OSError: break
+                if not tail: break
+                raw+=tail
+            text=raw.decode(errors='replace')
             self.assertEqual(proc.returncode,expected_code,text.replace(SYNTHETIC,"[redacted]"))
             if expected_code == 0: self.assertTrue(sent,text.replace(SYNTHETIC,"[redacted]"))
             self.assertFalse(bool(remaining),"not all scripted prompts were consumed")
@@ -182,15 +197,10 @@ class InstalledOnboarding(unittest.TestCase):
         self.assertEqual(r.returncode,2);self.assertIn('disjoint',r.stdout)
         self.assertFalse((self.home/'absent').exists())
 
-    def test_09_durable_account(self):
-        if not PACKAGE: self.skipTest('candidate-only onboarding behavior')
-        if sys.platform != 'darwin':
-            text=self.terminal('linux-sources',answers=[('Credential source:', 'e')])
-            self.assertNotIn('(k)eychain',text)
-            return
+    def credential_env(self,name):
         # Intercept the exact OS boundary before the installed bin imports child_process.
         # Only item names/operations are logged. Synthetic contents never go to /usr/bin/security.
-        guard=self.root/'credential-double.mjs'
+        guard=self.root/(name+'-double.mjs')
         guard.write_text("""import cp from 'node:child_process';
 import {syncBuiltinESMExports} from 'node:module';
 import {appendFileSync,existsSync,readFileSync} from 'node:fs';
@@ -215,8 +225,17 @@ if (process.env.PAN_OFFLINE_PROVIDER === '1') globalThis.fetch = async (url, req
     return new Response('synthetic rejection',{status:401});
 };
 """)
-        log=self.root/'item-operations'
+        log=self.root/name
         env={**self.env, 'NODE_OPTIONS':self.env['NODE_OPTIONS']+' --import='+guard.as_uri(),'PAN_ITEM_LOG':str(log)}
+        return env,log
+
+    def test_09_durable_account(self):
+        if not PACKAGE: self.skipTest('candidate-only onboarding behavior')
+        if sys.platform != 'darwin':
+            text=self.terminal('linux-sources',answers=[('Credential source:', 'e')])
+            self.assertNotIn('(k)eychain',text)
+            return
+        env,log=self.credential_env('item-operations')
         home=self.root/'fresh-mac';home.mkdir();env['HOME']=str(home)
         text=self.terminal('mac-first',cwd=home,env=env,answers=[
             ('Provider [',''),('Model [',''),('Thinking [',''),('(q)uit [k]:',''),
@@ -247,6 +266,38 @@ if (process.env.PAN_OFFLINE_PROVIDER === '1') globalThis.fetch = async (url, req
         for file in home.rglob('*'):
             if file.is_file(): self.assertFalse(SYNTHETIC.encode() in file.read_bytes(),str(file))
         self.assertFalse((self.root/'network.log').exists())
+
+    def test_10_wizard_input_privacy(self):
+        if not PACKAGE: self.skipTest('candidate-only hidden setup answers')
+        home=self.root/'private-setup';home.mkdir()
+        env,log=self.credential_env('privacy-item-operations')
+        env['HOME']=str(home)
+        tokens={field:'fixture-192-'+field for field in ('provider','model','thinking','source','confirm','secret')}
+        source='(q)uit ['+('k' if sys.platform=='darwin' else 'e')+']: '
+        fields=[('Provider [','deepseek',tokens['provider']),('Model [','',tokens['model']),
+                ('Thinking [','',tokens['thinking'])]
+        answers=[]
+        for prompt,valid,misplaced in fields:
+            answers.extend([(prompt,misplaced),(prompt,valid)])
+        answers.extend([(source,tokens['source']),
+                        (source,'\x1b[200~k\n'+tokens['secret']+'\ny\x1b[201~'),
+                        (source,'k\n'+tokens['secret']+'\ny')])
+        if sys.platform=='darwin':
+            answers.extend([(source,'k'),('input hidden;',tokens['secret']),
+                            ('? [y/N]: ',tokens['confirm'])])
+        answers.append((source,'e'))
+        text=self.terminal('private-setup',cwd=home,env=env,answers=answers,check_silent=True)
+        for diagnostic in ('Unknown provider.', 'Unknown model.', 'Unknown thinking level.',
+                           'Choose one of the displayed credential sources'):
+            self.assertIn(diagnostic,text)
+        self.assertEqual(text.count('Enter one answer at a time.'),2)
+        self.assertFalse(log.exists(),'wrong-field paste caused a credential operation')
+        settings=json.loads((home/'.pan-agent/settings.json').read_bytes())
+        self.assertEqual(settings['credentialSource'],'environment')
+        for token in tokens.values():
+            self.assertFalse(token in text, 'synthetic input appeared in terminal output')
+            for file in home.rglob('*'):
+                if file.is_file(): self.assertFalse(token.encode() in file.read_bytes(),str(file))
 
 if __name__=='__main__':
     parser=argparse.ArgumentParser()
