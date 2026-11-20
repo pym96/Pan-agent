@@ -1,6 +1,6 @@
 # User settings and tool deny rules
 
-**Current source / next release.** The public GitHub **v0.1.9** asset does not contain the settings commands or deny rules described here. These changes require a build from this source revision or an explicitly identified candidate tarball. The package version has not been bumped and the old release has not been replaced.
+**0.1.10 release candidate.** The public GitHub **v0.1.9** asset does not contain the settings commands or deny rules described here. These changes require a build from this source revision or an explicitly identified candidate tarball. Use the 0.1.10 candidate for these commands.
 
 ## Find and inspect your settings
 
@@ -32,7 +32,7 @@ npm --prefix typescript run build
 node typescript/bin/pan-agent.mjs settings path
 ```
 
-The [package guide](../../typescript/README.md#build-a-package-developers) explains building a tarball. A private install of that tarball runs the same compiled launcher with no compiler or source checkout at runtime. Identify a candidate by commit and tarball hash; the unchanged version string alone cannot distinguish it from the published v0.1.9 asset.
+The [package guide](../../typescript/README.md#build-a-package-developers) explains building a tarball. A private install of that tarball runs the same compiled launcher with no compiler or source checkout at runtime. Record the candidate commit and tarball hash to identify the exact bytes installed.
 
 ## Configuration example
 

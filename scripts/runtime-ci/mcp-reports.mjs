@@ -1,10 +1,11 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync, realpathSync, symlinkSync, unlinkSync, writeFileSync } from "node:fs";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const [cli, output] = process.argv.slice(2);
+const manifest = JSON.parse(readFileSync(join(dirname(realpathSync(cli)), "../package.json"), "utf8"));
 mkdirSync(output);
 const home = join(output, "home");
 const workspace = join(output, "workspace");
@@ -101,7 +102,7 @@ for (const [mode, diagnostic] of [
     const meta = message.params._meta;
     assert.equal(meta["io.modelcontextprotocol/protocolVersion"], "2026-07-28");
     assert.deepEqual(meta["io.modelcontextprotocol/clientCapabilities"], {});
-    assert.ok(meta["io.modelcontextprotocol/clientInfo"].name && meta["io.modelcontextprotocol/clientInfo"].version);
+    assert.deepEqual(meta["io.modelcontextprotocol/clientInfo"], {name: manifest.name, version: manifest.version});
     if (message.method === "tools/call") {
       assert.equal(message.params.name, "summary");
       assert.deepEqual(message.params.arguments, {});

@@ -4,15 +4,15 @@ Requires Node.js >=22.19.0. Default runtime dependencies: Node built-ins only. T
 
 ## Version and command navigation
 
-This package is **v0.1.9**. Published assets and checksums are listed at https://github.com/pym96/Pan-agent/releases . GitHub asset publication and npm registry publication are separate: use `npm install -g pan-agent` only after the package is published to the registry.
+This package is **pan-agent@0.1.10**. For a prebuilt candidate, follow the [CI archive instructions](#local-mcp-reports). The public v0.1.9 archive is available from [GitHub Releases](https://github.com/pym96/Pan-agent/releases/tag/v0.1.9). To check registry availability, run `npm view pan-agent@0.1.10 dist.integrity --registry=https://registry.npmjs.org` and compare the result with the reviewed archive’s SHA512 integrity.
 
-Installed v0.1.9: `pan-agent loop --help`, `pan-agent goal --help`, `pan-agent execution --help`; root `pan-agent --help` describes Sandbox. `sandbox --help` is not a supported subcommand. The complete user guide and offline installed walkthrough are at https://github.com/pym96/Pan-agent/tree/main/docs/demo/consumer-readiness . They use the existing explicit Faux fixture seam; no provider key is needed. RUNBOOK.md describes the execution/verification boundary.
+Installed commands: `pan-agent loop --help`, `pan-agent goal --help`, `pan-agent execution --help`; root `pan-agent --help` describes Sandbox. `sandbox --help` is not a supported subcommand. The complete user guide and offline installed walkthrough are at https://github.com/pym96/Pan-agent/tree/main/docs/demo/consumer-readiness . They use the existing explicit Faux fixture seam; no provider key is needed. RUNBOOK.md describes the execution/verification boundary.
 
-## Settings in current source / next release
+## Settings in 0.1.10
 
-This source revision adds `pan-agent settings path`, `pan-agent settings show` and `pan-agent settings validate`, optional `permissions.deny`, and saved `maxAttachmentBytes`. The public v0.1.9 asset does not include these additions. Build and install a tarball from this revision to use them; its unchanged version string is not proof of release identity. The [settings guide](https://github.com/pym96/Pan-agent/blob/main/docs/design/user-settings.md) gives source commands, JSON examples, precedence and policy limits. `configure` in this revision preserves valid optional preferences and rejects malformed existing settings before credential mutation.
+This source revision adds `pan-agent settings path`, `pan-agent settings show` and `pan-agent settings validate`, optional `permissions.deny`, and saved `maxAttachmentBytes`. The public v0.1.9 asset does not include these additions. Install the 0.1.10 candidate and record its commit and archive hash to identify your build. The [settings guide](https://github.com/pym96/Pan-agent/blob/main/docs/design/user-settings.md) gives source commands, JSON examples, precedence and policy limits. `configure` in this revision preserves valid optional preferences and rejects malformed existing settings before credential mutation.
 
-## Install the public release
+## Install the public GitHub v0.1.9 release
 
 ```sh
 npm install -g --ignore-scripts https://github.com/pym96/Pan-agent/releases/download/v0.1.9/pan-agent-0.1.9.tgz
@@ -44,7 +44,7 @@ The compiler is a pinned development dependency. A consumer does not need it. Th
 ```sh
 mkdir pan-consumer
 cd pan-consumer
-npm install /path/to/pan-agent-0.1.9.tgz --omit=dev --ignore-scripts --no-audit --no-fund
+npm install /path/to/pan-agent-0.1.10.tgz --omit=dev --ignore-scripts --no-audit --no-fund
 ./node_modules/.bin/pan-agent --help
 ./node_modules/.bin/pan-agent demo
 ```
@@ -263,7 +263,7 @@ Use the package built from the current source. The previously published v0.1.9 a
 trial=$(mktemp -d)
 npm ci --ignore-scripts
 npm pack --pack-destination "$trial"
-npm install --offline --ignore-scripts --no-audit --no-fund --prefix "$trial/consumer" "$trial/pan-agent-0.1.9.tgz"
+npm install --offline --ignore-scripts --no-audit --no-fund --prefix "$trial/consumer" "$trial/pan-agent-0.1.10.tgz"
 pan="$trial/consumer/node_modules/.bin/pan-agent"
 "$pan" delivery demo --directory "$trial/example"
 "$pan" delivery inspect --state "$trial/example/delivery"
@@ -338,11 +338,11 @@ Granted calls suppress direct stdout and stderr capture. The value travels to th
 
 ## Local MCP reports
 
-A tarball built from this revision includes a local stdio client and an offline sample server. To install from CI without a source checkout, open the green **Installed runtime regression** run for this revision, download the `runtime-node-26.7.0` artifact and unzip it in a new directory. From that directory:
+A tarball built from this revision includes a local stdio client and an offline sample server. To install from CI without a source checkout, open the successful [Installed runtime regression](https://github.com/pym96/Pan-agent/actions/workflows/runtime-tests.yml) run for this revision, download the `runtime-node-26.7.0` artifact and unzip it in a new directory. Confirm that its `result.json` records the intended `source_sha` and package version `0.1.10`. From that directory:
 
 ```sh
-tar -xzf runtime-evidence.tar.gz ./pan-agent-0.1.9.tgz
-npm install --offline --ignore-scripts --no-audit --no-fund --prefix "$PWD/pan-install" ./pan-agent-0.1.9.tgz
+tar -xzf runtime-evidence.tar.gz ./pan-agent-0.1.10.tgz
+npm install --offline --ignore-scripts --no-audit --no-fund --prefix "$PWD/pan-install" ./pan-agent-0.1.10.tgz
 export PATH="$PWD/pan-install/node_modules/.bin:$PATH"
 ```
 

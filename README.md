@@ -14,6 +14,8 @@ npm install -g --ignore-scripts https://github.com/pym96/Pan-agent/releases/down
 
 This installs the prebuilt **v0.1.9** release; no Git checkout or build is needed. [Release assets and checksums](https://github.com/pym96/Pan-agent/releases/tag/v0.1.9). Prefer a user-owned Node/npm installation; if npm reports permission denied, fix its prefix rather than running Pan with sudo.
 
+The **0.1.10 release candidate** includes the default native sandbox, supervised delivery and local MCP reports. Use the [candidate archive instructions](typescript/README.md#local-mcp-reports) to install it from the regression artifact for the commit you want to try. Public npm registry delivery of this version is pending.
+
 If your terminal reports `pan-agent: command not found`, finish installation first. Check `command -v pan-agent`; npm's global executable directory (`$(npm prefix -g)/bin` on macOS/Linux) must be on your `PATH`. Reopen the terminal after fixing your Node/npm setup. This is an installation/PATH issue, not an API-key error.
 
 ## Supervised local delivery in the source build
