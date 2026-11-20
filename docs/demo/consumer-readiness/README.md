@@ -1,6 +1,6 @@
 # Use Sandbox, Loop and Goal
 
-These commands are included in the prebuilt **v0.1.9** release. Follow the [installation and API setup](../../../README.md#install); no Git checkout, compiler, Python or Docker is needed for the local runtime. Node >=22.19.0 is required. The walkthrough below needs a checkout only for its test driver, and invokes the installed package. The CPU checks cover macOS and Linux; they do not establish Windows or fresh Docker behavior.
+These commands ship in **pan-agent@0.1.10**. See the [installation and API setup](../../../README.md#install) for Node and native sandbox requirements. The walkthrough below needs a checkout only for its test driver, and invokes the installed package. The CPU checks cover macOS and Linux; they do not establish Windows or fresh Docker behavior.
 
 For the distinction between scheduling, saved evidence and actual task continuation, see [what the system enforces](system-guarantees.md).
 
@@ -26,12 +26,12 @@ From a checkout containing this guide, install the public release into a disposa
 ```sh
 DEMO_ROOT=$(mktemp -d)
 npm install --prefix "$DEMO_ROOT/consumer" --ignore-scripts --omit=dev --no-audit --no-fund \
-  https://github.com/pym96/Pan-agent/releases/download/v0.1.9/pan-agent-0.1.9.tgz
+  pan-agent@0.1.10
 node scripts/consumer-readiness/walkthrough.mjs \
   "$DEMO_ROOT/consumer/node_modules/.bin/pan-agent" "$DEMO_ROOT/evidence"
 ```
 
-The release archive SHA256 is `3f6783bd6674e9e57e49dac7d67a183313a6c61d3a9f1117b476019ab5c3aeab`; see [release assets](https://github.com/pym96/Pan-agent/releases/tag/v0.1.9). Download/install requires network access. The driver then runs offline. It is repository verification tooling, not part of the installed package, and never imports source runtime code. Node and POSIX `ps`/shell are sufficient; Python/pytest/Docker/API keys are not required. For source development use the [package build guide](../../../typescript/README.md); record its exact Git SHA and resulting tarball hash separately from the public release identity.
+The [0.1.10 registry metadata](https://registry.npmjs.org/pan-agent/0.1.10) identifies the published archive. Download/install requires network access. The driver then runs offline. It is repository verification tooling, not part of the installed package, and never imports source runtime code. Node and POSIX `ps`/shell are sufficient; Python/pytest/Docker/API keys are not required. For source development use the [package build guide](../../../typescript/README.md); record its exact Git SHA and resulting tarball hash separately from the public release identity.
 
 The runner creates a fresh HOME, excludes provider credentials, and applies a network-denial observation guard to Node processes. It records any attempted fetch/socket/HTTP connection; this is test instrumentation, **not product sandboxing**. The fixture has no network behavior. Each CLI subprocess has a 20-second diagnostic timeout; a failed check retains its output and stops the walkthrough. Do not reinterpret a timeout or failed assertion as a passing product result.
 
@@ -49,7 +49,7 @@ Expected steps:
 
 ## Set up a real scheduled task
 
-The following examples are **syntax/source checked, not executed against a real provider in this walkthrough**. First install the v0.1.9 release and configure DeepSeek or Kimi using `pan-agent configure`; the command name below assumes your consumer's `node_modules/.bin` is on PATH. Otherwise use its absolute path. Supply the configured environment credential or Keychain entry without embedding keys in commands or files.
+The following examples are **syntax/source checked, not executed against a real provider in this walkthrough**. First install pan-agent@0.1.10 and configure DeepSeek or Kimi using `pan-agent configure`; the command name below assumes your consumer's `node_modules/.bin` is on PATH. Otherwise use its absolute path. Supply the configured environment credential or Keychain entry without embedding keys in commands or files.
 
 Create separate workspace, archive and control paths. `--state` must not already exist, including from a failed previous run. The workspace must exist; it cannot contain or be contained by memory/state roots.
 

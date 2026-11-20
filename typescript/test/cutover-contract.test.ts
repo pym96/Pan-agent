@@ -23,7 +23,14 @@ test("C-CUT-01 default README route installs and launches only the TypeScript pr
 	const install = markdownSection(readme, "## Install");
 	const configure = markdownSection(readme, "## Configure your API");
 	const firstTask = markdownSection(readme, "## Run your first task");
-	assert.match(install, /npm install -g --ignore-scripts https:\/\/github\.com\/pym96\/Pan-agent\/releases\/download\/v[^/\s]+\/pan-agent-[^\s]+\.tgz/);
+	const packageGuide = await text("typescript/README.md");
+	for (const guide of [readme, packageGuide]) {
+		const instructions = markdownSection(guide, "## Install");
+		assert.equal(instructions.match(/```sh\n([^\n]+)/)?.[1], "npm install -g pan-agent");
+	}
+	const historical = markdownSection(packageGuide, "## License and distribution status");
+	assert.ok(historical.includes("npm install -g --ignore-scripts https://github.com/pym96/Pan-agent/releases/download/v0.1.9/pan-agent-0.1.9.tgz"));
+	assert.ok(historical.includes("3f6783bd6674e9e57e49dac7d67a183313a6c61d3a9f1117b476019ab5c3aeab"));
 	assert.match(install, /prebuilt/);
 	assert.match(configure, /read -r -s DEEPSEEK_API_KEY/);
 	assert.match(configure, /export DEEPSEEK_API_KEY/);

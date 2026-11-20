@@ -1,28 +1,30 @@
 # Pan Agent — terminal runtime
 
-Requires Node.js >=22.19.0. Default runtime dependencies: Node built-ins only. The native sandbox on Linux uses system tools described below. Installed regression runs target macOS arm64 and Linux; Windows remains unverified.
+Requires Node.js >=22.19.0, npm and an interactive terminal for the TUI. Pan has no third-party npm runtime dependencies. The default native sandbox uses macOS Seatbelt or, on supported x86-64 Linux, Bubblewrap, FUSE, system Python 3 and the [Linux prerequisites](https://github.com/pym96/Pan-agent/blob/main/docs/design/native-linux-sandbox.md#system-requirements). Windows remains unverified.
+
+## Install
+
+```sh
+npm install -g pan-agent
+```
+
+This installs the prebuilt [npm package](https://www.npmjs.com/package/pan-agent). To pin this release, use `npm install -g pan-agent@0.1.10`. Open a terminal in a project directory and run `pan-agent configure` to select a provider and credential source. Run `pan-agent demo` for the offline example.
 
 ## Version and command navigation
-
-This package is **pan-agent@0.1.10**. For a prebuilt candidate, follow the [CI archive instructions](#local-mcp-reports). The public v0.1.9 archive is available from [GitHub Releases](https://github.com/pym96/Pan-agent/releases/tag/v0.1.9). To check registry availability, run `npm view pan-agent@0.1.10 dist.integrity --registry=https://registry.npmjs.org` and compare the result with the reviewed archive’s SHA512 integrity.
 
 Installed commands: `pan-agent loop --help`, `pan-agent goal --help`, `pan-agent execution --help`; root `pan-agent --help` describes Sandbox. `sandbox --help` is not a supported subcommand. The complete user guide and offline installed walkthrough are at https://github.com/pym96/Pan-agent/tree/main/docs/demo/consumer-readiness . They use the existing explicit Faux fixture seam; no provider key is needed. RUNBOOK.md describes the execution/verification boundary.
 
 ## Settings in 0.1.10
 
-This source revision adds `pan-agent settings path`, `pan-agent settings show` and `pan-agent settings validate`, optional `permissions.deny`, and saved `maxAttachmentBytes`. The public v0.1.9 asset does not include these additions. Install the 0.1.10 candidate and record its commit and archive hash to identify your build. The [settings guide](https://github.com/pym96/Pan-agent/blob/main/docs/design/user-settings.md) gives source commands, JSON examples, precedence and policy limits. `configure` in this revision preserves valid optional preferences and rejects malformed existing settings before credential mutation.
+Pan 0.1.10 includes `pan-agent settings path`, `pan-agent settings show` and `pan-agent settings validate`, optional `permissions.deny`, and saved `maxAttachmentBytes`. The public v0.1.9 asset does not include these additions. The [settings guide](https://github.com/pym96/Pan-agent/blob/main/docs/design/user-settings.md) gives source commands, JSON examples, precedence and policy limits. `configure` in this revision preserves valid optional preferences and rejects malformed existing settings before credential mutation.
 
-## Install the public GitHub v0.1.9 release
+## Interactive startup
 
-```sh
-npm install -g --ignore-scripts https://github.com/pym96/Pan-agent/releases/download/v0.1.9/pan-agent-0.1.9.tgz
-```
-
-The installed launcher selects the Native kernel. Workspace defaults to cwd, archives to `~/.pan-agent/archives`; explicit `--workspace` and `--memory-root` win. Keep archives disjoint from the workspace. Library `runCli` and source development entry retain explicit `--kernel native`. First launch in a terminal offers configuration; saved ordinary settings are reused. No API request is made before a task is submitted. For current published downloads see https://github.com/pym96/Pan-agent#install .
+The installed launcher selects the Native kernel and native workspace sandbox. The workspace defaults to the current directory and archives to `~/.pan-agent/archives`. Use `--workspace` and `--memory-root` to override them and keep their directories disjoint. First launch in a terminal offers configuration and reuses saved settings on later runs. No API request is made before a task is submitted.
 
 ## Publish checklist (maintainer)
 
-The npm account/package-name ownership is not established by this checkout. Do not advertise `npm install -g pan-agent` as working before publication. An authorized maintainer must verify registry ownership, review the tarball and its SHA256, then publish that reviewed artifact using npm's authenticated release flow. No credentials belong in source or a test artifact.
+For a future release, an authorized maintainer verifies registry ownership and reviews the exact archive before publishing.
 
 1. Run the shared installed regression entry linked below and retain the exact commit, package hash and independent review.
 2. Inspect `npm pack --dry-run --json` and the built tarball: compiled runtime/assets only; no source credentials or local configuration.
@@ -37,7 +39,7 @@ npm run build
 npm pack --pack-destination /path/to/artifacts
 ```
 
-The compiler is a pinned development dependency. A consumer does not need it. The archive contains compiled JavaScript, declarations, launchers and operating instructions. The package is prepared for public npm publication (`private: false`); preparation does not mean it has been published.
+The compiler is a pinned development dependency. A consumer does not need it. The archive contains compiled JavaScript, declarations, launchers and operating instructions.
 
 ## Install a prebuilt archive
 
@@ -120,7 +122,7 @@ pan-agent
 
 At **Write a task.** in the TUI, type `Create hello.txt containing Hello from Pan.` and press Enter. This submits a real task to the configured provider and may incur charges. Review tool approvals and inspect the file afterward; configuring a key alone does not establish a successful provider call. `pan-agent demo` runs the offline example described above without a key.
 
-Workspace defaults to the current directory, and archives to `~/.pan-agent/archives`. Override them with `--workspace DIR` and `--memory-root DIR`; the directories must be disjoint. The v0.1.9 release uses host-user tools. Source builds use the native workspace sandbox by default. Use --trusted-local deliberately to retain host-user tools and configured retrieval. Shell and protected/outside/uncertain file operations require approval. Ordinary existing workspace files can be edited automatically. Shell may be trusted for the current session; `:trust off` revokes it. Use a practice directory for your first task.
+Workspace defaults to the current directory, and archives to `~/.pan-agent/archives`. Override them with `--workspace DIR` and `--memory-root DIR`; the directories must be disjoint. The interactive 0.1.10 release uses the native workspace sandbox by default and checks its enforcement before the model runs. Review the approval for a new file. Trusted-local mode grants host-user tool authority and enables configured retrieval when explicitly selected with `--trusted-local`. Use a practice directory for your first task.
 
 ## Inspect and replay
 
@@ -134,7 +136,13 @@ Archives verify their stored hash chain and preserve run identity. They are not 
 
 ## License and distribution status
 
-Pan-authored code is licensed under the MIT License included as `LICENSE` in this package, copyright 2026 Pan Agent contributors. Third-party licenses are not replaced by Pan's license. The prebuilt v0.1.9 tarball is on GitHub Releases. Its SHA256 is `3f6783bd6674e9e57e49dac7d67a183313a6c61d3a9f1117b476019ab5c3aeab`. Installing that URL does not require npm registry publication. A new source build has its own archive identity; do not substitute it for the released bytes.
+Pan-authored code is licensed under the MIT License included as `LICENSE` in this package, copyright 2026 Pan Agent contributors. Third-party licenses are not replaced by Pan's license. The public [0.1.10 registry metadata](https://registry.npmjs.org/pan-agent/0.1.10) records archive integrity `sha512-wsvhkETjEmsFl1+FJor8EyS/ynL7as4t3zpGJqycr6QbDgxhFw93PfA8G6RlS1V+dv7eed9f7XBMiNf/cb6BFQ==`.
+
+To reproduce the historical [GitHub v0.1.9 release](https://github.com/pym96/Pan-agent/releases/tag/v0.1.9), install its original archive (SHA256 `3f6783bd6674e9e57e49dac7d67a183313a6c61d3a9f1117b476019ab5c3aeab`). This version runs interactive tools with host-user authority.
+
+```sh
+npm install -g --ignore-scripts https://github.com/pym96/Pan-agent/releases/download/v0.1.9/pan-agent-0.1.9.tgz
+```
 
 Runtime code has no third-party npm runtime dependencies. Build-time dependencies: TypeScript (Apache-2.0), @types/node (MIT), undici-types (MIT). These dependencies are not bundled. The repository's license inventory documents separate recording tools and retained references.
 
@@ -150,7 +158,7 @@ If an environment credential is missing when you submit a task, the TUI keeps th
 
 ## Opt-in document and history retrieval
 
-Retrieval is included in the **v0.1.9 public release**. Install the release above, or build the current source checkout for development. No embedding service or extra runtime dependency is needed.
+Pan 0.1.10 supports configured retrieval in an explicitly trusted-local session. No embedding service or extra runtime dependency is needed.
 
 Create `selection.json` outside your selected source directories, for example:
 
@@ -166,9 +174,9 @@ Create `selection.json` outside your selected source directories, for example:
 Only `documents` is required (an empty array is allowed with a history or Runbook selection). Directories/files must already exist. Omit `ledger` unless that archive root has a retrospective ledger; omit `runbook` unless you have that named file. History means **your explicitly selected Pan archives**, not browser, Codex or Claude account conversations.
 
 ```sh
-./node_modules/.bin/pan-agent retrieval configure --workspace "$PWD/workspace" --from selection.json
-./node_modules/.bin/pan-agent retrieval show --workspace "$PWD/workspace"
-./node_modules/.bin/pan-agent --kernel native --workspace "$PWD/workspace" --memory-root "$PWD/archives"
+pan-agent retrieval configure --workspace "$PWD/workspace" --from selection.json
+pan-agent retrieval show --workspace "$PWD/workspace"
+pan-agent --trusted-local --workspace "$PWD/workspace" --memory-root "$PWD/archives"
 # In the TUI: “Use retrieve to find recoveryBudget and our earlier recovery decision.”
 ```
 
@@ -177,21 +185,21 @@ The model can call `retrieve`; review the source selection in its normal **Allow
 Each call refreshes from source; there is no persistent search cache. Reconfigure with a smaller selection to remove sources, or disable all retrieval:
 
 ```sh
-./node_modules/.bin/pan-agent retrieval disable --workspace "$PWD/workspace"
+pan-agent retrieval disable --workspace "$PWD/workspace"
 ```
 
 Settings persist in `workspace/.pan-agent/retrieval.json` across restarts. Replacement of a selected root or directly selected memory file requires reconfiguration. Ordinary source content updates/deletes appear on the next call. Originals are never edited by retrieval. Protected files and unsupported links are skipped with diagnostics; corrupt/unsealed history is not trusted. Large corpora return explicit partial/truncated results. Default matching is lexical: all query terms must occur in one800-character chunk; it does not promise paraphrase or semantic recall. Limits:8 sources,1024 entries,128 attempted files,4MiB aggregate,256KiB ordinary file/ledger/Runbook,1MiB sealed events,16KiB manifest/config,12 directory levels,4096 chunks,8 results and64KiB response. Oversized long-run archives are skipped; inspect them with replay, never truncate the original seal. [WorkOrder and source/evidence links](https://github.com/pym96/Pan-agent/issues/144).
 
 ## Optional Docker sandbox
 
-The v0.1.9 release includes this optional entry. After preparing the Docker prerequisites below, start the ordinary TUI with:
+After preparing the Docker prerequisites below, start the ordinary TUI with:
 
 ```sh
-./node_modules/.bin/pan-agent --kernel native --sandbox-root "$PWD/sandbox-state" \
+pan-agent --kernel native --sandbox-root "$PWD/sandbox-state" \
   --sandbox-input "$PWD/input.txt" --memory-root "$PWD/archives"
 ```
 
-Each task gets a separate non-root container and workspace volume. `read`, `write`, `edit` and `bash` run there; selected files appear read-only under `/inputs`, outputs go under `/workspace/task`. Retrieval is disabled in this mode. Tool approval cannot add host mounts or network access. API credentials and the agent loop remain on the host. Without `--sandbox-root`, an interactive source build selects the native workspace sandbox. Use `--trusted-local` for the previous host-user tools.
+Each task gets a separate non-root container and workspace volume. `read`, `write`, `edit` and `bash` run there; selected files appear read-only under `/inputs`, outputs go under `/workspace/task`. Retrieval is disabled in this mode. Tool approval cannot add host mounts or network access. API credentials and the agent loop remain on the host. Without `--sandbox-root`, the interactive launcher selects the native workspace sandbox. Use `--trusted-local` for the previous host-user tools.
 
 This profile uses a pinned Python image, no network, a read-only root filesystem, 1 CPU, 512 MiB RAM and 64 PIDs. It requires Linux Docker with cgroup v2 and working resource controllers; unsupported/rootless configurations fail closed. The volume has **no filesystem quota**: memory/PID bounds are enforced, while disk protection is a preflight threshold and bounded export. Docker access itself is a trusted host privilege.
 
@@ -219,9 +227,9 @@ The complete suite includes seven checkout-path regressions that execute the act
 
 Current development requires only the checked-out tree and locked development tools; no historical Git objects or existing `dist` are needed. `npm --prefix typescript run build` builds from source; the shared entry above performs the complete regression. Optional [fixed-version historical checks](../scripts/history-replay/README.md) retain their own source/checker/criteria pins and setup costs.
 
-## Native workspace sandbox in source builds
+## Native workspace sandbox
 
-Packages built from this checkout select the native workspace sandbox when you run `pan-agent`. The public v0.1.9 release predates this default. The banner identifies the selected backend. Each submitted task must pass its native enforcement probe before the model or a task tool runs. For a scripted demonstration without a provider, use `pan-agent demo` in its disposable workspace. Select Docker with `--sandbox-root DIR`, or select the previous host-user backend and configured retrieval explicitly with `--trusted-local`.
+Pan 0.1.10 selects the native workspace sandbox when you run `pan-agent`. The public v0.1.9 release predates this default. The banner identifies the selected backend. Each submitted task must pass its native enforcement probe before the model or a task tool runs. For a scripted demonstration without a provider, use `pan-agent demo` in its disposable workspace. Select Docker with `--sandbox-root DIR`, or select the previous host-user backend and configured retrieval explicitly with `--trusted-local`.
 
 Use `pan-agent --session-auto` to create a new plain document such as `notes.txt` without approving that individual write. The typed writer only admits a new root-level ASCII filename with a letter or digit first, up to 80 letters, digits, underscores or hyphens before a lowercase `.txt` or `.md` extension. The existing no-follow and exclusive-create checks still apply. Configured protected paths retain the normal approval check. Network and credential grants cannot be combined with session automation. The TUI displays SESSION AUTO and the archive records the boundary and each admitted write. Restart normally to leave automation.
 
@@ -253,20 +261,16 @@ A test server and its child client can communicate over a Unix socket in `$PAN_L
 
 [Protocol coverage, local server example, platform requirements and evidence](https://github.com/pym96/Pan-agent/blob/main/docs/design/native-network.md)
 
-The option applies to current source builds. Public v0.1.9 predates it. Scheduled commands keep their existing interfaces.
+The option is available in 0.1.10. Scheduled commands keep their existing interfaces.
 
 ## Supervised local delivery
 
-Use the package built from the current source. The previously published v0.1.9 archive predates this command. A consumer needs Node 22.19+ and local Git with SHA-1 or SHA-256 object format support on macOS or Linux. From this repository's `typescript/` directory, build and install into a disposable prefix:
+Pan 0.1.10 includes this command. A consumer needs Node 22.19+ and local Git with SHA-1 or SHA-256 object format support on macOS or Linux. With the npm package installed, run:
 
 ```sh
 trial=$(mktemp -d)
-npm ci --ignore-scripts
-npm pack --pack-destination "$trial"
-npm install --offline --ignore-scripts --no-audit --no-fund --prefix "$trial/consumer" "$trial/pan-agent-0.1.10.tgz"
-pan="$trial/consumer/node_modules/.bin/pan-agent"
-"$pan" delivery demo --directory "$trial/example"
-"$pan" delivery inspect --state "$trial/example/delivery"
+pan-agent delivery demo --directory "$trial/example"
+pan-agent delivery inspect --state "$trial/example/delivery"
 ```
 
 The offline example updates office hours in a new disposable project. Look for two `delivery.handoff` events with different commit SHAs. The first `goal.verdict` records the failed weekday and time checks. The builder receives that feedback, writes the repair and hands off a new commit. A fresh reviewer receives it in a separate clean checkout. The final record includes the winning SHA, shared model/tool counts and stop confirmation.
@@ -313,7 +317,7 @@ For the executable regression and its raw logs, see the [installed runtime check
 
 ### Workspace trust and one-use credentials
 
-In a package built from this source, an operator can share one UTF-8 credential with a native sandbox command. The project declares candidate names in `.pan-agent/workspace.json`. A new project has no eligible resources. For example, this declaration requests one process environment variable and one protected project file.
+In 0.1.10, an operator can share one UTF-8 credential with a native sandbox command. The project declares candidate names in `.pan-agent/workspace.json`. A new project has no eligible resources. For example, this declaration requests one process environment variable and one protected project file.
 
 ```json
 {"version":1,"resources":["env:PAN_TEST_TOKEN","file:.env.fixture"]}
@@ -338,13 +342,7 @@ Granted calls suppress direct stdout and stderr capture. The value travels to th
 
 ## Local MCP reports
 
-A tarball built from this revision includes a local stdio client and an offline sample server. To install from CI without a source checkout, open the successful [Installed runtime regression](https://github.com/pym96/Pan-agent/actions/workflows/runtime-tests.yml) run for this revision, download the `runtime-node-26.7.0` artifact and unzip it in a new directory. Confirm that its `result.json` records the intended `source_sha` and package version `0.1.10`. From that directory:
-
-```sh
-tar -xzf runtime-evidence.tar.gz ./pan-agent-0.1.10.tgz
-npm install --offline --ignore-scripts --no-audit --no-fund --prefix "$PWD/pan-install" ./pan-agent-0.1.10.tgz
-export PATH="$PWD/pan-install/node_modules/.bin:$PATH"
-```
+Pan 0.1.10 includes the local stdio client and an offline sample server. The global npm installation above provides both.
 
 Run the following commands from your project workspace. The temporary home keeps the demo's operator declaration separate from your regular settings. The client prints JSON, including the synthetic run ID `sample-001`, three completed jobs and zero failures.
 

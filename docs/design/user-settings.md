@@ -1,6 +1,6 @@
 # User settings and tool deny rules
 
-**0.1.10 release candidate.** The public GitHub **v0.1.9** asset does not contain the settings commands or deny rules described here. These changes require a build from this source revision or an explicitly identified candidate tarball. Use the 0.1.10 candidate for these commands.
+These settings commands and deny rules ship in **pan-agent@0.1.10** on npm. The older GitHub v0.1.9 archive predates them.
 
 ## Find and inspect your settings
 

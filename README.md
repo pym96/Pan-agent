@@ -2,27 +2,25 @@
 
 A terminal agent for local files and shell commands, with tool approvals and saved-run replay.
 
-**Requirements:** Node.js **22.19.0+**, npm, and an interactive terminal. The published v0.1.9 local runtime needs no compiler, Python, Docker or database. The native sandbox on Linux has additional system requirements. Windows is not verified.
+**Requirements:** Node.js **22.19.0+**, npm, and an interactive terminal. The npm package is prebuilt. Interactive tasks use the native workspace sandbox. On macOS it requires Seatbelt; on supported x86-64 Linux it requires Bubblewrap, FUSE, Python 3 and the [Linux prerequisites](docs/design/native-linux-sandbox.md#system-requirements). Windows is not verified.
 
 ## Install
 
-Copy only the commands inside each code block into your terminal, not the headings or explanatory text.
-
 ```sh
-npm install -g --ignore-scripts https://github.com/pym96/Pan-agent/releases/download/v0.1.9/pan-agent-0.1.9.tgz
+npm install -g pan-agent
 ```
 
-This installs the prebuilt **v0.1.9** release; no Git checkout or build is needed. [Release assets and checksums](https://github.com/pym96/Pan-agent/releases/tag/v0.1.9). Prefer a user-owned Node/npm installation; if npm reports permission denied, fix its prefix rather than running Pan with sudo.
+This installs the prebuilt [Pan Agent npm package](https://www.npmjs.com/package/pan-agent). To reproduce the 0.1.10 release, use `npm install -g pan-agent@0.1.10`. No checkout or compilation is required. The older [GitHub v0.1.9 release](https://github.com/pym96/Pan-agent/releases/tag/v0.1.9) retains its original archive and checksums.
 
-The **0.1.10 release candidate** includes the default native sandbox, supervised delivery and local MCP reports. Use the [candidate archive instructions](typescript/README.md#local-mcp-reports) to install it from the regression artifact for the commit you want to try. Public npm registry delivery of this version is pending.
+Use a user-owned Node/npm installation. If installation reports permission denied, check that your npm prefix is writable.
 
 If your terminal reports `pan-agent: command not found`, finish installation first. Check `command -v pan-agent`; npm's global executable directory (`$(npm prefix -g)/bin` on macOS/Linux) must be on your `PATH`. Reopen the terminal after fixing your Node/npm setup. This is an installation/PATH issue, not an API-key error.
 
-## Supervised local delivery in the source build
+## Supervised local delivery
 
-The current source can deliver a bounded update to selected text or data files in a local Git project. A builder produces a private candidate commit. A separate executable reviewer checks the exact commit against every operator-supplied criterion. The demo records a failed first commit and a fresh review of the repair.
+Pan 0.1.10 can deliver a bounded update to selected text or data files in a local Git project. A builder produces a private candidate commit. A separate executable reviewer checks the exact commit against every operator-supplied criterion. The demo records a failed first commit and a fresh review of the repair.
 
-This command ships in packages built from this checkout. For the installed offline demo and configuration for your own task, see the [delivery walkthrough and limits](typescript/README.md#supervised-local-delivery).
+For the installed offline demo and configuration for your own task, see the [delivery walkthrough and limits](typescript/README.md#supervised-local-delivery).
 
 ## Configure your API
 
@@ -90,7 +88,7 @@ Use `:exit` to quit. If environment mode reports a missing `DEEPSEEK_API_KEY` or
 
 The workspace defaults to your current directory (`--workspace DIR` overrides it); history defaults to `~/.pan-agent/archives` (`--memory-root DIR` overrides it). Keep history outside the workspace. If you launch from your home directory and see an overlap error, enter a project subdirectory first.
 
-**In the v0.1.9 release, tools run with your host-user authority.** The workspace is a working directory, not a sandbox. Ctrl-C requests cancellation during execution and can retain the draft. Bare startup needs a terminal; see the [package guide](typescript/README.md) for command interfaces.
+The 0.1.10 interactive launcher selects the native workspace sandbox by default. Check the backend shown in the banner. Pan checks enforcement before it sends a task to the model. Ctrl-C requests cancellation during execution and can retain the draft. Bare startup needs a terminal; see the [package guide](typescript/README.md) for command interfaces.
 
 ## Try it without a key
 
@@ -106,9 +104,9 @@ The demo uses a scripted offline model with the actual TUI and tools. Ask `Creat
 
 These recordings retain their original versions and scopes. [Recording details](docs/demo/tui-release56/README.md).
 
-## User settings in current source
+## User settings
 
-Current source adds settings inspection, saved attachment limits and tool deny rules in `~/.pan-agent/settings.json`. See the [settings guide](docs/design/user-settings.md) for examples and scope. These additions are for the next release; the public v0.1.9 download above does not include them.
+Pan 0.1.10 supports settings inspection, saved attachment limits and tool deny rules in `~/.pan-agent/settings.json`. See the [settings guide](docs/design/user-settings.md) for examples and scope.
 
 ## More
 
@@ -164,9 +162,9 @@ Reference-only Python TUI: `python3 -m workspace_agent_harness.tui` belongs to t
 
 </details>
 
-## Native workspace sandbox in source builds
+## Native workspace sandbox
 
-Packages built from this checkout select the native workspace sandbox when you run `pan-agent`. The public v0.1.9 release predates this default. The banner identifies the selected backend. Each submitted task must pass its native enforcement probe before the model or a task tool runs. For a scripted demonstration without a provider, use `pan-agent demo` in its disposable workspace. Select Docker with `--sandbox-root DIR`, or select the previous host-user backend and configured retrieval explicitly with `--trusted-local`.
+Pan 0.1.10 selects the native workspace sandbox when you run `pan-agent`. The public v0.1.9 release predates this default. The banner identifies the selected backend. Each submitted task must pass its native enforcement probe before the model or a task tool runs. For a scripted demonstration without a provider, use `pan-agent demo` in its disposable workspace. Select Docker with `--sandbox-root DIR`, or select the previous host-user backend and configured retrieval explicitly with `--trusted-local`.
 
 Use `pan-agent --session-auto` to create a new plain document such as `notes.txt` without approving that individual write. The typed writer only admits a new root-level ASCII filename with a letter or digit first, up to 80 letters, digits, underscores or hyphens before a lowercase `.txt` or `.md` extension. The existing no-follow and exclusive-create checks still apply. Configured protected paths retain the normal approval check. Network and credential grants cannot be combined with session automation. The TUI displays SESSION AUTO and the archive records the boundary and each admitted write. Restart normally to leave automation.
 
@@ -198,6 +196,6 @@ A test server and its child client can communicate over a Unix socket in `$PAN_L
 
 [Protocol coverage, local server example, platform requirements and evidence](docs/design/native-network.md)
 
-The option applies to current source builds. Public v0.1.9 predates it. Scheduled commands keep their existing interfaces.
+The option is available in 0.1.10. Scheduled commands keep their existing interfaces.
 
-[Local MCP report demo](typescript/README.md#local-mcp-reports) describes how to use a tarball built from this revision to list and call an explicitly configured read-only reporting server and ask the installed TUI why a synthetic run has no score.
+[Local MCP report demo](typescript/README.md#local-mcp-reports) describes how to use the installed CLI to list and call an explicitly configured read-only reporting server and ask the installed TUI why a synthetic run has no score.
