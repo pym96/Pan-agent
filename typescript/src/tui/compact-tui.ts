@@ -12,7 +12,7 @@ export async function runCompactTui(options: TuiOptions): Promise<number> {
 	const maxAttachmentBytes = validateAttachmentLimit(options.maxAttachmentBytes);
 	const presentation = options.presentation!;
 	let phase: "idle" | "running" | "command" | "closed" = "idle";
-	let cancelled = false, ending = false;
+	let cancelled = false, ending = false, exitCode = 0;
 	let resolveClosed!: () => void;
 	const closed = new Promise<void>(resolve => { resolveClosed = resolve; });
 	let terminal: TerminalInput;
@@ -20,15 +20,26 @@ export async function runCompactTui(options: TuiOptions): Promise<number> {
 	const write = (line: string) => terminal.write(line);
 	function finish(): void { attachments?.close(); phase = "closed"; terminal.setPrompt(""); resolveClosed(); }
 	function interrupt(): void {
-		if (phase === "running") { cancelled = true; write("Cancellation requested; waiting for settlement."); options.session.cancel(); }
-		else if (phase !== "command") { finish(); }
+		if (ending || phase === "closed") return;
+		if (phase === "running" && !cancelled) { cancelTask(); return; }
+		interruptAndExit();
 	}
-	function end(): void { ending = true; if (phase === "running") interrupt(); else if (phase !== "command") finish(); }
+	function cancelTask(): void {
+		cancelled = true;
+		write("Cancellation requested; Ctrl-C again exits after settlement.");
+		options.session.cancel();
+	}
+	function end(): void {
+		ending = true;
+		if (phase === "running") { if (!cancelled) cancelTask(); }
+		else if (phase !== "command") finish();
+	}
+	function interruptAndExit(): void { exitCode = 130; end(); }
 	async function command(text: string): Promise<void> {
 		const store = options.archiveStore;
 		if (text === ":exit") { finish(); return; }
 		if (text === ":trust off") { options.session.revokeShellTrust(); write("Shell session trust revoked."); return; }
-		if (text === ":help") { write(":details inspect · :context context · :runs history · :replay RUN_ID replay · :exit quit; Ctrl-C cancels a running task and retains your draft. @ after whitespace: file picker; Esc: literal @query; Ctrl-P: attachment preview; Ctrl-R: remove last; :attachments / :preview / :remove N."); return; }
+		if (text === ":help") { write(":details inspect · :context context · :runs history · :replay RUN_ID replay · :exit quit; Ctrl-C exits while idle, including the file picker. During a task, Ctrl-C cancels and retains your draft; Ctrl-C again exits after settlement. @ after whitespace: file picker; Esc: literal @query; Ctrl-P: attachment preview; Ctrl-R: remove last; :attachments / :preview / :remove N."); return; }
 		if (text === ":attachments") { attachments.summary(); return; }
 		if (text === ":preview") { attachments.preview(); return; }
 		if (text.startsWith(":remove ")) { attachments.remove(Number(text.slice(8))-1); return; }
@@ -65,6 +76,7 @@ export async function runCompactTui(options: TuiOptions): Promise<number> {
 		finally { if (phase !== "closed") { if (ending) finish(); else { phase = "idle"; terminal.setPrompt("You > "); } } }
 	}
 	terminal = new TerminalInput(options.input ?? process.stdin, options.output ?? process.stdout, text => {
+		if (ending) return false;
 		if (phase === "running" || phase === "command") { write("Busy — draft retained; press Enter after this task finishes."); return false; }
 		if (phase === "closed") return false;
 		if (!text.trim()) { write("Task must not be blank; no Provider call was made."); return true; }
@@ -72,8 +84,7 @@ export async function runCompactTui(options: TuiOptions): Promise<number> {
 		const prepared = isCommand ? text : attachments.prepare(text);
 		phase = isCommand ? "command" : "running"; cancelled = false;
 		terminal.setPrompt(phase === "running" ? "Draft > " : "");
-		// Start after TerminalInput has synchronously committed/cleared the submitted draft.
-		queueMicrotask(() => { void execute(prepared, isCommand); });
+		void execute(prepared, isCommand);
 		return true;
 	}, interrupt, end, (text, key) => phase === "idle" && attachments.handleKey(text, key), draft => {
 		if (phase === "idle") return draft.trim() && !draft.trim().startsWith(":") ? "Not submitted · Enter Send" : "Not submitted · Write a task";
@@ -92,6 +103,10 @@ export async function runCompactTui(options: TuiOptions): Promise<number> {
 	write(`Attachments: @ picker · Ctrl-P preview · Ctrl-R remove last · ${maxAttachmentBytes} byte aggregate local policy; snapshots are sent and archived only on submit.`);
 	write(options.executionMode?.startsWith("native-")?"Sensitive/outside files are denied; Shell approval keeps the fixed OS boundary.":"Protected/outside/uncertain file and Shell actions without an approval channel are denied.");
 	terminal.setPrompt("You > ");
-	try { await closed; return 0; }
-	finally { terminal.close(); await options.session.close(); (options.output ?? process.stdout).write("General Agent TUI closed.\n"); }
+	process.on("SIGINT", interruptAndExit);
+	try {
+		try { await closed; }
+		finally { terminal.close(); await options.session.close(); (options.output ?? process.stdout).write("General Agent TUI closed.\n"); }
+		return exitCode;
+	} finally { process.off("SIGINT", interruptAndExit); }
 }

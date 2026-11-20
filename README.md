@@ -92,7 +92,7 @@ Use `:exit` to quit. If environment mode reports a missing `DEEPSEEK_API_KEY` or
 
 The workspace defaults to your current directory (`--workspace DIR` overrides it); history defaults to `~/.pan-agent/archives` (`--memory-root DIR` overrides it). Keep history outside the workspace. In the 0.1.11 candidate, a bare launch from home opens `~/pan-workspace` and reuses it next time. With npm release 0.1.10, enter a project subdirectory first to avoid an overlap error.
 
-The 0.1.10 interactive launcher selects the native workspace sandbox by default. Check the backend shown in the banner. Pan checks enforcement before it sends a task to the model. Ctrl-C requests cancellation during execution and can retain the draft. Bare startup needs a terminal; see the [package guide](typescript/README.md) for command interfaces.
+The 0.1.10 interactive launcher selects the native workspace sandbox by default. Check the backend shown in the banner. Pan checks enforcement before it sends a task to the model. Ctrl-C requests cancellation during execution and can retain the draft. In the 0.1.11 source candidate, Ctrl-C exits setup or the idle TUI with status 130. During execution, press it a second time to exit after cancellation settles. Bare startup needs a terminal; see the [package guide](typescript/README.md) for command interfaces.
 
 ## Try it without a key
 

@@ -15,7 +15,9 @@ export class TerminalInput {
 	private editing = false;
 	private partial = "";
 	private readonly tty: boolean;
+	private readonly rawInput: boolean;
 	private readonly wasRaw: boolean;
+	private paste: string | undefined;
 	private readonly input: Readable;
 	private readonly output: Writable;
 	private readonly enter: (text: string) => boolean;
@@ -26,10 +28,11 @@ export class TerminalInput {
 	constructor(input: Readable, output: Writable, enter: (text: string) => boolean, interrupt: () => void, ended: () => void, intercept?: (text: string | undefined, key: InputKey) => boolean, hint?: (draft: string) => string) {
 		this.intercept = intercept; this.hint = hint;
 		this.input = input; this.output = output; this.enter = enter; this.interrupt = interrupt; this.ended = ended;
-		this.tty = (input as ReadStream).isTTY === true && (output as {isTTY?: boolean}).isTTY === true;
+		this.rawInput = (input as ReadStream).isTTY === true;
+		this.tty = this.rawInput && (output as {isTTY?: boolean}).isTTY === true;
 		this.wasRaw = (input as ReadStream).isRaw === true;
 		emitKeypressEvents(input);
-		if (this.tty) (input as ReadStream).setRawMode(true);
+		if (this.rawInput) (input as ReadStream).setRawMode(true);
 		input.on("keypress", this.key); input.on("end", this.ended);
 		input.resume();
 	}
@@ -67,12 +70,18 @@ export class TerminalInput {
 	}
 	close(): void {
 		this.clear(); this.input.off("keypress", this.key); this.input.off("end", this.ended);
-		if (this.tty) (this.input as ReadStream).setRawMode(this.wasRaw);
+		if (this.rawInput) (this.input as ReadStream).setRawMode(this.wasRaw);
 		this.input.pause();
 	}
 	private readonly key = (text: string | undefined, key: InputKey = {}): void => {
-		if (this.intercept?.(text, key)) return;
+		if (this.paste !== undefined) {
+			if (key.name === "paste-end") { this.insert(this.paste); this.paste = undefined; }
+			else this.paste += key.sequence ?? text ?? "";
+			return;
+		}
+		if (key.name === "paste-start") { this.paste = ""; return; }
 		if (key.ctrl && key.name === "c") { this.interrupt(); return; }
+		if (this.intercept?.(text, key)) return;
 		if (key.ctrl && key.name === "d") { this.ended(); return; }
 		if (key.name === "return" || key.name === "enter") {
 			const value = this.draft.join("");

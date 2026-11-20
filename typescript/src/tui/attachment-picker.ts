@@ -48,7 +48,7 @@ export class AttachmentPicker {
 	open(): void {
 		if (this.picker) return;
 		const picker = {query:"",cursor:0,index:0,names:[] as readonly string[],loading:true,capturing:false,controller:new AbortController()}; this.picker = picker;
-		this.write("File picker: literal search; Up/Down or Tab/Shift-Tab; Left/Right edit; Enter selects only; Esc inserts literal @query; Ctrl-C dismisses.");
+		this.write("File picker: literal search; Up/Down or Tab/Shift-Tab; Left/Right edit; Enter selects only; Esc inserts literal @query; Ctrl-C exits Pan.");
 		this.show();
 		void discoverAttachmentPaths(this.workspace).then(names => {
 			if (this.picker !== picker) return;
@@ -90,7 +90,6 @@ export class AttachmentPicker {
 			return false;
 		}
 		if (key.name === "escape") { this.cancel(true); return true; }
-		if (key.ctrl && key.name === "c") { this.cancel(); return true; }
 		if (key.ctrl && key.name === "d") return false;
 		if (key.name === "return" || key.name === "enter") { this.select(); return true; }
 		if (picker.capturing) return true;

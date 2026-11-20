@@ -22,6 +22,8 @@ export function providerCredentialVariable(provider: PanSettings["provider"]): s
 
 const THINKING_LEVELS: readonly DeepSeekThinkingLevel[] = ["low", "high", "max"];
 
+export class ConfigurationInterrupted extends Error {}
+
 /** Read one answer per displayed prompt. A real TTY stays in no-echo mode throughout setup. */
 function openPrompts(input: Readable, output: Writable) {
 	const tty = input as NodeJS.ReadStream;
@@ -48,19 +50,24 @@ function openPrompts(input: Readable, output: Writable) {
 	if (bracketed) output.write("\x1b[?2004h");
 	let answer = "", pasting = false, invalid = false, submitted = false, closed = false;
 	let reply: ((answer: string | undefined) => void) | undefined;
+	let interrupted = false;
 	const end = () => { closed = true; reply?.(undefined); };
+	const interrupt = () => { interrupted = true; end(); };
+	const closedError = () => interrupted ? new ConfigurationInterrupted("Configuration interrupted.") : cancelled();
 	const keypress = (character: string | undefined, key: Key) => {
-		if (!reply) return;
+		if (closed || !reply) return;
+		if (key.name === "paste-start") { if (submitted) invalid = true; pasting = true; return; }
+		if (key.name === "paste-end") { if (submitted) invalid = true; pasting = false; return; }
+		if (!pasting && key.ctrl && key.name === "c") { interrupt(); return; }
 		if (submitted) { invalid = true; return; }
-		if (key.name === "paste-start") { pasting = true; return; }
-		if (key.name === "paste-end") { pasting = false; return; }
-		if (!pasting && key.ctrl && (key.name === "c" || key.name === "d")) { end(); return; }
+		if (!pasting && key.ctrl && key.name === "d") { end(); return; }
 		if (key.name === "return" || key.name === "enter") {
 			if (pasting) { invalid = true; return; }
 			submitted = true;
 			// Keypresses from one input chunk are synchronous. Reject the whole batch if
 			// trailing bytes arrived with Enter, before they can answer another prompt.
 			queueMicrotask(() => {
+				if (closed) return;
 				output.write("\n");
 				if (invalid) {
 					output.write("Enter one answer at a time.\n" + prompt);
@@ -81,26 +88,29 @@ function openPrompts(input: Readable, output: Writable) {
 		}
 	};
 	let prompt = "";
+	process.on("SIGINT", interrupt);
 	tty.on("keypress", keypress);
 	tty.on("end", end);
 	tty.resume();
 	return {
 		async ask(query: string) {
-			if (closed) throw cancelled();
+			if (closed) throw closedError();
 			prompt = query;
 			answer = ""; invalid = false; submitted = false;
 			const response = new Promise<string | undefined>((resolve) => { reply = resolve; });
 			output.write(query);
 			const value = await response;
-			if (value === undefined) throw cancelled();
+			if (value === undefined) throw closedError();
 			return value;
 		},
 		close() {
+			process.off("SIGINT", interrupt);
 			tty.off("keypress", keypress);
 			tty.off("end", end);
 			tty.pause();
 			tty.setRawMode(wasRaw);
 			if (bracketed) output.write("\x1b[?2004l");
+			if (interrupted) throw closedError();
 		},
 	};
 }
@@ -121,7 +131,7 @@ export async function runFirstRunConfiguration(dependencies: FirstRunDependencie
 	const { ask, close } = openPrompts(input, output);
 	const write = (line: string): void => { output.write(`${line}\n`); };
 	const chooseProfile = async () => {
-		write("Pan first-run configuration. Input is hidden at every prompt. Press Enter to use a displayed default.");
+		write("Pan first-run configuration. Input is hidden at every prompt. Press Enter to use a displayed default. Ctrl-C exits setup.");
 		let provider: "deepseek" | "kimi-code" | undefined;
 		let selectK3 = false;
 		while (!provider) {
@@ -166,7 +176,7 @@ export async function runFirstRunConfiguration(dependencies: FirstRunDependencie
 		const interactive = (input as NodeJS.ReadStream).isTTY === true && (output as NodeJS.WriteStream).isTTY === true;
 		const defaultKeychain = interactive && supportsKeychain && !process.env[credentialEnv]?.trim();
 		if (recovering) {
-			write(`Saved provider ${provider} uses ${credentialEnv}, which is missing in this terminal. Keep environment mode to open Pan without a key, or quit and supply it from your shell or secret manager. Input is hidden at every prompt.`);
+			write(`Saved provider ${provider} uses ${credentialEnv}, which is missing in this terminal. Keep environment mode to open Pan without a key, or press Ctrl-C to exit and supply it from your shell or secret manager. Input is hidden at every prompt.`);
 		}
 		const keychainAccount = provider === "kimi-code" ? PAN_KEYCHAIN_KIMI_ACCOUNT : reference.account;
 		const activeReference: KeychainReference = { service: reference.service, account: keychainAccount };

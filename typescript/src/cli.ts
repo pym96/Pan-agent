@@ -36,7 +36,7 @@ import type { SessionObservation } from "./runtime/session.ts";
 
 import { validateAttachmentLimit } from "./input/attachments.ts";
 import { loadPanSettings, panSettingsPath, type PanSettings } from "./config/settings.ts";
-import { providerCredentialVariable, runFirstRunConfiguration } from "./config/first-run.ts";
+import { ConfigurationInterrupted, providerCredentialVariable, runFirstRunConfiguration } from "./config/first-run.ts";
 import {
 	PAN_KEYCHAIN_ACCOUNT,
 	PAN_KEYCHAIN_KIMI_ACCOUNT,
@@ -72,6 +72,7 @@ Native workspace sandbox (default): --native-sandbox shares --workspace through 
 Session-only --session-auto permits creating a new plain ASCII .txt or .md document at the native workspace root without individual approval (no protected-path overrides or resource grants). Other approvals and deny rules remain in force.
 Sandbox (opt-in): add --sandbox-root DIR and optional repeated --sandbox-input FILE. One new fixed-profile Docker workspace per task; no retrieval. After exit: pan-agent sandbox list --root DIR; recover|export|verify|cleanup --run RUN_DIRECTORY (see README).
 Retrieval (default off): pan-agent retrieval configure --workspace DIR --from selection.json; retrieval show|disable --workspace DIR. Each approved call refreshes selected sources.
+Ctrl-C exits setup or the idle TUI. During a task it cancels first; press again to exit after settlement.
 No Provider call occurs for --help, configure, startup, idle cancellation, or TUI commands. Keychain writes require explicit save confirmation. Protected/outside/uncertain file operations and Shell require operation-scoped approval.`;
 
 const RUNBOOK_PATH = resolve(dirname(fileURLToPath(import.meta.url)), "..", "RUNBOOK.md");
@@ -276,6 +277,7 @@ export async function runCli(args: readonly string[], dependencies: CliDependenc
 			});
 			return 0;
 		} catch (error) {
+			if (error instanceof ConfigurationInterrupted) { writeLine(error.message); return 130; }
 			writeLine(`Configuration failed: ${terminalText(error instanceof Error ? error.message : "unknown")}`);
 			return 2;
 		}
@@ -389,6 +391,7 @@ export async function runCli(args: readonly string[], dependencies: CliDependenc
 				keychainReference: dependencies.keychainReference,
 			}, recover ? "recover" : "configure");
 		} catch (error) {
+			if (error instanceof ConfigurationInterrupted) { writeLine(error.message); return 130; }
 			writeLine(`Configuration failed: ${terminalText(error instanceof Error ? error.message : "unknown")}`);
 			return 2;
 		}

@@ -132,7 +132,7 @@ In a project, workspace defaults to the current directory, and archives to `~/.p
 - `:details`: inspect detailed execution output.
 - `:runs`: list sealed run archives.
 - `:replay RUN_ID`: render the saved run with zero provider/tool execution.
-- `:exit`: close. Ctrl-C cancels an active task or closes an idle TUI.
+- `:exit` or Ctrl-D closes the TUI normally. In the 0.1.11 candidate, Ctrl-C exits setup or an idle TUI with status 130 and discards unsubmitted input, including while a file picker or inspection view is open. During a task, Ctrl-C cancels the run and denies a pending approval. Press it again to exit after the run settles. An external SIGINT cancels and exits in one step.
 
 Archives verify their stored hash chain and preserve run identity. They are not a checkpoint that resumes model execution. Context compaction and cross-process conversation continuation are not claimed. See RUNBOOK.md for operating guidance.
 

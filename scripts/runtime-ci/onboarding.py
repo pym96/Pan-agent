@@ -299,6 +299,12 @@ if (process.env.PAN_OFFLINE_PROVIDER === '1') globalThis.fetch = async (url, req
             for file in home.rglob('*'):
                 if file.is_file(): self.assertFalse(token.encode() in file.read_bytes(),str(file))
 
+    def test_11_interrupts(self):
+        if not PACKAGE: self.skipTest('candidate-only interrupt behavior')
+        from interrupts import check_interrupts
+        env, credential_log = self.credential_env('interrupt-credential-operations')
+        check_interrupts(self.cli, self.root/'interrupts', env, credential_log)
+
 if __name__=='__main__':
     parser=argparse.ArgumentParser()
     source=parser.add_mutually_exclusive_group(required=True)
