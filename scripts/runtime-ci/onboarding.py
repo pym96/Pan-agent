@@ -99,6 +99,9 @@ class InstalledOnboarding(unittest.TestCase):
             os.close(master);(self.root/(name+'.pty')).write_bytes(raw.replace(SYNTHETIC.encode(),b'[redacted]'))
     def test_01_help_and_nontty(self):
         r=self.command('help',['--help']);self.assertEqual(r.returncode,0);self.assertIn('current directory',r.stdout)
+        if PACKAGE:
+            self.assertIn('pan-agent configure   (first-run',r.stdout)
+            self.assertNotIn('npm run agent',r.stdout)
         r=self.command('nontty',[]);self.assertEqual(r.returncode,2);self.assertIn('requires a terminal',r.stdout)
         self.assertFalse((self.home/'.pan-agent').exists())
         r=self.command('configure-closed',['configure']);self.assertEqual(r.returncode,2);self.assertIn('input closed',r.stdout)

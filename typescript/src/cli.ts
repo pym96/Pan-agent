@@ -50,7 +50,7 @@ import { createPanKimiAdapter, PanKimiModelAdapter } from "./providers/kimi/pan-
 import { DEFAULT_KIMI_PROFILE, KIMI_K3_MODEL_ID, type KimiProfile } from "./providers/kimi/kimi-profile.ts";
 
 export const CLI_USAGE = `Usage:
-  pan-agent [--workspace /absolute/path] [--memory-root /absolute/path] --kernel native [--model deepseek-v4-flash|deepseek-v4-pro] [--thinking low|high|max] [--max-attachment-bytes INTEGER]
+  pan-agent [--workspace /absolute/path] [--memory-root /absolute/path] [--kernel native] [--model deepseek-v4-flash|deepseek-v4-pro] [--thinking low|high|max] [--max-attachment-bytes INTEGER]
   pan-agent trust --workspace PATH [--approve REVIEW_HASH]
   pan-agent --native-sandbox --native-resource ID (--grant-command EXACT_SHELL | --grant-task)
   Only authorized Shell and children receive PAN_GRANTED_VALUE. File tools still deny the protected path.
@@ -58,21 +58,21 @@ export const CLI_USAGE = `Usage:
   ${MCP_USAGE}
   pan-agent delivery --help   (bounded local delivery with independent checks)
   pan-agent settings path|show|validate   (read-only ordinary settings; no credential access)
-  npm run agent -- configure   (first-run settings: provider/model/thinking and credential source; persists no secret)
+  pan-agent configure   (first-run settings: provider/model/thinking and credential source; persists no secret)
 
 The installed launcher selects Native; source/library callers pass --kernel native. NativeKernel receives Pan-owned typed read/write/edit/bash implementations directly.
 Interactive tasks default to the native workspace sandbox. Explicit --trusted-local uses host-user tools and enables configured retrieval; workspace is its cwd.
 Defaults: workspace = current directory (bare launch from home uses ~/pan-workspace); memory-root = ~/.pan-agent/archives. Explicit paths override defaults.
 Every admitted run is durably archived under --memory-root (must be disjoint from the workspace) with the current Runbook revision; :details, :runs and :replay inspect sealed archives with zero Provider calls or tool effects.
 Attachments use selection-time UTF-8 snapshots; default aggregate maxAttachmentBytes=1048576 (1 MiB local byte policy, not a model token limit). Saved maxAttachmentBytes overrides the default; --max-attachment-bytes overrides the saved value. Never truncates.
-Ordinary settings persist at ~/.pan-agent/settings.json (mode 0600; provider/model/thinking, credential source kind, protectedPaths, permissions.deny and maxAttachmentBytes — never a secret). Run 'configure' to update provider fields while preserving valid ordinary preferences; on a TTY first run without settings the same flow is offered. Explicit --model/--thinking flags override persisted values for that run.
+Ordinary settings persist at ~/.pan-agent/settings.json (mode 0600; provider/model/thinking, credential source kind, protectedPaths, permissions.deny and maxAttachmentBytes — never a secret). Run 'pan-agent configure' to update provider fields while preserving valid ordinary preferences; on a TTY first run without settings the same flow is offered. Explicit --model/--thinking flags override persisted values for that run.
 Deny rules are frozen at TUI session creation, before tool execution and approval, including trusted Shell and sandbox tools. Whole tools: read/write/edit/bash/retrieve/mcp_report; bash(PATTERN) uses only literal characters and * wildcard. No shell semantic analysis or OS containment.
-Credential source: environment reads DEEPSEEK_API_KEY (deepseek) or KIMI_API_KEY (kimi-code) only when a Provider call is made; keychain retrieves the macOS Keychain item named by the Pan service/account convention only when a Provider call is made. kimi-code selects the official OpenAI-compatible Kimi Code endpoint with explicit kimi-for-coding or k3-256k selection in configure (kimi-code:k3-256k); Kimi --model/--thinking overrides are unsupported; arbitrary endpoints and unknown models are rejected.
+Credential source: bare interactive startup checks whether the selected environment variable is set (DEEPSEEK_API_KEY for DeepSeek or KIMI_API_KEY for Kimi). Provider calls use its value; keychain retrieves the macOS Keychain item named by the Pan service/account convention only when a Provider call is made. kimi-code selects the official OpenAI-compatible Kimi Code endpoint with explicit kimi-for-coding or k3-256k selection in configure (kimi-code:k3-256k); Kimi --model/--thinking overrides are unsupported; arbitrary endpoints and unknown models are rejected.
 Native workspace sandbox (default): --native-sandbox shares --workspace through host-mediated files and OS-isolated Shell/descendants. Default bounded HTTP(S) GET through pan-fetch; --native-offline denies network. --native-grant ORIGIN permits one private IP service for the first task. No retrieval. On eligible native setup failure the interactive operator may cancel or select reviewed workspace file operations and exact pwd once or for one fresh task. Requires macOS sandbox-exec/otool or a supported x86-64 Linux Bubblewrap/FUSE setup. No Docker-equivalent resource quotas; see README.
 Session-only --session-auto permits creating a new plain ASCII .txt or .md document at the native workspace root without individual approval (no protected-path overrides or resource grants). Other approvals and deny rules remain in force.
 Sandbox (opt-in): add --sandbox-root DIR and optional repeated --sandbox-input FILE. One new fixed-profile Docker workspace per task; no retrieval. After exit: pan-agent sandbox list --root DIR; recover|export|verify|cleanup --run RUN_DIRECTORY (see README).
 Retrieval (default off): pan-agent retrieval configure --workspace DIR --from selection.json; retrieval show|disable --workspace DIR. Each approved call refreshes selected sources.
-No Provider call occurs for --help, configure, startup, idle cancellation, or TUI commands. Startup has no y; protected/outside/uncertain file operations and Shell require operation-scoped approval.`;
+No Provider call occurs for --help, configure, startup, idle cancellation, or TUI commands. Keychain writes require explicit save confirmation. Protected/outside/uncertain file operations and Shell require operation-scoped approval.`;
 
 const RUNBOOK_PATH = resolve(dirname(fileURLToPath(import.meta.url)), "..", "RUNBOOK.md");
 
@@ -395,7 +395,7 @@ export async function runCli(args: readonly string[], dependencies: CliDependenc
 	}
 	const selectedProvider = settings?.provider ?? "deepseek";
 	if (selectedProvider === "kimi-code" && (args.includes("--model") || args.includes("--thinking"))) {
-		writeLine("Validation failed: kimi-code uses saved model/thinking settings; run configure and remove --model/--thinking");
+		writeLine("Validation failed: kimi-code uses saved model/thinking settings; run pan-agent configure and remove --model/--thinking");
 		return 2;
 	}
 	const profile: DeepSeekProfile = {

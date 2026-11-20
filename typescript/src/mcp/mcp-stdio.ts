@@ -1,9 +1,12 @@
 import { spawn } from "node:child_process";
 
+import { createRequire } from "node:module";
+
+const { name, version } = createRequire(import.meta.url)("../../package.json");
 export const MCP_REVISION = "2026-07-28";
 const metadata = {
   "io.modelcontextprotocol/protocolVersion": MCP_REVISION,
-  "io.modelcontextprotocol/clientInfo": {name: "pan-agent", version: "0.1.10"},
+  "io.modelcontextprotocol/clientInfo": { name, version },
   "io.modelcontextprotocol/clientCapabilities": {},
 };
 const FRAME_BYTES = 256 * 1024;
