@@ -6,7 +6,7 @@
 # an intentionally empty npm cache with --offline. Building the artifact is a
 # separate one-time developer step (see README: npm ci + npm pack).
 set -eu
-ARTIFACT=${1:?"usage: try_preview.sh /absolute/path/to/pan-agent-0.1.0.tgz"}
+ARTIFACT=${1:?"usage: try_preview.sh /absolute/path/to/packed-archive.tgz"}
 ARTIFACT=$(realpath "$ARTIFACT")
 [ -f "$ARTIFACT" ] || { echo "artifact not found: $ARTIFACT" >&2; exit 2; }
 ROOT=$(CDPATH='' cd -- "$(dirname -- "$0")/.." && pwd)

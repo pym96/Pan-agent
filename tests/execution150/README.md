@@ -3,10 +3,14 @@
 Python is test-only. Use an isolated venv with `pytest==8.4.2`; no Python dependency is added to the installed Pan runtime. Tests consume an actual `npm pack` archive through `PAN_PACKAGE`, install it into a fresh consumer, then invoke its real CLI. Fixture responses enter the ordinary Faux adapter and NativeKernel; scheduler and tools are not replaced by Python implementations.
 
 ```sh
-# From typescript/: npm pack --pack-destination /absolute/evidence/directory
-PAN_PACKAGE=/absolute/evidence/pan-agent-0.1.9.tgz python -m pytest tests/execution150/test_cli.py -q
+# From the repository root, with the test venv active:
+archive_dir=$(mktemp -d)
+npm --prefix typescript ci --ignore-scripts
+archive_name=$(cd typescript && npm pack --silent --pack-destination "$archive_dir")
+export PAN_PACKAGE="$archive_dir/$archive_name"
+python -m pytest tests/execution150/test_cli.py -q
 # Stage B only, after exact resource/source GO and with existing pinned Docker image:
-PAN_PACKAGE=/absolute/evidence/pan-agent-0.1.9.tgz python -m pytest tests/execution150/test_docker.py -q
+python -m pytest tests/execution150/test_docker.py -q
 ```
 
 `conftest.py` supplies isolated state/workspace, clean package install, operation-scoped approval responses and cleanup. Parameterized cases exercise invalid durations and UNKNOWN/FAIL differences. Each actual CLI invocation has an independent 120-second watchdog; no Docker-missing skip exists. The watchdog samples owned descendant RSS against 4 GiB, while worker Node heaps are separately limited. This sampled bound is not an instantaneous OS memory limit. Run process-fault tests serially. Retain pytest base directories and stdout/stderr as evidence.
