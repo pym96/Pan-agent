@@ -1,3 +1,4 @@
+import {createRequire} from 'node:module';
 /** Installed public CLI composition, actual kernel/archives/TUI and owned fixtures. */
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -25,8 +26,16 @@ function paths(label) {
 function terminal() {
  const input=Object.assign(new PassThrough(),{isTTY:true,isRaw:false,setRawMode(v){this.isRaw=v;}});
  const output=Object.assign(new PassThrough(),{isTTY:true,columns:180,rows:45});
+ const {Terminal}=createRequire(new URL('../../typescript/package.json',import.meta.url))('@xterm/headless');
+ const terminal=new Terminal({cols:output.columns,rows:output.rows,allowProposedApi:true,convertEol:true});
  let transcript='',frame='';
- output.on('data',chunk=>{frame=String(chunk); transcript+=frame;});
+ output.on('data',chunk=>{
+  transcript+=chunk;
+  terminal.write(chunk,()=>{
+   const buffer=terminal.buffer.active;
+   frame=Array.from({length:terminal.rows},(_,i)=>buffer.getLine(buffer.viewportY+i)?.translateToString(true)??'').join('\n');
+  });
+ });
  const wait=async predicate=>{for(let i=0;i<600;i++){if(predicate(frame))return;await delay(20);}throw Error('TTY wait timed out: '+frame.slice(0,900));};
  return {input,output,wait,send(text){input.write(text);},log(){return transcript;}};
 }

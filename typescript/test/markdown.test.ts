@@ -30,7 +30,7 @@ test('cell-aware wrapping keeps CJK/emoji/code intact, source anchors ordered, a
 });
 function fixture(extra:Partial<TuiOptions>={}){
  const input=Object.assign(new PassThrough(),{isTTY:true,isRaw:false,setRawMode(v:boolean){this.isRaw=v;}});
- const output=Object.assign(new PassThrough(),{isTTY:true,columns:80,rows:35});let frame='';output.on('data',b=>{frame=String(b);});
+ const output=Object.assign(new PassThrough(),{isTTY:true,columns:80,rows:35});let frame='';output.on('data',b=>{frame+=String(b);});
  const presentation=createCompactPresentation();let requests=0;let approval:((r:unknown,s:AbortSignal)=>Promise<unknown>)|undefined;const session={setApprovalChannel(channel:typeof approval){approval=channel;},cancel(){},close:async()=>{},contextMessageCount:0,runTask(){requests++;throw Error('No calls');}};
  const ui=new DailyWorkspace({input,output,presentation,session,workspace:'/tmp',provider:'fixture',model:'fixture',...extra} as unknown as TuiOptions);
  return {ui,presentation,output,frame:()=>frame,requests:()=>requests,approval:()=>approval};
@@ -40,6 +40,8 @@ test('actual workspace renders assistant only, retains raw input and tool rows, 
  f.presentation.observe({type:'run.started',runId:'fixture',task:'**raw user**'});
  f.presentation.observe({type:'model.turn_started',runId:'fixture',turn:1} as never);
  for(const text of ['# Hello\n**str','ong**\n```js\n**literal**\n```'])f.presentation.progress!({type:'text_delta',text,runId:'fixture',turn:1} as never);
+ assert.ok(f.frame().includes('Pan · **str'),'first delta immediately visible');
+ f.presentation.settle({status:'completed',finalText:'# Hello\n**strong**\n```js\n**literal**\n```',runId:'fixture',toolCalls:0} as never);
  assert.ok(f.frame().includes('▌ Hello'));assert.ok(f.frame().includes('**raw user**'));assert.ok(f.frame().includes('**literal**'));
  assert.ok(!f.frame().includes('\x1b[1m'));assert.ok(!f.frame().includes('\x1b[36m'));
  f.ui.entries.push({role:'Tool',status:'Returned',text:'**literal tool** `command`'});f.ui.draw();assert.ok(f.frame().includes('**literal tool** `command`'));

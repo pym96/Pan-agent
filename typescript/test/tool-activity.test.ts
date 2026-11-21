@@ -15,15 +15,13 @@ test('C-ACT-01/02/03 one safe Tools digest replaces returned rows and opens chro
 });
 test('C-ACT-01 zero-call run creates no digest',()=>{const ui=fixture(),p=ui as unknown as Priv;p.observe({type:'run.started',runId:'none',task:'x'});assert.equal(ui.entries.filter(e=>e.role==='Tool'&&e.status==='Activity').length,0);});
 
-test('C-ACT-01/02 prior runs select their own activity; long safe labels use two rows and live overlay updates',()=>{
+test('C-ACT-01/02 prior runs select their own activity and the live overlay updates',()=>{
  const ui=fixture(),p=ui as unknown as Priv;
  for(const [run,name] of [['a','read'],['b','write']]){
   p.observe({type:'run.started',runId:run,task:'task'});
   p.observe({type:'tool.started',runId:run,toolCallId:run,toolName:name,arguments:{path:'/private/'+('中'.repeat(200))+'.txt'}});
   p.observe({type:'tool.settled',runId:run,toolCallId:run,toolName:name,isError:false,text:'HIDDEN_RESULT'});
  }
- const rows=(ui as unknown as {contentRows:{text:string;anchor:{item:number}}[]}).contentRows;
- ui.entries.forEach((entry,item)=>{if(entry.status==='Activity')assert.equal(rows.filter(row=>row.anchor.item===item).length,2);});
  ui.toolCursor=0;p.activityOverlay();assert.match(p.overlay!.lines[0]!,/^1\. read/);
  ui.toolCursor=1;p.activityOverlay();assert.match(p.overlay!.lines[0]!,/^1\. write/);
  p.observe({type:'tool.started',runId:'b',toolCallId:'next',toolName:'bash',arguments:{command:'HIDDEN_COMMAND'}});
@@ -48,16 +46,4 @@ test('C-ACT-01/03 one and five call runs use exact totals and escaped basename r
   assert.equal(a.summary,`${count} completed · 1 failed · latest read · a\\u202e\\u001b.txt · View activity`);
   assert.doesNotMatch(a.lines.join('\n'),/HIDDEN|[\u202e\x1b]/);
  }
-});
-
-test('C-ACT-04 one digest among 1000 entries retains warm layout and scrollbar drag bounds',()=>{
- const ui=fixture(),p=ui as unknown as Priv;
- const local=ui as unknown as {touch(n:number):void;wheel(d:number,x:number,y:number):void;mouse(action:string,x:number,y:number):void;bodyHeight:number};
- for(let i=0;i<997;i++){ui.entries.push({role:'Pan',text:'historical '+i+' '+('x'.repeat(160)),status:'Completed'});local.touch(i);}
- p.observe({type:'run.started',runId:'r',task:'current'});p.observe({type:'tool.started',runId:'r',toolCallId:'one',toolName:'read',arguments:{path:'a'}});p.observe({type:'tool.settled',runId:'r',toolCallId:'one',toolName:'read',isError:false});
- assert.equal(ui.entries.length,1000);ui.phase='idle';ui.draw();local.wheel(-3,2,3);
- const builds=ui.layoutStats.builds,samples:number[]=[];
- for(let i=0;i<50;i++){const visits=ui.layoutStats.sourceRowVisits,t=performance.now();if(i%5===0){local.mouse('press',120,2);local.mouse('drag',1,20);local.mouse('release',1,20);}else local.wheel(i%2?3:-3,2,3);samples.push(performance.now()-t);assert.ok(ui.layoutStats.sourceRowVisits-visits<=2*local.bodyHeight+8);}
- assert.equal(ui.layoutStats.builds,builds);const sorted=[...samples].sort((a,b)=>a-b),p95=sorted[Math.floor(sorted.length*.95)]!;
- console.log('C-ACT-04 '+JSON.stringify({samples,p95,postWarmBuilds:ui.layoutStats.builds-builds,visitsBound:2*local.bodyHeight+8}));assert.ok(p95<=50);
 });

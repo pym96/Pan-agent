@@ -22,4 +22,4 @@ See the [#42 guide](../../../docs/design/native-compact-tui.md) for the offline 
 #47 Criteria-Version 1.2 adds timer-free compatibility framing (Ctrl-G Back, ESC prefix only) and immutable raw-prefix screen evidence. Old 1.1 grids remain historical failed evidence.
 [framed-input.ts](framed-input.ts) owns bounded incremental compatibility input framing.
 
-[Copy output](copy-output.ts) sanitizes explicit clipboard payloads and produces the private text-file fallback. The default daily workspace leaves drag selection to the terminal.
+[Copy output](copy-output.ts) sanitizes explicit clipboard payloads and produces the private text-file fallback. The daily workspace commits finalized messages to the terminal’s primary buffer. The current line shows the live draft or model preview. Pickers, approvals and multiline editing temporarily use a separate screen that is discarded when the view closes.

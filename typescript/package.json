@@ -21,6 +21,7 @@
   },
   "devDependencies": {
     "@types/node": "22.19.19",
+    "@xterm/headless": "5.5.0",
     "typescript": "5.9.3"
   },
   "files": [

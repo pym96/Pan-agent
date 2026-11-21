@@ -265,6 +265,8 @@ The preview deterministically enumerates the unchanged 120-slot denominator and 
 
 ## WorkOrder #62 bounded transcript scroll
 
+The #62 and #60 scripts below reproduce the retired application scrollbar on [its pinned revision](https://github.com/pym96/Pan-agent/tree/096b740588e85a8d62bfd52cc96152e8dfb2cda6). Current terminal scrollback checks run in [the emulator suite](../typescript/test/native-scrollback.test.ts) and [the installed copy test](runtime-ci/copy-output.py).
+
 [`verify_scroll_pty.py`](verify_scroll_pty.py): installed-package 120×40 PTY proof — 800-line streamed transcript, 20 wheel reports, resizes, Ctrl-End, screen reconstruction, raw timing samples, zero meters. [`demo_scroll.mjs`](demo_scroll.mjs) is the Human trial demo; driver under [fixtures/scroll/](fixtures/scroll/README.md); [`check_workorder_62_scope.py`](check_workorder_62_scope.py) audits scope and obligations. Design: [transcript-scroll-layout](../docs/design/transcript-scroll-layout.md).
 
 ## WorkOrder #60 draggable conversation scrollbar

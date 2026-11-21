@@ -90,7 +90,7 @@ When the TUI shows **Write a task.**, type `Create hello.txt containing Hello fr
 
 Drag over visible output and use your terminal’s Copy shortcut. Press **Ctrl-Y** for the complete conversation, including retained tool results and errors. Inside a view such as `:details` or `:replay RUN_ID`, Ctrl-Y copies that view. You can also type `:copy` from the composer. Pan requests clipboard access through the terminal (OSC 52) and shows the path to a private UTF-8 text file. Open that file on the machine running Pan if your terminal ignores the request or the output exceeds 72 KiB. Remove the file when finished.
 
-Use Page Up/Down to scroll. **Ctrl-T** switches between text selection and Pan’s mouse wheel and draggable scrollbar. The commands `:mouse on` and `:mouse off` also switch mouse navigation.
+Scroll with your terminal’s scrollbar, wheel, or trackpad. Pan previews incoming text on the prompt line and appends the formatted reply when the task settles. Completed replies stay in its scrollback after Pan exits, up to your terminal’s history limit.
 
 Use `:exit` to quit. If environment mode reports a missing `DEEPSEEK_API_KEY` or `KIMI_API_KEY`, exit, repeat the shell key-input step and restart Pan. For a Keychain error, rerun `pan-agent configure` and check the save result. Never enter an API key as task text. To try the interface without an API key, use the offline demo below.
 

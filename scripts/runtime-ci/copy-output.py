@@ -73,16 +73,14 @@ try:
     term.send("\x07")
     term.wait("Completed · next draft Not submitted")
     assert not mouse_on.search(term.buffer)
-    term.send(":mouse on\r")
-    term.wait("\x1b[?1002h")
-    term.send("\x14")
-    term.wait("\x1b[?1002l")
     term.send("\x03")
     term.wait("Pan closed")
     assert term.process.wait(timeout=5) == 130
+    assert not mouse_on.search(term.buffer)
+    assert term.buffer.count(b"\x1b[?1049h") == term.buffer.count(b"\x1b[?1049l")
     assert len(log.read_text().splitlines()) == 4
     assert len(osc.findall(term.buffer)) == len(copies) == 4
 finally:
     term.close(root / "terminal.pty")
 
-print("PASS installed terminal selection, explicit transcript/details/replay copy, private fallback, mouse toggle and Ctrl-C")
+print("PASS installed terminal selection, explicit transcript/details/replay copy, private fallback, native selection and Ctrl-C")

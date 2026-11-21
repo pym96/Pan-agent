@@ -17,17 +17,12 @@ test('C-TUI-A01 transcript focus selects tool items; overlay keys never admit or
 test('C-TUI-A02 actual input parser buffers split UTF-8 and bracketed paste without interpreting commands',async()=>{const f=fixture('/tmp');f.ui.start();f.ui.phase='idle';const text='中e\u0301👩‍💻\n@file\n:exit',bytes=Buffer.from('\x1b[200~'+text+'\x1b[201~');for(const byte of bytes)f.input.write(Buffer.from([byte]));await wait(()=>f.ui.editor.text===text);assert.equal(f.ui.picker,undefined);assert.deepEqual(f.counts(),{admits:0,cancels:0});f.ui.dispose();assert.equal(f.input.isRaw,false);});
 
 test('C-TUI-A-R01 SGR wheel is scoped, fragmented reports never edit, paste stays literal',async()=>{
- const f=fixture('/tmp');f.ui.entries=[{role:'Pan',status:'Completed',text:Array.from({length:500},(_,i)=>`line ${i}`).join('\n')}];f.ui.start();f.ui.phase='idle';f.input.write('\x14');const tail=f.ui.top;
- for(const c of '\x1b[<64;3;3M')f.input.write(c);assert.equal(f.ui.top,tail-3);assert.equal(f.ui.follow,false);
- for(const value of ['\x1b[<65;3;23M','\x1b[<66;3;3M','\x1b[<64;bad;3M','\x1b[<64;3;\rM'])f.input.write(value);
- assert.equal(f.ui.editor.text,'');assert.equal(f.ui.top,tail-3);assert.equal(f.counts().admits,0);
- f.input.write('\x1b[<65;3;3M');assert.equal(f.ui.follow,true);
+ const f=fixture('/tmp');f.ui.start();f.ui.phase='idle';
+ for(const value of ['\x1b[<64;3;3M','\x1b[<65;3;23M','\x1b[<66;3;3M','\x1b[<64;bad;3M','\x1b[<64;3;\rM']){
+  for(const byte of value)f.input.write(byte);
+ }
+ assert.equal(f.ui.editor.text,'');assert.equal(f.counts().admits,0);
  const literal='\x1b[<64;3;3M';f.input.write('\x1b[200~'+literal+'\x1b[201~');assert.equal(f.ui.editor.text,literal);f.ui.dispose();
-});
-test('C-TUI-A-R02 detached resize retains source content rather than rendered row',()=>{
- const f=fixture('/tmp');f.ui.phase='idle';f.ui.entries=[{role:'Pan',status:'Completed',text:Array.from({length:120},(_,i)=>`ID${i}: `+'中e\u0301👩‍💻'.repeat(30)).join('\n')}];f.ui.draw();f.ui.key(undefined,{name:'pageup'});
- const u=f.ui as unknown as {anchor:{item:number;offset:number;part:string}};const anchor=structuredClone(u.anchor);assert.ok(anchor);
- for(const [columns,rows] of [[40,12],[80,24],[30,8],[120,40]]){f.output.columns=columns!;f.output.rows=rows!;f.ui.draw();assert.deepEqual(u.anchor,anchor);assert.equal(f.ui.follow,false);}
 });
 test('C-TUI-A-R03 admitted history restores original draft caret and snapshots',()=>{
  const f=fixture('/tmp');f.ui.phase='idle';const emit=(prompt:string)=>f.presentation.observe({type:'run.started',runId:prompt,task:prompt});emit('first');emit('second');emit('second');
@@ -90,8 +85,7 @@ test('copy selects retained output across tasks and views without admitting work
   return text;
  };
  assert.doesNotMatch(bytes,/\x1b\[\?100[026]h|\x1b\]52;/);
- command(':mouse on');assert.match(bytes,/\x1b\[\?1002h/);
- command(':mouse off');assert.match(bytes,/\x1b\[\?1002l/);
+
  const long='起点 👩‍💻\n'+'  const path = "a\\b";\n'.repeat(65)+'末尾';
  for(const [runId,answer] of [['one',long],['two','next answer']] as const){
   inject({type:'run.started',runId,task:runId});

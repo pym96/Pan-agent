@@ -47,7 +47,7 @@ globalThis.fetch = async (url, req) => {
 """)
     results = []
     wizard_cases = {"first", "configure", "recover", "wizard-sigint", "wizard-eof", "secret"}
-    cases = ["idle", "mouse", "small", "compact", "compact-picker", "picker", "view", "paste", "idle-sigint", "normal", "eof",
+    cases = ["idle", "small", "compact", "compact-picker", "picker", "view", "paste", "idle-sigint", "normal", "eof",
              "first", "configure", "recover", "wizard-sigint", "wizard-eof",
              "model", "model-sigint", "approval", "tool"]
     if os.uname().sysname == "Darwin":
@@ -146,10 +146,6 @@ globalThis.fetch = async (url, req) => {
                     send(":help\r" if mode == "view" else "@")
                     see("View only" if mode == "view" else "File " if mode == "picker" else "File picker")
                     send("\x03\r")
-                elif mode == "mouse":
-                    send("\x14")
-                    see("Mouse navigation on")
-                    send("\x03")
                 elif mode == "idle-sigint":
                     external()
                 elif mode in {"normal", "eof"}:
@@ -173,12 +169,10 @@ globalThis.fetch = async (url, req) => {
                 raw.extend(tail)
             assert termios.tcgetattr(slave) == before, (mode, "terminal flags differ")
             if not mode.startswith("compact"):
-                modes = ["2004"] if mode in wizard_cases else ["1049", "2004"]
+                modes = ["2004"]
                 for control in ("1000", "1002", "1006"):
-                    if mode == "mouse":
-                        modes.append(control)
-                    else:
-                        assert f"\x1b[?{control}h".encode() not in raw, (mode, control)
+                    assert f"\x1b[?{control}h".encode() not in raw, (mode, control)
+                assert raw.count(b"\x1b[?1049h") == raw.count(b"\x1b[?1049l"), (mode, "temporary view remained active")
                 for control in modes:
                     on, off = (f"\x1b[?{control}{c}".encode() for c in "hl")
                     assert 0 <= raw.rfind(on) < raw.rfind(off), (mode, control)

@@ -11,7 +11,7 @@ test('ordinary Kimi missing environment credential stays failed and displays act
  const root=await mkdtemp(join(tmpdir(),'credential-guidance-'));await mkdir(join(root,'home/.pan-agent'),{recursive:true});await mkdir(join(root,'workspace'));
  await writeFile(join(root,'home/.pan-agent/settings.json'),JSON.stringify({schemaVersion:1,provider:'kimi-code',modelId:'k3-256k',thinkingLevel:'high',credentialSource:'environment'}));
  const key=process.env.KIMI_API_KEY,fetch=globalThis.fetch;delete process.env.KIMI_API_KEY;let sends=0,frame='';globalThis.fetch=async()=>{sends++;throw Error('must not send');};
- const input=Object.assign(new PassThrough(),{isTTY:true,isRaw:false,setRawMode(v:boolean){this.isRaw=v;}}),output=Object.assign(new PassThrough(),{isTTY:true,columns:100,rows:28});output.on('data',x=>{frame=String(x);});
+ const input=Object.assign(new PassThrough(),{isTTY:true,isRaw:false,setRawMode(v:boolean){this.isRaw=v;}}),output=Object.assign(new PassThrough(),{isTTY:true,columns:100,rows:28});output.on('data',x=>{frame+=String(x);});
  try{
   const code=await runCli(['--kernel','native','--trusted-local','--workspace',join(root,'workspace'),'--memory-root',join(root,'archives')],{home:join(root,'home'),output,startTui:async options=>{
    const ui=new DailyWorkspace({...options,input,output});ui.start();ui.editor.insert('Reply with hello only. Do not use tools.');ui.key(undefined,{name:'return'});
@@ -36,7 +36,7 @@ test('credential hints whitelist exact provider/category/code and know the confi
  assert.equal(credentialGuidance(failure('kimi_credential_unavailable'),'deepseek','environment'),undefined);
 });
 test('arbitrary provider failure detail is never displayed in actual workspace or on settlement',()=>{
- const presentation=createCompactPresentation();let frame='';const output=Object.assign(new PassThrough(),{isTTY:true,columns:100,rows:24});output.on('data',x=>{frame=String(x);});const input=Object.assign(new PassThrough(),{isTTY:true,isRaw:false,setRawMode(){}});
+ const presentation=createCompactPresentation();let frame='';const output=Object.assign(new PassThrough(),{isTTY:true,columns:100,rows:24});output.on('data',x=>{frame+=String(x);});const input=Object.assign(new PassThrough(),{isTTY:true,isRaw:false,setRawMode(){}});
  const ui=new DailyWorkspace({input,output,presentation,workspace:'/tmp',provider:'kimi-code',model:'test',thinking:'off',credentialSource:'environment',session:{setApprovalChannel(){},close:async()=>{}} as never});
  presentation.observe({type:'run.started',runId:'x',task:'test'});presentation.observe({type:'model.turn_settled',runId:'x',turn:1,text:'',failure:failure('secret=do-not-print\x1b]52;bad')} as never);presentation.settle({runId:'x',status:'model_error',reason:'secret=do-not-print',finalText:'',usage:{status:'unavailable'}} as never);ui.draw();assert.doesNotMatch(frame,/do-not-print|52;bad/);assert.match(frame,/model_error/);assert.equal(ui.entries.filter(e=>e.role==='Notice').length,0);
 });

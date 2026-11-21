@@ -130,7 +130,7 @@ In a project, workspace defaults to the current directory, and archives to `~/.p
 
 Drag over visible output and use your terminal’s Copy shortcut. Press **Ctrl-Y** for the complete conversation, including retained tool results and errors. Inside a view such as `:details` or `:replay RUN_ID`, Ctrl-Y copies that view. You can also type `:copy` from the composer. Pan requests clipboard access through the terminal (OSC 52) and shows the path to a private UTF-8 text file. Open that file on the machine running Pan if your terminal ignores the request or the output exceeds 72 KiB. Remove the file when finished.
 
-Use Page Up/Down to scroll. **Ctrl-T** switches between text selection and Pan’s mouse wheel and draggable scrollbar. The commands `:mouse on` and `:mouse off` also switch mouse navigation.
+Scroll with your terminal’s scrollbar, wheel, or trackpad. Pan previews incoming text on the prompt line and appends the formatted reply when the task settles. Completed replies stay in its scrollback after Pan exits, up to your terminal’s history limit.
 
 - `:context`: inspect retained context summary.
 - `:details`: inspect detailed execution output.
@@ -156,7 +156,7 @@ Runtime code has no third-party npm runtime dependencies. Build-time dependencie
 
 Interactive TUI assistant responses and the final response in `:replay` support ATX headings (`#` through `######`), unordered and numbered lists, `**bold**` / `__bold__`, single-backtick inline code and backtick/tilde fenced code with a language label. Code contents remain literal. Incomplete delimiters stay readable while streaming. `NO_COLOR` (including an empty value) or `TERM=dumb` disables Markdown color/emphasis styles; structural markers and text remain. The existing TUI still uses terminal cursor controls.
 
-This is a small display subset, not full CommonMark: nested inline formatting, escapes, tables, HTML, links, block quotes and setext headings fall back to readable literal text. Tool results, permission prompts, user input and non-TTY transcripts remain literal. Markdown is never written back to run archives. Wide text wraps by terminal cells; PageUp/PageDown and resize retain scroll content.
+This is a small display subset, not full CommonMark: nested inline formatting, escapes, tables, HTML, links, block quotes and setext headings fall back to readable literal text. Tool results, permission prompts, user input and non-TTY transcripts remain literal. Markdown is never written back to run archives. The terminal wraps finalized output and retains it within its scrollback limit.
 
 ## Missing credential
 
