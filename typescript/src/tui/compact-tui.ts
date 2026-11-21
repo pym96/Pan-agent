@@ -100,6 +100,7 @@ export async function runCompactTui(options: TuiOptions): Promise<number> {
 	write(options.executionMode?.startsWith("native-")?`NATIVE ${options.executionMode.startsWith("native-linux")?"LINUX":"MACOS"} SANDBOX: shared workspace; ${options.executionMode.endsWith("offline")?"offline":"bounded HTTP(S) GET"} Shell and descendants; host-mediated files; retrieval disabled.`:options.executionMode==="sandbox"?"DOCKER SANDBOX: fixed offline container; retrieval disabled; one workspace per task.":"SHELL trusted-local: host-user authority; workspace is cwd, not containment or an OS sandbox.");
 	if(options.executionMode==="trusted-local")write("HOST (trusted-local) · Ctrl-D revokes this host session and exits.");
 	if(options.reportNotice)write(options.reportNotice);
+	if(options.sessionTaskLabel)write(options.sessionTaskLabel);
 	if(options.sessionNpmTest)write("NPM TEST · native workspace · expires on exit.");
 	if(options.sessionAuto)write("SESSION AUTO · native workspace documents only · expires on exit.");
 	write("The selected model is called only for a confirmed nonblank task; local commands make no model calls.");

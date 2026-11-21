@@ -233,7 +233,15 @@ Current development requires only the checked-out tree and locked development to
 
 Pan 0.1.10 selects the native workspace sandbox when you run `pan-agent`. The public v0.1.9 release predates this default. The banner identifies the selected backend. Each submitted task must pass its native enforcement probe before the model or a task tool runs. For a scripted demonstration without a provider, use `pan-agent demo` in its disposable workspace. Select Docker with `--sandbox-root DIR`, or select the previous host-user backend and configured retrieval explicitly with `--trusted-local`.
 
-In a project whose test scripts you trust, launch `pan-agent --session-npm-test` to allow the exact `npm test` command for this session. Each run executes the current project’s npm lifecycle scripts and their child processes inside the native workspace sandbox. The TUI shows **NPM TEST**. Other Shell commands keep their usual approvals, configured deny rules still apply, and the permission expires when Pan exits. This option requires Node with its bundled npm (including Homebrew Node); it cannot be combined with Docker, host fallback, credential grants or private network grants. For offline tests, add `--native-sandbox --native-offline`.
+In a project whose npm scripts you trust, choose the tasks Pan may run without prompting during this session. For example, this allows builds and reports.
+
+```sh
+pan-agent --session-tasks build,report
+```
+
+Choose any combination of `build` (`npm run build`), `test` (`npm test`) and `report` (`npm run report`). The TUI shows the selected tasks. Other Shell requests follow normal approval, and configured deny rules take precedence. Each invocation runs the current project's scripts, including npm lifecycle hooks and child processes, in the native workspace sandbox. The grant belongs to that workspace and expires on exit. The installed Node must provide its bundled npm (including Homebrew Node). Docker, host fallback, credential grants and private network grants are incompatible with this permission. For offline tests, add `--native-sandbox --native-offline`.
+
+The existing `pan-agent --session-npm-test` selects only the exact `npm test` command and displays **NPM TEST**.
 
 Use `pan-agent --session-auto` to create a new plain document such as `notes.txt` without approving that individual write. The typed writer only admits a new root-level ASCII filename with a letter or digit first, up to 80 letters, digits, underscores or hyphens before a lowercase `.txt` or `.md` extension. The existing no-follow and exclusive-create checks still apply. Configured protected paths retain the normal approval check. Network and credential grants cannot be combined with session automation. The TUI displays SESSION AUTO and the archive records the boundary and each admitted write. Restart normally to leave automation.
 

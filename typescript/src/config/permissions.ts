@@ -1,5 +1,21 @@
 /** Pan request policy. This filters tool requests; it is not shell analysis or containment. */
 export interface PanPermissions { readonly deny: readonly string[] }
+export const sessionTaskCommands = Object.freeze({
+ build: 'npm run build',
+ test: 'npm test',
+ report: 'npm run report',
+});
+export type SessionTask = keyof typeof sessionTaskCommands;
+
+export function parseSessionTasks(value: string | undefined): readonly SessionTask[] {
+ const names = value?.split(',') ?? [];
+ if (names.length === 0 || names.some(name => !Object.hasOwn(sessionTaskCommands, name)) ||
+     new Set(names).size !== names.length) {
+  throw Error('--session-tasks expects a comma-separated selection of build,test,report, each at most once');
+ }
+ return Object.freeze((Object.keys(sessionTaskCommands) as SessionTask[]).filter(task => names.includes(task)));
+}
+
 export const MAX_DENY_RULES = 256;
 export const MAX_DENY_RULE_LENGTH = 4096;
 const TOOLS = new Set(['read', 'write', 'edit', 'bash', 'retrieve', 'mcp_report']);

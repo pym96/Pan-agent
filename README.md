@@ -170,7 +170,15 @@ Reference-only Python TUI: `python3 -m workspace_agent_harness.tui` belongs to t
 
 Pan 0.1.10 selects the native workspace sandbox when you run `pan-agent`. The public v0.1.9 release predates this default. The banner identifies the selected backend. Each submitted task must pass its native enforcement probe before the model or a task tool runs. For a scripted demonstration without a provider, use `pan-agent demo` in its disposable workspace. Select Docker with `--sandbox-root DIR`, or select the previous host-user backend and configured retrieval explicitly with `--trusted-local`.
 
-In a project whose test scripts you trust, launch `pan-agent --session-npm-test` to allow the exact `npm test` command for this session. Each run executes the current project’s npm lifecycle scripts and their child processes inside the native workspace sandbox. The TUI shows **NPM TEST**. Other Shell commands keep their usual approvals, configured deny rules still apply, and the permission expires when Pan exits. This option requires Node with its bundled npm (including Homebrew Node); it cannot be combined with Docker, host fallback, credential grants or private network grants. For offline tests, add `--native-sandbox --native-offline`.
+In a project whose npm scripts you trust, choose the tasks Pan may run without prompting during this session. For example, this allows builds and reports.
+
+```sh
+pan-agent --session-tasks build,report
+```
+
+Choose any combination of `build` (`npm run build`), `test` (`npm test`) and `report` (`npm run report`). The TUI shows the selected tasks. Other Shell requests follow normal approval, and configured deny rules take precedence. Each invocation runs the current project's scripts, including npm lifecycle hooks and child processes, in the native workspace sandbox. The grant belongs to that workspace and expires on exit. The installed Node must provide its bundled npm (including Homebrew Node). Docker, host fallback, credential grants and private network grants are incompatible with this permission. For offline tests, add `--native-sandbox --native-offline`.
+
+The existing `pan-agent --session-npm-test` selects only the exact `npm test` command and displays **NPM TEST**.
 
 For a trusted project, `pan-agent --trusted-local` selects host-user tools for the current session. The TUI shows **HOST (trusted-local)**, and each run records its backend before its first model call. Press **Ctrl-D** to revoke the session and return to your terminal, including while an approval or a Shell call is pending. A normal restart uses the native sandbox, even if you replay a host run. Cancellation targets the active Shell process group; a detached process or a process left behind by an abrupt termination needs separate inspection.
 

@@ -10,6 +10,7 @@ export interface TuiOptions {
  readonly reportNotice?:string;
  readonly sessionAuto?:boolean;
  readonly sessionNpmTest?:boolean;
+ readonly sessionTaskLabel?:string;
  readonly fallback?:Pick<import("../sandbox/fallback.ts").ManualFallback,"status"|"choose">;
  readonly executionMode?:"trusted-local"|"sandbox"|"native-macos-offline"|"native-linux-offline"|"native-linux-public"|"native-macos-public";
 	/** Nonsecret configuration context for safe failure guidance only. */
@@ -118,6 +119,7 @@ export async function runTui(options: TuiOptions): Promise<number> {
 	writeLine(`THINKING ${options.thinking}`);
 	writeLine(`KERNEL ${options.session.kernelKind}`);
 	writeLine(`WORKSPACE ${options.workspace}`);
+ if (options.sessionTaskLabel) writeLine(options.sessionTaskLabel);
 	writeLine(options.executionMode?.startsWith("native-")?`NATIVE ${options.executionMode.startsWith("native-linux")?"LINUX":"MACOS"} SANDBOX: shared workspace; ${options.executionMode.endsWith("offline")?"offline":"bounded HTTP(S) GET"} Shell and descendants; host-mediated files; retrieval disabled.`:options.executionMode==="sandbox"?"DOCKER SANDBOX: fixed offline container; retrieval disabled; one workspace per task.":"SHELL trusted-local: host-user authority; workspace is cwd, not containment or an OS sandbox.");
 
 	try {

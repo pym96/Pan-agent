@@ -1,4 +1,5 @@
 /** Offline macOS boundary. No shell text analysis and no implicit host fallback. */
+import type {SessionTask} from '../../config/permissions.ts';
 import {bundledNpmRoot, npmRuntimeEntries} from './npm.ts';
 import type {WorkspaceGrant} from '../../config/workspace-trust.ts';
 import {NativeNetwork, fetchClient, checkGateway, type ResolveAddresses} from './network.ts';
@@ -48,6 +49,7 @@ export interface NativeSandboxOptions {
  /** Private state outside the live workspace. No arbitrary toolchain/read-root option. */
  readonly stateRoot:string;
  readonly sessionNpmTest?:boolean;
+ readonly sessionTasks?:readonly SessionTask[];
  readonly network?:'public'|'offline';
  readonly privateGrant?:string;
  readonly credentialGrant?: WorkspaceGrant;
@@ -88,7 +90,7 @@ export class NativeMacSandbox {
    finally{signal.removeEventListener('abort',abort);this.controllers.delete(controller);}
   },path=>this.assertFile(path),()=>{if(!this.profile||!this.policyHash||this.cancelled)policyError('unavailable');return this.policyHash;}).tools;
  }
- get identity():JsonObject{return {executionMode:this.executionMode,backend:'seatbelt',profileVersion:1,policyHash:this.policyHash??null,runId:this.runId??null,workspace:this.workspace,temporary:this.temporary??null,readRoots:[...SYSTEM_READ_ROOTS],runtimeFiles:[...this.files],protectedRoots:[...this.protectedRoots],network:this.broker?'bounded-http-get':'denied',privateGrant:this.broker?.grant??null,resourceQuotas:'not_enforced',...(this.npmRoot?{sessionNpmTest:true,npmRoot:this.npmRoot}:{})};}
+ get identity():JsonObject{return {executionMode:this.executionMode,backend:'seatbelt',profileVersion:1,policyHash:this.policyHash??null,runId:this.runId??null,workspace:this.workspace,temporary:this.temporary??null,readRoots:[...SYSTEM_READ_ROOTS],runtimeFiles:[...this.files],protectedRoots:[...this.protectedRoots],network:this.broker?'bounded-http-get':'denied',privateGrant:this.broker?.grant??null,resourceQuotas:'not_enforced',...(this.npmRoot?{npmRoot:this.npmRoot}:{}),...(this.options.sessionNpmTest?{sessionNpmTest:true}:{}),...(this.options.sessionTasks?{sessionTasks:[...this.options.sessionTasks]}:{})};}
  private environment():Record<string,string>{return {PATH:(this.broker?dirname(fetchClient)+':':'')+dirname(realpathSync(process.execPath))+':/usr/bin:/bin:/usr/sbin:/sbin',HOME:this.temporary!,TMPDIR:this.temporary!,LANG:'C',LC_ALL:'C',...(this.broker?{PAN_NETWORK_SOCKET:this.broker.socket,PAN_LOCAL_SOCKETS:this.broker.local}:{}),OPENSSL_CONF:'/dev/null'};}
  private assertFile(path:string):void {
   if(!this.profile||this.cancelled)policyError('unavailable');
@@ -115,7 +117,7 @@ export class NativeMacSandbox {
   const inspect=(directory:string):void=>{for(const name of readdirSync(directory)){if(++entries>50000)throw Error('native_sandbox_workspace_scan_limit');const path=join(directory,name),s=lstatSync(path);if(s.isSymbolicLink())continue;if(s.isFile()&&s.nlink!==1)throw Error('native_sandbox_hardlink_workspace');if(s.isDirectory())inspect(path);}};
   inspect(this.workspace);
   this.files=runtimeFiles();
-  if(this.options.sessionNpmTest)this.npmRoot=bundledNpmRoot(this.workspace);
+  if(this.options.sessionNpmTest || this.options.sessionTasks?.length)this.npmRoot=bundledNpmRoot(this.workspace);
   if(this.options.network==='public')this.files=[...this.files,realpathSync(fetchClient)];
   if(this.files.some(path=>inside(this.workspace,path)))throw Error('native_sandbox_mutable_toolchain');
   try {

@@ -1,3 +1,4 @@
+import {parseSessionTasks, sessionTaskCommands, type SessionTask} from "./config/permissions.ts";
 import {workspaceTrust, WorkspaceGrant, type GrantSelection} from "./config/workspace-trust.ts";
 import {privateOrigin, type ResolveAddresses} from './sandbox/native/network.ts';
 import {ManualFallback} from './sandbox/fallback.ts';
@@ -69,6 +70,7 @@ Ordinary settings persist at ~/.pan-agent/settings.json (mode 0600; provider/mod
 Deny rules are frozen at TUI session creation, before tool execution and approval, including trusted Shell and sandbox tools. Whole tools: read/write/edit/bash/retrieve/mcp_report; bash(PATTERN) uses only literal characters and * wildcard. No shell semantic analysis or OS containment.
 Credential source: bare interactive startup checks whether the selected environment variable is set (DEEPSEEK_API_KEY for DeepSeek or KIMI_API_KEY for Kimi). Provider calls use its value; keychain retrieves the macOS Keychain item named by the Pan service/account convention only when a Provider call is made. kimi-code selects the official OpenAI-compatible Kimi Code endpoint with explicit kimi-for-coding or k3-256k selection in configure (kimi-code:k3-256k); Kimi --model/--thinking overrides are unsupported; arbitrary endpoints and unknown models are rejected.
 Native workspace sandbox (default): --native-sandbox shares --workspace through host-mediated files and OS-isolated Shell/descendants. Default bounded HTTP(S) GET through pan-fetch; --native-offline denies network. --native-grant ORIGIN permits one private IP service for the first task. No retrieval. On eligible native setup failure the interactive operator may cancel or select reviewed workspace file operations and exact pwd once or for one fresh task. Requires macOS sandbox-exec/otool or a supported x86-64 Linux Bubblewrap/FUSE setup. No Docker-equivalent resource quotas; see README.
+--session-tasks build,test,report selects workspace npm scripts for this session (choose one or more). Only their exact commands run without an approval prompt inside the native sandbox.
 --session-npm-test permits the exact npm test command in this workspace for this native session. Test scripts and child processes run inside the native sandbox.
 Session-only --session-auto permits creating a new plain ASCII .txt or .md document at the native workspace root without individual approval (no protected-path overrides or resource grants). Other approvals and deny rules remain in force.
 Sandbox (opt-in): add --sandbox-root DIR and optional repeated --sandbox-input FILE. One new fixed-profile Docker workspace per task; no retrieval. After exit: pan-agent sandbox list --root DIR; recover|export|verify|cleanup --run RUN_DIRECTORY (see README).
@@ -86,6 +88,7 @@ export interface CliConfiguration {
  readonly nativeSandbox?:boolean;
  readonly sessionAuto?:boolean;
  readonly sessionNpmTest?:boolean;
+ readonly sessionTasks?:readonly SessionTask[];
  readonly nativeOffline?:boolean;
  readonly nativeGrant?:string;
  readonly credentialSelection?:GrantSelection;
@@ -103,6 +106,7 @@ export function parseCliArgs(args: readonly string[]): CliConfiguration {
 	let workspace: string | undefined;
   let mcpReport: ReportSelection | undefined;
  let nativeSandbox=false,nativeOffline=false,trustedLocal=false,sessionAuto=false,sessionNpmTest=false;
+ let sessionTasks: readonly SessionTask[] | undefined;
  let nativeGrant:string|undefined;
  let resource:string|undefined,command:string|undefined,task=false;
  let sandboxRoot:string|undefined;const sandboxInputs:string[]=[];
@@ -125,6 +129,12 @@ export function parseCliArgs(args: readonly string[]): CliConfiguration {
   if(argument === "--native-sandbox"){if(nativeSandbox)throw Error("duplicate_native_sandbox");nativeSandbox=true;continue;}
 		if(argument === "--native-offline"){if(nativeOffline)throw Error("duplicate_native_offline");nativeOffline=true;continue;}
   const value = args[index + 1];
+  if (argument === "--session-tasks") {
+   if (sessionTasks) throw Error("Supply --session-tasks once");
+   sessionTasks = parseSessionTasks(value);
+   index++;
+   continue;
+  }
   if (argument === "--mcp-report") {
     const server = value, tool = args[index + 2];
     if (mcpReport || !server || !tool || ![server, tool].every(v => /^[a-zA-Z0-9_.-]{1,128}$/.test(v) && !v.startsWith("--")))
@@ -165,9 +175,11 @@ export function parseCliArgs(args: readonly string[]): CliConfiguration {
 		}
 		throw new Error(`Unknown argument: ${argument}`);
 	}
-	if(trustedLocal && (nativeSandbox || nativeOffline || nativeGrant || resource || sandboxRoot || sessionAuto || sessionNpmTest)) throw Error("--trusted-local conflicts with sandbox options");
+	if (sessionTasks && sessionNpmTest) throw Error("Choose either --session-tasks or --session-npm-test");
+ const npmEnabled = Boolean(sessionTasks || sessionNpmTest);
+ if(trustedLocal && (nativeSandbox || nativeOffline || nativeGrant || resource || sandboxRoot || sessionAuto || npmEnabled)) throw Error("--trusted-local conflicts with sandbox options");
  if (mcpReport && sandboxRoot) throw Error("--mcp-report uses a host process and cannot run inside the Docker profile");
- if(sessionNpmTest && (sandboxRoot || nativeGrant || resource)) throw Error("--session-npm-test requires the native sandbox without credential or private network grants");
+ if(npmEnabled && (sandboxRoot || nativeGrant || resource)) throw Error("Workspace task permissions require the native sandbox without credential or private network grants");
  if(sessionAuto && (sandboxRoot || nativeGrant || resource)) throw Error("--session-auto requires native sandbox without resource grants");
  if ((nativeOffline || nativeGrant) && !nativeSandbox) throw Error("--native-offline/--native-grant require --native-sandbox");
  if ((resource || command || task) && (!nativeSandbox || !resource || (task ? command !== undefined : !command))) throw Error("credential grant requires --native-sandbox --native-resource ID and an exact --grant-command or --grant-task");
@@ -182,7 +194,7 @@ export function parseCliArgs(args: readonly string[]): CliConfiguration {
 	return {
 		help: false,
 		maxAttachmentBytes,
-  mcpReport,sandboxRoot,sandboxInputs,nativeSandbox:nativeSandbox||(!trustedLocal&&!sandboxRoot),sessionAuto,sessionNpmTest,nativeOffline,nativeGrant,credentialSelection:resource?{resource,command,task}:undefined,
+  mcpReport,sandboxRoot,sandboxInputs,nativeSandbox:nativeSandbox||(!trustedLocal&&!sandboxRoot),sessionAuto,sessionNpmTest,sessionTasks,nativeOffline,nativeGrant,credentialSelection:resource?{resource,command,task}:undefined,
 		workspace,
 		memoryRoot,
 		kernel,
@@ -353,7 +365,8 @@ export async function runCli(args: readonly string[], dependencies: CliDependenc
 			if (presentation.progressError) presentation.progressError();
 			else writeLine("Display error: progress observer failed; execution continues.");
 		},
-		systemPrompt: (configuration.nativeSandbox?"You are a coding agent in a shared live workspace. Use typed read/write/edit/bash tools and observations; protected/outside files are denied, Shell and descendants use a fixed OS sandbox. "+(configuration.nativeOffline?"Networking is offline.":"Use pan-fetch URL for bounded HTTP(S) GET and PAN_LOCAL_SOCKETS for local Unix services.")+" On native setup failure only the operator may start a fresh task with manual host fallback for reviewed workspace files and exact pwd. No retrieval. Return accurate results; never print secrets.":GENERAL_AGENT_SYSTEM_PROMPT)+(sandbox?"\nTools run ONLY in an isolated Docker workspace /workspace/task. Selected inputs are /inputs, read-only. No retrieval or host tool access. Each new task gets a new workspace.":""),
+		systemPrompt: (configuration.nativeSandbox?"You are a coding agent in a shared live workspace. Use typed read/write/edit/bash tools and observations; protected/outside files are denied, Shell and descendants use a fixed OS sandbox. "+(configuration.nativeOffline?"Networking is offline.":"Use pan-fetch URL for bounded HTTP(S) GET and PAN_LOCAL_SOCKETS for local Unix services.")+" On native setup failure only the operator may start a fresh task with manual host fallback for reviewed workspace files and exact pwd. No retrieval. Return accurate results; never print secrets.":GENERAL_AGENT_SYSTEM_PROMPT)+(configuration.sessionTasks ?
+        "\nThe operator preauthorized these exact workspace commands: " + configuration.sessionTasks.map(task => sessionTaskCommands[task]).join(", ") + "." : "")+(sandbox?"\nTools run ONLY in an isolated Docker workspace /workspace/task. Selected inputs are /inputs, read-only. No retrieval or host tool access. Each new task gets a new workspace.":""),
 		memory: { archiveStore, runbook: () => loadRunbook(RUNBOOK_PATH) },
 		onObservation(observation: SessionObservation) {
 			observeSafely(presentation, observation, writeLine);
@@ -377,7 +390,7 @@ export async function runCli(args: readonly string[], dependencies: CliDependenc
   try {
     const home = dependencies.home ?? homedir();
     const trust = workspaceTrust(workspace, home);
-    if (configuration.sessionNpmTest) {
+    if (configuration.sessionNpmTest || configuration.sessionTasks) {
       verifyNpmWorkspace = current => {
         const observed = workspaceTrust(current, home);
         return observed.root === trust.root && observed.identity === trust.identity && observed.revision === trust.revision;
@@ -432,10 +445,10 @@ export async function runCli(args: readonly string[], dependencies: CliDependenc
 				: {}));
 			adapter = adapterFactory(profile);
 		}
-		nativeSandbox=configuration.nativeSandbox?new NativeSandbox({workspace,stateRoot:resolve(memoryRoot,"native-sandbox"),sessionNpmTest:configuration.sessionNpmTest,network:configuration.nativeOffline?"offline":"public",privateGrant:configuration.nativeGrant,credentialGrant,resolveNetworkName:dependencies.resolveNetworkName,protectedPaths:settings?.protectedPaths,notify:writeLine}):undefined;
+		nativeSandbox=configuration.nativeSandbox?new NativeSandbox({workspace,stateRoot:resolve(memoryRoot,"native-sandbox"),sessionNpmTest:configuration.sessionNpmTest,sessionTasks:configuration.sessionTasks,network:configuration.nativeOffline?"offline":"public",privateGrant:configuration.nativeGrant,credentialGrant,resolveNetworkName:dependencies.resolveNetworkName,protectedPaths:settings?.protectedPaths,notify:writeLine}):undefined;
         if(nativeSandbox) {
          const home=dependencies.home??homedir();
-         const operatorAllowed=((dependencies.input??process.stdin) as NodeJS.ReadStream).isTTY===true && (output as NodeJS.WriteStream).isTTY===true && !configuration.sessionAuto && !configuration.sessionNpmTest && !configuration.credentialSelection && !configuration.nativeGrant;
+         const operatorAllowed=((dependencies.input??process.stdin) as NodeJS.ReadStream).isTTY===true && (output as NodeJS.WriteStream).isTTY===true && !configuration.sessionAuto && !configuration.sessionNpmTest && !configuration.sessionTasks && !configuration.credentialSelection && !configuration.nativeGrant;
          fallback=new ManualFallback(nativeSandbox, workspace, home, settings?.protectedPaths??[],operatorAllowed,configuration.sessionAuto===true);
         }
         const trustedLocal = sandbox??fallback??(dependencies.createTools ? dependencies.createTools(workspace) : createPanTrustedLocalTools(workspace));
@@ -458,7 +471,7 @@ export async function runCli(args: readonly string[], dependencies: CliDependenc
 			kernel: "native",
 			adapter,
 			tools,
-			authorization: {verifyNpmWorkspace, sessionAuto:configuration.sessionAuto, protectedPaths: settings?.protectedPaths, permissions: settings?.permissions },
+			authorization: {verifyNpmWorkspace, sessionTasks:configuration.sessionTasks, sessionAuto:configuration.sessionAuto, protectedPaths: settings?.protectedPaths, permissions: settings?.permissions },
 			...(adapter instanceof PanKimiModelAdapter ? { cleanup: () => adapter.dispose() } : {}),
 		});
 		provider = adapter.providerId;
@@ -475,6 +488,7 @@ export async function runCli(args: readonly string[], dependencies: CliDependenc
   input: dependencies.input,
   reportNotice,
   sessionNpmTest:configuration.sessionNpmTest,
+  sessionTaskLabel:configuration.sessionTasks ? 'NPM TASKS: ' + configuration.sessionTasks.join(',') : undefined,
   sessionAuto:configuration.sessionAuto,
   fallback,
   executionMode:sandbox ? "sandbox" : nativeSandbox?.executionMode ?? "trusted-local",

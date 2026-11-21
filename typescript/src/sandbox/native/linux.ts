@@ -299,6 +299,7 @@ export class NativeLinuxSandbox {
       privateGrant: this.broker?.grant ?? null,
       resourceQuotas: "not_enforced",
       ...(this.options.sessionNpmTest ? {sessionNpmTest: true} : {}),
+      ...(this.options.sessionTasks ? {sessionTasks: [...this.options.sessionTasks]} : {}),
     };
   }
   private assertFile(path: string): void {
@@ -370,7 +371,7 @@ export class NativeLinuxSandbox {
         ...libraries.values(),
       ]),
     ].sort();
-    const npmRoot = this.options.sessionNpmTest ? bundledNpmRoot(this.workspace) : undefined;
+    const npmRoot = (this.options.sessionNpmTest || this.options.sessionTasks?.length) ? bundledNpmRoot(this.workspace) : undefined;
     const runtime = [...this.runtimeFiles, helper];
     if (this.options.network === "public") runtime.push(realpathSync(fetchClient));
     if (runtime.some((path) => overlaps(this.workspace, path)))

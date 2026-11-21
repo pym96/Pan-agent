@@ -9,7 +9,7 @@ const [pkg, destination] = process.argv.slice(2);
 const root = path.resolve(destination);
 fs.mkdirSync(root, {mode:0o700});
 const installed = relative => pathToFileURL(path.resolve(pkg, relative));
-const {runCli, runTui, FauxModelAdapter, savePanSettings} = await import(installed('dist/index.js'));
+const {runCli, runTui, parseCliArgs, FauxModelAdapter, savePanSettings} = await import(installed('dist/index.js'));
 const platform = process.platform === 'darwin' ? 'macos' : 'linux';
 const identity = {provider:{status:'reported',value:'faux'}, model:{status:'reported',value:'faux'}, responseId:{status:'unavailable'}};
 const response = (content, stopReason) => ({kind:'response',message:{role:'assistant',timestamp:0,content},stopReason,usage:{status:'unavailable'},identity});
@@ -76,7 +76,7 @@ await automation(false);
 const npmTarget=paths('npm-test');
 const marker=path.join(npmTarget.workspace,'runs.txt');
 fs.writeFileSync(path.join(npmTarget.workspace,'package.json'),JSON.stringify({
- name:'pan-test-fixture',version:'1.0.0',scripts:{test:'node check.cjs'}
+ name:'pan-test-fixture',version:'1.0.0',scripts:{test:'node check.cjs',build:'node task.cjs build',report:'node task.cjs report'}
 }));
 fs.writeFileSync(path.join(npmTarget.workspace,'private.txt'),'synthetic fixture');
 fs.writeFileSync(path.join(npmTarget.workspace,'check.cjs'),`
@@ -87,23 +87,32 @@ fs.appendFileSync('runs.txt','ran\\n');
 console.log('PAN_NPM_EXECUTED');
 if (fs.existsSync('fail')) { console.error('PAN_NPM_FAILED'); process.exit(23); }
 `);
+fs.writeFileSync(path.join(npmTarget.workspace,'task.cjs'),`
+const fs = require('node:fs');
+const task = process.argv[2];
+fs.appendFileSync('tasks.log', task + '\\n');
+console.log('TASK_OUTPUT ' + task);
+if (fs.existsSync('fail-' + task)) { console.error('TASK_FAILURE ' + task); process.exit(29); }
+`);
 const runNpm=(id,command='npm test')=>call(id,'bash',{command});
-async function npmSession(label, flags, replies, interaction) {
+async function npmSession(label, flags, replies, interaction, sharedArchive) {
  const term=terminal();
  const model=new FauxModelAdapter(replies);
  let store;
- const archive=path.join(npmTarget.base,label+'-archives');
+ const archive=sharedArchive ?? path.join(npmTarget.base,label+'-archives');
+ let before;
  const running=runCli(['--kernel','native','--workspace',npmTarget.workspace,'--memory-root',archive,'--native-sandbox','--native-offline',...flags],{
   home:npmTarget.home,input:term.input,output:term.output,createNativeAdapter:()=>model,
-  startTui:opts=>{store=opts.archiveStore;return runTui(opts);}
+  startTui:async opts=>{store=opts.archiveStore;before=new Set((await store.listRuns()).map(r=>r.runId));return runTui(opts);}
  });
  try {
   await term.wait(f=>f.includes('Write a task'));
   assert.equal(term.log().includes('NPM TEST'),flags.includes('--session-npm-test'));
   await interaction(term);
   await term.wait(f=>f.includes('Fixture finished')&&f.includes('· idle ·'));
-  const [run]=await store.listRuns();
-  const records=await store.readArchive(run.runId);
+  const fresh=(await store.listRuns()).filter(r=>!before.has(r.runId));
+  assert.equal(fresh.length,1);
+  const records=await store.readArchive(fresh[0].runId);
   put(path.join(npmTarget.base,label+'.json'),records);
   term.send(':exit\r');assert.equal(await running,0);
   return records;
@@ -146,6 +155,68 @@ const denied=await npmSession('denied',npmFlag,[runNpm('deny'),done],submit);
 assert.equal(settled(denied,'deny').details.code,'permission_denied');
 assert.equal(fs.readFileSync(marker,'utf8'),'ran\nran\nran\n');
 assert.equal(fs.existsSync(path.join(npmTarget.workspace,'unexpected')),false);
+
+// Session-scoped task selection runs exact project scripts and records the requested grant.
+const commonArchive=path.join(npmTarget.base,'selected-task-archives');
+const selectedFlags=['--session-tasks','report,build'];
+const selectedSession=(id,flags,replies,action=submit)=>npmSession(id,flags,[...replies,done],action,commonArchive);
+const denyPrompt=async term=>{
+ submit(term);
+ await term.wait(frame=>frame.includes('Approval required'));
+ term.send('\r');
+};
+await savePanSettings(npmSettings,npmTarget.home);
+const selected=await selectedSession('selected',selectedFlags,[
+ runNpm('build1','npm run build'),runNpm('report','npm run report'),runNpm('build2','npm run build'),
+],term=>{
+ assert.ok(term.log().includes('NPM TASKS: build,report'));
+ submit(term);
+});
+assert.deepEqual(selected.find(e=>e.type==='execution.boundary').sessionTasks,['build','report']);
+for (const [id,task] of [['build1','build'],['report','report'],['build2','build']]) {
+ const result=settled(selected,id);
+ assert.equal(result.details.authorization.decision,'session-task');
+ assert.equal(result.details.authorization.task,task);
+ assert.equal(result.details.exitCode,0,result.text);
+ assert.equal(result.details.backend,platform==='macos'?'seatbelt':'bubblewrap-fuse');
+ assert.ok(result.details.stdout.includes('TASK_OUTPUT '+task));
+}
+fs.writeFileSync(path.join(npmTarget.workspace,'fail-report'),'');
+const failure=settled(await selectedSession('selected-failure',selectedFlags,[runNpm('report','npm run report')]),'report');
+assert.equal(failure.details.exitCode,29,failure.text);
+assert.equal(failure.isError,true);
+assert.match(failure.details.stderr,/TASK_FAILURE report/);
+for(const [id,flags,command] of [
+ ['unselected',selectedFlags,'npm test'],['near-match',selectedFlags,'npm run build -- --verbose'],
+ ['fresh-session',[],'npm run build'],
+]) {
+ const result=settled(await selectedSession(id,flags,[runNpm(id,command)],denyPrompt),id);
+ assert.equal(result.details.code,'approval_denied');
+}
+await savePanSettings({...npmSettings,permissions:{deny:['bash(npm run build)']}},npmTarget.home);
+const blocked=settled(await selectedSession('selected-deny',selectedFlags,[runNpm('build','npm run build')]),'build');
+assert.equal(blocked.details.code,'permission_denied');
+assert.equal(fs.readFileSync(path.join(npmTarget.workspace,'tasks.log'),'utf8'),'build\nreport\nbuild\nreport\n');
+assert.equal(fs.readFileSync(marker,'utf8'),'ran\nran\nran\n');
+
+await savePanSettings(npmSettings,npmTarget.home);
+const originalProject=path.join(npmTarget.base,'original-project');
+const replaced=await selectedSession('selected-replaced',selectedFlags,[runNpm('build','npm run build')],term=>{
+ fs.renameSync(npmTarget.workspace,originalProject);
+ fs.mkdirSync(npmTarget.workspace);
+ put(path.join(npmTarget.workspace,'package.json'),{scripts:{build:'touch replacement-marker'}});
+ submit(term);
+});
+assert.equal(settled(replaced,'build').details.code,'approval_invalidated');
+assert.equal(fs.existsSync(path.join(npmTarget.workspace,'replacement-marker')),false);
+
+const cliArgs=['--kernel','native','--session-tasks'];
+for(const value of ['', 'test,', 'BUILD','install','build,build','report,unknown','toString']) {
+ assert.throws(()=>parseCliArgs([...cliArgs,value]),/--session-tasks/);
+}
+for(const other of [['--trusted-local'],['--sandbox-root','/tmp/owned'],['--native-sandbox','--native-grant','http://127.0.0.1:8080'],['--session-npm-test']]) {
+ assert.throws(()=>parseCliArgs([...cliArgs,'build',...other]));
+}
 
 // With an actual admitted native task, a result observed before provider failure remains durable.
 {
@@ -231,6 +302,20 @@ try {
    await submit(':exit');assert.equal(await running,0);
   } finally {term.input.end();await running;fs.writeFileSync(path.join(target.base,'tui.stdout'),term.log());term.input.destroy();term.output.destroy();}
  }
+ const opted=paths('selected-unavailable'), optedModel=new FauxModelAdapter([]), optedTty=terminal();
+ await runCli([...opted.args,'--session-tasks','build,report'],{
+  home:opted.home,input:optedTty.input,output:optedTty.output,createNativeAdapter:()=>optedModel,
+  startTui:async options=>{
+   try {
+    await assert.rejects(options.session.runTask('Run the workspace build'),/owned prerequisite failure/);
+    assert.match(options.fallback.choose('task'),/denied/);
+    assert.deepEqual(fs.readdirSync(opted.workspace),[]);
+    assert.equal(optedModel.state.exchangeCount,0);
+   } finally {await options.session.close();}
+   return 0;
+  }
+ });
+ optedTty.input.destroy();optedTty.output.destroy();
  const target=paths('noninteractive'),model=new FauxModelAdapter([]);
  await runCli(target.args,{home:target.home,output:new PassThrough(),createNativeAdapter:()=>model,startTui:async options=>{
   try{await assert.rejects(options.session.runTask('no terminal'),/owned prerequisite failure/);

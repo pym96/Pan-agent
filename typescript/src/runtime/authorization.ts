@@ -1,4 +1,4 @@
-import { parsePanPermissions, matchingDenyRule, type PanPermissions } from '../config/permissions.ts';
+import { parsePanPermissions, matchingDenyRule, sessionTaskCommands, type SessionTask, type PanPermissions } from '../config/permissions.ts';
 import { AsyncLocalStorage } from 'node:async_hooks';
 import { createHash, randomUUID } from 'node:crypto';
 import { basename, dirname, isAbsolute, relative, resolve, sep } from 'node:path';
@@ -15,7 +15,7 @@ export interface ApprovalRequest {
 }
 export interface ApprovalDecision { readonly requestId:string; readonly decision:ApprovalChoice }
 export type ApprovalChannel = (request:ApprovalRequest, signal:AbortSignal)=>Promise<ApprovalDecision>;
-export interface AuthorizationOptions { readonly permissions?:PanPermissions; readonly protectedPaths?:readonly string[]; readonly approval?:ApprovalChannel; readonly sessionAuto?:boolean; readonly verifyNpmWorkspace?:(workspace:string)=>boolean }
+export interface AuthorizationOptions { readonly permissions?:PanPermissions; readonly protectedPaths?:readonly string[]; readonly approval?:ApprovalChannel; readonly sessionAuto?:boolean; readonly verifyNpmWorkspace?:(workspace:string)=>boolean; readonly sessionTasks?:readonly SessionTask[] }
 export const digest=(value:string):string=>createHash('sha256').update(value).digest('hex');
 export function validateProtectedPaths(value:unknown):asserts value is readonly string[] {
  if(!Array.isArray(value)||value.some(p=>typeof p!=='string'||!p.trim()||p.includes('\0')))throw Error('settings_invalid: protectedPaths');
@@ -113,13 +113,23 @@ export class AuthorizationFailure extends Error { readonly code:string;construct
 export class SessionAuthorization {
  readonly sessionId=randomUUID(); readonly protectedPaths:readonly string[];
  private readonly sessionAuto:boolean;
+ private readonly sessionTasks?: readonly SessionTask[];
  private readonly verifyNpmWorkspace?: (workspace:string)=>boolean;
  private readonly permissions:PanPermissions; private readonly denyRevision:string;
  private readonly assessments=new WeakMap<JsonObject,PathAssessment>();
  private channel?:ApprovalChannel;private closed=false;private trust=false;private revision=0;
- constructor(options:AuthorizationOptions={}){this.verifyNpmWorkspace=options.verifyNpmWorkspace;this.sessionAuto=options.sessionAuto===true;this.permissions=parsePanPermissions(options.permissions===undefined?{deny:[]}:options.permissions);this.denyRevision=digest(JSON.stringify(['pan-deny-v1',this.permissions]));validateProtectedPaths(options.protectedPaths??[]);this.protectedPaths=Object.freeze([...(options.protectedPaths??[])]);this.channel=options.approval;}
+ constructor(options:AuthorizationOptions={}) {
+  this.verifyNpmWorkspace = options.verifyNpmWorkspace;
+  this.sessionTasks = options.sessionTasks && Object.freeze([...options.sessionTasks]);
+  this.sessionAuto = options.sessionAuto === true;
+  this.permissions = parsePanPermissions(options.permissions === undefined ? {deny:[]} : options.permissions);
+  this.denyRevision = digest(JSON.stringify(['pan-deny-v1',this.permissions]));
+  validateProtectedPaths(options.protectedPaths ?? []);
+  this.protectedPaths = Object.freeze([...(options.protectedPaths ?? [])]);
+  this.channel = options.approval;
+ }
  private policyRevision(workspace:string):string {
-  return digest(JSON.stringify([workspace,this.protectedPaths,this.denyRevision,this.revision,...(this.sessionAuto?['session-auto-documents-v1']:[]),...(this.verifyNpmWorkspace?['session-npm-test-v1']:[])]));
+  return digest(JSON.stringify([workspace,this.protectedPaths,this.denyRevision,this.revision,...(this.sessionAuto?['session-auto-documents-v1']:[]),...(this.sessionTasks?['session-tasks-v1',...this.sessionTasks]:this.verifyNpmWorkspace?['session-npm-test-v1']:[])]));
  }
  setChannel(channel:ApprovalChannel|undefined):void {this.channel=channel;this.revision++;this.trust=false;}
  revoke():void {this.trust=false;this.revision++;}
@@ -127,7 +137,7 @@ export class SessionAuthorization {
  assertCurrent(audit:JsonObject,signal:AbortSignal,state?:FileAuthorizationState):void {
   const ctx=context.getStore();
   if(signal.aborted||this.closed||(ctx&&!ctx.live)||audit.policyRevision!==this.policyRevision(String(audit.workspace)))throw new AuthorizationFailure('approval_invalidated');
-  if(audit.decision==='session-npm-test' && !this.verifyNpmWorkspace?.(String(audit.workspace)))throw new AuthorizationFailure('approval_invalidated');
+  if((audit.decision==='session-npm-test' || audit.decision==='session-task') && !this.verifyNpmWorkspace?.(String(audit.workspace)))throw new AuthorizationFailure('approval_invalidated');
   this.assessments.get(audit)?.revalidate(state);
  }
  wrap(tool:AgentTool,runId:()=>string|undefined):AgentTool {
@@ -206,9 +216,12 @@ export class SessionAuthorization {
   const finish=(decision:string):JsonObject=>{const result={...audit,decision};if(assessment)this.assessments.set(result,assessment);return result;};
   const valid=()=>!signal.aborted&&!this.closed&&(!current||current.live)&&policyRevision===this.policyRevision(workspace);
   if(!valid())throw new AuthorizationFailure('approval_invalidated');
-  if(this.verifyNpmWorkspace && current?.authority===this && nativePolicyHash && !fallback && tool==='bash' && args.command==='npm test') {
-   if(!this.verifyNpmWorkspace(workspace))throw new AuthorizationFailure('approval_invalidated');
-   return finish('session-npm-test');
+  if (this.verifyNpmWorkspace && current?.authority === this && nativePolicyHash && !fallback && tool === 'bash') {
+   const granted = (this.sessionTasks ?? ['test'] as const).find(task => sessionTaskCommands[task] === args.command);
+   if (granted) {
+    if (!this.verifyNpmWorkspace(workspace)) throw new AuthorizationFailure('approval_invalidated');
+    return this.sessionTasks ? {...finish('session-task'), task:granted} : finish('session-npm-test');
+   }
   }
   // An absent final leaf normally yields an uncertain equivalence classification. Admit only
   // an unaliased top-level ASCII document creation. AuthorizedFile still uses O_EXCL and
