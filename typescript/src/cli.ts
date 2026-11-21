@@ -1,6 +1,6 @@
 import {parseSessionTasks, sessionTaskCommands, type SessionTask} from "./config/permissions.ts";
 import {workspaceTrust, WorkspaceGrant, type GrantSelection} from "./config/workspace-trust.ts";
-import {privateOrigin, type ResolveAddresses} from './sandbox/native/network.ts';
+import {fetchRepositoryPart, privateOrigin, type ResolveAddresses} from './sandbox/native/network.ts';
 import {ManualFallback} from './sandbox/fallback.ts';
 import {NativeLinuxSandbox} from './sandbox/native/linux.ts';
 import {NativeMacSandbox} from './sandbox/native/macos.ts';
@@ -55,6 +55,7 @@ export const CLI_USAGE = `Usage:
   pan-agent trust --workspace PATH [--approve REVIEW_HASH]
   pan-agent --native-sandbox --native-resource ID (--grant-command EXACT_SHELL | --grant-task)
   Only authorized Shell and children receive PAN_GRANTED_VALUE. File tools still deny the protected path.
+  pan-agent [--github-proxy-port PORT]    (in the TUI: /repo https://github.com/OWNER/REPO)
   pan-agent --mcp-report SERVER TOOL    (offer one operator-selected local report; approve each call)
   ${MCP_USAGE}
   pan-agent delivery --help   (bounded local delivery with independent checks)
@@ -69,7 +70,7 @@ Attachments use selection-time UTF-8 snapshots; default aggregate maxAttachmentB
 Ordinary settings persist at ~/.pan-agent/settings.json (mode 0600; provider/model/thinking, credential source kind, protectedPaths, permissions.deny and maxAttachmentBytes — never a secret). Run 'pan-agent configure' to update provider fields while preserving valid ordinary preferences; on a TTY first run without settings the same flow is offered. Explicit --model/--thinking flags override persisted values for that run.
 Deny rules are frozen at TUI session creation, before tool execution and approval, including trusted Shell and sandbox tools. Whole tools: read/write/edit/bash/retrieve/mcp_report; bash(PATTERN) uses only literal characters and * wildcard. No shell semantic analysis or OS containment.
 Credential source: bare interactive startup checks whether the selected environment variable is set (DEEPSEEK_API_KEY for DeepSeek or KIMI_API_KEY for Kimi). Provider calls use its value; keychain retrieves the macOS Keychain item named by the Pan service/account convention only when a Provider call is made. kimi-code selects the official OpenAI-compatible Kimi Code endpoint with explicit kimi-for-coding or k3-256k selection in configure (kimi-code:k3-256k); Kimi --model/--thinking overrides are unsupported; arbitrary endpoints and unknown models are rejected.
-Native workspace sandbox (default): --native-sandbox shares --workspace through host-mediated files and OS-isolated Shell/descendants. Default bounded HTTP(S) GET through pan-fetch; --native-offline denies network. --native-grant ORIGIN permits one private IP service for the first task. No retrieval. On eligible native setup failure the interactive operator may cancel or select reviewed workspace file operations and exact pwd once or for one fresh task. Requires macOS sandbox-exec/otool or a supported x86-64 Linux Bubblewrap/FUSE setup. No Docker-equivalent resource quotas; see README.
+Native workspace sandbox (default): --native-sandbox shares --workspace through host-mediated files and OS-isolated Shell/descendants. Default bounded HTTP(S) GET through pan-fetch; --native-offline denies network. --native-grant ORIGIN permits one private IP service for the first task. Public GitHub overview questions use at most two read-only HTTPS requests and no model or local tools. --github-proxy-port PORT explicitly trusts an HTTP CONNECT proxy at 127.0.0.1:PORT for api.github.com:443 only. On eligible native setup failure the interactive operator may cancel or select reviewed workspace file operations and exact pwd once or for one fresh task. Requires macOS sandbox-exec/otool or a supported x86-64 Linux Bubblewrap/FUSE setup. No Docker-equivalent resource quotas; see README.
 --session-tasks build,test,report selects workspace npm scripts for this session (choose one or more). Only their exact commands run without an approval prompt inside the native sandbox.
 --session-npm-test permits the exact npm test command in this workspace for this native session. Test scripts and child processes run inside the native sandbox.
 Session-only --session-auto permits creating a new plain ASCII .txt or .md document at the native workspace root without individual approval (no protected-path overrides or resource grants). Other approvals and deny rules remain in force.
@@ -90,6 +91,7 @@ export interface CliConfiguration {
  readonly sessionNpmTest?:boolean;
  readonly sessionTasks?:readonly SessionTask[];
  readonly nativeOffline?:boolean;
+ readonly githubProxyPort?:number;
  readonly nativeGrant?:string;
  readonly credentialSelection?:GrantSelection;
  readonly sandboxRoot?:string;
@@ -105,6 +107,7 @@ export function parseCliArgs(args: readonly string[]): CliConfiguration {
 	let maxAttachmentBytes = validateAttachmentLimit();
 	let workspace: string | undefined;
   let mcpReport: ReportSelection | undefined;
+ let githubProxyPort: number | undefined;
  let nativeSandbox=false,nativeOffline=false,trustedLocal=false,sessionAuto=false,sessionNpmTest=false;
  let sessionTasks: readonly SessionTask[] | undefined;
  let nativeGrant:string|undefined;
@@ -129,6 +132,13 @@ export function parseCliArgs(args: readonly string[]): CliConfiguration {
   if(argument === "--native-sandbox"){if(nativeSandbox)throw Error("duplicate_native_sandbox");nativeSandbox=true;continue;}
 		if(argument === "--native-offline"){if(nativeOffline)throw Error("duplicate_native_offline");nativeOffline=true;continue;}
   const value = args[index + 1];
+  if (argument === "--github-proxy-port") {
+    if (githubProxyPort || !value || !/^[1-9][0-9]{0,4}$/.test(value) || Number(value) > 65535)
+      throw Error("--github-proxy-port requires one TCP port (1–65535) on 127.0.0.1");
+    githubProxyPort = Number(value);
+    index++;
+    continue;
+  }
   if (argument === "--session-tasks") {
    if (sessionTasks) throw Error("Supply --session-tasks once");
    sessionTasks = parseSessionTasks(value);
@@ -176,6 +186,8 @@ export function parseCliArgs(args: readonly string[]): CliConfiguration {
 		throw new Error(`Unknown argument: ${argument}`);
 	}
 	if (sessionTasks && sessionNpmTest) throw Error("Choose either --session-tasks or --session-npm-test");
+ if (githubProxyPort && (trustedLocal || sandboxRoot || nativeOffline))
+   throw Error("--github-proxy-port requires native public networking");
  const npmEnabled = Boolean(sessionTasks || sessionNpmTest);
  if(trustedLocal && (nativeSandbox || nativeOffline || nativeGrant || resource || sandboxRoot || sessionAuto || npmEnabled)) throw Error("--trusted-local conflicts with sandbox options");
  if (mcpReport && sandboxRoot) throw Error("--mcp-report uses a host process and cannot run inside the Docker profile");
@@ -194,7 +206,7 @@ export function parseCliArgs(args: readonly string[]): CliConfiguration {
 	return {
 		help: false,
 		maxAttachmentBytes,
-  mcpReport,sandboxRoot,sandboxInputs,nativeSandbox:nativeSandbox||(!trustedLocal&&!sandboxRoot),sessionAuto,sessionNpmTest,sessionTasks,nativeOffline,nativeGrant,credentialSelection:resource?{resource,command,task}:undefined,
+  mcpReport,githubProxyPort,sandboxRoot,sandboxInputs,nativeSandbox:nativeSandbox||(!trustedLocal&&!sandboxRoot),sessionAuto,sessionNpmTest,sessionTasks,nativeOffline,nativeGrant,credentialSelection:resource?{resource,command,task}:undefined,
 		workspace,
 		memoryRoot,
 		kernel,
@@ -324,7 +336,7 @@ export async function runCli(args: readonly string[], dependencies: CliDependenc
 		const archive = await physicalPath(memoryRoot);
 		const runs = await physicalPath(join(memoryRoot, "runs"));
 		const physicalHome = await realpath(home);
-		const homeLaunch = bare && physicalWorkspace === physicalHome;
+		const homeLaunch = (bare || (terminal && configuration.githubProxyPort && !configuration.workspace && !configuration.memoryRoot)) && physicalWorkspace === physicalHome;
 		if (homeLaunch) {
 			workspace = join(physicalHome, "pan-workspace");
 			physicalWorkspace = await physicalPath(workspace);
@@ -467,6 +479,8 @@ export async function runCli(args: readonly string[], dependencies: CliDependenc
         session = new GeneralAgentSession({
 			...shared,
             executionBoundary:sandbox??fallback,
+            repository: {native: !!nativeSandbox, proxy: configuration.githubProxyPort !== undefined,
+              read: (slug, part, signal) => fetchRepositoryPart(slug, part, signal, configuration.githubProxyPort, dependencies.resolveNetworkName)},
             trustedLocalWorkspace:!sandbox && !nativeSandbox ? workspace : undefined,
 			kernel: "native",
 			adapter,
@@ -479,6 +493,7 @@ export async function runCli(args: readonly string[], dependencies: CliDependenc
 		thinking = adapter.reasoningLevel;
 	}
 
+	if (configuration.githubProxyPort) writeLine(`Public repository reads only: trusted HTTP proxy 127.0.0.1:${configuration.githubProxyPort} for TLS to api.github.com:443.`);
 	writeLine(`Archives: ${terminalText(memoryRoot)}`);
 	const credentialEnv = providerCredentialVariable(selectedProvider);
 	writeLine(credentialSource === "keychain"

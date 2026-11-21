@@ -1,9 +1,25 @@
 #!/bin/sh
 # Stock curl reads only from the task's Unix GET gateway.
+usage='usage inside the native network sandbox: pan-fetch URL'
+if [ "$#" -eq 1 ] && { [ "$1" = '--help' ] || [ "$1" = '-h' ]; }; then
+  echo "$usage"
+  exit 0
+fi
 if [ "$#" -ne 1 ] || [ -z "${PAN_NETWORK_SOCKET:-}" ]; then
-  echo 'usage inside the native network sandbox: pan-fetch URL' >&2
+  echo "$usage" >&2
   exit 2
 fi
-exec /usr/bin/curl -q --fail --silent --show-error --noproxy '*' \
+# Stream binary successes untouched. Capture only curl's locally generated status code.
+exec 3>&1
+status=$(/usr/bin/curl -q --fail --silent --noproxy '*' --write-out '%{stderr}%{http_code}' \
   --unix-socket "$PAN_NETWORK_SOCKET" --get --data-urlencode "url=$1" \
-  http://localhost/fetch
+  http://localhost/fetch 2>&1 1>&3)
+result=$?
+[ "$result" -eq 0 ] && exit 0
+case "$status" in
+  403) echo 'pan-fetch: native GET policy denied the URL, destination or redirect.' >&2 ;;
+  424) echo 'pan-fetch: upstream returned an unsuccessful HTTP status.' >&2 ;;
+  429) echo 'pan-fetch: native GET broker is busy. Try again later.' >&2 ;;
+  *) echo 'pan-fetch: native GET unavailable. Check the gateway, network or response size.' >&2 ;;
+esac
+exit "$result"

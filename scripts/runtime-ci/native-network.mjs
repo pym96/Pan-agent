@@ -122,6 +122,10 @@ kid.on('exit',code=>{process.exitCode=code??1;srv.close()})});`;
   await scenario('local-and-ungranted',[
     'node -e '+sh(localScript)+' && node -e '+sh(socketChecks)+' && ! pan-fetch '+sh(v4+'/denied/'+tag)+' && ! pan-fetch '+sh(v6+'/denied/'+tag)+' && echo FIXTURE_OK'
   ]);
+  await scenario('helper-diagnostics',[
+    'pan-fetch --help && msg=$(pan-fetch http://127.0.0.1:2/denied 2>&1); code=$?; '+
+    'test "$code" -ne 0 && case "$msg" in *"policy denied"*) echo FIXTURE_OK;; *) exit 1;; esac'
+  ]);
   await scenario('unsupported-method',['test "$(curl -q -sS --noproxy '+sh('*')+' --unix-socket "$PAN_NETWORK_SOCKET" -o /dev/null -w "%{http_code}" -X POST --get --data-urlencode '+
     sh('url='+v4+'/outside/'+tag)+' http://localhost/fetch)" = 403 && echo FIXTURE_OK']);
   for (const [i,target] of [v4,v6].entries()) {

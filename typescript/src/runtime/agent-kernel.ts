@@ -12,7 +12,8 @@ export type KernelSelector = "pi" | "native";
 export type TerminalStatus = "completed" | "cancelled" | "model_error" | "incomplete";
 
 export type SessionObservation =
-	| { type: "run.started"; runId: string; task: string }
+	| { type: "run.started"; runId: string; task: string; taskKind?: "repository_overview" }
+	| { type: "repository.overview"; runId: string; text: string; mode: string; requests: number; transport: string }
 	| { type: "model.turn_started"; runId: string; turn: number }
 	| {
 			type: "model.turn_settled";

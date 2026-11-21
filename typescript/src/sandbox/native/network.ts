@@ -26,7 +26,11 @@ export async function checkGateway(executable: string, prefix: string[], cwd: st
   }
 }
 
-class Denied extends Error {}
+export class Denied extends Error {}
+export class UpstreamHttpError extends Error {
+  readonly status: number;
+  constructor(status: number) { super("upstream HTTP " + status); this.status = status; }
+}
 export type ResolveAddresses = (name: string) => Promise<readonly string[]>;
 const systemResolve: ResolveAddresses = async (name) =>
   (await lookup(name.endsWith(".") ? name : name + ".", { all: true, verbatim: true })).map((record) => record.address);
@@ -100,31 +104,63 @@ export async function destination(url: URL, grant: string | undefined, resolve: 
 }
 
 type Decision = (record: Record<string, unknown>) => void;
-async function getOne(url: URL, grant: string | undefined, resolve: ResolveAddresses,
-                       signal: AbortSignal, record: Decision) {
+async function directSocket(url: URL, grant: string | undefined, resolve: ResolveAddresses,
+                            signal: AbortSignal, record: Decision): Promise<Socket> {
   const target = await destination(url, grant, resolve);
   signal.throwIfAborted();
   const tcp = connect({host: target.ip, port: target.port, family: isIP(target.ip), signal});
-  let stream: Socket = tcp;
   try {
     await once(tcp, "connect", {signal});
-    // Match numerically because IPv6 spelling can differ between libc and getpeername.
     const pinned = new BlockList();
     pinned.addAddress(target.ip, family(target.ip));
     if (!tcp.remoteAddress || !pinned.check(tcp.remoteAddress, family(tcp.remoteAddress)) ||
         (!target.granted && !publicAddress(tcp.remoteAddress))) throw Error("unexpected connection peer");
     record({decision: target.granted ? "private-grant" : "public", origin: url.origin, peer: tcp.remoteAddress, port: tcp.remotePort});
+    return tcp;
+  } catch (error) { tcp.destroy(); throw error; }
+}
+
+// Only the repository reader can open this tunnel. Neither the origin nor its port is an input.
+async function githubTunnel(port: number, signal: AbortSignal): Promise<Socket> {
+  if (!Number.isInteger(port) || port < 1 || port > 65535) throw Error("invalid GitHub proxy port");
+  signal.throwIfAborted();
+  const agent = new http.Agent({keepAlive: false});
+  const req = http.request({hostname: "127.0.0.1", port, method: "CONNECT", path: "api.github.com:443",
+    headers: {Host: "api.github.com:443"}, agent, maxHeaderSize: 8192, signal});
+  try {
+    const connected = once(req, "connect", {signal});
+    req.end();
+    const [response, socket, head] = await connected as [http.IncomingMessage, Socket, Buffer];
+    if (response.statusCode !== 200 || head.length || socket.remoteAddress !== "127.0.0.1") {
+      socket.destroy();
+      throw Error("GitHub proxy refused the tunnel");
+    }
+    return socket;
+  } finally { agent.destroy(); }
+}
+
+interface ResponseOptions {
+  accept?: string;
+  maxBytes?: number;
+  prefixOnly?: boolean;
+}
+async function getOne(url: URL, tcp: Socket, signal: AbortSignal, options: ResponseOptions = {}) {
+  const name = addressLiteral(url.hostname);
+  let stream: Socket = tcp;
+  try {
+    signal.throwIfAborted();
     if (url.protocol === "https:") {
       stream = tls.connect({socket: tcp, minVersion: "TLSv1.2", rejectUnauthorized: true,
-        ca: tls.rootCertificates as string[], servername: isIP(target.name) ? undefined : target.name,
-        checkServerIdentity: (_host, cert) => tls.checkServerIdentity(target.name, cert)});
+        ca: tls.rootCertificates as string[], servername: isIP(name) ? undefined : name,
+        checkServerIdentity: (_host, cert) => tls.checkServerIdentity(name, cert)});
       await once(stream, "secureConnect", {signal});
     }
     const agent = new http.Agent({keepAlive: false});
     agent.createConnection = () => stream;
     try {
-      const req = http.get({hostname: target.name, port: target.port, path: url.pathname + url.search, signal, agent,
-        maxHeaderSize: 16384, headers: {Host: url.host, Connection: "close", "Accept-Encoding": "identity"}});
+      const req = http.get({hostname: name, port: Number(url.port || (url.protocol === "https:" ? 443 : 80)), path: url.pathname + url.search, signal, agent,
+        maxHeaderSize: 16384, headers: {Host: url.host, Connection: "close", "Accept-Encoding": "identity",
+          ...(options.accept ? {Accept: options.accept, "User-Agent": "pan-agent-repository-overview"} : {})}});
       const [response] = await once(req, "response", {signal}) as [http.IncomingMessage];
       const status = response.statusCode ?? 0;
       if ([301, 302, 303, 307, 308].includes(status) && response.headers.location) {
@@ -132,18 +168,45 @@ async function getOne(url: URL, grant: string | undefined, resolve: ResolveAddre
         if (url.protocol === "https:" && next.protocol !== "https:") throw new Denied("insecure redirect");
         return {redirect: next};
       }
-      if (status < 200 || status >= 300) throw Error("upstream HTTP " + status);
+      if (status < 200 || status >= 300) throw new UpstreamHttpError(status);
       const chunks: Buffer[] = [];
       let bytes = 0;
       for await (const chunk of response) {
         const data = Buffer.from(chunk);
+        const maxBytes = options.maxBytes ?? limit;
+        if (data.length > maxBytes - bytes) {
+          if (!options.prefixOnly) throw Error("response exceeds size limit");
+          chunks.push(data.subarray(0, maxBytes - bytes));
+          break;
+        }
         bytes += data.length;
-        if (bytes > limit) throw Error("response exceeds 8 MiB");
         chunks.push(data);
       }
       return {body: Buffer.concat(chunks)};
     } finally { agent.destroy(); }
   } finally { stream.destroy(); tcp.destroy(); }
+}
+
+export type RepositoryPart = "metadata" | "readme";
+export function validRepository(slug: string): boolean {
+  return /^[a-z0-9](?:[a-z0-9-]{0,37}[a-z0-9])?\/[a-z0-9_.-]{1,100}$/i.test(slug)
+    && ![".", ".."].includes(slug.split("/")[1]!);
+}
+
+/** The public repository capability accepts a validated slug and two fixed GitHub endpoints. */
+export async function fetchRepositoryPart(slug: string, part: RepositoryPart, signal: AbortSignal,
+    proxyPort?: number, resolve: ResolveAddresses = systemResolve): Promise<Buffer> {
+  if (!validRepository(slug) || (part !== "metadata" && part !== "readme")) throw new Denied("invalid repository");
+  const url = new URL("https://api.github.com/repos/" + slug + (part === "readme" ? "/readme" : ""));
+  const tcp = proxyPort === undefined
+    ? await directSocket(url, undefined, resolve, signal, () => {})
+    : await githubTunnel(proxyPort, signal);
+  const reply = await getOne(url, tcp, signal, {
+    accept: part === "readme" ? "application/vnd.github.raw+json" : "application/vnd.github+json",
+    maxBytes: part === "readme" ? 32768 : 98304, prefixOnly: part === "readme",
+  });
+  if (reply.redirect) throw new Denied("GitHub redirect refused");
+  return reply.body!;
 }
 
 export class NativeNetwork {
@@ -173,7 +236,7 @@ export class NativeNetwork {
         res.once("close", () => closed.abort());
         const signal = AbortSignal.any([closed.signal, this.lifetime.signal, AbortSignal.timeout(15000)]);
         void this.serve(req, res, resolve, signal).catch((error) => {
-          if (!res.destroyed) res.writeHead(error instanceof Denied ? 403 : 502).end("Native GET denied or unavailable\n");
+          if (!res.destroyed) res.writeHead(error instanceof Denied ? 403 : error instanceof UpstreamHttpError ? 424 : 502).end();
         }).finally(() => { this.active--; });
       });
     this.server.maxConnections = 12;
@@ -195,7 +258,8 @@ export class NativeNetwork {
     let url = new URL(query.get("url")!);
     for (let hop = 0; hop <= 5; hop++) {
       try {
-        const reply = await getOne(url, this.grant, resolve, signal, this.record);
+        const tcp = await directSocket(url, this.grant, resolve, signal, this.record);
+        const reply = await getOne(url, tcp, signal);
         signal.throwIfAborted();
         if (reply.body) { res.writeHead(200, {"Content-Length": reply.body.length}).end(reply.body); return; }
         url = reply.redirect!;

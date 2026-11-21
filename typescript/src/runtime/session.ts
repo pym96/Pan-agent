@@ -1,3 +1,4 @@
+import { repositoryQuestion, repositoryOverview, type RepositoryRead } from "./repository-overview.ts";
 import type { AdmissionFactory } from "../execution/admission.ts";
 import type { NativeCheckpoint, CheckpointSink } from "./checkpoint.ts";
 import type { AgentTool as PanAgentTool } from "../protocol/agent-tool.ts";
@@ -56,6 +57,7 @@ export interface SessionMemory {
 
 interface GeneralAgentSessionOptionsBase {
 	readonly trustedLocalWorkspace?: string;
+  readonly repository?: {readonly native: boolean; readonly proxy: boolean; readonly read: RepositoryRead};
 	readonly admission?: AdmissionFactory;
  readonly authorization?: AuthorizationOptions;
 	readonly executionBoundary?: {readonly identity?:import("../protocol/canonical-protocol.ts").JsonObject;readonly taskInstructions?:string;start(runId:string):Promise<void>;stop(reason:string):Promise<void>;cancel():void};
@@ -87,6 +89,8 @@ export type GeneralAgentSessionOptions = InjectedGeneralAgentSessionOptions | Na
 /** Product boundary for admission, Runbook binding and durable Run Archive settlement. */
 export class GeneralAgentSession {
 	private readonly authorization: SessionAuthorization;
+  private readonly repository?: GeneralAgentSessionOptionsBase["repository"];
+  private repositoryController?: AbortController;
 	private readonly executionBoundary?: GeneralAgentSessionOptionsBase["executionBoundary"];
 	private readonly kernel: AgentKernel;
 	private readonly onObservation: ObservationSink;
@@ -107,6 +111,7 @@ export class GeneralAgentSession {
 	private finishAdmission?: () => void;
 
 	constructor(options: GeneralAgentSessionOptions) {
+		this.repository = options.repository;
 		this.authorization = new SessionAuthorization(options.authorization);
 		const selector = (options as { readonly kernel?: unknown }).kernel;
 		if (selector === undefined) throw new Error("kernel_selection_required: select kernel native explicitly");
@@ -153,7 +158,7 @@ export class GeneralAgentSession {
 			: (options as InjectedGeneralAgentSessionOptions).adapterIdentity;
 	}
 
-	get isRunning(): boolean { return this.kernel.isRunning; }
+	get isRunning(): boolean { return this.kernel.isRunning || this.repositoryController !== undefined; }
 	get kernelKind(): KernelSelector { return this.kernel.kind; }
 	get contextMessageCount(): number { return this.kernel.contextMessageCount; }
 
@@ -168,6 +173,12 @@ export class GeneralAgentSession {
 		if (this.closed) throw new Error("GeneralAgentSession is closed");
 		if (task.trim().length === 0) throw new Error("Task must not be blank");
 		if (this.isRunning || this.admitting) throw new Error("A task is already running");
+		const question = this.repository && !checkpoint ? repositoryQuestion(task) : undefined;
+    const boundary = question && !this.repository?.native ? undefined : this.executionBoundary;
+    const controller = question ? new AbortController() : undefined;
+    this.repositoryController = controller;
+    const archivedTask = !question ? task : question.slug ? "/repo https://github.com/" + question.slug : "/repo [input omitted]";
+    const kind = question ? {taskKind: "repository_overview" as const} : {};
 		this.admitting = true;
 		this.admissionCancelled = false;
 		this.admissionDone = new Promise(resolve => { this.finishAdmission = resolve; });
@@ -179,9 +190,9 @@ export class GeneralAgentSession {
 		this.archiveChain = Promise.resolve();
 		this.archiveError = undefined;
 		await this.emit(
-			{ type: "run.started", runId: writer.runId, task },
+			{ type: "run.started", runId: writer.runId, task: archivedTask, ...kind },
 			{
-				type: "run.started", runId: writer.runId, task,
+				type: "run.started", runId: writer.runId, task: archivedTask, ...kind,
 				provider: this.adapterIdentity.provider, model: this.adapterIdentity.modelId,
 				thinking: this.adapterIdentity.thinkingLevel, runbook_revision: runbook.revision,
 			},
@@ -189,16 +200,22 @@ export class GeneralAgentSession {
 
 		let outcome;
 		try {
-			if(!this.admissionCancelled)await this.executionBoundary?.start(writer.runId);
-            if (this.executionBoundary?.identity) {
-                await this.archiveAppend({type:"execution.boundary", ...this.executionBoundary.identity});
+			if(!this.admissionCancelled)await boundary?.start(writer.runId);
+            if (boundary?.identity) {
+                await this.archiveAppend({type:"execution.boundary", ...boundary.identity});
             } else if (this.trustedLocalWorkspace) {
                 await this.archiveAppend({
                     type: "execution.boundary", executionMode: "trusted-local", backend: "host",
                     selection: "explicit", workspace: this.trustedLocalWorkspace, sessionId: this.authorization.sessionId,
                 });
             }
-			outcome = this.admissionCancelled ? {status:'cancelled' as const,reason:'operator_cancelled',finalText:'',modelCalls:0,toolCalls:0,usage:EMPTY_USAGE} : await (checkpoint
+			if (question && controller && this.repository) {
+        const mode = String(boundary?.identity?.executionMode ?? "unavailable");
+        const answer = await repositoryOverview(question, mode, this.repository.read, controller.signal, this.repository.proxy);
+        outcome = answer;
+        await this.emit({type: "repository.overview", runId: writer.runId, text: answer.finalText, mode,
+          requests: answer.requests, transport: this.repository.proxy ? "github-loopback-proxy" : "native-public-get"});
+      } else outcome = this.admissionCancelled ? {status:'cancelled' as const,reason:'operator_cancelled',finalText:'',modelCalls:0,toolCalls:0,usage:EMPTY_USAGE} : await (checkpoint
                 ? (request: import("./agent-kernel.ts").KernelRunRequest) => (this.kernel as NativeKernel).resumeTask(request, checkpoint)
                 : (request: import("./agent-kernel.ts").KernelRunRequest) => this.kernel.runTask(request))({
 				runId: writer.runId,
@@ -208,12 +225,12 @@ export class GeneralAgentSession {
 				...(this.onProgress ? {onProgress:this.onProgress} : {}),
 			});
 		} catch (error) {
-			await this.executionBoundary?.stop("task_failed");
+			await boundary?.stop("task_failed");
 			await this.settleArchive("failed", `kernel_error: ${error instanceof Error ? error.message : String(error)}`);
 			this.activeWriter = undefined;
 			throw error;
 		}
-		await this.executionBoundary?.stop("task_settled");
+		await boundary?.stop("task_settled");
 		if (this.archiveError) {
 			await this.settleArchive("failed", "archive_append_error");
 			this.activeWriter = undefined;
@@ -224,10 +241,10 @@ export class GeneralAgentSession {
 		const sealed = await this.settleArchive(archiveStateFor(outcome.status), outcome.reason);
 		this.activeWriter = undefined;
 		return { runId: writer.runId, ...outcome, archiveSealed: sealed !== undefined };
-		} finally { this.admitting = false; this.finishAdmission?.(); this.finishAdmission = undefined; }
+		} finally { this.repositoryController = undefined; this.admitting = false; this.finishAdmission?.(); this.finishAdmission = undefined; }
 	}
 
-	cancel(): void { if(this.admitting)this.admissionCancelled = true; this.kernel.cancel(); this.executionBoundary?.cancel(); }
+	cancel(): void { if(this.admitting)this.admissionCancelled = true; this.repositoryController?.abort(); this.kernel.cancel(); this.executionBoundary?.cancel(); }
 	/** Trusted application-side UI seam; never obtained from model messages or replay. */
 	setApprovalChannel(channel: ApprovalChannel | undefined): void { this.authorization.setChannel(channel); }
 	revokeShellTrust(): void { this.authorization.revoke(); }

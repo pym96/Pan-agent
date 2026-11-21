@@ -24,6 +24,29 @@ Pan 0.1.10 includes `pan-agent settings path`, `pan-agent settings show` and `pa
 
 The installed launcher selects the Native kernel and native workspace sandbox. In the 0.1.11 candidate, running `pan-agent` from home opens `~/pan-workspace`, creating it on first use. Run the same command in a project to work in that directory. The archive for both lives at `~/.pan-agent/archives`. With npm release 0.1.10, start in a project directory. Use `--workspace` and `--memory-root` to override them and keep their directories disjoint. First launch in a terminal offers configuration and reuses saved settings on later runs. No API request is made before a task is submitted.
 
+## Public repository overviews
+
+Start `pan-agent` in your project and paste one of these into the native TUI.
+
+```text
+https://github.com/pym96/Pan-agent How about this repository
+What can you tell me about https://github.com/cli/cli?
+介绍一下这个仓库 https://github.com/cli/cli
+/repo https://github.com/cli/cli
+```
+
+Pan recognizes a public root URL alone and common overview questions. Use `/repo URL` for an unambiguous read-only turn. The result shows GitHub metadata and a short, attributed README excerpt. File attachments must be removed first. Each subsequent coding request receives its usual tools.
+
+A public overview uses at most two unauthenticated HTTPS GETs to the GitHub API under a single 15-second deadline, without redirects. Metadata is limited to 96 KiB, and the excerpt comes from the first 32 KiB of the README. The model receives zero tokens for this turn. The archive saves the canonical public repository URL, the answer, the transport and the number of attempted requests. Ctrl-C cancels the turn. Native offline mode sends no requests; Docker and host fallback do not offer this capability.
+
+The default route checks and pins the public address. If DNS returns a reserved, private or synthetic address (including `198.18.0.0/15`), the request stops. For an existing trusted HTTP CONNECT proxy listening on your machine, quit Pan and run:
+
+```sh
+pan-agent --github-proxy-port 7890
+```
+
+Choose the port your proxy already uses. This flag lets Pan connect to `127.0.0.1:PORT` only to tunnel TLS to `api.github.com:443` for the public metadata and README endpoints. The local proxy sees the GitHub API host. Pan verifies GitHub's certificate against Node's bundled roots and sends only the public owner and repository path to GitHub. Ambient proxy settings, Git credentials, provider keys, repository links, and local task history are excluded from these requests. Ordinary `pan-fetch` retains its native destination policy. A GitHub 404 can mean a missing or private repository. If rate-limited, retry later. `pan-fetch --help` prints local usage inside a public-network native shell.
+
 ## Publish checklist (maintainer)
 
 For a future release, an authorized maintainer verifies registry ownership and reviews the exact archive before publishing.

@@ -42,3 +42,5 @@ Run `npm --prefix typescript run check` from the repository root. Reference rema
 [Supervised delivery](delivery.test.ts) checks file/criterion bounds and stale, incomplete or misattributed reviewer output.
 
 `workspace-trust.test.ts` covers operator reviews, observed narrowing, changed resource identity, scope expiry, cross-workspace use and linked fixtures. The installed OS checks live in `scripts/runtime-ci/workspace-trust.mjs`.
+
+[Public repository overview tests](repository-overview.test.ts) cover task routing, public evidence, unavailable modes, denied DNS and the explicit proxy boundary.

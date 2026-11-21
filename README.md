@@ -98,6 +98,12 @@ The workspace defaults to your current directory (`--workspace DIR` overrides it
 
 The 0.1.10 interactive launcher selects the native workspace sandbox by default. Check the backend shown in the banner. Pan checks enforcement before it sends a task to the model. Ctrl-C requests cancellation during execution and can retain the draft. In the 0.1.11 source candidate, Ctrl-C exits setup or the idle TUI with status 130. During execution, press it a second time to exit after cancellation settles. Bare startup needs a terminal; see the [package guide](typescript/README.md) for command interfaces.
 
+## Ask about a public GitHub repository
+
+In the 0.1.11 source candidate, start `pan-agent` and paste `https://github.com/pym96/Pan-agent How about this repository` into the TUI. Pan shows GitHub metadata and a short excerpt from the README, with source URLs. You can also type `/repo https://github.com/cli/cli`. This turn runs without a model or workspace tool.
+
+If native GET reports a reserved or local DNS address, check your DNS configuration. If you already use a trusted HTTP CONNECT proxy on your own machine, start `pan-agent --github-proxy-port 7890` (substitute its listening port). This explicitly trusts the service at `127.0.0.1` on that port to carry TLS to `api.github.com:443` for public repository overviews. Paste the same question in the TUI. [Limits and troubleshooting](typescript/README.md#public-repository-overviews)
+
 ## Try it without a key
 
 ```sh

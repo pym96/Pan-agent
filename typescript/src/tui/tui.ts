@@ -40,6 +40,8 @@ export function renderObservation(observation: SessionObservation): string[] {
 	switch (observation.type) {
 		case "run.started":
 			return [`RUN ${observation.runId}`, `TASK ${observation.task}`];
+		case "repository.overview":
+			return [`PUBLIC REPOSITORY (${observation.requests} attempted requests)`, observation.text];
 		case "model.turn_started":
 			return [`MODEL turn=${observation.turn} started`];
 		case "model.turn_settled":
@@ -76,6 +78,7 @@ export function renderArchivedRecord(record: Record<string, unknown>): string[] 
 	}
 	const known = new Set([
 		"run.started",
+		"repository.overview",
 		"model.turn_started",
 		"model.turn_settled",
 		"tool.started",

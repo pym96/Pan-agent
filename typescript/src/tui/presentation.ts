@@ -114,7 +114,7 @@ export function createCompactPresentation(initialWrite: (line: string) => void =
 		}
 	}
 	function progress(record: Record<string, unknown>): void {
-		if (record.type === "run.started") { write("Task running"); attachedTask(str(record.task), false); }
+		if (record.type === "run.started") { write(record.taskKind === "repository_overview" ? "Reading public repository" : "Task running"); attachedTask(str(record.task), false); }
 		if (record.type === "model.turn_started") write("  · Waiting for model");
 		if (record.type === "tool.started") write(`  · ${terminalText(str(record.toolName))} ${identifierPreview(identifier(record))} · Waiting for tool · :details`);
 		if (record.type === "tool.settled") write(`  ${record.isError === true ? "✗ Error" : "✓ Returned"} ${terminalText(str(record.toolName))} · :details`);
@@ -123,7 +123,7 @@ export function createCompactPresentation(initialWrite: (line: string) => void =
 		const terminal = [...records].reverse().find(record => record.type === "run.terminal");
 		const seal = [...records].reverse().find(record => record.type === "run.settled");
 		const status = result?.status ?? terminal?.status ?? seal?.settled_state;
-		const finalText = result?.finalText ?? str([...records].reverse().find(record => record.type === "model.turn_settled" && !record.failure)?.text ?? "");
+		const finalText = result?.finalText ?? str([...records].reverse().find(record => (record.type === "model.turn_settled" && !record.failure || record.type === "repository.overview"))?.text ?? "");
 		if (finalText && (archived || finalText !== renderedAccepted)) emit(framed(status === "completed" ? "Final answer" : "Partial response (task incomplete)", finalText));
 		if (!archived && status !== "completed" && renderedAccepted && !transientFailed) write("Partial response — Run not completed");
 		write(`${disposition(status)} (${terminalText(str(status))}) · Model calls ${result?.modelCalls ?? missing} · Tool results ${count("tool.settled")} · :details for details`);
@@ -188,6 +188,7 @@ export function createCompactPresentation(initialWrite: (line: string) => void =
 						field(record.isError === true ? "Tool result: error" : "Tool result: success", `${str(record.toolName)} · call=${str(record.toolCallId)}`);
 						field("Full tool result", str(record.text));
 						field("Tool result metadata", JSON.stringify(selected(record.details, ["path", "bytes", "edits", "command", "cwd", "stdout", "stderr", "exitCode", "signal", "status", "spawned"]))); break;
+					case "repository.overview": field("Public repository read", `${str(record.transport)} · requests ${record.requests}\n${str(record.text)}`); break;
 					case "run.terminal": field("Terminal", `${str(record.status)} · ${str(record.reason)}`); break;
 					case "run.settled": field("Archive settlement", `${str(record.settled_state)} · ${str(record.reason)}`); break;
 				}
