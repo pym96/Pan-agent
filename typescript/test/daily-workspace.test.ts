@@ -17,7 +17,7 @@ test('C-TUI-A01 transcript focus selects tool items; overlay keys never admit or
 test('C-TUI-A02 actual input parser buffers split UTF-8 and bracketed paste without interpreting commands',async()=>{const f=fixture('/tmp');f.ui.start();f.ui.phase='idle';const text='中e\u0301👩‍💻\n@file\n:exit',bytes=Buffer.from('\x1b[200~'+text+'\x1b[201~');for(const byte of bytes)f.input.write(Buffer.from([byte]));await wait(()=>f.ui.editor.text===text);assert.equal(f.ui.picker,undefined);assert.deepEqual(f.counts(),{admits:0,cancels:0});f.ui.dispose();assert.equal(f.input.isRaw,false);});
 
 test('C-TUI-A-R01 SGR wheel is scoped, fragmented reports never edit, paste stays literal',async()=>{
- const f=fixture('/tmp');f.ui.entries=[{role:'Pan',status:'Completed',text:Array.from({length:500},(_,i)=>`line ${i}`).join('\n')}];f.ui.start();f.ui.phase='idle';const tail=f.ui.top;
+ const f=fixture('/tmp');f.ui.entries=[{role:'Pan',status:'Completed',text:Array.from({length:500},(_,i)=>`line ${i}`).join('\n')}];f.ui.start();f.ui.phase='idle';f.input.write('\x14');const tail=f.ui.top;
  for(const c of '\x1b[<64;3;3M')f.input.write(c);assert.equal(f.ui.top,tail-3);assert.equal(f.ui.follow,false);
  for(const value of ['\x1b[<65;3;23M','\x1b[<66;3;3M','\x1b[<64;bad;3M','\x1b[<64;3;\rM'])f.input.write(value);
  assert.equal(f.ui.editor.text,'');assert.equal(f.ui.top,tail-3);assert.equal(f.counts().admits,0);
@@ -67,4 +67,73 @@ test('C-TUI-A-R05 frame ceiling and unsupported CSI SS3 control strings quaranti
 test('C-TUI-A-R05 pending ESC keeps picker intact; Ctrl-G closes without late wheel or text; cancellation remains effective',async t=>{
  t.mock.timers.enable({apis:['setTimeout','Date']});const f=fixture('/tmp');f.ui.start();f.ui.phase='idle';f.ui.editor.insert('draft');f.input.write('\x1b');t.mock.timers.tick(2**40);assert.equal(f.ui.editor.text,'draft');assert.equal(f.ui.inputState.pending,true);f.input.write('\x07');f.input.write('[<64;3;3M');assert.equal(f.ui.editor.text,'draft');assert.equal(f.ui.inputState.pending,false);
  f.ui.phase='running';f.input.write('\x1b[<');f.input.write('\x03');f.input.write('\x03');assert.equal(f.counts().cancels,1);f.input.write('64;3;3M');assert.equal(f.ui.editor.text,'draft');f.ui.dispose();
+});
+
+test('copy selects retained output across tasks and views without admitting work or resolving approvals', async t => {
+ const {ui, input, output, presentation, counts}=fixture('/tmp');
+ let bytes='';
+ output.on('data',chunk=>{bytes+=chunk.toString();});
+ ui.start();
+ t.after(()=>ui.dispose());
+ const inject=(record:Record<string,unknown>)=>presentation.observe(record as Parameters<typeof presentation.observe>[0]);
+ const command=(value:string)=>input.write(value+'\r');
+ const files=new Set<string>();
+ t.after(async()=>{const {rm}=await import('node:fs/promises');const {dirname}=await import('node:path');for(const file of files)await rm(dirname(file),{recursive:true,force:true});});
+ const copy=async()=>{
+  input.write('\x19');
+  const file=(ui as unknown as {lastCopyFile:string}).lastCopyFile;
+  files.add(file);
+  const fs=await import('node:fs/promises');
+  assert.equal((await fs.stat(file)).mode&0o777,0o600);
+  const text=await fs.readFile(file,'utf8');
+  input.write('\x07');
+  return text;
+ };
+ assert.doesNotMatch(bytes,/\x1b\[\?100[026]h|\x1b\]52;/);
+ command(':mouse on');assert.match(bytes,/\x1b\[\?1002h/);
+ command(':mouse off');assert.match(bytes,/\x1b\[\?1002l/);
+ const long='起点 👩‍💻\n'+'  const path = "a\\b";\n'.repeat(65)+'末尾';
+ for(const [runId,answer] of [['one',long],['two','next answer']] as const){
+  inject({type:'run.started',runId,task:runId});
+  inject({type:'model.turn_started',runId,turn:1});
+  presentation.progress!({runId,turn:1,text:answer} as Parameters<NonNullable<typeof presentation.progress>>[0]);
+  inject({type:'model.turn_settled',runId,text:answer});
+  for(const isError of [false,true]){
+   const id=String(isError);
+   inject({type:'tool.started',runId,toolCallId:id,toolName:'bash',arguments:{api_key:'private_canary'}});
+   inject({type:'tool.settled',runId,toolCallId:id,toolName:'bash',isError,text:runId+' '+(isError?'failure':'success')+'\nsecond line',details:{hidden:'private_canary'}});
+  }
+ }
+ ui.editor.insert('unsent-private-draft');
+ assert.doesNotMatch(bytes,/\x1b\]52;/);
+ const all=await copy();
+ assert.equal(all.split(long).length,2);
+ for(const label of ['one success','one failure','two success','two failure'])assert.ok(all.includes(label+'\nsecond line'));
+ assert.doesNotMatch(all,/private_canary|unsent-private-draft|\x1b/);
+ assert.equal(ui.editor.text,'unsent-private-draft');
+ ui.editor.clear();command(':details');
+ const details=await copy();assert.match(details,/Full tool result\ntwo failure\nsecond line/);
+ assert.doesNotMatch(details,/private_canary|one success/);
+ input.write('\x07');
+ const ac=new AbortController();
+ const decision=(ui as unknown as {requestApproval(r:object,s:AbortSignal):Promise<{decision:string}>}).requestApproval(
+  {requestId:'approval-1',tool:'bash',workspace:'/tmp',reason:'shell_host_authority',target:'test operation',metadata:[]},ac.signal);
+ assert.match(await copy(),/test operation/);
+ assert.ok(ui.approval,'copy must leave approval pending');
+ ac.abort();assert.equal((await decision).decision,'deny');
+ assert.deepEqual(counts(),{admits:0,cancels:0});
+});
+
+test('large retained output stays complete in the private file and sends no clipboard control',async t=>{
+ const {copyOutput}=await import('../src/tui/copy-output.ts');
+ const {readFile,rm}=await import('node:fs/promises');
+ const {dirname}=await import('node:path');
+ const expected='中\tfile\\name\n'.repeat(8192);
+ const controls:string[]=[];
+ const receipt=copyOutput('\x1b[31m'+expected+'\x1b[0m',s=>controls.push(s));
+ assert.ok(receipt.file);const file=receipt.file;
+ t.after(()=>rm(dirname(file),{recursive:true,force:true}));
+ assert.deepEqual(controls,[]);
+ assert.match(receipt.lines.join('\n'),/skipped/);
+ assert.equal(await readFile(file,'utf8'),expected);
 });

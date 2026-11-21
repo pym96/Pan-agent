@@ -88,6 +88,10 @@ pan-agent
 
 When the TUI shows **Write a task.**, type `Create hello.txt containing Hello from Pan.` and press Enter. Review any tool approval before allowing it, then inspect the resulting file. **Startup and configuration make no model request; submitting this task uses your provider and may incur charges.** A successful configuration does not check whether your key or provider account works.
 
+Drag over visible output and use your terminal’s Copy shortcut. Press **Ctrl-Y** for the complete conversation, including retained tool results and errors. Inside a view such as `:details` or `:replay RUN_ID`, Ctrl-Y copies that view. You can also type `:copy` from the composer. Pan requests clipboard access through the terminal (OSC 52) and shows the path to a private UTF-8 text file. Open that file on the machine running Pan if your terminal ignores the request or the output exceeds 72 KiB. Remove the file when finished.
+
+Use Page Up/Down to scroll. **Ctrl-T** switches between text selection and Pan’s mouse wheel and draggable scrollbar. The commands `:mouse on` and `:mouse off` also switch mouse navigation.
+
 Use `:exit` to quit. If environment mode reports a missing `DEEPSEEK_API_KEY` or `KIMI_API_KEY`, exit, repeat the shell key-input step and restart Pan. For a Keychain error, rerun `pan-agent configure` and check the save result. Never enter an API key as task text. To try the interface without an API key, use the offline demo below.
 
 The workspace defaults to your current directory (`--workspace DIR` overrides it); history defaults to `~/.pan-agent/archives` (`--memory-root DIR` overrides it). Keep history outside the workspace. In the 0.1.11 candidate, a bare launch from home opens `~/pan-workspace` and reuses it next time. With npm release 0.1.10, enter a project subdirectory first to avoid an overlap error.

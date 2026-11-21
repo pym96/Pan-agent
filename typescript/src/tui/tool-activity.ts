@@ -1,8 +1,8 @@
 import { basename } from 'node:path';
 import { terminalText } from './presentation.ts';
 
-type Call = { id: string; name: string; label: string; status: 'Running'|'Returned'|'Error' };
-/** Display-only state. Retains safe labels and correlation, never raw arguments/results. */
+type Call = { id: string; name: string; label: string; resultText?: string; status: 'Running'|'Returned'|'Error' };
+/** Display-only state. Retains labels and the public result text exposed by :details. */
 export class ToolActivity {
  readonly calls: Call[] = [];
  private invalid = false;
@@ -23,6 +23,7 @@ export class ToolActivity {
   }else{
    if(!previous||previous.name!==event.toolName||previous.status!=='Running'||typeof event.isError!=='boolean'){this.invalid=true;return;}
    previous.status=event.isError?'Error':'Returned';this.latest=previous;
+   if(typeof event.text==='string')previous.resultText=event.text;
   }
  }
  seal(): void {if(this.calls.some(call=>call.status==='Running'))this.invalid=true;}
@@ -36,6 +37,11 @@ export class ToolActivity {
  get lines(): string[] {
   if(this.invalid)return ['Activity unavailable · inconsistent records'];
   return this.calls.map((call,i)=>`${i+1}. ${terminalText(call.name)} · ${call.label} · ${call.status}`);
+ }
+ get copyLines(): string[] {
+  if(this.invalid)return this.lines;
+  const labels=this.lines;
+  return this.calls.flatMap((call,i)=>call.resultText===undefined?[labels[i]!]:[labels[i]!,call.resultText]);
  }
  static replay(records: readonly Record<string,unknown>[],runId:string): ToolActivity {
   const result=new ToolActivity(runId);

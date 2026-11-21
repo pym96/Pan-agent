@@ -70,6 +70,7 @@ try:
  until('Write a task')  # #49 prospective startup: no session-wide y.
  # Empty transcript: the track column stays blank (no glyphs).
  glyphs=track_glyphs(columns,rows);assert all(g not in ('█','│') for g in glyphs.values()),glyphs
+ deliver('\x14')  # enable Pan scrollbar navigation
  deliver('demo\n');until('Completed',60)
  pump(1)
  # Tail follow: final line visible, thumb at the bottom of the track.

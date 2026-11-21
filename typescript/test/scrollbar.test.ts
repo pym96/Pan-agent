@@ -300,6 +300,7 @@ test('C-SBAR-02@1.1 only in-track presses capture; horizontal drift and y oversh
  dragTo(ui, 120, 2);
  assert.equal(ui.top, topDrag2);
  // Apple Terminal-compatible button=0/m release clears capture without repositioning.
+ ui.key(undefined,{name:'t',ctrl:true});
  press(ui, 120, 8);
  assert.equal(priv(ui).dragging, true);
  priv(ui).parser.feed('\x1b[<0;1;999999m');
@@ -423,7 +424,8 @@ test('C-SBAR-03 fragmented press/drag/release integrate identically; drained fra
  ui.draw();
  const V = priv(ui).bodyHeight;
  const seq = (yPress: number, yDrag: number, yRelease: number) => `\x1b[<0;120;${yPress}M\x1b[<32;120;${yDrag}M\x1b[<3;120;${yRelease}m`;
- // Whole-frame baseline through the real parser.
+ // Opt in to terminal mouse reporting before the real parser receives mouse events.
+ ui.key(undefined,{name:"t",ctrl:true});
  priv(ui).parser.feed(seq(2, 18, 30));
  const expected = { top: ui.top, follow: ui.follow, dragging: priv(ui).dragging };
  assert.equal(expected.dragging, false);

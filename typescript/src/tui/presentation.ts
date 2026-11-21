@@ -65,7 +65,7 @@ export interface CompactPresentation {
 	observe(observation: SessionObservation): void;
 	settle(result: TaskRunResult): void;
 	replay(records: readonly Record<string, unknown>[], runId: string): void;
-	details(): void;
+	details(copy?: (text: string) => void): void;
 	attach(write: (line: string) => void, activity?: () => void, append?: (fragment: string) => void): void;
 	progress?(progress: SessionProgress): void;
 	progressError?(): void;
@@ -103,14 +103,14 @@ export function createCompactPresentation(initialWrite: (line: string) => void =
 		const args = object(record.arguments);
 		return typeof args.path === "string" ? args.path : typeof args.command === "string" ? args.command : "";
 	};
-	function attachedTask(task: string, full: boolean): void {
+	function attachedTask(task: string, full: boolean, line = write, field = (label: string, text: string) => emit(framed(label, text))): void {
 		const decoded = decodeAttachedTask(task);
-		if (!decoded) { if (full) emit(framed("Task", task)); return; }
-		if (full) emit(framed("Original prompt (user data)", decoded.prompt));
-		write(`Recorded attachments ${decoded.attachments.length} · selection-time snapshots · user data`);
+		if (!decoded) { if (full) field("Task", task); return; }
+		if (full) field("Original prompt (user data)", decoded.prompt);
+		line(`Recorded attachments ${decoded.attachments.length} · selection-time snapshots · user data`);
 		for (const item of decoded.attachments) {
-			emit(framed("Snapshot identity", `${item.path}\n${item.bytes} bytes\nSHA-256 ${item.sha256}`));
-			if (full) emit(framed("Recorded snapshot content", item.text));
+			field("Snapshot identity", `${item.path}\n${item.bytes} bytes\nSHA-256 ${item.sha256}`);
+			if (full) field("Recorded snapshot content", item.text);
 		}
 	}
 	function progress(record: Record<string, unknown>): void {
@@ -164,34 +164,36 @@ export function createCompactPresentation(initialWrite: (line: string) => void =
 			for (const record of records) progress(record);
 			summary();
 		},
-		details() {
-			if (!selectedId) { write("No submitted run yet. No run selected; submit a task or use :replay RUN_ID."); return; }
-			write(`Run details ${terminalText(selectedId)} · ${archived ? "archived" : "live"}`);
-			write(`Admitted tool calls ${result?.toolCalls ?? missing} · Tool start events ${count("tool.started")} · Tool results ${count("tool.settled")}`);
-			write(`Model calls ${result?.modelCalls ?? missing} · Model start events ${count("model.turn_started")} · Model result events ${count("model.turn_settled")}`);
+		details(copy) {
+   const line = (text: string) => { write(text); copy?.(text); };
+   const field = (label: string, text: string) => { emit(framed(label, text)); copy?.(label + "\n" + text); };
+			if (!selectedId) { line("No submitted run yet. No run selected; submit a task or use :replay RUN_ID."); return; }
+			line(`Run details ${terminalText(selectedId)} · ${archived ? "archived" : "live"}`);
+			line(`Admitted tool calls ${result?.toolCalls ?? missing} · Tool start events ${count("tool.started")} · Tool results ${count("tool.settled")}`);
+			line(`Model calls ${result?.modelCalls ?? missing} · Model start events ${count("model.turn_started")} · Model result events ${count("model.turn_settled")}`);
 			for (const record of records) {
 				switch (record.type) {
 					case "run.started":
-						attachedTask(str(record.task), true);
-						emit(framed("Archive identity", JSON.stringify(selected(record, ["provider", "model", "runbook_revision"])))); break;
+						attachedTask(str(record.task), true, line, field);
+						field("Archive identity", JSON.stringify(selected(record, ["provider", "model", "runbook_revision"]))); break;
 					case "model.turn_settled":
-						emit(framed("Model identity and stop reason", `${identityText(record.identity)} · stop=${str(record.stopReason)}`));
-						emit(framed("Usage", usageText(record.usage)));
-						emit(framed("Public model text", str(record.text)));
-						if (record.failure) emit(framed("Model error", JSON.stringify(selected(record.failure, ["category", "detail", "retryable"])))); break;
+						field("Model identity and stop reason", `${identityText(record.identity)} · stop=${str(record.stopReason)}`);
+						field("Usage", usageText(record.usage));
+						field("Public model text", str(record.text));
+						if (record.failure) field("Model error", JSON.stringify(selected(record.failure, ["category", "detail", "retryable"]))); break;
 					case "tool.started":
-						emit(framed("Tool start event (not proof of execution)", `${str(record.toolName)} · call=${str(record.toolCallId)}`));
-						emit(framed("Full arguments", JSON.stringify(publicArguments(record.arguments), null, 2))); break;
+						field("Tool start event (not proof of execution)", `${str(record.toolName)} · call=${str(record.toolCallId)}`);
+						field("Full arguments", JSON.stringify(publicArguments(record.arguments), null, 2)); break;
 					case "tool.settled":
-						emit(framed(record.isError === true ? "Tool result: error" : "Tool result: success", `${str(record.toolName)} · call=${str(record.toolCallId)}`));
-						emit(framed("Full tool result", str(record.text)));
-						emit(framed("Tool result metadata", JSON.stringify(selected(record.details, ["path", "bytes", "edits", "command", "cwd", "stdout", "stderr", "exitCode", "signal", "status", "spawned"])))); break;
-					case "run.terminal": emit(framed("Terminal", `${str(record.status)} · ${str(record.reason)}`)); break;
-					case "run.settled": emit(framed("Archive settlement", `${str(record.settled_state)} · ${str(record.reason)}`)); break;
+						field(record.isError === true ? "Tool result: error" : "Tool result: success", `${str(record.toolName)} · call=${str(record.toolCallId)}`);
+						field("Full tool result", str(record.text));
+						field("Tool result metadata", JSON.stringify(selected(record.details, ["path", "bytes", "edits", "command", "cwd", "stdout", "stderr", "exitCode", "signal", "status", "spawned"]))); break;
+					case "run.terminal": field("Terminal", `${str(record.status)} · ${str(record.reason)}`); break;
+					case "run.settled": field("Archive settlement", `${str(record.settled_state)} · ${str(record.reason)}`); break;
 				}
 			}
-			if (transientFailed) emit(framed("Transient unfinished preview (not archived)", transientFailed));
-			if (result) { write(`Archive sealed ${result.archiveSealed}`); emit(framed("Total Usage", usageText(result.usage))); }
+			if (transientFailed) field("Transient unfinished preview (not archived)", transientFailed);
+			if (result) { line(`Archive sealed ${result.archiveSealed}`); field("Total Usage", usageText(result.usage)); }
 		},
 	};
 }

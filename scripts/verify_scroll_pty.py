@@ -38,6 +38,7 @@ def resize(cw,rh):
  fcntl.ioctl(slave,termios.TIOCSWINSZ,struct.pack('HHHH',rh,cw,0,0));os.kill(child.pid,signal.SIGWINCH);pump(.3)
 try:
  until('Write a task')  # #49 prospective startup: no session-wide y.
+ deliver('\x14')  # enable Pan scrollbar navigation
  deliver('demo\n');until('Completed',60)
  pump(.5)
  def screen_text():

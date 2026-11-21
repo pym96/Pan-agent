@@ -1,3 +1,4 @@
+import { copyOutput } from './copy-output.ts';
 import { credentialGuidance } from './credential-guidance.ts';
 import { markdownRows, paintMarkdown, type StyledCell } from './markdown.ts';
 import { StringDecoder } from 'node:string_decoder';
@@ -27,7 +28,7 @@ export class DailyWorkspace {
  readonly editor=new DailyEditor();
  phase:'idle'|'running'|'cancelling'|'command'|'closed'='idle';
  focus:Focus='composer'; selected:AttachmentSnapshot[]=[]; chip=0;
- entries:Entry[]=[]; picker?:Picker; overlay?:{title:string;lines:string[];offset:number;focus:Focus;assistantText?:string};
+ entries:Entry[]=[]; picker?:Picker; overlay?:{title:string;lines:string[];offset:number;focus:Focus;assistantText?:string;copyLines?:()=>readonly string[]};
  safePaste=false; notice='Ready · Operations requiring permission ask before execution';
  approval?:{request:ApprovalRequest;choice:number;choices:ApprovalChoice[];settle:(choice:ApprovalChoice)=>void};
  toolCursor=0; private revealTool=false;
@@ -36,6 +37,9 @@ export class DailyWorkspace {
  private activityView?:ToolActivity;
  anchor?:Anchor;private contentRows:ContentRow[]=[];private bodyHeight=0;
  // #60 Criteria 1.1 pointer capture: only an in-track primary press starts it.
+ private mouseNavigation=false;
+ private copyReceipt?:{lines:string[];offset:number};
+ private lastCopyFile?:string;
  private dragging=false;
  private grabOffset=0;
  // #62 viewport-bounded layout: per-entry wrap cache keyed by width and per-entry stamps.
@@ -62,7 +66,7 @@ export class DailyWorkspace {
  }
  private requestApproval(request:ApprovalRequest,signal:AbortSignal):Promise<ApprovalDecision>{
   if(this.closing||this.phase==='cancelling'||signal.aborted)return Promise.resolve({requestId:request.requestId,decision:'deny'});
-  const previous=this.overlay,focus=this.focus;this.clearDrag();
+  this.copyReceipt=undefined;const previous=this.overlay,focus=this.focus;this.clearDrag();
   const choices:ApprovalChoice[]=request.tool==='bash'&&request.reason!=='sandbox_fixed_container'&&request.reason!=='host_fallback_operation'?['deny','allow-once','trust-shell']:['deny','allow-once'];
   this.overlay={title:'Approval required',lines:['Choices: Deny / Allow once',...(request.tool==='bash'&&request.reason!=='sandbox_fixed_container'&&request.reason!=='host_fallback_operation'?['Or: Trust shell for this session']:[]),`Tool: ${terminalText(request.tool)}`,`Workspace: ${terminalText(request.workspace)}`,`Reason: ${request.reason}`,'Operation / target (scroll to inspect all):',terminalText(request.target),...request.metadata,`Request: ${request.requestId}`,...(request.tool==='bash'&&request.reason==='shell_host_authority'?['Shell has host-user file/process/network authority, including protected and outside-workspace resources. Session trust applies ONLY to Shell; :trust off revokes it.']:[]),'End of operation details'],offset:0,focus};
   return new Promise(resolve=>{
@@ -71,8 +75,8 @@ export class DailyWorkspace {
    const abort=()=>settle('deny');this.approval={request,choice:0,choices,settle};signal.addEventListener('abort',abort,{once:true});if(signal.aborted)abort();this.draw();
   });
  }
- start():void {this.input.setRawMode(true);this.output.write('\x1b[?1049h\x1b[?2004h\x1b[?1000h\x1b[?1002h\x1b[?1006h\x1b[?25h');this.input.on('data',this.data);this.input.on('end',this.end);this.output.on('resize',this.resize);this.input.resume();this.draw();}
- dispose():void {this.clearDrag();this.picker?.abort.abort();this.input.off('data',this.data);this.input.off('end',this.end);this.output.off('resize',this.resize);this.input.setRawMode(this.raw);this.input.pause();this.output.write('\x1b[0m\x1b[?1006l\x1b[?1002l\x1b[?1000l\x1b[?2004l\x1b[?25h\x1b[?1049l');this.output.write(`Pan closed · Run ${terminalText(this.runId)} · Archives ${terminalText(this.options.archiveStore?.root??'not configured')}\n`);}
+ start():void {this.input.setRawMode(true);this.output.write('\x1b[?1049h\x1b[?2004h\x1b[?25h');this.input.on('data',this.data);this.input.on('end',this.end);this.output.on('resize',this.resize);this.input.resume();this.draw();}
+ dispose():void {this.clearDrag();this.picker?.abort.abort();this.input.off('data',this.data);this.input.off('end',this.end);this.output.off('resize',this.resize);this.input.setRawMode(this.raw);this.input.pause();this.output.write('\x1b[0m\x1b[?1006l\x1b[?1002l\x1b[?1000l\x1b[?2004l\x1b[?25h\x1b[?1049l');if(this.lastCopyFile)this.output.write(`Last copied text file: ${terminalText(this.lastCopyFile)}\n`);this.output.write(`Pan closed · Run ${terminalText(this.runId)} · Archives ${terminalText(this.options.archiveStore?.root??'not configured')}\n`);}
  private readonly resize=()=>this.draw();
  exitCode = 0;
  readonly interruptAndExit = () => {
@@ -87,10 +91,10 @@ export class DailyWorkspace {
  private finish():void {this.phase='closed';this.picker?.abort.abort();this.done();}
  private readonly parser=new FramedInput(event=>{
   if(event.type==='key')this.key(event.text,event.key);
-  else if(event.type==='wheel')this.wheel(event.delta,event.x,event.y);
-  else if(event.type==='mouse')this.mouse(event.action,event.x,event.y);
-  else if(event.type==='paste-start'){if(!this.approval){this.closePicker(false);this.overlay=undefined;}}
-  else {if(this.approval)return;this.editor.insert(event.text);this.focus='composer';this.notice='Pasted draft · Not submitted';this.draw();}
+  else if(event.type==='wheel'){if(this.mouseNavigation&&!this.copyReceipt)this.wheel(event.delta,event.x,event.y);}
+  else if(event.type==='mouse'){if(this.mouseNavigation&&!this.copyReceipt)this.mouse(event.action,event.x,event.y);}
+  else if(event.type==='paste-start'){if(!this.approval&&!this.copyReceipt){this.closePicker(false);this.overlay=undefined;}}
+  else {if(this.approval||this.copyReceipt)return;this.editor.insert(event.text);this.focus='composer';this.notice='Pasted draft · Not submitted';this.draw();}
  });
  get inputState(){return this.parser.state;}
  private readonly data=(data:Buffer|string):void=>{
@@ -217,7 +221,7 @@ export class DailyWorkspace {
   this.draw();
  }
  private cycle(reverse=false):void {const choices:Focus[]=['composer',...(this.selected.length?['attachments' as const]:[]),...(this.entries.length?['transcript' as const]:[])];const i=choices.indexOf(this.focus);this.focus=choices[(i+(reverse?-1:1)+choices.length)%choices.length]!;if(this.focus==='transcript')this.revealTool=true;this.draw();}
- private activityOverlay():void {const entry=this.entries.filter(e=>this.activities.has(e))[this.toolCursor];const a=entry&&this.activities.get(entry);if(!a)return;this.activityView=a;this.overlay={title:'Tool activity · view only',lines:a.lines,offset:0,focus:this.focus};this.draw();}
+ private activityOverlay():void {const entry=this.entries.filter(e=>this.activities.has(e))[this.toolCursor];const a=entry&&this.activities.get(entry);if(!a)return;this.activityView=a;this.overlay={title:'Tool activity · view only',lines:a.lines,copyLines:()=>a.copyLines,offset:0,focus:this.focus};this.draw();}
  private updateActivity():void {const entry=this.activityEntry,a=entry&&this.activities.get(entry);if(!a||!entry)return;entry.text=a.summary;this.touch(this.entries.indexOf(entry));if(this.overlay?.title==='Tool activity · view only'&&this.activityView===a)this.overlay.lines=a.lines;}
  private matches():readonly string[]{return this.picker?.names.filter(n=>n.includes(this.picker!.editor.text))??[];}
  private openPicker():void {const p:Picker={editor:new DailyEditor(),names:[],index:0,loading:true,capturing:false,abort:new AbortController()};this.picker=p;this.draw();void discoverAttachmentPaths(this.options.workspace).then(names=>{if(this.picker!==p)return;p.names=names;p.loading=false;this.draw();},()=>{if(this.picker!==p)return;this.picker=undefined;this.notice='Attachment discovery failed · draft retained';this.draw();});}
@@ -225,8 +229,38 @@ export class DailyWorkspace {
  private select():void {const p=this.picker;if(!p||p.loading||p.capturing)return;const path=this.matches()[p.index];if(path===undefined)return;this.barrier=true;if(this.selected.some(s=>s.path===path)){this.closePicker(false);this.notice='Already selected · Not submitted';return;}
   p.capturing=true;this.draw();void captureAttachment(this.options.workspace,path,this.limit-this.selected.reduce((n,s)=>n+s.bytes,0),p.abort.signal).then(snapshot=>{if(this.picker!==p)return;this.selected.push(snapshot);this.picker=undefined;this.focus='composer';this.notice='Attached · Not submitted · Enter Send';this.draw();},()=>{if(this.picker!==p)return;this.picker=undefined;this.notice='Attachment capture denied · draft retained';this.draw();});
  }
- private preview():void {const item=this.selected[this.chip]??this.selected.at(-1);if(!item){this.notice='No attachments selected';this.draw();return;}this.overlay={title:'Snapshot preview · Not submitted',lines:[...wrap(terminalText(item.path),Math.max(10,(this.output.columns??80)-4)),`${item.bytes} bytes`,`SHA-256 ${item.sha256}`,'Send includes this snapshot as user data and stores it in the Run Archive.',...item.text.split('\n').map(s=>'│ '+terminalText(s))],offset:0,focus:this.focus};this.draw();}
+ private preview():void {const item=this.selected[this.chip]??this.selected.at(-1);if(!item){this.notice='No attachments selected';this.draw();return;}this.overlay={title:'Snapshot preview · Not submitted',lines:[terminalText(item.path),`${item.bytes} bytes`,`SHA-256 ${item.sha256}`,'Send includes this snapshot as user data and stores it in the Run Archive.',...item.text.split('\n').map(s=>'│ '+terminalText(s))],copyLines:()=>[item.path,`${item.bytes} bytes`,'SHA-256 '+item.sha256,item.text],offset:0,focus:this.focus};this.draw();}
  private remove():void {this.selected.splice(this.chip,1);this.chip=Math.min(this.chip,Math.max(0,this.selected.length-1));if(!this.selected.length)this.focus='composer';this.notice='Not submitted · attachment removed';this.draw();}
+ private intro():string[] {return ['Write a task. @ opens files; Tab attaches; Enter sends.','Provider: '+terminalText(this.options.provider),'Workspace: '+terminalText(this.options.workspace),this.options.executionMode?.startsWith('native-')?`NATIVE ${this.options.executionMode.startsWith('native-linux')?'LINUX':'MACOS'} SANDBOX · shared workspace · ${this.options.executionMode.endsWith('offline')?'offline':'bounded HTTP(S) GET'} · retrieval disabled`:this.options.executionMode==='sandbox'?'DOCKER SANDBOX · offline container · retrieval disabled':'Host-user tools; Ctrl-D revokes this host session and exits.',this.options.executionMode?.startsWith('native-')?'Each task verifies its backend before the model runs. Sensitive/outside files are denied.':'Protected/outside/uncertain files and Shell ask before execution.',...(this.options.reportNotice?[this.options.reportNotice]:[])];}
+ private setMouseNavigation(enabled:boolean):void {
+  this.clearDrag();
+  this.mouseNavigation=enabled;
+  this.output.write(enabled?'\x1b[?1000h\x1b[?1002h\x1b[?1006h':'\x1b[?1006l\x1b[?1002l\x1b[?1000l');
+  this.notice=enabled?'Mouse navigation on · Ctrl-T to select text':'Mouse selection on · drag to select text';
+  this.draw();
+ }
+ private copyView():void {
+  let lines:string[];
+  if(this.overlay){
+   const view=this.overlay;
+   lines=[view.title,...(view.copyLines?.()??view.lines)];
+   if(view.assistantText!==undefined)lines.push(view.assistantText);
+  }else if(this.picker){
+   lines=['File picker',...this.matches()];
+  }else{
+   lines=this.entries.map(entry=>{
+    const activity=this.activities.get(entry);
+    const content=activity?[entry.text,...activity.copyLines].join('\n'):entry.text;
+    return [entry.role+(entry.status?' · '+entry.status:''),content].join('\n');
+   });
+   if(!lines.length)lines=this.intro();
+   lines.push(this.notice);
+  }
+  const receipt=copyOutput(lines.join(this.overlay||this.picker?'\n':'\n\n'),control=>this.output.write(control));
+  if(receipt.file)this.lastCopyFile=receipt.file;
+  this.copyReceipt={lines:receipt.lines.map(terminalText),offset:0};
+  this.draw();
+ }
  key(text:string|undefined,key:InputKey={}):void {
   if(this.closing||this.phase==='closed')return;
   if(key.ctrl&&(key.name==='g'||key.name==='c'))this.clearDrag(); // Cancellation always ends capture without scrolling.
@@ -237,6 +271,14 @@ export class DailyWorkspace {
    if(this.phase==='running'){this.cancel();return;}
    this.interruptAndExit();return;
   }
+  if(key.ctrl&&key.name==='t'){this.setMouseNavigation(!this.mouseNavigation);return;}
+  if(this.copyReceipt){
+   if(enter||key.ctrl&&key.name==='g'){this.copyReceipt=undefined;this.barrier=true;}
+   else if(key.name==='up'||key.name==='pageup')this.copyReceipt.offset=Math.max(0,this.copyReceipt.offset-1);
+   else if(key.name==='down'||key.name==='pagedown')this.copyReceipt.offset++;
+   this.draw();return;
+  }
+  if(key.ctrl&&key.name==='y'){this.copyView();return;}
   if(this.approval){const p=this.approval;
    if(key.ctrl&&key.name==='g'){p.settle('deny');return;}
    if(enter){p.settle(p.choices[p.choice]!);return;}
@@ -283,6 +325,8 @@ export class DailyWorkspace {
   void this.options.session.runTask(prepared).then(result=>this.options.presentation!.settle(result),error=>{if(this.history.length===admitted){this.editor.text=before.text;this.editor.caret=before.caret;this.selected=before.selected;this.chip=before.chip;}if(this.active){this.active.status='Partial response · local failure';this.active.text=terminalText(error instanceof Error?error.message:String(error));this.touch(this.activeIndex);}this.notice='Local error · inspect the diagnostic';}).finally(()=>{if(this.closing)this.finish();else{this.phase='idle';this.draw();}});
  }
  private async command(text:string):Promise<void> {
+  if(text===':copy'){this.copyView();return;}
+  if(text===':mouse on'||text===':mouse off'){this.setMouseNavigation(text===':mouse on');return;}
   if(text===':exit'){this.end();return;}
   if(text===':preview'||text===':attachments'){this.preview();return;}
   const focus=this.focus;this.overlay={title:'View only · '+text.split(' ')[0],lines:[],offset:0,focus};
@@ -292,11 +336,11 @@ export class DailyWorkspace {
     this.overlay.lines.push(this.options.fallback?.choose(choice)??'Fallback unavailable for this execution mode.');
    }
    else if(text===':trust off'){this.options.session.revokeShellTrust();this.overlay.lines.push('Shell session trust revoked. Next command requires Allow once.');}
-   else if(text===':details'){this.options.presentation!.details();if(focus==='transcript'){const tool=this.entries.filter(e=>e.role==='Tool')[this.toolCursor];if(tool)this.overlay.offset=Math.max(0,this.overlay.lines.findIndex(line=>line.includes(tool.text)));}}
-   else if(text===':help')this.overlay.lines.push('After native setup is unavailable: :fallback cancel / once / task; select a scope and submit a new task. Each host action needs approval.','Enter sends an idle nonblank draft; busy Enter never queues.','Alt-Enter: newline. Ctrl-V: safe paste/edit mode; Ctrl-G exits it.','@ file picker; arrows choose; Tab attaches; Enter only hints; Ctrl-P preview; Ctrl-R remove.','Wheel/PageUp/Down: conversation. Ctrl-End: follow tail. Up/Down: prompt history at draft edges.','Scrollbar: the final column is the track; primary press/drag jumps, release ends. A terminal without drag motion still positions on press.','Compatibility: raw Esc reserves a frame prefix, never Back. Ctrl-G backs out; pending tails drain before raw typing resumes. Paste enters literal data.','Ctrl-C exits while idle, including pickers and views. During a task Ctrl-C cancels, then Ctrl-C exits. Ctrl-D exits even with pending input; :exit quits. :details / :runs / :replay ID are view only.');
+   else if(text===':details'){const lines:string[]=[];this.overlay.copyLines=()=>lines;this.options.presentation!.details(line=>lines.push(line));if(focus==='transcript'){const tool=this.entries.filter(e=>e.role==='Tool')[this.toolCursor];if(tool)this.overlay.offset=Math.max(0,this.overlay.lines.findIndex(line=>line.includes(tool.text)));}}
+   else if(text===':help')this.overlay.lines.push('After native setup is unavailable: :fallback cancel / once / task; select a scope and submit a new task. Each host action needs approval.','Enter sends an idle nonblank draft; busy Enter never queues.','Alt-Enter: newline. Ctrl-V: safe paste/edit mode; Ctrl-G exits it.','@ file picker; arrows choose; Tab attaches; Enter only hints; Ctrl-P preview; Ctrl-R remove.','Drag to select text. Ctrl-Y copies the full transcript or current view (including retained tool output). :copy also works from the composer.','Ctrl-T toggles mouse navigation; :mouse on/off also works. PgUp/Dn scroll; wheel scrolls in mouse navigation mode. Ctrl-End: follow tail. Up/Down: prompt history at draft edges.','Mouse navigation: the final column is the track; primary press/drag jumps, release ends. A terminal without drag motion still positions on press.','Compatibility: raw Esc reserves a frame prefix, never Back. Ctrl-G backs out; pending tails drain before raw typing resumes. Paste enters literal data.','Ctrl-C exits while idle, including pickers and views. During a task Ctrl-C cancels, then Ctrl-C exits. Ctrl-D exits even with pending input; :exit quits. :details / :runs / :replay ID are view only.');
    else if(text===':context')this.overlay.lines.push(`Context messages ${this.options.session.contextMessageCount}`);
    else if(text===':runs'){const store=this.options.archiveStore;if(!store)this.overlay.lines.push('Archives not configured');else{const entries=await readdir(join(store.root,'runs'),{withFileTypes:true});this.overlay.lines.push('Archived records · view only');if(!entries.length)this.overlay.lines.push('No submitted run yet');for(const e of entries)if(e.isDirectory()&&/^[A-Za-z0-9_-]+$/.test(e.name))this.overlay.lines.push(terminalText(e.name));}}
-   else if(text.startsWith(':replay ')){const id=text.slice(8).trim(),store=this.options.archiveStore;if(!store||!/^[A-Za-z0-9_-]+$/.test(id))throw Error();const dir=join(store.root,'runs',id);if(!(await lstat(dir)).isDirectory())throw Error();for(const f of ['manifest.json','events.jsonl'])if(!(await lstat(join(dir,f))).isFile())throw Error();const records=await store.readArchive(id);this.replaying=true;try{this.options.presentation!.replay(records,id);}finally{this.replaying=false;}const activity=ToolActivity.replay(records,id);this.overlay.lines=['REPLAY · view only',activity.summary,...activity.lines];const final=records.filter(e=>e.type==='model.turn_settled'&&typeof e.text==='string').at(-1);if(final){this.overlay.lines.push('Final response');this.overlay.assistantText=String(final.text);}}
+   else if(text.startsWith(':replay ')){const id=text.slice(8).trim(),store=this.options.archiveStore;if(!store||!/^[A-Za-z0-9_-]+$/.test(id))throw Error();const dir=join(store.root,'runs',id);if(!(await lstat(dir)).isDirectory())throw Error();for(const f of ['manifest.json','events.jsonl'])if(!(await lstat(join(dir,f))).isFile())throw Error();const records=await store.readArchive(id);this.replaying=true;try{this.options.presentation!.replay(records,id);}finally{this.replaying=false;}const activity=ToolActivity.replay(records,id);this.overlay.lines=['REPLAY · view only',activity.summary,...activity.lines];this.overlay.copyLines=()=>['REPLAY · view only',activity.summary,...activity.copyLines,...(final?['Final response']:[])];const final=records.filter(e=>e.type==='model.turn_settled'&&typeof e.text==='string').at(-1);if(final){this.overlay.lines.push('Final response');this.overlay.assistantText=String(final.text);}}
    else this.overlay.lines.push('Unknown command · no execution');
   }catch{if(this.overlay)this.overlay.lines.push('Archive unavailable · no execution');}this.draw();
  }
@@ -326,13 +370,17 @@ export class DailyWorkspace {
    rows.push({text:`Pan · Compat${hostLabel}${this.options.sessionTaskLabel ? ' · '+this.options.sessionTaskLabel : ''}${this.options.sessionNpmTest?' · NPM TEST':''}${this.options.sessionAuto?' · SESSION AUTO':''}${this.options.fallback?.status?' · '+this.options.fallback.status:this.options.executionMode?.startsWith('native-')?(this.options.executionMode.endsWith('offline')?' · Native offline':' · Native GET'):''} · ${this.overlay?'preview':this.picker?'picker':this.focus}${this.newOutput?' · New output':''} · ${this.phase} · ${terminalText(this.options.model)}`,kind:'header'});
    const matches=this.matches(),p=this.picker;const pickerRows=p?Math.min(7,Math.max(3,h-5-composer-1)):0;const bodyRows=h-5-composer-pickerRows;this.bodyHeight=bodyRows;trackRows=bodyRows;
    let body:{text:string;kind?:string;cells?:StyledCell[]}[]=[];
-   if(this.overlay){const lines:{text:string;cells?:StyledCell[]}[]=[this.overlay.title,...this.overlay.lines].flatMap(s=>wrap(s,w-3).map(t=>({text:'│ '+t})));if(this.overlay.assistantText!==undefined)for(const r of markdownRows(this.overlay.assistantText,w-3))lines.push({text:'│ '+r.text,cells:[{text:'│'},{text:' '},...r.cells]});this.overlay.offset=Math.min(this.overlay.offset,Math.max(0,lines.length-bodyRows));body=lines.slice(this.overlay.offset,this.overlay.offset+bodyRows);}
+   if(this.copyReceipt){
+    const receipt=this.copyReceipt,lines=['Copy output',...receipt.lines].flatMap(line=>wrap(line,w-3));
+    receipt.offset=Math.min(receipt.offset,Math.max(0,lines.length-bodyRows));
+    body=lines.slice(receipt.offset,receipt.offset+bodyRows).map(text=>({text}));
+   }else if(this.overlay){const lines:{text:string;cells?:StyledCell[]}[]=[this.overlay.title,...this.overlay.lines].flatMap(s=>wrap(s,w-3).map(t=>({text:'│ '+t})));if(this.overlay.assistantText!==undefined)for(const r of markdownRows(this.overlay.assistantText,w-3))lines.push({text:'│ '+r.text,cells:[{text:'│'},{text:' '},...r.cells]});this.overlay.offset=Math.min(this.overlay.offset,Math.max(0,lines.length-bodyRows));body=lines.slice(this.overlay.offset,this.overlay.offset+bodyRows);}
    else {
     const selectedTool=this.entries.filter(e=>e.role==='Tool'&&e.status==='Activity')[this.toolCursor];
     this.ensureLayout(w-3);
     const all=this.contentRows;
     const toolMarkerRow=selectedTool?this.layoutStarts[this.entries.indexOf(selectedTool)]!:-1;
-    if(!all.length){const intro=['Write a task. @ opens files; Tab attaches; Enter sends.','Provider: '+terminalText(this.options.provider),'Workspace: '+terminalText(this.options.workspace),this.options.executionMode?.startsWith('native-')?`NATIVE ${this.options.executionMode.startsWith('native-linux')?'LINUX':'MACOS'} SANDBOX · shared workspace · ${this.options.executionMode.endsWith('offline')?'offline':'bounded HTTP(S) GET'} · retrieval disabled`:this.options.executionMode==='sandbox'?'DOCKER SANDBOX · offline container · retrieval disabled':'Host-user tools; Ctrl-D revokes this host session and exits.',this.options.executionMode?.startsWith('native-')?'Each task verifies its backend before the model runs. Sensitive/outside files are denied.':'Protected/outside/uncertain files and Shell ask before execution.',...(this.options.reportNotice?[this.options.reportNotice]:[])];body=intro.flatMap(s=>wrap(s,w-3).map(text=>({text,kind:'Pan'})));}
+    if(!all.length){const intro=this.intro();body=intro.flatMap(s=>wrap(s,w-3).map(text=>({text,kind:'Pan'})));}
     else {
      if(this.revealTool&&selectedTool){this.follow=false;this.top=Math.max(0,(toolMarkerRow>=0?toolMarkerRow:0)-Math.floor(bodyRows/2));this.anchor=all[this.top]?.anchor;}
      this.revealTool=false;
@@ -350,7 +398,7 @@ export class DailyWorkspace {
    const busy=this.phase==='running'||this.phase==='cancelling';rows.push({text:this.approval?'Selected: '+({'deny':'Deny','allow-once':'Allow once','trust-shell':'Trust shell for this session'}[this.approval.choices[this.approval.choice]!]):busy?(this.phase==='cancelling'?'Cancelling · Ctrl-C to exit':'Busy — draft retained · Ctrl-C cancel'):this.historyIndex!==undefined?'History draft — not submitted':this.safePaste?'SAFE PASTE / EDIT · Ctrl-G exits; then Enter Send':this.editor.text.trim()?'Not submitted · Enter Send':'Not submitted · Write a task',kind:'secondary'});
    const start=Math.max(0,view.row-composer+1);const editorRow=rows.length;for(let i=0;i<composer;i++)rows.push({text:(i===0?'> ':'  ')+(view.lines[start+i]??''),kind:this.focus==='composer'?'focus':undefined});
    if(!p)cursor={row:editorRow+view.row-start,col:2+view.col};
-   rows.push({text:this.approval?'Arrows choose · Enter confirm · PgUp/Dn scroll · Ctrl-G Deny · Ctrl-C Cancel':this.inputState.pending?(this.inputState.mode==='paste'?'Pasting · literal data':'Input sequence pending · Ctrl-G Back'):this.overlay?'Enter/Ctrl-G Close · Up/Down Scroll':p?'Tab Attach · Ctrl-G Back · Enter Hint':this.safePaste?'SAFE PASTE: Enter newline · Ctrl-G exits':this.focus==='attachments'?'Enter Preview · Backspace Remove · Tab Focus':/:exit|denied|failed|Already selected|^Partial response|^Completed/.test(this.notice)?this.notice:'Ctrl-C Quit · Ctrl-G Back · @ Files · Ctrl-V Paste',kind:'secondary'});
+   rows.push({text:this.copyReceipt?'Enter/Ctrl-G Back · Up/Down Scroll':this.approval?'Arrows choose · Enter confirm · PgUp/Dn scroll · Ctrl-G Deny · Ctrl-C Cancel':this.inputState.pending?(this.inputState.mode==='paste'?'Pasting · literal data':'Input sequence pending · Ctrl-G Back'):this.overlay?'Enter/Ctrl-G Close · Up/Down Scroll · Ctrl-Y Copy view':p?'Tab Attach · Ctrl-G Back · Enter Hint':this.safePaste?'SAFE PASTE: Enter newline · Ctrl-G exits':this.focus==='attachments'?'Enter Preview · Backspace Remove · Tab Focus':/^Mouse |:exit|denied|failed|Already selected|^Partial response|^Completed/.test(this.notice)?this.notice:'Ctrl-C Quit · Ctrl-Y Copy · Ctrl-G Back · @ Files · Ctrl-V Paste',kind:'secondary'});
   }
   let frame='\x1b[?25l';for(let i=0;i<h;i++){const row=rows[i]??{text:''};const style=!this.color?'':row.kind==='You'?'\x1b[48;2;48;48;48m':row.kind==='focus'?'\x1b[38;2;0;215;215m':row.kind==='secondary'?'\x1b[38;2;155;155;155m':'';
    // #60: at supported viewports the final column is reserved for the body-row scrollbar track.

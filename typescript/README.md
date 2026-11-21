@@ -128,6 +128,10 @@ In a project, workspace defaults to the current directory, and archives to `~/.p
 
 ## Inspect and replay
 
+Drag over visible output and use your terminal’s Copy shortcut. Press **Ctrl-Y** for the complete conversation, including retained tool results and errors. Inside a view such as `:details` or `:replay RUN_ID`, Ctrl-Y copies that view. You can also type `:copy` from the composer. Pan requests clipboard access through the terminal (OSC 52) and shows the path to a private UTF-8 text file. Open that file on the machine running Pan if your terminal ignores the request or the output exceeds 72 KiB. Remove the file when finished.
+
+Use Page Up/Down to scroll. **Ctrl-T** switches between text selection and Pan’s mouse wheel and draggable scrollbar. The commands `:mouse on` and `:mouse off` also switch mouse navigation.
+
 - `:context`: inspect retained context summary.
 - `:details`: inspect detailed execution output.
 - `:runs`: list sealed run archives.

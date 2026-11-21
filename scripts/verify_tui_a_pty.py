@@ -67,6 +67,8 @@ for columns,rows in [(120,40),(80,24),(40,12)]:
  try:
   checkpoint('initial',lambda s:s.get('phase')=='confirm');key('y');key('\r');checkpoint('idle',lambda s:s['phase']=='idle')
   assert next(i for i,l in enumerate(screen.lines()) if l.startswith('─'))>=1+rows//2;assert len(screen.lines())==rows;assert any(line.startswith('Pan') for line in screen.lines())
+  assert not screen.modes.get('1000') and not screen.modes.get('1006')
+  key('\x14')  # enable the mouse paths exercised below
   # R05 framed compatibility input has no elapsed-time Escape command.
   key('draft')
   for gap in [.05,.35,.8,1.2]:
