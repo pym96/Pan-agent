@@ -18,10 +18,10 @@ const metadata = Buffer.from(JSON.stringify({private:false, full_name:slug, desc
 const signal = () => new AbortController().signal;
 
 test("entire overview requests select a public slug; coding requests keep their existing admission", () => {
-  for (const question of [url + " How about this repository", "Summarize " + url, "What can you tell me about " + url + "?", "Could you describe " + url + "?", "介绍一下这个仓库 " + url,
+  for (const question of [url + " How about this repository", "Summarize " + url, "Write a brief overview of " + url, "What can you tell me about " + url + "?", "Could you describe " + url + "?", "介绍一下这个仓库 " + url,
         "/repo " + url, url, "What does this repository do? " + url])
     assert.deepEqual(repositoryQuestion(question), {slug}, question);
-  for (const task of ["Implement the algorithm from " + url, "Clone " + url + " and write a test", "Improve the README", "Can you fix the bug in my project using " + url + "?", "请修改本地代码，参考 " + url])
+  for (const task of ["Implement the algorithm from " + url, "Clone " + url + " and write a test", "Improve the README", "Write a summary of " + url + " to notes.md", "Can you fix the bug in my project using " + url + "?", "请修改本地代码，参考 " + url])
     assert.equal(repositoryQuestion(task), undefined, task);
   for (const invalid of [url+"?token=example", "https://user:pass@github.com/org/repo", url+"/../test", url+"/issues",
         url+"#anchor", "https://github.com.evil.test/o/r", "https://github.com/o/%2e%2e", "http://github.com/o/r"]) {

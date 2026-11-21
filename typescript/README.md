@@ -37,7 +37,7 @@ What can you tell me about https://github.com/cli/cli?
 
 Pan recognizes a public root URL alone and common overview questions. Use `/repo URL` for an unambiguous read-only turn. The result shows GitHub metadata and a short, attributed README excerpt. File attachments must be removed first. Each subsequent coding request receives its usual tools.
 
-A public overview uses at most two unauthenticated HTTPS GETs to the GitHub API under a single 15-second deadline, without redirects. Metadata is limited to 96 KiB, and the excerpt comes from the first 32 KiB of the README. The model receives zero tokens for this turn. The archive saves the canonical public repository URL, the answer, the transport and the number of attempted requests. Ctrl-C cancels the turn. Native offline mode sends no requests; Docker and host fallback do not offer this capability.
+A public overview uses at most two unauthenticated HTTPS GETs to the GitHub API under a single 45-second deadline, without redirects. Metadata is limited to 96 KiB, and the excerpt comes from the first 32 KiB of the README. The model receives zero tokens for this turn. The archive saves the canonical public repository URL, the answer, the transport and the number of attempted requests. Ctrl-C cancels the turn. Native offline mode sends no requests; Docker and host fallback do not offer this capability.
 
 The default route checks and pins the public address. If DNS returns a reserved, private or synthetic address (including `198.18.0.0/15`), the request stops. For an existing trusted HTTP CONNECT proxy listening on your machine, quit Pan and run:
 

@@ -22,8 +22,12 @@ export function repositoryQuestion(task: string): RepositoryQuestion | undefined
   if (!explicit) {
     if (!link || !/github\.com/i.test(link)) return;
     const words = prompt.replace(link, " ").replace(/^[\s:：<>，。,.!?！？-]+|[\s:：<>，。,.!?！？-]+$/g, "").trim();
-    if (codingVerb.test(words) || chineseCoding.test(words)) return;
-    if (words && !overviewWords.test(words)) {
+    // "Write a summary" requests a response unless the operator also names a local output.
+    const proseRequest = /\bwrite (?:an? )?(?:(?:short|brief|detailed) )?(?:summary|overview|description|review)\b/i;
+    const localOutput = /\b(?:file|workspace|save|write to)\b|\.(?:md|txt|json)\b/i;
+    const action = localOutput.test(words) ? words : words.replace(proseRequest, "summarize");
+    if (codingVerb.test(action) || chineseCoding.test(action)) return;
+    if (words && !overviewWords.test(action)) {
       if (!questionWords.test(words) && !/[?？]\s*$/.test(prompt)) return;
       return {problem: "This read-only repository view covers an overview. " + usage};
     }
@@ -98,7 +102,7 @@ export async function repositoryOverview(question: RepositoryQuestion, mode: unk
     return result("incomplete", "repository_mode_unavailable", "Repository overviews require the native public workspace mode. Start pan-agent in a project directory.");
   const slug = question.slug;
   const source = "https://api.github.com/repos/" + slug;
-  const signal = AbortSignal.any([cancelled, AbortSignal.timeout(15000)]);
+  const signal = AbortSignal.any([cancelled, AbortSignal.timeout(45000)]);
   // Also bound resolver waits. The transport checks the signal again after DNS, before connecting.
   const get = (part: RepositoryPart): Promise<Buffer> => new Promise((resolve, reject) => {
     signal.throwIfAborted();
