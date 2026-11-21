@@ -290,6 +290,12 @@ test('C-SBAR-02@1.1 only in-track presses capture; horizontal drift and y oversh
  assert.equal(ui.top, topCaptured, 'Ctrl-G does not scroll');
  dragTo(ui, 120, 2);
  assert.equal(ui.top, topCaptured, 'drag after cancellation is inert');
+ // Apple Terminal-compatible button=0/m release clears capture without repositioning.
+ ui.key(undefined,{name:'t',ctrl:true});
+ press(ui, 120, 8);
+ assert.equal(priv(ui).dragging, true);
+ priv(ui).parser.feed('\x1b[<0;1;999999m');
+ assert.equal(priv(ui).dragging, false, 'alternate declared release clears capture regardless of coordinates');
  // Ctrl-C likewise ends a drag; in idle phase it admits and cancels nothing.
  press(ui, 120, 8);
  assert.equal(priv(ui).dragging, true);
@@ -299,12 +305,6 @@ test('C-SBAR-02@1.1 only in-track presses capture; horizontal drift and y oversh
  assert.equal(ui.top, topDrag2);
  dragTo(ui, 120, 2);
  assert.equal(ui.top, topDrag2);
- // Apple Terminal-compatible button=0/m release clears capture without repositioning.
- ui.key(undefined,{name:'t',ctrl:true});
- press(ui, 120, 8);
- assert.equal(priv(ui).dragging, true);
- priv(ui).parser.feed('\x1b[<0;1;999999m');
- assert.equal(priv(ui).dragging, false, 'alternate declared release clears capture regardless of coordinates');
  assert.equal(ui.editor.text, draft);
  assert.equal(ui.editor.caret, caret);
  assert.deepEqual(counts(), { admits: 0, cancels: 0 });
