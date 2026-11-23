@@ -19,9 +19,11 @@ const signal = () => new AbortController().signal;
 
 test("entire overview requests select a public slug; coding requests keep their existing admission", () => {
   for (const question of [url + " How about this repository", "Summarize " + url, "Write a brief overview of " + url, "What can you tell me about " + url + "?", "Could you describe " + url + "?", "介绍一下这个仓库 " + url,
-        "/repo " + url, url, "What does this repository do? " + url])
+        "Give me a quick overview of " + url, "Could you please give me a brief, high-level overview of " + url,
+        "Please write a short overview of this repository: " + url, "Briefly describe this project: " + url, "Provide an overview of this public GitHub repo in plain English: " + url,
+        "请简单介绍一下这个项目 " + url, "What does " + url + " do?", "/repo " + url, url, "What does this repository do? " + url])
     assert.deepEqual(repositoryQuestion(question), {slug}, question);
-  for (const task of ["Implement the algorithm from " + url, "Clone " + url + " and write a test", "Improve the README", "Write a summary of " + url + " to notes.md", "Can you fix the bug in my project using " + url + "?", "请修改本地代码，参考 " + url])
+  for (const task of ["Implement the algorithm from " + url, "Clone " + url + " and write a test", "Improve the README", "Write a summary of " + url + " to notes.md", "Can you fix the bug in my project using " + url + "?", "请修改本地代码，参考 " + url, "Give me a quick overview of " + url + " and then write it into notes.md"])
     assert.equal(repositoryQuestion(task), undefined, task);
   for (const invalid of [url+"?token=example", "https://user:pass@github.com/org/repo", url+"/../test", url+"/issues",
         url+"#anchor", "https://github.com.evil.test/o/r", "https://github.com/o/%2e%2e", "http://github.com/o/r"]) {
@@ -49,7 +51,7 @@ test("repository turn after coding consumes no queued model write or local tool;
   t.after(()=>session.close());
   assert.equal((await session.runTask("Record first")).toolCalls,1);
   const count = session.contextMessageCount;
-  const r = await session.runTask(url+" How about this repository");
+  const r = await session.runTask("Give me a quick overview of " + url);
   assert.equal(r.status,"completed");
   assert.equal(r.modelCalls,0);
   assert.equal(r.toolCalls,0);
@@ -140,6 +142,8 @@ test("specific GitHub questions offer and execute only web_fetch; coding tasks r
   t.after(()=>session.close());
   const specific = "Which license does " + url + " use?";
   for (const prompt of [specific, "What is the license of " + url + "?", "Summarize " + url + "/blob/main/README.md",
+    "Which license does https://api.github.com/repos/cli/cli report?", "Which examples appear in https://docs.github.com/en/rest?",
+    "Give me a quick overview of the license terms in " + url, "Write a quick overview of the license terms in " + url, "Summarize " + url + " and explain its license",
     "Compare the licenses of " + url + " and https://github.com/cli/cli?"]) assert.deepEqual(repositoryQuestion(prompt), {modelRead:true});
   faux.setResponses([context => {
     assert.deepEqual(context.tools.map(tool=>tool.name), ["web_fetch"]);
@@ -200,4 +204,49 @@ test("document validation, cancellation, bounded output and settings denial", as
   await lookup; cancel.abort();
   assert.match(JSON.stringify(await running),/cancelled/);
   late(["1.1.1.1"]);
+});
+
+test("broad overview stays keyless while official GitHub API and docs links use their respective readers", async t => {
+  const {createWebFetch} = await import("../src/tools/web-fetch.ts");
+  const root = await mkdtemp(join(tmpdir(), "pan-web-routes-"));
+  t.after(() => rm(root, {recursive:true, force:true}));
+  const store = await RunArchiveStore.open(join(root, "memory"));
+  const {adapter,faux} = scriptedAdapter();
+  const attempts:string[]=[];
+  const repoRead:RepositoryRead = async (_slug, part) => {
+    attempts.push("github:"+part);
+    return part==="metadata" ? metadata : Buffer.from("README example");
+  };
+  const docRead = async (url:URL) => {
+    attempts.push("direct:"+url.href);
+    return {body:Buffer.from("documentation example"),finalUrl:url.href};
+  };
+  const reader = createWebFetch({mode:()=>"native-macos-public",githubProxy:true,repository:repoRead,document:docRead});
+  const session = new GeneralAgentSession({kernel:"native",adapter,systemPrompt:"Read the supplied source.",tools:[reader],
+    memory:{archiveStore:store,runbook:async()=>({content:"",revision:"sha256:"+"0".repeat(64)})},
+    executionBoundary:{identity:{executionMode:"native-macos-public"},async start(){},async stop(){},cancel(){}},
+    repository:{native:true,proxy:true,read:repoRead}});
+  t.after(()=>session.close());
+  // No provider responses or credentials are available for the keyless overview.
+  const broad=await session.runTask("Give me a quick overview of "+url);
+  assert.equal(broad.modelCalls,0);
+  assert.equal(broad.status,"completed");
+  assert.deepEqual(attempts,["github:metadata","github:readme"]);
+  const cases = [
+    ["Which license does", "https://api.github.com/repos/"+slug, "report?", "github:metadata", "small example"],
+    ["Which examples appear in", "https://docs.github.com/en/rest", "?", "direct:https://docs.github.com/en/rest", "documentation example"],
+  ] as const;
+  for (const [before,link,after,expectedRead,evidence] of cases) {
+    attempts.length=0;
+    faux.setResponses([response(call("web_fetch",{url:link},{id:expectedRead}),{stopReason:"tool_calls"}),context=>{
+      const msg=context.messages.at(-1);
+      assert.ok(msg?.role==="tool_result" && msg.toolCallId===expectedRead && !msg.isError);
+      const block=msg.content[0];
+      assert.ok(block?.type==="text" && JSON.parse(block.text).untrustedDocument.includes(evidence));
+      return response(evidence);
+    }]);
+    const result=await session.runTask(before+" "+link+" "+after);
+    assert.equal(result.finalText,evidence);
+    assert.deepEqual(attempts,[expectedRead]);
+  }
 });

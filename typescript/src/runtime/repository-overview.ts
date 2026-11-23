@@ -13,6 +13,24 @@ const chineseCoding = /(?:^|请|帮我|然后|并且|并)(?:在本地|在当前�
 const overviewWords = /\b(?:overview|summari[sz]e|summary|describe|explain|review|tell me about|tell me more|how about|what about|what (?:is|does)|what can you tell me|thoughts on)\b|介绍|总结|概述|分析|怎么看|怎么样|做什么|是干什么/i;
 const questionWords = /^(?:what|how|where|when|why|who|which|does|is|are|has|can|could|would|should)\b|[?？]|[吗么]|如何|是否|为什么/i;
 
+// Normalize how the overview is requested, then match its subject. Any remaining
+// topic (license, API behavior, etc.) belongs to the model's read-only turn.
+function broadOverview(words: string): boolean {
+  const subject = words.toLowerCase()
+    .replace(/^(?:(?:hey|hi)[, ]+)?(?:(?:could|can|would|will) you |(?:i(?:'d| would) like(?: to get)? |i want ))?/, "")
+    .replace(/^(?:please |kindly )/, "")
+    .replace(/\b(?:in (?:plain english|brief|a few (?:words|sentences)|simple terms)|at a (?:glance|high level)|for me)\b/g, " ")
+    .replace(/^(?:(?:give|show|provide|write)(?: (?:me|us))? )/, "")
+    .replace(/\b(?:a|an|the|very|quick|quickly|brief|briefly|short|concise|simple|basic|general|overall|high[- ]level|detailed|little|broad|plain[- ]english)\b/g, " ")
+    .replace(/(?:[, ]+please|[, ]+thanks)$/, "")
+    .replace(/[,\s]+/g, " ").trim();
+  const overview = /^(?:overview|summary|description|review)(?: (?:of|on|about))?(?: (?:this |that )?(?:public )?(?:github )?(?:repository|repo|project))?$/;
+  const explain = /^(?:summari[sz]e|describe|explain|review|tell me (?:more )?about|what can you tell me about|how about|what about|thoughts on|tell me more)(?: (?:this|that))?(?: (?:public )?(?:github )?(?:repository|repo|project))?$/;
+  const purpose = /^what (?:is(?: (?:this|that))?(?: (?:repository|repo|project))?(?: about)?|does (?:(?:this |that )?(?:repository|repo|project) )?do)$/;
+  const chinese = /^(?:请|能否|可以|能不能)?(?:帮我)?(?:简单|简要|大致|详细)?(?:介绍|总结|概述|分析)(?:一下)?(?:这个|该)?(?:仓库|项目)?(?:吗)?$|^(?:这个|该)(?:仓库|项目)(?:是做什么的|是干什么的|怎么样)$/;
+  return overview.test(subject) || explain.test(subject) || purpose.test(subject) || chinese.test(subject);
+}
+
 export function repositoryQuestion(task: string): RepositoryQuestion | undefined {
   const attached = decodeAttachedTask(task);
   const prompt = (attached?.prompt ?? task).trim();
@@ -23,22 +41,23 @@ export function repositoryQuestion(task: string): RepositoryQuestion | undefined
     if (!link || !/github\.com/i.test(link)) return;
     const words = prompt.replace(link, " ").replace(/^[\s:：<>，。,.!?！？-]+|[\s:：<>，。,.!?！？-]+$/g, "").trim();
     // "Write a summary" requests a response unless the operator also names a local output.
-    const proseRequest = /\bwrite (?:an? )?(?:(?:short|brief|detailed) )?(?:summary|overview|description|review)\b/i;
+    const proseRequest = /\bwrite (?:an? )?(?:(?:very|short|brief|quick|detailed|general|high[- ]level|concise|simple)[ ,]+)*(?:summary|overview|description|review)\b/i;
     const localOutput = /\b(?:file|workspace|save|write to)\b|\.(?:md|txt|json)\b/i;
     const action = localOutput.test(words) ? words : words.replace(proseRequest, "summarize");
-    if (codingVerb.test(action) || chineseCoding.test(action)) return;
-    if (words && !overviewWords.test(action) && !questionWords.test(words) && !/[?？]\s*$/.test(prompt)) return;
+    const broad = broadOverview(words);
+    if ((!broad || localOutput.test(words)) && (codingVerb.test(action) || chineseCoding.test(action))) return;
+    if (words && !broad && !overviewWords.test(action) && !questionWords.test(words) && !/[?？]\s*$/.test(prompt)) return;
     if (!attached && links.every(raw => {
       try {
         const url = new URL(raw.replace(/[?.,!]+$/, ""));
         return ["http:", "https:"].includes(url.protocol) && !url.username && !url.password && !url.search && !url.hash;
       } catch { return false; }
     })) {
-      // Keep the keyless overview for broad requests. Specific questions use a read-only model turn.
-      const broad = /^(?:(?:could|can|would) you |please )?(?:(?:give me |write )?(?:an? )?(?:(?:short|brief|detailed) )?(?:overview|summary|description|review)(?: of)?|(?:summari[sz]e|describe|explain|review)(?: this repository)?|(?:what can you tell me about|how about|tell me about|what about)(?: this (?:repository|repo))?|what (?:is this(?: repository)?|does this (?:repository|repo) do)|介绍(?:一下)?(?:这个仓库)?|总结(?:一下)?(?:这个仓库)?|这个仓库(?:是做什么的|怎么样))$/i;
       const repoRoot = /^https:\/\/github\.com\/[^/?#]+\/[^/?#]+\/?$/i.test(link.replace(/[?.,!]+$/, ""));
-      if (!/^https:\/\/github\.com\//i.test(link)) return {problem: usage};
-      if (links.length !== 1 || !repoRoot || (words && !broad.test(words))) return {modelRead: true};
+      const host = new URL(link).hostname.toLowerCase();
+      if (host !== "github.com" && !host.endsWith(".github.com")) return {problem: usage};
+      if (host === "github.com" && !/^https:\/\/github\.com\//i.test(link)) return {problem: usage};
+      if (links.length !== 1 || !repoRoot || (words && !broad)) return {modelRead: true};
     }
   }
   if (attached) return {problem: "Remove the attached files and submit the public repository question again."};
