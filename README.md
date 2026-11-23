@@ -104,7 +104,7 @@ In the 0.1.11 source candidate, ask a question such as “Which license does htt
 
 In the 0.1.11 source candidate, start `pan-agent` and paste `https://github.com/pym96/Pan-agent How about this repository` into the TUI. Pan shows GitHub metadata and a short excerpt from the README, with source URLs. You can also type `/repo https://github.com/cli/cli`. This turn runs without a model or workspace tool.
 
-If native GET reports a reserved or local DNS address, check your DNS configuration. If you already use a trusted HTTP CONNECT proxy on your own machine, start `pan-agent --github-proxy-port 7890` (substitute its listening port). This explicitly trusts the service at `127.0.0.1` on that port to carry TLS to `api.github.com:443` for public repository overviews. Paste the same question in the TUI. [Limits and troubleshooting](typescript/README.md#public-repository-overviews)
+On macOS, start Pan normally. Public HTTPS document reads follow a supported static loopback system proxy. For example, paste “帮我查一下 https://github.com/cli/cli 用的是什么许可证，并给出来源。” Pan can read the default branch’s actual LICENSE even if the anonymous GitHub API is rate-limited. With exclusively synthetic DNS, some non-GitHub document reads use a conditional public DNS lookup. [Transport, privacy and supported proxy settings](typescript/README.md#public-repository-overviews)
 
 ## Try it without a key
 

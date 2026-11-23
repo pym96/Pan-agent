@@ -1,3 +1,4 @@
+import { discoverSystemProxy } from "./sandbox/native/system-proxy.ts";
 import { createWebFetch } from "./tools/web-fetch.ts";
 import {parseSessionTasks, sessionTaskCommands, type SessionTask} from "./config/permissions.ts";
 import {workspaceTrust, WorkspaceGrant, type GrantSelection} from "./config/workspace-trust.ts";
@@ -466,13 +467,17 @@ export async function runCli(args: readonly string[], dependencies: CliDependenc
         }
         const trustedLocal = sandbox??fallback??(dependencies.createTools ? dependencies.createTools(workspace) : createPanTrustedLocalTools(workspace));
 		const tools = [...trustedLocal.tools];
+        const systemProxy = nativeSandbox && !configuration.nativeOffline ? await discoverSystemProxy() : undefined;
+        if (systemProxy?.limitation) writeLine("Public HTTPS documents use direct public GET: " + systemProxy.limitation + ".");
+        const apiProxy = configuration.githubProxyPort ?? (systemProxy?.endpoint && !systemProxy.bypass("api.github.com") ? systemProxy : undefined);
+        let apiTransport = configuration.githubProxyPort ? "github-loopback-proxy" : apiProxy ? "system-loopback-proxy" : "native-public-get";
         const repositoryRead: import("./runtime/repository-overview.ts").RepositoryRead = (slug, part, signal) =>
-          fetchRepositoryPart(slug, part, signal, configuration.githubProxyPort, dependencies.resolveNetworkName);
+          fetchRepositoryPart(slug, part, signal, apiProxy, dependencies.resolveNetworkName, route => { apiTransport = route; });
         if (nativeSandbox && !configuration.nativeOffline) {
           tools.push(createWebFetch({
             mode: () => fallback?.identity.network === "bounded-http-get" ? fallback.identity.executionMode : undefined,
-            document: (url, signal) => fetchPublicDocument(url, signal, dependencies.resolveNetworkName),
-            repository: repositoryRead, githubProxy: configuration.githubProxyPort !== undefined,
+            document: (url, signal) => fetchPublicDocument(url, signal, dependencies.resolveNetworkName, {system: systemProxy, githubPort: configuration.githubProxyPort}),
+            repository: repositoryRead, githubProxy: apiProxy !== undefined, repositoryTransport: () => apiTransport,
           }));
         }
         if (!sandbox && !nativeSandbox) tools.push(createRetrievalTool(workspace));
@@ -489,8 +494,8 @@ export async function runCli(args: readonly string[], dependencies: CliDependenc
         session = new GeneralAgentSession({
 			...shared,
             executionBoundary:sandbox??fallback,
-            repository: {native: !!nativeSandbox, proxy: configuration.githubProxyPort !== undefined,
-              read: repositoryRead},
+            repository: {native: !!nativeSandbox, proxy: apiProxy !== undefined,
+              read: repositoryRead, transport: () => apiTransport},
             trustedLocalWorkspace:!sandbox && !nativeSandbox ? workspace : undefined,
 			kernel: "native",
 			adapter,
@@ -503,7 +508,7 @@ export async function runCli(args: readonly string[], dependencies: CliDependenc
 		thinking = adapter.reasoningLevel;
 	}
 
-	if (configuration.githubProxyPort) writeLine(`Public repository reads only: trusted HTTP proxy 127.0.0.1:${configuration.githubProxyPort} for TLS to api.github.com:443.`);
+	if (configuration.githubProxyPort) writeLine(`Public repository reads only: trusted HTTP proxy 127.0.0.1:${configuration.githubProxyPort} for fixed GitHub API and raw HEAD/LICENSE reads.`);
 	writeLine(`Archives: ${terminalText(memoryRoot)}`);
 	const credentialEnv = providerCredentialVariable(selectedProvider);
 	writeLine(credentialSource === "keychain"

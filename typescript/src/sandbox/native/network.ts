@@ -13,6 +13,8 @@ import { once } from "node:events";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 
+import type { LoopbackProxy, SystemProxy } from "./system-proxy.ts";
+
 const run = promisify(execFile);
 export async function checkGateway(executable: string, prefix: string[], cwd: string, env: NodeJS.ProcessEnv) {
   try {
@@ -29,7 +31,11 @@ export async function checkGateway(executable: string, prefix: string[], cwd: st
 export class Denied extends Error {}
 export class UpstreamHttpError extends Error {
   readonly status: number;
-  constructor(status: number) { super("upstream HTTP " + status); this.status = status; }
+  readonly rateLimited: boolean;
+  constructor(status: number, rateLimited = status === 429) {
+    super("upstream HTTP " + status + (rateLimited ? " (rate limited)" : ""));
+    this.status = status; this.rateLimited = rateLimited;
+  }
 }
 export type ResolveAddresses = (name: string) => Promise<readonly string[]>;
 const systemResolve: ResolveAddresses = async (name) =>
@@ -97,7 +103,7 @@ export async function destination(url: URL, grant: string | undefined, resolve: 
     throw new Denied("destination denied");
   const addresses = isIP(name) ? [name] : await resolve(name);
   if (!granted && (!addresses.length || !addresses.every(publicAddress)))
-    throw new Denied("destination denied");
+    throw new Denied("destination denied by public DNS/address policy");
   const ip = addresses.find(a => isIP(a) === 4) ?? addresses[0];
   if (!ip) throw Error("destination unavailable");
   return { ip, name, granted, port: Number(url.port || (url.protocol === "https:" ? 443 : 80)) };
@@ -120,22 +126,30 @@ async function directSocket(url: URL, grant: string | undefined, resolve: Resolv
   } catch (error) { tcp.destroy(); throw error; }
 }
 
-// Only the repository reader can open this tunnel. Neither the origin nor its port is an input.
-async function githubTunnel(port: number, signal: AbortSignal): Promise<Socket> {
-  if (!Number.isInteger(port) || port < 1 || port > 65535) throw Error("invalid GitHub proxy port");
+export class ProxyTransportError extends Error {
+  constructor() { super("trusted local proxy connection failed"); }
+}
+
+// Only fixed service authorities or a previously checked numeric origin address enter CONNECT.
+async function proxyTunnel(proxy: LoopbackProxy, authority: string, signal: AbortSignal): Promise<Socket> {
+  if (!Number.isInteger(proxy.port) || proxy.port < 1 || proxy.port > 65535 ||
+      !["127.0.0.1", "::1"].includes(proxy.host)) throw new ProxyTransportError();
   signal.throwIfAborted();
   const agent = new http.Agent({keepAlive: false});
-  const req = http.request({hostname: "127.0.0.1", port, method: "CONNECT", path: "api.github.com:443",
-    headers: {Host: "api.github.com:443"}, agent, maxHeaderSize: 8192, signal});
+  const req = http.request({hostname: proxy.host, port: proxy.port, method: "CONNECT", path: authority,
+    headers: {Host: authority}, agent, maxHeaderSize: 8192, signal});
   try {
     const connected = once(req, "connect", {signal});
     req.end();
     const [response, socket, head] = await connected as [http.IncomingMessage, Socket, Buffer];
-    if (response.statusCode !== 200 || head.length || socket.remoteAddress !== "127.0.0.1") {
+    if (response.statusCode !== 200 || head.length || socket.remoteAddress !== proxy.host) {
       socket.destroy();
-      throw Error("GitHub proxy refused the tunnel");
+      throw new ProxyTransportError();
     }
     return socket;
+  } catch {
+    signal.throwIfAborted();
+    throw new ProxyTransportError();
   } finally { agent.destroy(); }
 }
 
@@ -169,7 +183,7 @@ async function getOne(url: URL, tcp: Socket, signal: AbortSignal, options: Respo
         if (url.protocol === "https:" && next.protocol !== "https:") throw new Denied("insecure redirect");
         return {redirect: next};
       }
-      if (status < 200 || status >= 300) throw new UpstreamHttpError(status);
+      if (status < 200 || status >= 300) throw new UpstreamHttpError(status, status === 429 || (status === 403 && response.headers["x-ratelimit-remaining"] === "0"));
       if (options.documentOnly) {
         const type = (response.headers["content-type"] ?? "").split(";")[0]!.toLowerCase().trim();
         if (!(/^text\//.test(type) || /^(?:application\/(?:json|xml|xhtml\+xml)|application\/[a-z0-9.+-]+\+(?:json|xml))$/.test(type))
@@ -204,37 +218,141 @@ export function documentUrl(raw: unknown): URL {
   return url;
 }
 
-/** Shares DNS validation, pinned connections, TLS, and bounded streaming with pan-fetch.
- * Model document reads never receive the shell's optional private-origin grant. */
-export async function fetchPublicDocument(url: URL, signal: AbortSignal, resolve: ResolveAddresses = systemResolve) {
+const publicDnsIp = "8.8.8.8"; // Fixed Google Public DNS bootstrap, authenticated as dns.google.
+const synthetic = ranges(["198.18.0.0/15"], []);
+const dnsName = (s: string) => s.toLowerCase().replace(/\.$/, "");
+function publicLookingName(name: string): boolean {
+  const domain = dnsName(name);
+  return domain.length <= 253 && domain.includes(".") &&
+    domain.split(".").every(label => /^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/i.test(label)) &&
+    !/(?:^|\.)(?:localhost|local|internal|lan|corp|home|arpa|localdomain|test|invalid|example|onion)$/.test(domain);
+}
+
+/** The authenticated DNS reply must answer the exact question. Only its CNAME chain
+ * may supply addresses. Each family must succeed (NOERROR/NODATA is valid). */
+export function dnsAnswers(body: Buffer, name: string, type: 1 | 28): string[] {
+  const invalid = () => new Denied("public DNS verification failed");
+  let data;
+  try { data = JSON.parse(body.toString("utf8")); } catch { throw invalid(); }
+  if (data?.Status !== 0 || data.TC !== false || data.Question?.length !== 1 ||
+      typeof data.Question[0]?.name !== "string" || dnsName(data.Question[0].name) !== dnsName(name) ||
+      data.Question[0].type !== type || !Array.isArray(data.Answer ?? [])) throw invalid();
+  const chain = new Map<string, string>();
+  const ips: {name: string; ip: string}[] = [];
+  for (const record of data.Answer ?? []) {
+    if (typeof record?.name !== "string" || typeof record.data !== "string") throw invalid();
+    const owner = dnsName(record.name);
+    if (record.type === 5) {
+      if (!publicLookingName(record.data) || chain.has(owner)) throw invalid();
+      chain.set(owner, dnsName(record.data));
+    } else if (record.type === type) {
+      if (isIP(record.data) !== (type === 1 ? 4 : 6) || !publicAddress(record.data)) throw invalid();
+      ips.push({name: owner, ip: record.data});
+    } else throw invalid();
+  }
+  let owner = dnsName(name);
+  const visited = new Set<string>();
+  while (chain.has(owner)) {
+    if (visited.has(owner)) throw invalid();
+    visited.add(owner);
+    owner = chain.get(owner)!;
+  }
+  if (chain.size !== visited.size || !ips.every(row => row.name === owner)) throw invalid();
+  return ips.map(row => row.ip);
+}
+
+async function publicDns(name: string, proxy: LoopbackProxy, signal: AbortSignal): Promise<string[]> {
+  const controller = new AbortController();
+  const active = AbortSignal.any([signal, controller.signal]);
+  const query = async (type: 1 | 28) => {
+    const url = new URL("https://dns.google/resolve");
+    url.searchParams.set("name", dnsName(name));
+    url.searchParams.set("type", String(type));
+    const socket = await proxyTunnel(proxy, publicDnsIp + ":443", active);
+    const reply = await getOne(url, socket, active, {maxBytes: 32768, documentOnly: true});
+    if (!reply.body) throw new Denied("public DNS redirect refused");
+    return dnsAnswers(reply.body, name, type);
+  };
+  try {
+    const [v4, v6] = await Promise.all([query(1), query(28)]);
+    return [...v4, ...v6];
+  } catch (error) {
+    signal.throwIfAborted();
+    if (error instanceof ProxyTransportError || error instanceof Denied) throw error;
+    throw new Denied("public DNS verification failed");
+  } finally { controller.abort(); }
+}
+
+interface DocumentProxy { system?: SystemProxy; githubPort?: number; }
+const numericAuthority = (ip: string) => (isIP(ip) === 6 ? "[" + ip + "]" : ip) + ":443";
+function fixedRawLicense(url: URL): boolean {
+  const path = url.pathname.match(/^\/([^/]+\/[^/]+)\/HEAD\/LICENSE$/);
+  return url.origin === "https://raw.githubusercontent.com" && !!path && validRepository(path[1]!);
+}
+
+async function documentSocket(url: URL, signal: AbortSignal, resolve: ResolveAddresses, options: DocumentProxy, fixedOrigin?: string) {
+  const {system, githubPort} = options;
+  const name = addressLiteral(url.hostname);
+  const rawLicense = fixedOrigin === "raw.githubusercontent.com";
+  const explicit = rawLicense && githubPort !== undefined;
+  const proxy = explicit ? {host: "127.0.0.1" as const, port: githubPort} :
+    url.protocol === "https:" && !system?.bypass(name) ? system?.endpoint : undefined;
+  if (!proxy) return {tcp: await directSocket(url, undefined, resolve, signal, () => {}), transport: "native-public-get"};
+  const transport = explicit ? "github-loopback-proxy" : "system-loopback-proxy";
+  if (explicit) return {tcp: await proxyTunnel(proxy, "raw.githubusercontent.com:443", signal), transport};
+  // Reuse the direct destination policy on every hop. Only exclusively synthetic
+  // *hostname* answers can select the separate, fixed authenticated DNS service.
+  if (!isIP(name) && !publicLookingName(name)) throw new Denied("destination denied by DNS policy");
+  let addresses = isIP(name) ? [name] : await resolve(name);
+  signal.throwIfAborted();
+  if (!isIP(name) && addresses.length && addresses.every(ip => isIP(ip) === 4 && synthetic.check(ip, "ipv4"))) {
+    if (addresses.some(ip => system?.bypass(ip))) throw new Denied("synthetic DNS destination denied by system proxy bypass");
+    if (fixedOrigin) return {tcp: await proxyTunnel(proxy, fixedOrigin + ":443", signal), transport};
+    if (!publicAddress(publicDnsIp) || system?.bypass("dns.google") || system?.bypass(publicDnsIp))
+      throw new Denied("public DNS verification blocked by local address or proxy bypass policy");
+    addresses = await publicDns(name, proxy, signal);
+  }
+  const target = await destination(url, undefined, async () => addresses);
+  signal.throwIfAborted();
+  if (system?.bypass(target.ip))
+    return {tcp: await directSocket(url, undefined, async () => [target.ip], signal, () => {}), transport: "native-public-get"};
+  return {tcp: await proxyTunnel(proxy, numericAuthority(target.ip), signal), transport};
+}
+
+/** Document reads never receive the shell's optional private-origin grant. */
+export async function fetchPublicDocument(url: URL, signal: AbortSignal, resolve: ResolveAddresses = systemResolve,
+    options: DocumentProxy = {}): Promise<{body: Buffer; finalUrl: string; transport?: string}> {
   let target = url;
   for (let hop = 0; hop <= 5; hop++) {
     target = documentUrl(target.href);
     signal.throwIfAborted();
-    const socket = await directSocket(target, undefined, resolve, signal, () => {});
-    const reply = await getOne(target, socket, signal, {documentOnly: true, maxBytes: 128 * 1024});
-    if (reply.body) return {body: reply.body, finalUrl: target.href};
+    const {tcp, transport} = await documentSocket(target, signal, resolve, options, hop === 0 && fixedRawLicense(target) ? target.hostname : undefined);
+    const reply = await getOne(target, tcp, signal, {documentOnly: true, maxBytes: 128 * 1024});
+    if (reply.body) return {body: reply.body, finalUrl: target.href, transport};
+    if (fixedRawLicense(target)) throw new Denied("GitHub license redirect refused");
     target = reply.redirect!;
   }
   throw new Denied("redirect limit exceeded");
 }
 
-export type RepositoryPart = "metadata" | "readme";
+export type RepositoryPart = "metadata" | "readme" | "license";
 export function validRepository(slug: string): boolean {
   return /^[a-z0-9](?:[a-z0-9-]{0,37}[a-z0-9])?\/[a-z0-9_.-]{1,100}$/i.test(slug)
     && ![".", ".."].includes(slug.split("/")[1]!);
 }
 
-/** The public repository capability accepts a validated slug and two fixed GitHub endpoints. */
+/** The public repository capability accepts a validated slug and fixed GitHub endpoints. */
 export async function fetchRepositoryPart(slug: string, part: RepositoryPart, signal: AbortSignal,
-    proxyPort?: number, resolve: ResolveAddresses = systemResolve): Promise<Buffer> {
-  if (!validRepository(slug) || (part !== "metadata" && part !== "readme")) throw new Denied("invalid repository");
-  const url = new URL("https://api.github.com/repos/" + slug + (part === "readme" ? "/readme" : ""));
-  const tcp = proxyPort === undefined
-    ? await directSocket(url, undefined, resolve, signal, () => {})
-    : await githubTunnel(proxyPort, signal);
-  const reply = await getOne(url, tcp, signal, {
-    accept: part === "readme" ? "application/vnd.github.raw+json" : "application/vnd.github+json",
+    proxyPort?: number | SystemProxy, resolve: ResolveAddresses = systemResolve,
+    observeTransport?: (transport: string) => void): Promise<Buffer> {
+  if (!validRepository(slug) || !["metadata", "readme", "license"].includes(part)) throw new Denied("invalid repository");
+  const url = new URL("https://api.github.com/repos/" + slug + (part === "metadata" ? "" : "/" + part));
+  const connection = typeof proxyPort === "number"
+    ? {tcp: await proxyTunnel({host: "127.0.0.1", port: proxyPort}, "api.github.com:443", signal), transport: "github-loopback-proxy"}
+    : await documentSocket(url, signal, resolve, {system: proxyPort}, "api.github.com");
+  observeTransport?.(connection.transport);
+  const reply = await getOne(url, connection.tcp, signal, {
+    accept: part === "metadata" ? "application/vnd.github+json" : "application/vnd.github.raw+json",
     maxBytes: part === "readme" ? 32768 : 98304, prefixOnly: part === "readme",
   });
   if (reply.redirect) throw new Denied("GitHub redirect refused");

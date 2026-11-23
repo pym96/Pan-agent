@@ -107,6 +107,7 @@ def main():
         report['installed_tests'] = len(cases)
         run('onboarding', [sys.executable, str(ROOT/'scripts/runtime-ci/onboarding.py'), '--package', str(package), '--output', str(out/'onboarding')], limit=120)
         report['onboarding'] = json.loads((out/'onboarding/result.json').read_text())
+        run('public-documents', ['node', str(ROOT/'scripts/runtime-ci/public-documents.mjs'), str(consumer/'node_modules/pan-agent')])
         run('settings', ['node', str(ROOT/'scripts/runtime-ci/settings.mjs'), str(consumer/'node_modules/pan-agent'), str(out/'settings')])
         report['settings'] = json.loads((out/'settings/summary.json').read_text())
         if report['settings']['status'] != 'PASS':

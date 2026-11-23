@@ -1,5 +1,5 @@
 import { nativePublic } from "../tools/web-fetch.ts";
-import { repositoryQuestion, repositoryOverview, type RepositoryRead } from "./repository-overview.ts";
+import { licenseSourceHint, repositoryQuestion, repositoryOverview, type RepositoryRead } from "./repository-overview.ts";
 import type { AdmissionFactory } from "../execution/admission.ts";
 import type { NativeCheckpoint, CheckpointSink } from "./checkpoint.ts";
 import type { AgentTool as PanAgentTool } from "../protocol/agent-tool.ts";
@@ -58,7 +58,7 @@ export interface SessionMemory {
 
 interface GeneralAgentSessionOptionsBase {
 	readonly trustedLocalWorkspace?: string;
-  readonly repository?: {readonly native: boolean; readonly proxy: boolean; readonly read: RepositoryRead};
+  readonly repository?: {readonly native: boolean; readonly proxy: boolean; readonly transport?: () => string; readonly read: RepositoryRead};
 	readonly admission?: AdmissionFactory;
  readonly authorization?: AuthorizationOptions;
 	readonly executionBoundary?: {readonly identity?:import("../protocol/canonical-protocol.ts").JsonObject;readonly taskInstructions?:string;start(runId:string):Promise<void>;stop(reason:string):Promise<void>;cancel():void};
@@ -219,7 +219,7 @@ export class GeneralAgentSession {
         const answer = await repositoryOverview(question, mode, this.repository.read, controller.signal, this.repository.proxy);
         outcome = answer;
         await this.emit({type: "repository.overview", runId: writer.runId, text: answer.finalText, mode,
-          requests: answer.requests, transport: this.repository.proxy ? "github-loopback-proxy" : "native-public-get"});
+          requests: answer.requests, transport: this.repository.transport?.() ?? (this.repository.proxy ? "github-loopback-proxy" : "native-public-get")});
       } else if (question?.modelRead && !this.admissionCancelled &&
                  (!nativePublic(boundary?.identity?.executionMode) || !this.toolNames.includes("web_fetch"))) {
         outcome = {status:"incomplete" as const, reason:"web_fetch_unavailable", finalText:"This question needs web_fetch in a native public workspace.", modelCalls:0, toolCalls:0, usage:EMPTY_USAGE};
@@ -230,7 +230,7 @@ export class GeneralAgentSession {
 				task,
         toolNames: question?.modelRead ? ["web_fetch"] : this.toolNames.includes("web_fetch") && !nativePublic(boundary?.identity?.executionMode)
           ? this.toolNames.filter(name => name !== "web_fetch") : undefined,
-				systemPrompt: `${this.executionBoundary?.taskInstructions??this.baseSystemPrompt}\n\nRUNBOOK (revision ${runbook.revision}):\n${runbook.content}`,
+				systemPrompt: `${this.executionBoundary?.taskInstructions??this.baseSystemPrompt}\n\nRUNBOOK (revision ${runbook.revision}):\n${runbook.content}${question?.modelRead ? licenseSourceHint(task) : ""}`,
 				onObservation: (observation) => this.emit(observation),
 				...(this.onProgress ? {onProgress:this.onProgress} : {}),
 			});

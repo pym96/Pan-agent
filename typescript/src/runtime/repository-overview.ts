@@ -1,5 +1,5 @@
 import { decodeAttachedTask } from "../input/task-envelope.ts";
-import { Denied, UpstreamHttpError, validRepository, type RepositoryPart } from "../sandbox/native/network.ts";
+import { Denied, ProxyTransportError, UpstreamHttpError, validRepository, type RepositoryPart } from "../sandbox/native/network.ts";
 import { EMPTY_USAGE, type KernelRunResult } from "./agent-kernel.ts";
 
 export type RepositoryRead = (slug: string, part: RepositoryPart, signal: AbortSignal) => Promise<Buffer>;
@@ -11,7 +11,7 @@ const usage = "Use /repo https://github.com/OWNER/REPO with the public repositor
 const codingVerb = /(?:^|\b(?:please|kindly|can you|could you|would you|help me|want you to|and|then|use it to)\s+)(?:implement|fix|refactor|build|create|add|modify|update|edit|write|save|remove|delete|install|clone|run|execute|test|patch|port|integrate|replace|commit)\b/i;
 const chineseCoding = /(?:^|请|帮我|然后|并且|并)(?:在本地|在当前项目|用它)?(?:实现|修复|重构|编写|修改|创建|安装|克隆|删除|运行|添加)/;
 const overviewWords = /\b(?:overview|summari[sz]e|summary|describe|explain|review|tell me about|tell me more|how about|what about|what (?:is|does)|what can you tell me|thoughts on)\b|介绍|总结|概述|分析|怎么看|怎么样|做什么|是干什么/i;
-const questionWords = /^(?:what|how|where|when|why|who|which|does|is|are|has|can|could|would|should)\b|[?？]|[吗么]|如何|是否|为什么/i;
+const questionWords = /许可证|授權條款|許可證|开源协议|授权协议|^(?:what|how|where|when|why|who|which|does|is|are|has|can|could|would|should)\b|[?？]|[吗么]|如何|是否|为什么/i;
 
 // Normalize how the overview is requested, then match its subject. Any remaining
 // topic (license, API behavior, etc.) belongs to the model's read-only turn.
@@ -66,7 +66,18 @@ export function repositoryQuestion(task: string): RepositoryQuestion | undefined
   const raw = explicit ? prompt.replace(/^\/repo\s*/i, "") : link?.replace(/[?.,!]+$/, "");
   const path = raw?.match(/^https:\/\/github\.com\/([^/?#\s]+\/[^/?#\s]+)\/?$/i)?.[1];
   if (!path || !validRepository(path)) return {problem: usage};
-  return {slug: path};
+  const slug = path.replace(/\.git$/i, "");
+  return validRepository(slug) ? {slug} : {problem: usage};
+}
+
+export function licenseSourceHint(task: string): string {
+  if (!/\blicen[cs]e\b|许可证|許可證|开源协议|授权协议|授權條款/i.test(task)) return "";
+  const links = task.match(/https?:\/\/[^\s<>()，。！？]+/gi) ?? [];
+  if (links.length !== 1) return "";
+  const slug = links[0]!.replace(/[?.,!]+$/, "").match(/^https:\/\/github\.com\/([^/?#]+\/[^/?#]+)\/?$/i)?.[1]?.replace(/\.git$/i, "");
+  if (!slug || !validRepository(slug)) return "";
+  return "\nFor this license question, use web_fetch to read https://raw.githubusercontent.com/" + slug +
+    "/HEAD/LICENSE first. Cite its returned source. If unavailable, report what was checked and avoid repeating failed calls.";
 }
 
 function displayText(value: unknown, max: number): string {
@@ -102,11 +113,13 @@ function readmeExcerpt(body: Buffer): string {
 }
 
 function failure(error: unknown, proxy: boolean): string {
+  if (error instanceof ProxyTransportError) return "GitHub HTTPS request failed. Check the trusted local proxy port.";
   if (error instanceof Denied) return error.message.includes("redirect")
     ? "GitHub redirected this request. Open the repository in your browser and submit its current root URL."
     : "Native GET policy denied the destination. DNS may resolve GitHub to a reserved or local address. Check DNS, or restart Pan with --github-proxy-port PORT for a trusted local HTTP CONNECT proxy.";
   if (error instanceof UpstreamHttpError) {
     if (error.status === 404) return "GitHub HTTP 404. Check the owner and repository name and confirm it is publicly visible.";
+    if (error.rateLimited) return "GitHub HTTP " + error.status + " rate limit reached. Try again later.";
     if ([403, 429].includes(error.status)) return "GitHub HTTP " + error.status + ". Public access may be limited. Check visibility or try again later.";
     return "GitHub HTTP " + error.status + ". Check the public repository in a browser or try again later.";
   }

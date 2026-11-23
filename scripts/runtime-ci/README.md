@@ -91,3 +91,5 @@ The [installed TUI report check](mcp-tui.py) drives the actual launcher through 
 The installed PTY client in `installed_pty.py` is shared by MCP and host lifecycle tests. `host-lifecycle.py` checks the explicit host session, revocation and default restart with an offline model fixture and records PTY transcripts and original archives. It runs on macOS and in the provisioned Linux native matrix.
 
 The [installed copy check](copy-output.py) captures terminal controls in an isolated PTY, checks UTF-8 clipboard payloads against private text files, and confirms copying conversation, approval, details and replay output issues zero additional model requests.
+
+The [installed public document fixture](public-documents.mjs) checks GitHub license fallback, DNS reply validation, macOS proxy selection and the exact CONNECT authority at a recording loopback listener. The Linux matrix and the focused macOS job run it without external document requests. On an affected Mac, append `--live-macos` to the fixture invocation to exercise the OS-selected proxy against GitHub and example.com. This optional probe makes real public HTTPS requests with no model provider.

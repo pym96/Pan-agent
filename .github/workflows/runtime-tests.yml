@@ -65,3 +65,21 @@ jobs:
           include-hidden-files: true
           if-no-files-found: error
           retention-days: 30
+
+  macos-documents:
+    runs-on: macos-15
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.19.0'
+      - name: Test public document fixtures against the installed macOS package
+        run: |
+          npm ci --prefix typescript --ignore-scripts
+          (cd typescript && npm pack --pack-destination "$RUNNER_TEMP")
+          npm install --prefix "$RUNNER_TEMP/consumer" --ignore-scripts "$RUNNER_TEMP"/pan-agent-*.tgz
+          node scripts/runtime-ci/public-documents.mjs "$RUNNER_TEMP/consumer/node_modules/pan-agent"
