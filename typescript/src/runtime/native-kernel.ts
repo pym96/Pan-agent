@@ -96,7 +96,11 @@ export class NativeKernel implements AgentKernel {
 	get isRunning(): boolean { return this.running; }
 	get contextMessageCount(): number { return this.messages.length; }
 
-	async runTask(request: KernelRunRequest): Promise<KernelRunResult> {
+	private taskTools(request: KernelRunRequest): AgentTool[] {
+    return request.toolNames ? this.tools.filter(tool => request.toolNames!.includes(tool.name)) : this.tools;
+  }
+
+  async runTask(request: KernelRunRequest): Promise<KernelRunResult> {
 		if (this.importing) throw new Error("checkpoint_import_in_progress");
 		return this.execute(request);
 	}
@@ -106,7 +110,7 @@ export class NativeKernel implements AgentKernel {
 		if (this.running || this.closed || this.importing) throw new Error("checkpoint_session_unavailable");
 		if (!((checkpoint.version === 1 && checkpoint.next === "model_exchange") || (checkpoint.version === 2 && checkpoint.next === "pending_tool" && this.checkpoint.pending))
 			|| checkpoint.task !== request.task || checkpoint.systemPrompt !== request.systemPrompt
-			|| checkpoint.toolsJSON !== JSON.stringify(this.tools.map(describeAgentTool))
+			|| checkpoint.toolsJSON !== JSON.stringify(this.taskTools(request).map(describeAgentTool))
 			|| checkpoint.provider !== this.adapter.providerId || checkpoint.model !== this.adapter.modelId
 			|| checkpoint.reasoning !== this.adapter.reasoningLevel || checkpoint.providerFormat !== this.adapter.checkpoint.format
 			|| !Number.isSafeInteger(checkpoint.modelCalls) || checkpoint.modelCalls < 1
@@ -143,6 +147,7 @@ export class NativeKernel implements AgentKernel {
         catch(error){this.running=false;this.activeController=undefined;this.settleIdle?.();throw error;}
         const counts = () => admission.snapshot();
 		let usage = restored?.usage ?? EMPTY_USAGE;
+		const tools = this.taskTools(request);
 		let finalText = "";
 		const terminal = (status: KernelRunResult["status"], reason: string): KernelRunResult => ({
 			status, reason, finalText, ...counts(), usage,
@@ -150,18 +155,18 @@ export class NativeKernel implements AgentKernel {
 
         const snapshot = async (next: "model_exchange" | "pending_tool"): Promise<NativeCheckpoint> => ({
             version: next === "pending_tool" ? 2 : 1, sourceRunId: request.runId, task: request.task,
-            systemPrompt: request.systemPrompt, toolsJSON: JSON.stringify(this.tools.map(describeAgentTool)),
+            systemPrompt: request.systemPrompt, toolsJSON: JSON.stringify(tools.map(describeAgentTool)),
             provider: this.adapter.providerId, model: this.adapter.modelId, reasoning: this.adapter.reasoningLevel,
             providerFormat: this.adapter.checkpoint!.format, providerState: await this.adapter.checkpoint!.exportState(),
             messages: structuredClone(this.messages), ...counts(), usage: structuredClone(usage), next,
         });
         const settle = async (call: ToolCall, reused?: ToolResultMessage) => {
             if (!reused) {
-                await request.onObservation({type:"tool.started",runId:request.runId,toolCallId:call.id,toolName:call.name,arguments:call.arguments});
+                await request.onObservation({type:"tool.started",runId:request.runId,toolCallId:call.id,toolName:call.name,arguments:call.name === "web_fetch" ? {url:"[see settled source]"} : call.arguments});
                 if (controller.signal.aborted) throw new Error("operator_cancelled");
             }
             await admission.check();
-            const result = reused ?? await this.executeTool(call, controller.signal);
+            const result = reused ?? await this.executeTool(call, controller.signal, tools);
             await this.checkpoint?.settled?.(result);
             this.messages.push(result);
             if (!reused) await request.onObservation({type:"tool.settled",runId:request.runId,toolCallId:call.id,toolName:call.name,isError:result.isError,text:resultText(result.content),...(result.details === undefined ? {} : {details:result.details})});
@@ -198,7 +203,7 @@ export class NativeKernel implements AgentKernel {
 						context: {
 							systemPrompt: request.systemPrompt,
 							messages: [...this.messages],
-							tools: this.tools.map(describeAgentTool),
+							tools: tools.map(describeAgentTool),
 						},
 						...(request.onProgress ? { onProgress: (delta: import("../protocol/model-adapter-contract.ts").ModelTextDelta) => {
 							if (!progressOpen || controller.signal.aborted || !delta || delta.type !== "text_delta" || typeof delta.text !== "string") return;
@@ -299,8 +304,8 @@ export class NativeKernel implements AgentKernel {
 		this.closed = true;
 	}
 
-	private async executeTool(call: ToolCall, signal: AbortSignal): Promise<ToolResultMessage> {
-		const tool = this.tools.find((candidate) => candidate.name === call.name);
+	private async executeTool(call: ToolCall, signal: AbortSignal, tools: readonly AgentTool[]): Promise<ToolResultMessage> {
+		const tool = tools.find((candidate) => candidate.name === call.name);
 		if (!tool) return this.errorResult(call, `Tool ${call.name} not found`);
 		try {
 			const validation = tool.validate(call.arguments);

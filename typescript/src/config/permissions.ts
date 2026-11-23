@@ -18,7 +18,7 @@ export function parseSessionTasks(value: string | undefined): readonly SessionTa
 
 export const MAX_DENY_RULES = 256;
 export const MAX_DENY_RULE_LENGTH = 4096;
-const TOOLS = new Set(['read', 'write', 'edit', 'bash', 'retrieve', 'mcp_report']);
+const TOOLS = new Set(['read', 'write', 'edit', 'bash', 'retrieve', 'mcp_report', 'web_fetch']);
 
 /** Only a whole native tool name or bash(nonempty literal/* glob) is supported. */
 export function parsePanPermissions(value: unknown): PanPermissions {

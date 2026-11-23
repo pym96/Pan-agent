@@ -62,6 +62,7 @@ export type SessionProgress = ModelTextDelta & { readonly runId: string; readonl
 export type ProgressSink = (progress: SessionProgress) => void;
 
 export interface KernelRunRequest {
+	readonly toolNames?: readonly string[];
 	readonly onProgress?: ProgressSink;
 	readonly runId: string;
 	readonly task: string;

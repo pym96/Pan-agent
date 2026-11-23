@@ -61,7 +61,7 @@ Attachment limits are positive safe integers in bytes. The order is explicit `--
 
 | Rule | Meaning |
 | --- | --- |
-| `read`, `write`, `edit`, `bash`, `retrieve`, `mcp_report` | Deny every invocation of that exact native tool name. |
+| `read`, `write`, `edit`, `bash`, `retrieve`, `mcp_report`, `web_fetch` | Deny every invocation of that exact native tool name. |
 | `bash(PATTERN)` | Deny a bash request whose entire command string matches PATTERN. |
 
 PATTERN must be nonempty. Matching is case-sensitive. Only `*` is special: it matches any sequence, including an empty sequence and newlines. All other characters are literal, including `?`, `[`, `]`, `.`, backslashes, parentheses and shell metacharacters. There is no escape syntax for a literal `*`. This is Pan's grammar; Claude-style `Bash(...)`, regular expressions, negation, aliases and rules for other tools are rejected.

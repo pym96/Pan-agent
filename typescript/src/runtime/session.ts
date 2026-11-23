@@ -1,3 +1,4 @@
+import { nativePublic } from "../tools/web-fetch.ts";
 import { repositoryQuestion, repositoryOverview, type RepositoryRead } from "./repository-overview.ts";
 import type { AdmissionFactory } from "../execution/admission.ts";
 import type { NativeCheckpoint, CheckpointSink } from "./checkpoint.ts";
@@ -93,6 +94,7 @@ export class GeneralAgentSession {
   private repositoryController?: AbortController;
 	private readonly executionBoundary?: GeneralAgentSessionOptionsBase["executionBoundary"];
 	private readonly kernel: AgentKernel;
+  private readonly toolNames: readonly string[];
 	private readonly onObservation: ObservationSink;
 	private readonly onProgress?: ProgressSink;
 	private readonly cleanup?: () => Promise<void> | void;
@@ -128,6 +130,7 @@ export class GeneralAgentSession {
 		const limits = resolveKernelLimits(options.limits);
 		if (selector === "native") {
 			const nativeOptions = options as NativeGeneralAgentSessionOptions;
+      this.toolNames = nativeOptions.tools.map(tool => tool.name);
 			this.kernel = new NativeKernel({
 				adapter: nativeOptions.adapter,
 				tools: nativeOptions.tools.map(tool => this.authorization.wrap(tool, () => this.activeWriter?.runId)),
@@ -137,6 +140,7 @@ export class GeneralAgentSession {
                 admission: nativeOptions.admission,
 			});
 		} else {
+			this.toolNames = [];
 			this.kernel = selector as AgentKernel;
 		}
 		this.onObservation = options.onObservation ?? (() => {});
@@ -173,12 +177,13 @@ export class GeneralAgentSession {
 		if (this.closed) throw new Error("GeneralAgentSession is closed");
 		if (task.trim().length === 0) throw new Error("Task must not be blank");
 		if (this.isRunning || this.admitting) throw new Error("A task is already running");
-		const question = this.repository && !checkpoint ? repositoryQuestion(task) : undefined;
+		const routed = this.repository ? repositoryQuestion(task) : undefined;
+    const question = !checkpoint || routed?.modelRead ? routed : undefined;
     const boundary = question && !this.repository?.native ? undefined : this.executionBoundary;
-    const controller = question ? new AbortController() : undefined;
+    const controller = question && !question.modelRead ? new AbortController() : undefined;
     this.repositoryController = controller;
-    const archivedTask = !question ? task : question.slug ? "/repo https://github.com/" + question.slug : "/repo [input omitted]";
-    const kind = question ? {taskKind: "repository_overview" as const} : {};
+    const archivedTask = !question || question.modelRead ? task : question.slug ? "/repo https://github.com/" + question.slug : "/repo [input omitted]";
+    const kind = question && !question.modelRead ? {taskKind: "repository_overview" as const} : {};
 		this.admitting = true;
 		this.admissionCancelled = false;
 		this.admissionDone = new Promise(resolve => { this.finishAdmission = resolve; });
@@ -215,11 +220,16 @@ export class GeneralAgentSession {
         outcome = answer;
         await this.emit({type: "repository.overview", runId: writer.runId, text: answer.finalText, mode,
           requests: answer.requests, transport: this.repository.proxy ? "github-loopback-proxy" : "native-public-get"});
+      } else if (question?.modelRead && !this.admissionCancelled &&
+                 (!nativePublic(boundary?.identity?.executionMode) || !this.toolNames.includes("web_fetch"))) {
+        outcome = {status:"incomplete" as const, reason:"web_fetch_unavailable", finalText:"This question needs web_fetch in a native public workspace.", modelCalls:0, toolCalls:0, usage:EMPTY_USAGE};
       } else outcome = this.admissionCancelled ? {status:'cancelled' as const,reason:'operator_cancelled',finalText:'',modelCalls:0,toolCalls:0,usage:EMPTY_USAGE} : await (checkpoint
                 ? (request: import("./agent-kernel.ts").KernelRunRequest) => (this.kernel as NativeKernel).resumeTask(request, checkpoint)
                 : (request: import("./agent-kernel.ts").KernelRunRequest) => this.kernel.runTask(request))({
 				runId: writer.runId,
 				task,
+        toolNames: question?.modelRead ? ["web_fetch"] : this.toolNames.includes("web_fetch") && !nativePublic(boundary?.identity?.executionMode)
+          ? this.toolNames.filter(name => name !== "web_fetch") : undefined,
 				systemPrompt: `${this.executionBoundary?.taskInstructions??this.baseSystemPrompt}\n\nRUNBOOK (revision ${runbook.revision}):\n${runbook.content}`,
 				onObservation: (observation) => this.emit(observation),
 				...(this.onProgress ? {onProgress:this.onProgress} : {}),

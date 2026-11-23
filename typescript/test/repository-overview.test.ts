@@ -119,3 +119,85 @@ test("opt-in proxy receives only fixed CONNECT authority; arbitrary response tex
   for(const flags of [["--trusted-local"],["--sandbox-root","/tmp/example"],["--native-sandbox","--native-offline"]])
     assert.throws(()=>parseCliArgs(["--kernel","native","--github-proxy-port","7890",...flags]));
 });
+
+test("specific GitHub questions offer and execute only web_fetch; coding tasks recover their normal tools", async t => {
+  const {createWebFetch} = await import("../src/tools/web-fetch.ts");
+  const root = await mkdtemp(join(tmpdir(), "pan-web-tool-"));
+  t.after(() => rm(root, {recursive:true, force:true}));
+  const store = await RunArchiveStore.open(join(root, "memory"));
+  const {adapter, faux} = scriptedAdapter();
+  const read: RepositoryRead = async (_, part) => part === "metadata"
+    ? Buffer.from(JSON.stringify({private: false, full_name: slug, license: {spdx_id: "Test-1.7"}}))
+    : Buffer.from("Example README");
+  const reader = createWebFetch({mode: () => "native-macos-public", document: async () => assert.fail(), repository: read, githubProxy:false});
+  let unrelated = 0;
+  const record = {name:"record", description:"Record result", parameters:stringParameters, validate:validateFixtureArguments,
+    async execute() {unrelated++; return {content:[{type:"text" as const,text:"ok"}]};}};
+  const session = new GeneralAgentSession({kernel:"native", adapter, systemPrompt:"Use tools.", tools:[reader, record],
+    memory:{archiveStore:store, runbook:async()=>({content:"", revision:"sha256:"+"0".repeat(64)})},
+    executionBoundary:{identity:{executionMode:"native-macos-public"},async start(){},async stop(){},cancel(){}},
+    repository:{native:true,proxy:false,read}});
+  t.after(()=>session.close());
+  const specific = "Which license does " + url + " use?";
+  for (const prompt of [specific, "What is the license of " + url + "?", "Summarize " + url + "/blob/main/README.md",
+    "Compare the licenses of " + url + " and https://github.com/cli/cli?"]) assert.deepEqual(repositoryQuestion(prompt), {modelRead:true});
+  faux.setResponses([context => {
+    assert.deepEqual(context.tools.map(tool=>tool.name), ["web_fetch"]);
+    assert.deepEqual(context.tools[0]!.parameters.required, ["url"]);
+    return response([call("record",{value:"unauthorized"},{id:"forged"}),call("web_fetch",{url},{id:"fetch-1"})],{stopReason:"tool_calls"});
+  }, context => {
+    const last = context.messages.at(-1);
+    assert.ok(last?.role === "tool_result" && last.toolCallId === "fetch-1" && !last.isError);
+    const block = last.content[0];
+    assert.ok(block?.type === "text");
+    const source = JSON.parse(block.text);
+    assert.equal(source.requestedUrl, url);
+    return response(source.untrustedDocument.match(/License: (.+)/)[1]);
+  }, context => {
+    assert.deepEqual(context.tools.map(tool=>tool.name), ["web_fetch", "record"]);
+    return response("done");
+  }]);
+  const answer = await session.runTask(specific);
+  assert.equal(answer.finalText, "Test-1.7");
+  assert.equal(unrelated, 0);
+  assert.match(JSON.stringify(await store.readArchive(answer.runId)), /Tool record not found/);
+  assert.equal((await session.runTask("Implement a feature")).status, "completed");
+});
+
+test("document validation, cancellation, bounded output and settings denial", async t => {
+  const {createWebFetch} = await import("../src/tools/web-fetch.ts");
+  const {fetchPublicDocument, documentUrl} = await import("../src/sandbox/native/network.ts");
+  const {SessionAuthorization} = await import("../src/runtime/authorization.ts");
+  let reads = 0, mode = "native-linux-public";
+  const reader = createWebFetch({mode:()=>mode, githubProxy:false, repository:async()=>assert.fail(),
+    document:async url=>{reads++; return {body:Buffer.from("x".repeat(14000)),finalUrl:url.href};}});
+  const args = {url:"https://docs.example.com/guide"};
+  const invoke = (tool: typeof reader) => tool.execute({toolCallId:"doc",arguments:args,signal:signal()});
+  for (const bad of ["file:///tmp/f","https://u:p@docs.example.com/a","https://docs.example.com/a?key=secret","https://docs.example.com/#secret","https://docs.example.com:8080/","https://docs.example.com/"+"x".repeat(4096)])
+    assert.equal(reader.validate({url:bad}).ok,false);
+  assert.equal(reader.validate({...args,method:"POST"}).ok, false);
+  const auth = new SessionAuthorization({permissions:{deny:["web_fetch"]}});
+  const denied = await invoke(auth.wrap(reader, () => "run"));
+  assert.equal(denied.isError,true);
+  assert.match(JSON.stringify(denied),/permission_denied/);
+  for(mode of ["native-macos-offline","native-linux-offline","host-fallback","sandbox","trusted-local"])
+    assert.equal((await invoke(reader)).isError,true);
+  assert.equal(reads,0);
+  mode="native-linux-public";
+  const result=await invoke(reader);
+  const block=result.content[0];
+  assert.ok(block?.type==="text");
+  assert.equal(JSON.parse(block.text).untrustedDocument.length,12000);
+  assert.equal(JSON.parse(block.text).truncated,true);
+  await assert.rejects(fetchPublicDocument(documentUrl(args.url),signal(),async()=>["10.0.0.1"]),/denied/);
+  let entered!:()=>void, late!: (ips:string[])=>void;
+  const lookup=new Promise<void>(r=>{entered=r;});
+  const pending=new Promise<string[]>(r=>{late=r;});
+  const delayed = createWebFetch({mode:()=>mode,githubProxy:false,repository:async()=>assert.fail(),
+    document:(url, signal)=>fetchPublicDocument(url,signal,async()=>{entered();return pending;})});
+  const cancel=new AbortController();
+  const running=delayed.execute({toolCallId:"cancel",arguments:args,signal:cancel.signal});
+  await lookup; cancel.abort();
+  assert.match(JSON.stringify(await running),/cancelled/);
+  late(["1.1.1.1"]);
+});

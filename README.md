@@ -98,7 +98,9 @@ The workspace defaults to your current directory (`--workspace DIR` overrides it
 
 The 0.1.10 interactive launcher selects the native workspace sandbox by default. Check the backend shown in the banner. Pan checks enforcement before it sends a task to the model. Ctrl-C requests cancellation during execution and can retain the draft. In the 0.1.11 source candidate, Ctrl-C exits setup or the idle TUI with status 130. During execution, press it a second time to exit after cancellation settles. Bare startup needs a terminal; see the [package guide](typescript/README.md) for command interfaces.
 
-## Ask about a public GitHub repository
+## Ask about public documents and GitHub repositories
+
+In the 0.1.11 source candidate, ask a question such as “Which license does https://github.com/cli/cli use?” or include a public documentation link in a coding task. The model can call `web_fetch(url)` in a native public workspace and use the result in its answer. A specific repository question offers only the read-only web tool for that turn.
 
 In the 0.1.11 source candidate, start `pan-agent` and paste `https://github.com/pym96/Pan-agent How about this repository` into the TUI. Pan shows GitHub metadata and a short excerpt from the README, with source URLs. You can also type `/repo https://github.com/cli/cli`. This turn runs without a model or workspace tool.
 

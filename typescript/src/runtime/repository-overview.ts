@@ -3,7 +3,7 @@ import { Denied, UpstreamHttpError, validRepository, type RepositoryPart } from 
 import { EMPTY_USAGE, type KernelRunResult } from "./agent-kernel.ts";
 
 export type RepositoryRead = (slug: string, part: RepositoryPart, signal: AbortSignal) => Promise<Buffer>;
-export interface RepositoryQuestion { slug?: string; problem?: string; }
+export interface RepositoryQuestion { slug?: string; problem?: string; modelRead?: true; }
 const usage = "Use /repo https://github.com/OWNER/REPO with the public repository root URL, without credentials, a query or a fragment.";
 
 // Only operator submissions reach this router. Recognizable instructions to change local code
@@ -27,9 +27,18 @@ export function repositoryQuestion(task: string): RepositoryQuestion | undefined
     const localOutput = /\b(?:file|workspace|save|write to)\b|\.(?:md|txt|json)\b/i;
     const action = localOutput.test(words) ? words : words.replace(proseRequest, "summarize");
     if (codingVerb.test(action) || chineseCoding.test(action)) return;
-    if (words && !overviewWords.test(action)) {
-      if (!questionWords.test(words) && !/[?？]\s*$/.test(prompt)) return;
-      return {problem: "This read-only repository view covers an overview. " + usage};
+    if (words && !overviewWords.test(action) && !questionWords.test(words) && !/[?？]\s*$/.test(prompt)) return;
+    if (!attached && links.every(raw => {
+      try {
+        const url = new URL(raw.replace(/[?.,!]+$/, ""));
+        return ["http:", "https:"].includes(url.protocol) && !url.username && !url.password && !url.search && !url.hash;
+      } catch { return false; }
+    })) {
+      // Keep the keyless overview for broad requests. Specific questions use a read-only model turn.
+      const broad = /^(?:(?:could|can|would) you |please )?(?:(?:give me |write )?(?:an? )?(?:(?:short|brief|detailed) )?(?:overview|summary|description|review)(?: of)?|(?:summari[sz]e|describe|explain|review)(?: this repository)?|(?:what can you tell me about|how about|tell me about|what about)(?: this (?:repository|repo))?|what (?:is this(?: repository)?|does this (?:repository|repo) do)|介绍(?:一下)?(?:这个仓库)?|总结(?:一下)?(?:这个仓库)?|这个仓库(?:是做什么的|怎么样))$/i;
+      const repoRoot = /^https:\/\/github\.com\/[^/?#]+\/[^/?#]+\/?$/i.test(link.replace(/[?.,!]+$/, ""));
+      if (!/^https:\/\/github\.com\//i.test(link)) return {problem: usage};
+      if (links.length !== 1 || !repoRoot || (words && !broad.test(words))) return {modelRead: true};
     }
   }
   if (attached) return {problem: "Remove the attached files and submit the public repository question again."};

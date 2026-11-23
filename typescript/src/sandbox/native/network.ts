@@ -143,6 +143,7 @@ interface ResponseOptions {
   accept?: string;
   maxBytes?: number;
   prefixOnly?: boolean;
+  documentOnly?: boolean;
 }
 async function getOne(url: URL, tcp: Socket, signal: AbortSignal, options: ResponseOptions = {}) {
   const name = addressLiteral(url.hostname);
@@ -169,13 +170,19 @@ async function getOne(url: URL, tcp: Socket, signal: AbortSignal, options: Respo
         return {redirect: next};
       }
       if (status < 200 || status >= 300) throw new UpstreamHttpError(status);
+      if (options.documentOnly) {
+        const type = (response.headers["content-type"] ?? "").split(";")[0]!.toLowerCase().trim();
+        if (!(/^text\//.test(type) || /^(?:application\/(?:json|xml|xhtml\+xml)|application\/[a-z0-9.+-]+\+(?:json|xml))$/.test(type))
+            || (response.headers["content-encoding"] ?? "identity").toLowerCase() !== "identity")
+          throw new Denied("unsupported document type or encoding");
+      }
       const chunks: Buffer[] = [];
       let bytes = 0;
       for await (const chunk of response) {
         const data = Buffer.from(chunk);
         const maxBytes = options.maxBytes ?? limit;
         if (data.length > maxBytes - bytes) {
-          if (!options.prefixOnly) throw Error("response exceeds size limit");
+          if (!options.prefixOnly) throw (options.documentOnly ? new Denied("response exceeds size limit") : Error("response exceeds size limit"));
           chunks.push(data.subarray(0, maxBytes - bytes));
           break;
         }
@@ -185,6 +192,31 @@ async function getOne(url: URL, tcp: Socket, signal: AbortSignal, options: Respo
       return {body: Buffer.concat(chunks)};
     } finally { agent.destroy(); }
   } finally { stream.destroy(); tcp.destroy(); }
+}
+
+/** A document URL carries no credentials, query or fragment, including after redirects. */
+export function documentUrl(raw: unknown): URL {
+  if (typeof raw !== "string" || raw.length > 4096 || !/^https?:\/\//i.test(raw) || /[\s\p{C}\\?#]/u.test(raw))
+    throw new Denied("expected a public HTTP(S) document URL without credentials, query or fragment");
+  let url: URL;
+  try { url = new URL(raw); } catch { throw new Denied("invalid document URL"); }
+  if (url.username || url.password || url.port || url.href.length > 4096) throw new Denied("unsupported document URL");
+  return url;
+}
+
+/** Shares DNS validation, pinned connections, TLS, and bounded streaming with pan-fetch.
+ * Model document reads never receive the shell's optional private-origin grant. */
+export async function fetchPublicDocument(url: URL, signal: AbortSignal, resolve: ResolveAddresses = systemResolve) {
+  let target = url;
+  for (let hop = 0; hop <= 5; hop++) {
+    target = documentUrl(target.href);
+    signal.throwIfAborted();
+    const socket = await directSocket(target, undefined, resolve, signal, () => {});
+    const reply = await getOne(target, socket, signal, {documentOnly: true, maxBytes: 128 * 1024});
+    if (reply.body) return {body: reply.body, finalUrl: target.href};
+    target = reply.redirect!;
+  }
+  throw new Denied("redirect limit exceeded");
 }
 
 export type RepositoryPart = "metadata" | "readme";

@@ -24,6 +24,14 @@ Pan 0.1.10 includes `pan-agent settings path`, `pan-agent settings show` and `pa
 
 The installed launcher selects the Native kernel and native workspace sandbox. In the 0.1.11 candidate, running `pan-agent` from home opens `~/pan-workspace`, creating it on first use. Run the same command in a project to work in that directory. The archive for both lives at `~/.pan-agent/archives`. With npm release 0.1.10, start in a project directory. Use `--workspace` and `--memory-root` to override them and keep their directories disjoint. First launch in a terminal offers configuration and reuses saved settings on later runs. No API request is made before a task is submitted.
 
+## Read public documentation in conversation
+
+In a native public workspace, ask “Which license does https://github.com/cli/cli use?” or give the model a public reference URL as part of a coding question. The model can choose the typed `web_fetch(url)` tool. It receives a source URL and a bounded excerpt of untrusted text. Specific read-only GitHub questions expose only this tool for that turn. Other tasks retain their normal tool permissions.
+
+The reader accepts HTTP(S) URLs on the standard ports without credentials, query strings or fragments. For general documents it checks and pins public DNS addresses on each of at most five redirects, accepts uncompressed UTF-8 text, JSON or XML, and rejects bodies over 128 KiB. The tool returns up to 12,000 text characters and marks clipped results. One call has a 15-second deadline. The GitHub root uses the existing public metadata and README reader below. The model can also request the fixed public API metadata or README URL. Only those GitHub reads can use the explicit proxy. A shell private-origin grant does not apply to this tool.
+
+Native offline, Docker, trusted-local and manual fallback omit the tool. To deny model requests before network access, add `"web_fetch"` to the existing settings `permissions.deny` list. Shell requests and the operator's keyless overview have their own entry points.
+
 ## Public repository overviews
 
 Start `pan-agent` in your project and paste one of these into the native TUI.
