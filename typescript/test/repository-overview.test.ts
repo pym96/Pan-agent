@@ -174,7 +174,7 @@ test("document validation, cancellation, bounded output and settings denial", as
   const {SessionAuthorization} = await import("../src/runtime/authorization.ts");
   let reads = 0, mode = "native-linux-public";
   const reader = createWebFetch({mode:()=>mode, githubProxy:false, repository:async()=>assert.fail(),
-    document:async url=>{reads++; return {body:Buffer.from("x".repeat(14000)),finalUrl:url.href};}});
+    document:async url=>{reads++; return {text:"x".repeat(12000),nextOffset:12000,finalUrl:url.href};}});
   const args = {url:"https://docs.example.com/guide"};
   const invoke = (tool: typeof reader) => tool.execute({toolCallId:"doc",arguments:args,signal:signal()});
   for (const bad of ["file:///tmp/f","https://u:p@docs.example.com/a","https://docs.example.com/a?key=secret","https://docs.example.com/#secret","https://docs.example.com:8080/","https://docs.example.com/"+"x".repeat(4096)])
@@ -219,7 +219,7 @@ test("broad overview stays keyless while official GitHub API and docs links use 
   };
   const docRead = async (url:URL) => {
     attempts.push("direct:"+url.href);
-    return {body:Buffer.from("documentation example"),finalUrl:url.href};
+    return {text:"documentation example",finalUrl:url.href};
   };
   const reader = createWebFetch({mode:()=>"native-macos-public",githubProxy:true,repository:repoRead,document:docRead});
   const session = new GeneralAgentSession({kernel:"native",adapter,systemPrompt:"Read the supplied source.",tools:[reader],
@@ -249,4 +249,31 @@ test("broad overview stays keyless while official GitHub API and docs links use 
     assert.equal(result.finalText,evidence);
     assert.deepEqual(attempts,[expectedRead]);
   }
+});
+
+test("document windows preserve exact EOF, markup state, UTF-8 and split entities", async () => {
+  const {readDocumentWindow, documentWindowSize} = await import("../src/sandbox/native/document-text.ts");
+  async function* bytes(input: Buffer) {
+    for (const byte of input) yield Uint8Array.of(byte);
+  }
+  const markup = '<head><title>Title</title></head><body><!-- <b>comment</b> -->' +
+    '<style>body {}</style><p title="1 > 0">A &amp; B &#x1F30F;</p><script>if (x < 0) "</scripture>"</script>' +
+    '<p>1 < 2 &amp; 3</p></body>';
+  assert.deepEqual(await readDocumentWindow(bytes(Buffer.from(markup)), "text/html", 0), {text:"Title A & B 🌏 1 < 2 & 3"});
+  const boundary = "A".repeat(documentWindowSize - 1) + "🌏";
+  assert.deepEqual(await readDocumentWindow(bytes(Buffer.from(boundary)), "text/plain", 0), {text:boundary});
+  assert.deepEqual(await readDocumentWindow(bytes(Buffer.from(boundary + "尾")), "text/plain", 0),
+    {text:boundary, nextOffset:documentWindowSize});
+  assert.deepEqual(await readDocumentWindow(bytes(Buffer.from(boundary + "尾")), "text/plain", documentWindowSize), {text:"尾"});
+  await assert.rejects(readDocumentWindow(bytes(Buffer.from([0xf0,0x9f])), "text/plain", 0), /encoded data/i);
+  let reads = 0;
+  async function* endlessText() {
+    while (true) {
+      assert.ok(++reads <= 3, "first window must stop consuming the body after one character of lookahead");
+      yield Buffer.alloc(8192, 65);
+    }
+  }
+  const first = await readDocumentWindow(endlessText(), "text/plain", 0);
+  assert.equal(first.text.length, documentWindowSize);
+  assert.equal(first.nextOffset, documentWindowSize);
 });

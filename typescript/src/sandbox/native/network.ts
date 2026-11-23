@@ -13,6 +13,7 @@ import { once } from "node:events";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 
+import { readDocumentWindow, type DocumentWindow } from "./document-text.ts";
 import type { LoopbackProxy, SystemProxy } from "./system-proxy.ts";
 
 const run = promisify(execFile);
@@ -158,6 +159,7 @@ interface ResponseOptions {
   maxBytes?: number;
   prefixOnly?: boolean;
   documentOnly?: boolean;
+  documentOffset?: number;
 }
 async function getOne(url: URL, tcp: Socket, signal: AbortSignal, options: ResponseOptions = {}) {
   const name = addressLiteral(url.hostname);
@@ -189,6 +191,10 @@ async function getOne(url: URL, tcp: Socket, signal: AbortSignal, options: Respo
         if (!(/^text\//.test(type) || /^(?:application\/(?:json|xml|xhtml\+xml)|application\/[a-z0-9.+-]+\+(?:json|xml))$/.test(type))
             || (response.headers["content-encoding"] ?? "identity").toLowerCase() !== "identity")
           throw new Denied("unsupported document type or encoding");
+        if (options.documentOffset !== undefined) {
+          if (status === 206 || response.headers["content-range"]) throw new Denied("upstream returned a partial document");
+          return {window: await readDocumentWindow(response, type, options.documentOffset)};
+        }
       }
       const chunks: Buffer[] = [];
       let bytes = 0;
@@ -208,13 +214,21 @@ async function getOne(url: URL, tcp: Socket, signal: AbortSignal, options: Respo
   } finally { stream.destroy(); tcp.destroy(); }
 }
 
-/** A document URL carries no credentials, query or fragment, including after redirects. */
+/** Only GitHub profile navigation accepts query parameters. Match the original
+ * spelling so encoded keys, duplicates or extra data cannot enter archives. */
+function publicProfileQuery(url: URL): boolean {
+  if (url.origin !== "https://github.com" || !/^\/[a-z0-9](?:[a-z0-9-]{0,37}[a-z0-9])?\/?$/i.test(url.pathname)) return false;
+  const fields = url.search.slice(1).split("&");
+  return fields.length <= 3 && fields.every(field => /^(?:tab=overview|(?:from|to)=\d{4}-\d{2}-\d{2})$/.test(field)) &&
+    new Set(fields.map(field => field.split("=")[0])).size === fields.length;
+}
+
 export function documentUrl(raw: unknown): URL {
-  if (typeof raw !== "string" || raw.length > 4096 || !/^https?:\/\//i.test(raw) || /[\s\p{C}\\?#]/u.test(raw))
-    throw new Denied("expected a public HTTP(S) document URL without credentials, query or fragment");
+  if (typeof raw !== "string" || raw.length > 4096 || !/^https?:\/\//i.test(raw) || /[\s\p{C}\\#]/u.test(raw))
+    throw new Denied("expected a public HTTP(S) document URL without credentials or fragment");
   let url: URL;
   try { url = new URL(raw); } catch { throw new Denied("invalid document URL"); }
-  if (url.username || url.password || url.port || url.href.length > 4096) throw new Denied("unsupported document URL");
+  if (url.username || url.password || url.port || url.href.length > 4096 || (raw.includes("?") && !publicProfileQuery(url))) throw new Denied("unsupported document URL");
   return url;
 }
 
@@ -283,7 +297,7 @@ async function publicDns(name: string, proxy: LoopbackProxy, signal: AbortSignal
   } finally { controller.abort(); }
 }
 
-interface DocumentProxy { system?: SystemProxy; githubPort?: number; }
+interface DocumentProxy { system?: SystemProxy; githubPort?: number; offset?: number; }
 const numericAuthority = (ip: string) => (isIP(ip) === 6 ? "[" + ip + "]" : ip) + ":443";
 function fixedRawLicense(url: URL): boolean {
   const path = url.pathname.match(/^\/([^/]+\/[^/]+)\/HEAD\/LICENSE$/);
@@ -321,14 +335,16 @@ async function documentSocket(url: URL, signal: AbortSignal, resolve: ResolveAdd
 
 /** Document reads never receive the shell's optional private-origin grant. */
 export async function fetchPublicDocument(url: URL, signal: AbortSignal, resolve: ResolveAddresses = systemResolve,
-    options: DocumentProxy = {}): Promise<{body: Buffer; finalUrl: string; transport?: string}> {
+    options: DocumentProxy = {}): Promise<DocumentWindow & {finalUrl: string; transport: string}> {
+  const offset = options.offset ?? 0;
+  if (!Number.isSafeInteger(offset) || offset < 0) throw new Denied("invalid document offset");
   let target = url;
   for (let hop = 0; hop <= 5; hop++) {
     target = documentUrl(target.href);
     signal.throwIfAborted();
     const {tcp, transport} = await documentSocket(target, signal, resolve, options, hop === 0 && fixedRawLicense(target) ? target.hostname : undefined);
-    const reply = await getOne(target, tcp, signal, {documentOnly: true, maxBytes: 128 * 1024});
-    if (reply.body) return {body: reply.body, finalUrl: target.href, transport};
+    const reply = await getOne(target, tcp, signal, {documentOnly: true, documentOffset:offset});
+    if (reply.window) return {...reply.window, finalUrl: target.href, transport};
     if (fixedRawLicense(target)) throw new Denied("GitHub license redirect refused");
     target = reply.redirect!;
   }

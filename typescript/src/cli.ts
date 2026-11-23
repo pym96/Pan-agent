@@ -476,7 +476,7 @@ export async function runCli(args: readonly string[], dependencies: CliDependenc
         if (nativeSandbox && !configuration.nativeOffline) {
           tools.push(createWebFetch({
             mode: () => fallback?.identity.network === "bounded-http-get" ? fallback.identity.executionMode : undefined,
-            document: (url, signal) => fetchPublicDocument(url, signal, dependencies.resolveNetworkName, {system: systemProxy, githubPort: configuration.githubProxyPort}),
+            document: (url, signal, offset) => fetchPublicDocument(url, signal, dependencies.resolveNetworkName, {offset, system: systemProxy, githubPort: configuration.githubProxyPort}),
             repository: repositoryRead, githubProxy: apiProxy !== undefined, repositoryTransport: () => apiTransport,
           }));
         }

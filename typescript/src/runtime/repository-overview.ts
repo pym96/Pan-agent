@@ -1,5 +1,5 @@
 import { decodeAttachedTask } from "../input/task-envelope.ts";
-import { Denied, ProxyTransportError, UpstreamHttpError, validRepository, type RepositoryPart } from "../sandbox/native/network.ts";
+import { documentUrl, Denied, ProxyTransportError, UpstreamHttpError, validRepository, type RepositoryPart } from "../sandbox/native/network.ts";
 import { EMPTY_USAGE, type KernelRunResult } from "./agent-kernel.ts";
 
 export type RepositoryRead = (slug: string, part: RepositoryPart, signal: AbortSignal) => Promise<Buffer>;
@@ -49,8 +49,8 @@ export function repositoryQuestion(task: string): RepositoryQuestion | undefined
     if (words && !broad && !overviewWords.test(action) && !questionWords.test(words) && !/[?？]\s*$/.test(prompt)) return;
     if (!attached && links.every(raw => {
       try {
-        const url = new URL(raw.replace(/[?.,!]+$/, ""));
-        return ["http:", "https:"].includes(url.protocol) && !url.username && !url.password && !url.search && !url.hash;
+        documentUrl(raw.replace(/[?.,!]+$/, ""));
+        return true;
       } catch { return false; }
     })) {
       const repoRoot = /^https:\/\/github\.com\/[^/?#]+\/[^/?#]+\/?$/i.test(link.replace(/[?.,!]+$/, ""));

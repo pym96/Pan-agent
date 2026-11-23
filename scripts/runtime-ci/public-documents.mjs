@@ -1,6 +1,8 @@
 /** Installed product fixtures. --live-macos additionally uses the host's real network, with no model provider. */
 import assert from 'node:assert/strict';
 import {once} from 'node:events';
+import net from 'node:net';
+import {syncBuiltinESMExports} from 'node:module';
 import {createServer} from 'node:http';
 import {realpath, stat} from 'node:fs/promises';
 import {join} from 'node:path';
@@ -29,7 +31,7 @@ const observed = [];
 const fixtureBytes = Buffer.from('Fixture License v12.8\nUse under the terms printed by this test.');
 const fixture = createWebFetch({mode: () => 'native-macos-public', githubProxy:false,
   repository: async (slug, part) => { observed.push([slug,part]); throw new UpstreamHttpError(403,true); },
-  document: async url => {observed.push(url.href); return {body:fixtureBytes, finalUrl:url.href, transport:'fixture'};}});
+  document: async url => {observed.push(url.href); return {text:fixtureBytes.toString(), finalUrl:url.href, transport:'fixture'};}});
 const call = (tool, url) => tool.execute({arguments:{url}, toolCallId:'source', signal:signal()});
 const api = 'https://api.github.com/repos/other/repository';
 const fallback = await call(fixture, api+'/license');
@@ -44,6 +46,86 @@ for (const [url, part] of [[api, 'metadata'],[api+'/readme','readme'],['https://
   assert.ok(result.isError);
   assert.match(result.content[0].text,/403/);
   assert.deepEqual(observed, [['other/repository',part]]);
+}
+
+// The fixture substitutes the TCP peer only in this process. Real HTTP parsing,
+// redirect handling, stream decoding and the installed tool all run unchanged.
+const profile = 'https://github.com/pym96?tab=overview&from=2026-11-01&to=2026-11-23';
+const ordinary = 'http://documents.example.com';
+const largeText = 'a'.repeat(11999) + '🌍' + '汉字🌏'.repeat(16000) + ' END';
+const page = '<html><head><script>' + 'ignored'.repeat(22000) + '</script></head>' +
+  '<body><main><h1>Activity &amp; contributions</h1><p>Real page body</p></main></body></html>';
+const site = createServer((req, res) => {
+  if (req.url === '/move') { res.writeHead(302, {Location: '/page'}).end(); return; }
+  if (req.url === '/partial') { res.writeHead(206, {'Content-Type':'text/plain'}).end('partial'); return; }
+  if (req.url === '/denied') { res.writeHead(403).end(); return; }
+  if (req.url === '/timeout') return;
+  if (req.url === '/broken') { req.socket.destroy(); return; }
+  if (req.url === '/private') { res.writeHead(302, {Location:'http://127.0.0.1/'}).end(); return; }
+  res.writeHead(200, {'Content-Type':req.url === '/page' ? 'text/html' : 'text/plain'});
+  const bytes = Buffer.from(req.url === '/page' ? page : largeText);
+  res.write(bytes.subarray(0, 12000)); // split the four-byte character
+  setImmediate(() => res.end(bytes.subarray(12000)));
+});
+site.listen(0, '127.0.0.1');
+await once(site, 'listening');
+const connect = net.connect;
+net.connect = options => {
+  assert.equal(options.host, '1.1.1.1');
+  assert.equal(options.port, 80);
+  const socket = connect({...options, host:'127.0.0.1', port:site.address().port});
+  Object.defineProperty(socket, 'remoteAddress', {value:'1.1.1.1'});
+  return socket;
+};
+syncBuiltinESMExports();
+try {
+  const platformMode = process.platform === 'darwin' ? 'native-macos-public' : 'native-linux-public';
+  const tool = createWebFetch({mode:() => platformMode, githubProxy:false, repository:async () => assert.fail(),
+    document:(url, signal, offset) => fetchPublicDocument(url, signal, async () => ['1.1.1.1'], {offset})});
+  async function window(url, offset) {
+    const args = offset === undefined ? {url} : {url, offset};
+    assert.ok(tool.validate(args).ok);
+    const result = await tool.execute({arguments:args, signal:signal(), toolCallId:'page'});
+    assert.ok(!result.isError, result.content[0].text);
+    return JSON.parse(result.content[0].text);
+  }
+  const html = await window(ordinary+'/move');
+  assert.equal(html.source, ordinary+'/page');
+  assert.match(html.untrustedDocument, /Activity & contributions/);
+  assert.match(html.untrustedDocument, /Real page body/);
+  assert.doesNotMatch(html.untrustedDocument, /ignored|<script>/);
+  assert.equal(html.truncated, false);
+  let assembled = '', offset, pages = 0;
+  do {
+    const result = await window(ordinary+'/text', offset);
+    assembled += result.untrustedDocument;
+    assert.equal(result.truncated, assembled !== largeText);
+    if (result.truncated) assert.ok(Number.isSafeInteger(result.nextOffset) && result.nextOffset > (offset ?? 0));
+    offset = result.nextOffset;
+    assert.ok(++pages < 20);
+  } while (offset !== undefined);
+  assert.ok(pages >= 2);
+  assert.equal(assembled, largeText);
+  assert.deepEqual(repositoryQuestion('Summarize '+profile), {modelRead:true});
+  assert.ok(tool.validate({url:profile}).ok);
+  for (const bad of [profile+'&token=secret', profile.replace('overview','secret'), profile.replace('github.com','example.com'), profile.replace('pym96?', 'org/repo?')])
+    assert.equal(tool.validate({url:bad}).ok,false);
+  for (const offset of [-1, 1.1, '12000', Number.MAX_SAFE_INTEGER+1]) assert.equal(tool.validate({url:ordinary,offset}).ok,false);
+  for (const [path,pattern] of [['/denied',/403/],['/private',/denied/],['/broken',/request failed/],['/partial',/partial document/]]) {
+    const result = await call(tool,ordinary+path);
+    assert.ok(result.isError);
+    assert.match(result.content[0].text,pattern);
+  }
+  const controller = new AbortController();
+  const pending = tool.execute({arguments:{url:ordinary+'/timeout'},signal:controller.signal,toolCallId:'stop'});
+  setTimeout(() => controller.abort(), 10);
+  assert.match((await pending).content[0].text,/cancelled/);
+  console.log(JSON.stringify({fixture:'installed large documents', platform:process.platform, bytes:Buffer.byteLength(largeText), pages, html:html.untrustedDocument}));
+} finally {
+  net.connect = connect;
+  syncBuiltinESMExports();
+  site.closeAllConnections();
+  await new Promise(resolve => site.close(resolve));
 }
 
 const settings = (port, extra = '') => '<dictionary> {\n  HTTPSEnable : 1\n  HTTPSProxy : 127.0.0.1\n  HTTPSPort : '+port+
@@ -102,14 +184,18 @@ if (mode === '--live-macos') {
   const system = await discoverSystemProxy();
   assert.ok(system.endpoint && !system.limitation);
   const live = createWebFetch({mode:()=>'native-macos-public', githubProxy:true,
-    document:(url, s)=>fetchPublicDocument(url,s,undefined,{system}),
+    document:(url, s, offset)=>fetchPublicDocument(url,s,undefined,{system,offset}),
     repository:(slug,part,s)=>fetchRepositoryPart(slug,part,s,system)});
-  for (const [url,expected] of [[source,/^MIT License/], ['https://example.com/', /Example Domain/i],
+  for (const [url,expected] of [[profile,/Pan-agent/i], [source,/^MIT License/], ['https://example.com/', /Example Domain/i],
     ['https://api.github.com/repos/cli/cli/license',/MIT License/]]) {
     const result = await call(live,url);
     assert.ok(!result.isError,result.content[0].text);
     const record = JSON.parse(result.content[0].text);
     assert.match(record.untrustedDocument,expected);
+    if (url === profile) {
+      assert.equal(record.requestedUrl,profile);
+      assert.equal(record.source,profile);
+    }
     assert.equal(record.truncated,false);
     console.log(JSON.stringify({source:record.source, upstream:record.notice, transport:result.details.transport,
       bytes:Buffer.byteLength(record.untrustedDocument), sha256:createHash('sha256').update(record.untrustedDocument).digest('hex')}));
