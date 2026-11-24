@@ -1,4 +1,4 @@
-/** Installed product fixtures. --live-macos additionally uses the host's real network, with no model provider. */
+/** Installed product fixtures. Optional live modes use the host network without a model provider. */
 import assert from 'node:assert/strict';
 import {once} from 'node:events';
 import net from 'node:net';
@@ -10,7 +10,7 @@ import {pathToFileURL} from 'node:url';
 import {createHash} from 'node:crypto';
 
 const [packagePath, mode] = process.argv.slice(2);
-assert.ok(packagePath && (!mode || mode === '--live-macos'));
+assert.ok(packagePath && (!mode || ['--live-macos','--live-queries'].includes(mode)));
 const installed = await realpath(packagePath);
 await assert.rejects(stat(join(installed, 'src')), {code:'ENOENT'});
 const load = file => import(pathToFileURL(join(installed, 'dist', file)).href);
@@ -52,10 +52,36 @@ for (const [url, part] of [[api, 'metadata'],[api+'/readme','readme'],['https://
 // redirect handling, stream decoding and the installed tool all run unchanged.
 const profile = 'https://github.com/pym96?tab=overview&from=2026-11-01&to=2026-11-23';
 const ordinary = 'http://documents.example.com';
+const queries = ['?z=1&Z=&z=two+words&%61=%2f%2F&opaque&=value&&',
+  '?api_key=fixture-only&ref=https://github.com&cursor=last?', '?', '?参数=值'];
+const profiles = ['https://github.com/pym96?tab=repositories', 'https://api.github.com/users/pym96/repos?per_page=100'];
+for (const url of [...profiles, profile, api+'?v=1', api+'/readme?ref=dev', api+'/license?ref=dev',
+  'https://github.com/other/repository?', 'https://github.com?tab=dashboard']) {
+  assert.deepEqual(repositoryQuestion('Summarize '+url), {modelRead:true});
+  assert.equal(licenseSourceHint('Which license '+url), '');
+  assert.ok(fixture.validate({url}).ok);
+  observed.length = 0;
+  const reply = await call(fixture,url);
+  const href = new URL(url).href;
+  assert.deepEqual(observed,[href]);
+  assert.equal(JSON.parse(reply.content[0].text).source,href);
+}
+assert.ok(repositoryQuestion('/repo https://github.com/other/repository?ref=dev').problem);
+const requests = [];
 const largeText = 'a'.repeat(11999) + '🌍' + '汉字🌏'.repeat(16000) + ' END';
 const page = '<html><head><script>' + 'ignored'.repeat(22000) + '</script></head>' +
   '<body><main><h1>Activity &amp; contributions</h1><p>Real page body</p></main></body></html>';
 const site = createServer((req, res) => {
+  requests.push(req.url);
+  assert.equal(req.headers['user-agent'], 'pan-agent-web-fetch');
+  if (req.url.startsWith('/echo?')) {
+    res.writeHead(200, {'Content-Type':'text/plain'}).end(req.url);
+    return;
+  }
+  if (req.url === '/move?old=1') {
+    res.writeHead(302, {Location:'/echo'+queries[0]}).end();
+    return;
+  }
   if (req.url === '/move') { res.writeHead(302, {Location: '/page'}).end(); return; }
   if (req.url === '/partial') { res.writeHead(206, {'Content-Type':'text/plain'}).end('partial'); return; }
   if (req.url === '/denied') { res.writeHead(403).end(); return; }
@@ -95,9 +121,23 @@ try {
   assert.match(html.untrustedDocument, /Real page body/);
   assert.doesNotMatch(html.untrustedDocument, /ignored|<script>/);
   assert.equal(html.truncated, false);
+  for (const query of queries) {
+    const target = '/echo'+query;
+    const href = new URL(ordinary+target).href;
+    const record = await window(ordinary+target);
+    assert.equal(record.untrustedDocument,href.slice(ordinary.length));
+    assert.equal(record.requestedUrl,href);
+    assert.equal(record.source,href);
+  }
+  const redirect = await window(ordinary+'/move?old=1');
+  assert.deepEqual(requests.slice(-2), ['/move?old=1','/echo'+queries[0]]);
+  assert.equal(redirect.source,ordinary+'/echo'+queries[0]);
+  assert.equal(redirect.untrustedDocument,'/echo'+queries[0]);
   let assembled = '', offset, pages = 0;
   do {
-    const result = await window(ordinary+'/text', offset);
+    const result = await window(ordinary+'/text'+queries[0], offset);
+    assert.equal(requests.at(-1),'/text'+queries[0]);
+    assert.equal(result.source,ordinary+'/text'+queries[0]);
     assembled += result.untrustedDocument;
     assert.equal(result.truncated, assembled !== largeText);
     if (result.truncated) assert.ok(Number.isSafeInteger(result.nextOffset) && result.nextOffset > (offset ?? 0));
@@ -108,8 +148,6 @@ try {
   assert.equal(assembled, largeText);
   assert.deepEqual(repositoryQuestion('Summarize '+profile), {modelRead:true});
   assert.ok(tool.validate({url:profile}).ok);
-  for (const bad of [profile+'&token=secret', profile.replace('overview','secret'), profile.replace('github.com','example.com'), profile.replace('pym96?', 'org/repo?')])
-    assert.equal(tool.validate({url:bad}).ok,false);
   for (const offset of [-1, 1.1, '12000', Number.MAX_SAFE_INTEGER+1]) assert.equal(tool.validate({url:ordinary,offset}).ok,false);
   for (const [path,pattern] of [['/denied',/403/],['/private',/denied/],['/broken',/request failed/],['/partial',/partial document/]]) {
     const result = await call(tool,ordinary+path);
@@ -179,15 +217,29 @@ for (const body of [answer([ip('1.1.1.1'),ip('10.0.0.1')]), answer([ip('1.1.1.1'
   assert.throws(()=>dnsAnswers(body,name,1),/DNS/);
 console.log(JSON.stringify({fixture:'installed offline', platform:process.platform, fallback:contents.source, checkedConnect:connections}));
 
-if (mode === '--live-macos') {
+if (mode) {
   assert.equal(process.platform,'darwin');
   const system = await discoverSystemProxy();
   assert.ok(system.endpoint && !system.limitation);
   const live = createWebFetch({mode:()=>'native-macos-public', githubProxy:true,
     document:(url, s, offset)=>fetchPublicDocument(url,s,undefined,{system,offset}),
     repository:(slug,part,s)=>fetchRepositoryPart(slug,part,s,system)});
-  for (const [url,expected] of [[profile,/Pan-agent/i], [source,/^MIT License/], ['https://example.com/', /Example Domain/i],
-    ['https://api.github.com/repos/cli/cli/license',/MIT License/]]) {
+  for (const url of profiles) {
+    assert.ok(live.validate({url}).ok);
+    const result = await call(live,url);
+    if (result.isError) {
+      assert.match(result.content[0].text,/HTTP [45]\d\d/);
+      console.log(JSON.stringify({requestedUrl:url,error:result.content[0].text}));
+    } else {
+      const record = JSON.parse(result.content[0].text);
+      assert.equal(record.requestedUrl,url);
+      assert.match(record.untrustedDocument, url === profiles[0] ? /repositories/i : /"full_name"\s*:\s*"pym96\//i);
+      console.log(JSON.stringify({requestedUrl:url,source:record.source,bytes:Buffer.byteLength(record.untrustedDocument),transport:result.details.transport}));
+    }
+  }
+  const extra = mode === '--live-macos' ? [[profile,/Pan-agent/i], [source,/^MIT License/], ['https://example.com/', /Example Domain/i],
+    ['https://api.github.com/repos/cli/cli/license',/MIT License/]] : [];
+  for (const [url,expected] of extra) {
     const result = await call(live,url);
     assert.ok(!result.isError,result.content[0].text);
     const record = JSON.parse(result.content[0].text);

@@ -175,8 +175,12 @@ async function getOne(url: URL, tcp: Socket, signal: AbortSignal, options: Respo
     const agent = new http.Agent({keepAlive: false});
     agent.createConnection = () => stream;
     try {
-      const req = http.get({hostname: name, port: Number(url.port || (url.protocol === "https:" ? 443 : 80)), path: url.pathname + url.search, signal, agent,
+      // A validated document has no credentials or fragment. Its serialized target
+      // retains a bare "?", which URL.search reports as an empty string.
+      const path = options.documentOffset !== undefined ? url.href.slice(url.origin.length) : url.pathname + url.search;
+      const req = http.get({hostname: name, port: Number(url.port || (url.protocol === "https:" ? 443 : 80)), path, signal, agent,
         maxHeaderSize: 16384, headers: {Host: url.host, Connection: "close", "Accept-Encoding": "identity",
+          ...(options.documentOffset !== undefined ? {"User-Agent": "pan-agent-web-fetch"} : {}),
           ...(options.accept ? {Accept: options.accept, "User-Agent": "pan-agent-repository-overview"} : {})}});
       const [response] = await once(req, "response", {signal}) as [http.IncomingMessage];
       const status = response.statusCode ?? 0;
@@ -214,21 +218,12 @@ async function getOne(url: URL, tcp: Socket, signal: AbortSignal, options: Respo
   } finally { stream.destroy(); tcp.destroy(); }
 }
 
-/** Only GitHub profile navigation accepts query parameters. Match the original
- * spelling so encoded keys, duplicates or extra data cannot enter archives. */
-function publicProfileQuery(url: URL): boolean {
-  if (url.origin !== "https://github.com" || !/^\/[a-z0-9](?:[a-z0-9-]{0,37}[a-z0-9])?\/?$/i.test(url.pathname)) return false;
-  const fields = url.search.slice(1).split("&");
-  return fields.length <= 3 && fields.every(field => /^(?:tab=overview|(?:from|to)=\d{4}-\d{2}-\d{2})$/.test(field)) &&
-    new Set(fields.map(field => field.split("=")[0])).size === fields.length;
-}
-
 export function documentUrl(raw: unknown): URL {
   if (typeof raw !== "string" || raw.length > 4096 || !/^https?:\/\//i.test(raw) || /[\s\p{C}\\#]/u.test(raw))
     throw new Denied("expected a public HTTP(S) document URL without credentials or fragment");
   let url: URL;
   try { url = new URL(raw); } catch { throw new Denied("invalid document URL"); }
-  if (url.username || url.password || url.port || url.href.length > 4096 || (raw.includes("?") && !publicProfileQuery(url))) throw new Denied("unsupported document URL");
+  if (url.username || url.password || url.port || url.href.length > 4096) throw new Denied("unsupported document URL");
   return url;
 }
 
@@ -301,7 +296,7 @@ interface DocumentProxy { system?: SystemProxy; githubPort?: number; offset?: nu
 const numericAuthority = (ip: string) => (isIP(ip) === 6 ? "[" + ip + "]" : ip) + ":443";
 function fixedRawLicense(url: URL): boolean {
   const path = url.pathname.match(/^\/([^/]+\/[^/]+)\/HEAD\/LICENSE$/);
-  return url.origin === "https://raw.githubusercontent.com" && !!path && validRepository(path[1]!);
+  return !url.href.includes("?") && url.origin === "https://raw.githubusercontent.com" && !!path && validRepository(path[1]!);
 }
 
 async function documentSocket(url: URL, signal: AbortSignal, resolve: ResolveAddresses, options: DocumentProxy, fixedOrigin?: string) {

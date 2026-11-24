@@ -175,9 +175,9 @@ test("document validation, cancellation, bounded output and settings denial", as
   let reads = 0, mode = "native-linux-public";
   const reader = createWebFetch({mode:()=>mode, githubProxy:false, repository:async()=>assert.fail(),
     document:async url=>{reads++; return {text:"x".repeat(12000),nextOffset:12000,finalUrl:url.href};}});
-  const args = {url:"https://docs.example.com/guide"};
+  const args = {url:"https://docs.example.com/guide?key=example"};
   const invoke = (tool: typeof reader) => tool.execute({toolCallId:"doc",arguments:args,signal:signal()});
-  for (const bad of ["file:///tmp/f","https://u:p@docs.example.com/a","https://docs.example.com/a?key=secret","https://docs.example.com/#secret","https://docs.example.com:8080/","https://docs.example.com/"+"x".repeat(4096)])
+  for (const bad of ["file:///tmp/f","https://u:p@docs.example.com/a","https://docs.example.com/#secret","https://docs.example.com:8080/","https://docs.example.com/"+"x".repeat(4096)])
     assert.equal(reader.validate({url:bad}).ok,false);
   assert.equal(reader.validate({...args,method:"POST"}).ok, false);
   const auth = new SessionAuthorization({permissions:{deny:["web_fetch"]}});
@@ -234,6 +234,9 @@ test("broad overview stays keyless while official GitHub API and docs links use 
   assert.deepEqual(attempts,["github:metadata","github:readme"]);
   const cases = [
     ["Which license does", "https://api.github.com/repos/"+slug, "report?", "github:metadata", "small example"],
+    ["Summarize", url+"?tab=examples", "", "direct:"+url+"?tab=examples", "documentation example"],
+    ["Summarize", "https://example.org/search?site=github.com", "", "direct:https://example.org/search?site=github.com", "documentation example"],
+    ["Summarize", "https://mygithub.com/search?a=1", "", "direct:https://mygithub.com/search?a=1", "documentation example"],
     ["Which examples appear in", "https://docs.github.com/en/rest", "?", "direct:https://docs.github.com/en/rest", "documentation example"],
   ] as const;
   for (const [before,link,after,expectedRead,evidence] of cases) {
@@ -248,6 +251,8 @@ test("broad overview stays keyless while official GitHub API and docs links use 
     const result=await session.runTask(before+" "+link+" "+after);
     assert.equal(result.finalText,evidence);
     assert.deepEqual(attempts,[expectedRead]);
+    const events = await store.readArchive(result.runId);
+    assert.deepEqual(events.find(row => row.type === "tool.started")?.arguments, {url:"[see settled source]"});
   }
 });
 

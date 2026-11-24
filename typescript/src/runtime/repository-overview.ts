@@ -38,7 +38,7 @@ export function repositoryQuestion(task: string): RepositoryQuestion | undefined
   const links = prompt.match(/https?:\/\/[^\s<>()，。！？]+/gi) ?? [];
   const link = links[0];
   if (!explicit) {
-    if (!link || !/github\.com/i.test(link)) return;
+    if (!link || !/^https?:\/\/[^/?#]*github\.com/i.test(link)) return;
     const words = prompt.replace(link, " ").replace(/^[\s:：<>，。,.!?！？-]+|[\s:：<>，。,.!?！？-]+$/g, "").trim();
     // "Write a summary" requests a response unless the operator also names a local output.
     const proseRequest = /\bwrite (?:an? )?(?:(?:very|short|brief|quick|detailed|general|high[- ]level|concise|simple)[ ,]+)*(?:summary|overview|description|review)\b/i;
@@ -47,16 +47,22 @@ export function repositoryQuestion(task: string): RepositoryQuestion | undefined
     const broad = broadOverview(words);
     if ((!broad || localOutput.test(words)) && (codingVerb.test(action) || chineseCoding.test(action))) return;
     if (words && !broad && !overviewWords.test(action) && !questionWords.test(words) && !/[?？]\s*$/.test(prompt)) return;
+    // A terminal question mark in an interrogative sentence can be punctuation.
+    // On a standalone URL or an imperative, retain even an empty query.
+    const proseQuestionMark = /^(?:what|how|which|who|can|could|would|does|is|are)\b/i.test(words) && prompt.endsWith(link);
+    const trimPunctuation = !link.includes("?") || (proseQuestionMark && link.indexOf("?") === link.length - 1);
+    const rootLink = trimPunctuation ? link.replace(/[?.,!]+$/, "") : link;
     if (!attached && links.every(raw => {
       try {
-        documentUrl(raw.replace(/[?.,!]+$/, ""));
+        documentUrl(raw);
         return true;
       } catch { return false; }
     })) {
-      const repoRoot = /^https:\/\/github\.com\/[^/?#]+\/[^/?#]+\/?$/i.test(link.replace(/[?.,!]+$/, ""));
+      const repoRoot = /^https:\/\/github\.com\/[^/?#]+\/[^/?#]+\/?$/i.test(rootLink);
       const host = new URL(link).hostname.toLowerCase();
-      if (host !== "github.com" && !host.endsWith(".github.com")) return {problem: usage};
-      if (host === "github.com" && !/^https:\/\/github\.com\//i.test(link)) return {problem: usage};
+      if (host !== "github.com" && !host.endsWith(".github.com"))
+        return rootLink.includes("?") ? {modelRead: true} : {problem: usage};
+      if (host === "github.com" && !rootLink.includes("?") && !/^https:\/\/github\.com\//i.test(link)) return {problem: usage};
       if (links.length !== 1 || !repoRoot || (words && !broad)) return {modelRead: true};
     }
   }
@@ -74,7 +80,8 @@ export function licenseSourceHint(task: string): string {
   if (!/\blicen[cs]e\b|许可证|許可證|开源协议|授权协议|授權條款/i.test(task)) return "";
   const links = task.match(/https?:\/\/[^\s<>()，。！？]+/gi) ?? [];
   if (links.length !== 1) return "";
-  const slug = links[0]!.replace(/[?.,!]+$/, "").match(/^https:\/\/github\.com\/([^/?#]+\/[^/?#]+)\/?$/i)?.[1]?.replace(/\.git$/i, "");
+  if (links[0]!.includes("?")) return "";
+  const slug = links[0]!.replace(/[.,!]+$/, "").match(/^https:\/\/github\.com\/([^/?#]+\/[^/?#]+)\/?$/i)?.[1]?.replace(/\.git$/i, "");
   if (!slug || !validRepository(slug)) return "";
   return "\nFor this license question, use web_fetch to read https://raw.githubusercontent.com/" + slug +
     "/HEAD/LICENSE first. Cite its returned source. If unavailable, report what was checked and avoid repeating failed calls.";
